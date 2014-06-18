@@ -1,0 +1,66 @@
+package models.geos;
+
+import play.data.validation.Constraints;
+import play.db.ebean.Model;
+
+import javax.persistence.*;
+import java.util.List;
+
+/**
+ * 国家。
+ *
+ * @author Haizi
+ */
+@Entity
+public class Country extends Model {
+    public static Finder<String, Country> finder = new Finder<>(String.class, Country.class);
+
+    @Id
+    @Constraints.MaxLength(value = 2)
+    public String countryCode2;
+
+    @Constraints.MaxLength(value = 3)
+    public String countryCode3;
+
+    /**
+     * 电话号码的国家代码。
+     */
+    @Constraints.Min(1)
+    public Integer telCode;
+
+    /**
+     * 国家的英文名称。
+     */
+    @Constraints.Required
+    public String enCountryName;
+
+    /**
+     * 国家的中文名称。
+     */
+    @Constraints.Required
+    public String zhCountryName;
+
+    /**
+     * 属于哪个大洲。
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    public Continent continent;
+
+    /**
+     * 属于哪个区域。
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    public SubContinent subContinent;
+
+    /**
+     * 下属行政区列表。
+     */
+    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
+    public List<AdminArea> adminAreaList;
+
+    /**
+     * 下属城市列表。
+     */
+    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
+    public List<City> cityList;
+}
