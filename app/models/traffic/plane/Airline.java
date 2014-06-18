@@ -1,4 +1,4 @@
-package models.geos;
+package models.traffic.plane;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -10,30 +10,27 @@ import javax.persistence.OneToMany;
 import java.util.List;
 
 /**
- * 大洲。
+ * 航空公司。
  *
  * @author Haizi
  */
 @Entity
-public class Continent extends Model{
+public class Airline extends Model{
     @Id
     public Long id;
 
     /**
-     * 英文名称。
+     * 航空公司名称。
      */
     @Constraints.Required
-    public String enContinentName;
+    public String airlineName;
 
     /**
-     * 中文名称。
+     * 航空公司代码。
      */
     @Constraints.Required
-    public String zhContinentName;
+    public String airlineCode;
 
-    /**
-     * 对应的国家列表。
-     */
-    @OneToMany(mappedBy = "continent", fetch = FetchType.LAZY)
-    public List<Country> countryList;
+    @OneToMany(mappedBy = "airline", fetch = FetchType.LAZY)
+    public List<FlightSchedule> flightScheduleList;
 }

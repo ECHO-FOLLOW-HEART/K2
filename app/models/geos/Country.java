@@ -15,10 +15,16 @@ import java.util.List;
 public class Country extends Model {
     public static Finder<String, Country> finder = new Finder<>(String.class, Country.class);
 
+    /**
+     * 基于ISO 3166-1 alpha-2标准的国家代码。
+     */
     @Id
     @Constraints.MaxLength(value = 2)
     public String countryCode2;
 
+    /**
+     * 基于ISO 3166-1 alpha-3标准的国家代码。
+     */
     @Constraints.MaxLength(value = 3)
     public String countryCode3;
 

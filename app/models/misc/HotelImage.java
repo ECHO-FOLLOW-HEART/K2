@@ -21,5 +21,5 @@ public class HotelImage extends ImageItem {
      * 图像的顺序。
      */
     @Constraints.Required
-    public Integer priority = 0;
+    public Integer orderIx = 0;
 }

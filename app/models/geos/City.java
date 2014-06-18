@@ -112,10 +112,18 @@ public class City extends Model {
 //    @OneToMany(mappedBy = "city", fetch = FetchType.LAZY)
 //    public List<Hotel> hotelList;
 
+    /**
+     * 城市的旅游重要性指数。
+     */
     public Integer priority;
 
     /**
      * 百度城市代码。
      */
     public String baiduCode;
+
+    /**
+     * 去哪城市代码。
+     */
+    public String qunarCode;
 }

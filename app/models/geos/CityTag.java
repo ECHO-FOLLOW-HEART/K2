@@ -21,6 +21,9 @@ public class CityTag extends Model {
     @Id
     public Long id;
 
+    /**
+     * 标签名称。
+     */
     @Constraints.Required
     public String tagName;
 

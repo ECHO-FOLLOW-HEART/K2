@@ -1,4 +1,4 @@
-package models.traffic.train;
+package models.traffic.plane;
 
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
@@ -6,58 +6,58 @@ import play.db.ebean.Model;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import java.sql.Time;
-import java.util.List;
 
 /**
- * 列车车次信息。
+ * 航班信息。
  *
  * @author Haizi
  */
 @Entity
-public class TrainRoute extends Model{
-    /**
-     * 车次。
-     */
+public class FlightSchedule extends Model{
     @Id
     @Constraints.MaxLength(10)
-    public String trainCode;
+    public String flightCode;
 
     /**
-     * 车次别称。如K237/K240。
+     * 表示本记录不是独立的航班，正在共享sharing所指定的航班代码。
      */
-    @Constraints.MaxLength(10)
-    public String aliasCode;
+    public String sharing;
 
     /**
-     * 车次类别，如：高铁、动车、普快、特快等。
+     * 飞机型号。
      */
-    @Constraints.MaxLength(16)
-    public String routeType;
+    public String jetType;
 
     /**
-     * 始发站。
+     * 航空公司。
      */
-    @Constraints.Required
-    public TrainStation departure;
+    @ManyToOne(fetch = FetchType.LAZY)
+    public Airline airline;
 
     /**
-     * 终到站。
+     * 起飞机场。
      */
     @Constraints.Required
-    public TrainStation arrival;
+    @ManyToOne
+    public Airport departure;
 
     /**
-     * 出发时间。
+     * 到达机场。
      */
     @Constraints.Required
+    @ManyToOne
+    public Airport arrival;
+
+    /**
+     * 起飞时间。
+     */
     public Time departureTime;
 
     /**
      * 到达时间。
      */
-    @Constraints.Required
     public Time arrivalTime;
 
     /**
