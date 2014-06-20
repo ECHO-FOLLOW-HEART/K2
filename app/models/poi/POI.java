@@ -1,17 +1,20 @@
 package models.poi;
 
+import com.avaje.ebean.annotation.CreatedTimestamp;
 import models.geos.Address;
-import models.geos.City;
+import models.geos.Locality;
+import models.tag.POITag;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
  * POI的基类。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @MappedSuperclass
 public class POI extends Model {
@@ -44,18 +47,24 @@ public class POI extends Model {
      */
     @Constraints.Required
     @ManyToOne(fetch = FetchType.LAZY)
-    public City city;
+    public Locality locality;
 
-//    /**
-//     * 标签。
-//     */
-//    @ManyToMany(fetch = FetchType.LAZY)
-//    public List<POITag> tagList;
+    /**
+     * 标签。
+     */
+    @ManyToMany(fetch = FetchType.LAZY)
+    public List<POITag> tagList;
 
     /**
      * 介绍。
      */
     @Column(columnDefinition = "TEXT")
     public String description;
+
+    @CreatedTimestamp
+    public Timestamp createdTime;
+
+    @Version
+    public Timestamp updatedTime;
 
 }

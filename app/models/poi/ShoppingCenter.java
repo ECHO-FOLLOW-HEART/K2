@@ -7,7 +7,7 @@ import java.sql.Time;
 /**
  * 购物中心
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class ShoppingCenter extends POI {

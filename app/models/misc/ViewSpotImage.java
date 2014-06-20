@@ -11,9 +11,9 @@ import javax.persistence.ManyToOne;
 /**
  * 景点的图像。
  *
- * @author Haizi
+ * @author Zephyre
  */
-@Entity
+//@Entity
 public class ViewSpotImage extends ImageItem {
     @ManyToOne(fetch = FetchType.LAZY)
     public ViewSpot viewSpot;

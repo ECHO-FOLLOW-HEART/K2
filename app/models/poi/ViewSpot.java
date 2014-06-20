@@ -5,7 +5,7 @@ import javax.persistence.Entity;
 /**
  * 景点。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class ViewSpot extends POI {

@@ -1,10 +1,14 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import models.geos.*;
+import models.tag.CityTag;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
+import play.libs.Json;
 import play.mvc.*;
 
+import utils.DataImporter;
 import utils.Utils;
 import views.html.*;
 
@@ -93,80 +97,104 @@ public class Application extends Controller {
         country.save();
 
         CityTag cityTag = new CityTag();
-        cityTag.tagName = "古镇风情";
+        cityTag.cityTagName = "古镇风情";
         cityTag.save();
         cityTag = new CityTag();
-        cityTag.tagName = "六朝古都";
+        cityTag.cityTagName = "六朝古都";
         cityTag.save();
         cityTag = new CityTag();
-        cityTag.tagName = "美食之都";
+        cityTag.cityTagName = "美食之都";
         cityTag.save();
         cityTag = new CityTag();
-        cityTag.tagName = "高原风光";
+        cityTag.cityTagName = "高原风光";
         cityTag.save();
 
         kvPair = new HashMap<String, Object>() {
             {
                 put("country", Country.finder.byId("CN"));
-                put("enCityName", "BEIJING");
-                put("zhCityName", "北京");
+                put("enLocalityName", "BEIJING");
+                put("zhLocalityName", "北京");
                 put("lat", 40f);
                 put("lng", 120f);
             }
         };
-        City city = (City) Utils.create(City.class, kvPair);
-        city.tagList = new ArrayList<CityTag>() {
+        Locality locality = (Locality) Utils.create(Locality.class, kvPair);
+        locality.tagList = new ArrayList<CityTag>() {
             {
-                add(CityTag.finder.where().eq("tagName", "六朝古都").findUnique());
-                add(CityTag.finder.where().eq("tagName", "美食之都").findUnique());
+                add(CityTag.finder.where().eq("cityTagName", "六朝古都").findUnique());
+                add(CityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
             }
         };
-        city.save();
+        locality.save();
 
         kvPair = new HashMap<String, Object>() {
             {
                 put("country", Country.finder.byId("CN"));
-                put("enCityName", "CHENGDU");
-                put("zhCityName", "成都");
+                put("enLocalityName", "CHENGDU");
+                put("zhLocalityName", "成都");
                 put("lat", 31f);
                 put("lng", 108f);
             }
         };
-        city = (City) Utils.create(City.class, kvPair);
-        city.save();
-        city = City.finder.where().eq("enCityName", "CHENGDU").findUnique();
-        city.tagList = new ArrayList<CityTag>() {
+        locality = (Locality) Utils.create(Locality.class, kvPair);
+        locality.save();
+        locality = Locality.finder.where().eq("enLocalityName", "CHENGDU").findUnique();
+        locality.tagList = new ArrayList<CityTag>() {
             {
-                add(CityTag.finder.where().eq("tagName", "高原风光").findUnique());
-                add(CityTag.finder.where().eq("tagName", "美食之都").findUnique());
+                add(CityTag.finder.where().eq("cityTagName", "高原风光").findUnique());
+                add(CityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
             }
         };
-        city.update();
+        locality.update();
 
 
         return ok("SUCCESS");
     }
 
+    @Transactional
     public static Result feedTag() {
         ArrayList<CityTag> tagList = new ArrayList<CityTag>() {
             {
-                add(CityTag.finder.where().eq("tagName", "六朝古都").findUnique());
-                add(CityTag.finder.where().eq("tagName", "美食之都").findUnique());
+                add(CityTag.finder.where().eq("cityTagName", "六朝古都").findUnique());
+                add(CityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
             }
         };
-        City city = City.finder.where().eq("enCityName", "BEIJING").findUnique();
-        city.tagList = tagList;
-        city.update();
+        Locality locality = Locality.finder.where().eq("enLocalityName", "BEIJING").findUnique();
+        locality.tagList = tagList;
+        locality.update();
 
         tagList = new ArrayList<CityTag>() {
             {
-                add(CityTag.finder.where().eq("tagName", "高原风光").findUnique());
-                add(CityTag.finder.where().eq("tagName", "美食之都").findUnique());
+                add(CityTag.finder.where().eq("cityTagName", "高原风光").findUnique());
+                add(CityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
             }
         };
-        city = City.finder.where().eq("enCityName", "CHENGDU").findUnique();
-        city.tagList = tagList;
-        city.update();
+        locality = Locality.finder.where().eq("enLocalityName", "CHENGDU").findUnique();
+        locality.tagList = tagList;
+        locality.update();
         return ok("SUCCESS");
+    }
+
+    @Transactional
+    public static Result test() {
+        return Results.TODO;
+    }
+
+    @Transactional
+    public static Result geoImport(int start, int count) {
+        DataImporter importer = new DataImporter("localhost", 3306, "vxp", "vxp123", "vxp_raw");
+        final JsonNode nodeProvince = importer.importGeoSite(start, count);
+//        final JsonNode nodeCity = importer.importCity(start, count, true);
+//        final JsonNode nodeCounty = importer.importCity(start, count, false);
+        JsonNode node = Json.toJson(new HashMap<String, Object>() {
+            {
+                put("province", nodeProvince);
+//                put("locality", nodeCity);
+//                put("county", nodeCounty);
+            }
+        });
+
+
+        return ok(node);
     }
 }

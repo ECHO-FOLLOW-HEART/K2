@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * 列车车次信息。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class TrainRoute extends Model{

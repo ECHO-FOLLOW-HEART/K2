@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * 工具类
  *
- * @author Haizi
+ * @author Zephyre
  */
 public class Utils {
     public static Object create(Class c, Map<String, Object> kvPairs) {

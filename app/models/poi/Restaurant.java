@@ -5,7 +5,7 @@ import javax.persistence.Entity;
 /**
  * 餐厅。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class Restaurant extends POI {

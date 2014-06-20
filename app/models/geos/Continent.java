@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 大洲。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class Continent extends Model{

@@ -1,5 +1,6 @@
-package models.geos;
+package models.tag;
 
+import models.geos.Locality;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * 城市的标签。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class CityTag extends Model {
@@ -25,8 +26,8 @@ public class CityTag extends Model {
      * 标签名称。
      */
     @Constraints.Required
-    public String tagName;
+    public String cityTagName;
 
     @ManyToMany(mappedBy = "tagList",fetch = FetchType.LAZY)
-    public List<City> cityList;
+    public List<Locality> localityList;
 }

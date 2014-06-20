@@ -1,5 +1,6 @@
 package models.traffic.plane;
 
+import com.avaje.ebean.annotation.UpdatedTimestamp;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -8,11 +9,12 @@ import javax.persistence.FetchType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import java.sql.Time;
+import java.sql.Timestamp;
 
 /**
  * 航班信息。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class FlightSchedule extends Model{
@@ -76,4 +78,6 @@ public class FlightSchedule extends Model{
      */
     public Integer distance;
 
+    @UpdatedTimestamp
+    public Timestamp updatedTime;
 }

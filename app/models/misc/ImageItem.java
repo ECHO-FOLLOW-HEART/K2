@@ -9,7 +9,7 @@ import javax.persistence.MappedSuperclass;
 /**
  * 图像的基类。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @MappedSuperclass
 public class ImageItem extends Model{

@@ -1,4 +1,4 @@
-package models.poi;
+package models.tag;
 
 import play.db.ebean.Model;
 
@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * POI的标签。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class POITag extends Model {

@@ -12,7 +12,7 @@ import java.util.List;
 /**
  * 航空公司。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class Airline extends Model{

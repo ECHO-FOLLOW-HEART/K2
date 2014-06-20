@@ -1,7 +1,7 @@
 package models.traffic.train;
 
 import models.geos.Address;
-import models.geos.City;
+import models.geos.Locality;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -10,7 +10,7 @@ import javax.persistence.*;
 /**
  * 火车站。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class TrainStation extends Model{
@@ -34,5 +34,5 @@ public class TrainStation extends Model{
      */
     @Constraints.Required
     @ManyToOne(fetch = FetchType.LAZY)
-    public City city;
+    public Locality locality;
 }

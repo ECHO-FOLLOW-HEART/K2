@@ -8,7 +8,7 @@ import javax.persistence.ManyToOne;
 /**
  * 地址信息
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Embeddable
 public class Address {

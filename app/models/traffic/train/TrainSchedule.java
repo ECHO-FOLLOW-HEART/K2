@@ -11,7 +11,7 @@ import java.sql.Time;
 /**
  * 车次的详细时刻表。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class TrainSchedule extends Model{

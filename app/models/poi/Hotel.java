@@ -1,7 +1,6 @@
 package models.poi;
 
 import models.misc.HotelImage;
-import models.misc.ImageItem;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -11,7 +10,7 @@ import java.util.List;
 /**
  * 酒店
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class Hotel extends POI {

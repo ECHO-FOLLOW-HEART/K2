@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * 国家。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class Country extends Model {
@@ -59,14 +59,8 @@ public class Country extends Model {
     public SubContinent subContinent;
 
     /**
-     * 下属行政区列表。
-     */
-    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
-    public List<AdminArea> adminAreaList;
-
-    /**
      * 下属城市列表。
      */
     @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
-    public List<City> cityList;
+    public List<Locality> localityList;
 }

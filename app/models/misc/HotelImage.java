@@ -10,7 +10,7 @@ import javax.persistence.ManyToOne;
 /**
  * 酒店的图像。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
 public class HotelImage extends ImageItem {

@@ -1,24 +1,24 @@
 package models.geos;
 
+import models.tag.CityTag;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
-import models.poi.Hotel;
-
 import javax.persistence.*;
+import java.sql.Timestamp;
 import java.util.List;
 
 /**
  * 城市。
  *
- * @author Haizi
+ * @author Zephyre
  */
 @Entity
-public class City extends Model {
-    public static Finder<Long, City> finder = new Finder<>(Long.class, City.class);
+public class Locality extends Model {
+    public static Finder<Long, Locality> finder = new Finder<>(Long.class, Locality.class);
 
     @Id
-    public Long city;
+    public Long id;
 
     /**
      * 城市所属国家。
@@ -28,26 +28,28 @@ public class City extends Model {
     public Country country;
 
     /**
-     * 城市所属行政区。
+     * 行政区级别：
+     * 1：省
+     * 2：市
+     * 3：县
      */
-    @ManyToOne(fetch = FetchType.LAZY)
-    public AdminArea adminArea;
+    public Integer level;
 
     /**
      * 城市的英文名称。
      */
     @Constraints.Required
-    public String enCityName;
+    public String enLocalityName;
 
     /**
      * 城市的中文名称。
      */
-    public String zhCityName;
+    public String zhLocalityName;
 
     /**
      * 城市的当地语言名称。
      */
-    public String localCityName;
+    public String localLocalityName;
 
     /**
      * 城市中心纬度。
@@ -106,11 +108,17 @@ public class City extends Model {
     @ManyToMany(fetch = FetchType.LAZY)
     public List<CityTag> tagList;
 
-//    /**
-//     * 城市的酒店列表。
-//     */
-//    @OneToMany(mappedBy = "city", fetch = FetchType.LAZY)
-//    public List<Hotel> hotelList;
+    /**
+     * 上级管辖城市。
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    public Locality supLocality;
+
+    /**
+     * 下级所属城市列表。
+     */
+    @OneToMany(fetch=FetchType.LAZY, mappedBy = "supLocality")
+    public List<Locality> chiLocalityList;
 
     /**
      * 城市的旅游重要性指数。
@@ -126,4 +134,7 @@ public class City extends Model {
      * 去哪城市代码。
      */
     public String qunarCode;
+
+    @Version
+    public Timestamp updatedTime;
 }

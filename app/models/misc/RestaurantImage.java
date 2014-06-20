@@ -10,9 +10,9 @@ import javax.persistence.ManyToOne;
 /**
  * 餐厅的图像。
  *
- * @author Haizi
+ * @author Zephyre
  */
-@Entity
+//@Entity
 public class RestaurantImage extends ImageItem {
     @ManyToOne(fetch = FetchType.LAZY)
     public Restaurant restaurant;
