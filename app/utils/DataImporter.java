@@ -5,14 +5,16 @@ import com.avaje.ebean.Expr;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.geos.Locality;
 import models.geos.Country;
+import models.misc.*;
+import models.traffic.train.TrainRoute;
 import models.traffic.train.TrainStation;
 import org.apache.commons.lang3.StringUtils;
 import play.libs.Json;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 导入数据。
@@ -150,6 +152,7 @@ public class DataImporter {
 
     /**
      * 导入火车站
+     *
      * @param start
      * @param count
      * @return
@@ -211,6 +214,121 @@ public class DataImporter {
                 {
                     put("code", 0);
                     put("total", finalCnt);
+                }
+            });
+        } catch (Exception e) {
+            final Exception finalE = e;
+            Ebean.rollbackTransaction();
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", -1);
+                    put("msg", "MySQL error: " + finalE.getMessage());
+                }
+            });
+        }
+    }
+
+    public JsonNode importTrainRoute(int start, int count) {
+        try {
+            Class.forName("com.mysql.jdbc.Driver").newInstance(); //MYSQL驱动
+            String connStr = String.format("jdbc:mysql://%s:%d/%s", this.hostName, this.port, this.db);
+            Connection conn = DriverManager.getConnection(connStr, this.user, this.password);
+
+            Statement statement = conn.createStatement();
+            String selectSql = String.format("SELECT * FROM vxp_train LIMIT %d, %d", start, count);
+            ResultSet res = statement.executeQuery(selectSql);
+            int cnt = 0;
+
+            List<String> missingStation = new ArrayList<>();
+
+            while (res.next()) {
+                String trainCode = res.getString("traincode");
+                String alias = null;
+                // 处理1112/1113这种情况
+                String[] codeParts = StringUtils.split(trainCode, '/');
+                if (codeParts.length > 1) {
+                    alias = StringUtils.join(Arrays.copyOfRange(codeParts, 1, codeParts.length), '/');
+                    trainCode = codeParts[0];
+                }
+
+                TrainRoute route = TrainRoute.finder.byId(trainCode);
+                if (route != null)
+                    continue;
+
+                // 首字母作为路线类型，或者"O"表示普通列车
+                String header = trainCode.substring(0, 1);
+                String trainType = (StringUtils.isNumeric(header) ? "O" : header.toUpperCase());
+
+                // 始发站和终到站
+                String fromStationName = res.getString("fromstation");
+                String toStationName = res.getString("tostation");
+                TrainStation fromStation = TrainStation.finder.where().eq("name", fromStationName).findUnique();
+                TrainStation toStation = TrainStation.finder.where().eq("name", toStationName).findUnique();
+
+                if (fromStation == null)
+                    missingStation.add(fromStationName);
+                if (toStation == null)
+                    missingStation.add(toStationName);
+                if (fromStation == null || toStation == null)
+                    continue;
+
+                // 时间
+                Pattern pattern = Pattern.compile("([0-9]{2}):([0-9]{2})");
+                String timeString = res.getString("fromtime");
+                Matcher matcher = pattern.matcher(timeString);
+                Time fromTime = null;
+                if (matcher.groupCount() == 2)
+                    fromTime = Time.valueOf(timeString + ":00");
+                timeString = res.getString("totime");
+                matcher = pattern.matcher(timeString);
+                Time toTime = null;
+                if (matcher.groupCount() == 2)
+                    toTime = Time.valueOf(timeString + ":00");
+                int dayLag = res.getInt("arriveday");
+
+                int distance = res.getInt("distance");
+
+                // 获得基础价格和完整价格列表
+                Map<String, Float> priceMap = new HashMap<>();
+                for (String priceTag : new String[]{"yz", "rz", "ywx", "yws", "ywz", "rws", "rwx", "gjrwx", "gjrws", "ydz", "edz", "tdz", "ggz", "bz", "swz"}) {
+                    float price = res.getFloat(priceTag);
+                    if (price <= 0)
+                        continue;
+
+                    priceMap.put(priceTag, price);
+                }
+                Float basePrice = null;
+                if (priceMap.size() > 0)
+                    basePrice = Collections.min(priceMap.values());
+                else
+                    basePrice = null;
+
+                route = new TrainRoute();
+                route.trainCode = trainCode;
+                route.aliasCode = alias;
+                route.routeType = trainType;
+                route.departure = fromStation;
+                route.arrival = toStation;
+                route.departureTime = fromTime;
+                route.arrivalTime = toTime;
+                route.dayLag = dayLag - 1;
+                route.duration = (int) ((toTime.getTime() + route.dayLag * 3600 * 24 * 1000L - fromTime.getTime()) / (1000 * 60));
+                route.distance = distance;
+                route.currency = models.misc.Currency.finder.byId("CNY");
+                if (basePrice != null)
+                    route.price = (int) (basePrice * 100);
+                route.save();
+
+                cnt++;
+            }
+
+            final int finalCnt = cnt;
+            final List<String> finalMissingStation = missingStation;
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", 0);
+                    put("total", finalCnt);
+                    put("missingStation", finalMissingStation);
                 }
             });
         } catch (Exception e) {

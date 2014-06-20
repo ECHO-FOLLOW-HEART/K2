@@ -198,6 +198,13 @@ public class Application extends Controller {
     public static Result trainImport(int start, int count) {
         DataImporter importer = new DataImporter("localhost", 3306, "vxp", "vxp123", "vxp_raw");
         final JsonNode nodeStation = importer.importTrainSite(start, count);
-        return Utils.createResponse(ErrorCode.NORMAL,nodeStation);
+        final JsonNode nodeRoute = importer.importTrainRoute(start, count);
+        JsonNode node = Json.toJson(new HashMap<String, Object>() {
+            {
+                put("station", nodeStation);
+                put("route", nodeRoute);
+            }
+        });
+        return Utils.createResponse(ErrorCode.NORMAL, node);
     }
 }

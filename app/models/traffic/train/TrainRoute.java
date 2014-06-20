@@ -1,12 +1,10 @@
 package models.traffic.train;
 
+import models.misc.Currency;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
+import javax.persistence.*;
 import java.sql.Time;
 import java.util.List;
 
@@ -16,7 +14,9 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class TrainRoute extends Model{
+public class TrainRoute extends Model {
+    public static Finder<String, TrainRoute> finder = new Finder<>(String.class, TrainRoute.class);
+
     /**
      * 车次。
      */
@@ -76,5 +76,17 @@ public class TrainRoute extends Model{
      */
     public Integer distance;
 
+    /**
+     * 票价的货币单位。
+     */
+    @ManyToOne
+    public Currency currency;
 
+    /**
+     * 基本票价。同一车次，根据坐席等级不同，票价也不同。这里取最便宜的票价，作为基础价格，以供参考。以分为单位。
+     */
+    public Integer price;
+
+    @Column(columnDefinition = "TEXT")
+    public String memo;
 }

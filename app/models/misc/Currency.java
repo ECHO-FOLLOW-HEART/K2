@@ -42,7 +42,7 @@ public class Currency extends Model {
     @OneToMany(mappedBy = "defCurrency", fetch = FetchType.LAZY)
     public List<Country> countryItems;
 
-    public static Finder<String, Currency> find = new Finder<>(String.class, Currency.class);
+    public static Finder<String, Currency> finder = new Finder<>(String.class, Currency.class);
 
     public static Currency create(String name, String symbol, float rate) {
         Currency ret = new Currency();
