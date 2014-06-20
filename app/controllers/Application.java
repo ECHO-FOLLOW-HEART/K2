@@ -2,7 +2,7 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import models.geos.*;
-import models.tag.CityTag;
+import models.tag.LocalityTag;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.libs.Json;
@@ -96,16 +96,16 @@ public class Application extends Controller {
         country = (Country) Utils.create(Country.class, kvPair);
         country.save();
 
-        CityTag cityTag = new CityTag();
+        LocalityTag cityTag = new LocalityTag();
         cityTag.cityTagName = "古镇风情";
         cityTag.save();
-        cityTag = new CityTag();
+        cityTag = new LocalityTag();
         cityTag.cityTagName = "六朝古都";
         cityTag.save();
-        cityTag = new CityTag();
+        cityTag = new LocalityTag();
         cityTag.cityTagName = "美食之都";
         cityTag.save();
-        cityTag = new CityTag();
+        cityTag = new LocalityTag();
         cityTag.cityTagName = "高原风光";
         cityTag.save();
 
@@ -119,10 +119,10 @@ public class Application extends Controller {
             }
         };
         Locality locality = (Locality) Utils.create(Locality.class, kvPair);
-        locality.tagList = new ArrayList<CityTag>() {
+        locality.tagList = new ArrayList<LocalityTag>() {
             {
-                add(CityTag.finder.where().eq("cityTagName", "六朝古都").findUnique());
-                add(CityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
+                add(LocalityTag.finder.where().eq("cityTagName", "六朝古都").findUnique());
+                add(LocalityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
             }
         };
         locality.save();
@@ -139,10 +139,10 @@ public class Application extends Controller {
         locality = (Locality) Utils.create(Locality.class, kvPair);
         locality.save();
         locality = Locality.finder.where().eq("enLocalityName", "CHENGDU").findUnique();
-        locality.tagList = new ArrayList<CityTag>() {
+        locality.tagList = new ArrayList<LocalityTag>() {
             {
-                add(CityTag.finder.where().eq("cityTagName", "高原风光").findUnique());
-                add(CityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
+                add(LocalityTag.finder.where().eq("cityTagName", "高原风光").findUnique());
+                add(LocalityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
             }
         };
         locality.update();
@@ -153,20 +153,20 @@ public class Application extends Controller {
 
     @Transactional
     public static Result feedTag() {
-        ArrayList<CityTag> tagList = new ArrayList<CityTag>() {
+        ArrayList<LocalityTag> tagList = new ArrayList<LocalityTag>() {
             {
-                add(CityTag.finder.where().eq("cityTagName", "六朝古都").findUnique());
-                add(CityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
+                add(LocalityTag.finder.where().eq("cityTagName", "六朝古都").findUnique());
+                add(LocalityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
             }
         };
         Locality locality = Locality.finder.where().eq("enLocalityName", "BEIJING").findUnique();
         locality.tagList = tagList;
         locality.update();
 
-        tagList = new ArrayList<CityTag>() {
+        tagList = new ArrayList<LocalityTag>() {
             {
-                add(CityTag.finder.where().eq("cityTagName", "高原风光").findUnique());
-                add(CityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
+                add(LocalityTag.finder.where().eq("cityTagName", "高原风光").findUnique());
+                add(LocalityTag.finder.where().eq("cityTagName", "美食之都").findUnique());
             }
         };
         locality = Locality.finder.where().eq("enLocalityName", "CHENGDU").findUnique();
@@ -184,17 +184,20 @@ public class Application extends Controller {
     public static Result geoImport(int start, int count) {
         DataImporter importer = new DataImporter("localhost", 3306, "vxp", "vxp123", "vxp_raw");
         final JsonNode nodeProvince = importer.importGeoSite(start, count);
-//        final JsonNode nodeCity = importer.importCity(start, count, true);
-//        final JsonNode nodeCounty = importer.importCity(start, count, false);
         JsonNode node = Json.toJson(new HashMap<String, Object>() {
             {
                 put("province", nodeProvince);
-//                put("locality", nodeCity);
-//                put("county", nodeCounty);
             }
         });
 
 
         return ok(node);
+    }
+
+    @Transactional
+    public static Result trainImport(int start, int count) {
+        DataImporter importer = new DataImporter("localhost", 3306, "vxp", "vxp123", "vxp_raw");
+        final JsonNode nodeStation = importer.importTrainSite(start, count);
+        return Utils.createResponse(ErrorCode.NORMAL,nodeStation);
     }
 }

@@ -16,8 +16,8 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class CityTag extends Model {
-    public static Finder<Long, CityTag> finder = new Finder<>(Long.class, CityTag.class);
+public class LocalityTag extends Model {
+    public static Finder<Long, LocalityTag> finder = new Finder<>(Long.class, LocalityTag.class);
 
     @Id
     public Long id;

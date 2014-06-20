@@ -1,5 +1,6 @@
 package models.geos;
 
+import models.misc.Currency;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -63,4 +64,10 @@ public class Country extends Model {
      */
     @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
     public List<Locality> localityList;
+
+    /**
+     * 默认货币。
+     */
+    @ManyToOne
+    public Currency defCurrency;
 }

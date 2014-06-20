@@ -1,6 +1,6 @@
 package models.geos;
 
-import models.tag.CityTag;
+import models.tag.LocalityTag;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
@@ -106,7 +106,7 @@ public class Locality extends Model {
      * 城市所属的标签。
      */
     @ManyToMany(fetch = FetchType.LAZY)
-    public List<CityTag> tagList;
+    public List<LocalityTag> tagList;
 
     /**
      * 上级管辖城市。

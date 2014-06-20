@@ -5,6 +5,7 @@ import com.avaje.ebean.Expr;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.geos.Locality;
 import models.geos.Country;
+import models.traffic.train.TrainStation;
 import org.apache.commons.lang3.StringUtils;
 import play.libs.Json;
 
@@ -126,6 +127,83 @@ public class DataImporter {
                     siblings.save();
                 }
                 locality.delete();
+            }
+
+            final int finalCnt = cnt;
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", 0);
+                    put("total", finalCnt);
+                }
+            });
+        } catch (Exception e) {
+            final Exception finalE = e;
+            Ebean.rollbackTransaction();
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", -1);
+                    put("msg", "MySQL error: " + finalE.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
+     * 导入火车站
+     * @param start
+     * @param count
+     * @return
+     */
+    public JsonNode importTrainSite(int start, int count) {
+        try {
+            Class.forName("com.mysql.jdbc.Driver").newInstance(); //MYSQL驱动
+            String connStr = String.format("jdbc:mysql://%s:%d/%s", this.hostName, this.port, this.db);
+            Connection conn = DriverManager.getConnection(connStr, this.user, this.password);
+
+            Statement statement = conn.createStatement();
+            String selectSql = String.format("SELECT id, city, pinyin, shortpy, area_code FROM vxp_train_city LIMIT %d, %d", start, count);
+            ResultSet res = statement.executeQuery(selectSql);
+            int cnt = 0;
+            while (res.next()) {
+                Long stationId = res.getLong("id");
+                TrainStation station = TrainStation.finder.byId(stationId);
+                if (station != null)
+                    continue;
+
+                String areaCodeStr = res.getString("area_code");
+                if (areaCodeStr != null && areaCodeStr.charAt(0) == '\ufeff')
+                    areaCodeStr = areaCodeStr.substring(1);
+                Locality locality = null;
+                try {
+                    locality = Locality.finder.byId(Long.parseLong(areaCodeStr));
+                } catch (NumberFormatException ignore) {
+                }
+
+                String name = res.getString("city");
+
+                // 试图从车站名查找locality
+                if (locality == null) {
+                    char lastChar = name.charAt(name.length() - 1);
+                    if (name.length() > 2 && (lastChar == '东' || lastChar == '南' || lastChar == '西' | lastChar == '北')) {
+                        String name2 = StringUtils.substring(name, 0, name.length() - 1);
+                        List<Locality> localityList = Locality.finder.where()
+                                .like("zhLocalityName", String.format("%s%%", name2)).findList();
+                        if (localityList.size() == 1)
+                            locality = localityList.get(0);
+                        else
+                            locality = null;
+                    }
+                }
+
+                station = new TrainStation();
+                station.id = stationId;
+                station.name = name;
+                station.pinyin = res.getString("pinyin");
+                station.shortPY = res.getString("shortpy");
+                station.locality = locality;
+                station.save();
+
+                cnt++;
             }
 
             final int finalCnt = cnt;

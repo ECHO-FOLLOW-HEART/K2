@@ -15,4 +15,8 @@ GET        /test/feed-data        controllers.Application.feedData()
 GET        /test/feed-tag         controllers.Application.feedTag()
 
 # 数据导入
-GET         /import/geo             controllers.Application.geoImport(start: Int?=0, count: Int?=50)
+GET        /import/geo            controllers.Application.geoImport(start: Int?=0, count: Int?=50)
+GET        /import/train          controllers.Application.trainImport(start: Int?=0, count: Int?=50)
+
+# 基础地理信息查询
+GET         /geo/localities/:id     controllers.GeoCtrl.getLocality(id: Long)

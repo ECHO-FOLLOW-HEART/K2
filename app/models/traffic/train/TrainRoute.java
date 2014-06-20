@@ -76,4 +76,5 @@ public class TrainRoute extends Model{
      */
     public Integer distance;
 
+
 }
