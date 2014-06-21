@@ -11,5 +11,6 @@ libraryDependencies ++= Seq(
   javaEbean,
   cache,
   javaWs,
-  "mysql" % "mysql-connector-java" % "latest.integration"
+  "mysql" % "mysql-connector-java" % "latest.integration",
+  filters
 )

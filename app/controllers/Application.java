@@ -189,20 +189,20 @@ public class Application extends Controller {
                 put("province", nodeProvince);
             }
         });
-
-
         return ok(node);
     }
 
     @Transactional
     public static Result trainImport(int start, int count) {
         DataImporter importer = new DataImporter("localhost", 3306, "vxp", "vxp123", "vxp_raw");
-        final JsonNode nodeStation = importer.importTrainSite(start, count);
-        final JsonNode nodeRoute = importer.importTrainRoute(start, count);
+//        final JsonNode nodeStation = importer.importTrainSite(start, count);
+//        final JsonNode nodeRoute = importer.importTrainRoute(start, count);
+        final JsonNode nodeSchedule = importer.importTrainTimetable(start, count);
         JsonNode node = Json.toJson(new HashMap<String, Object>() {
             {
-                put("station", nodeStation);
-                put("route", nodeRoute);
+//                put("station", nodeStation);
+//                put("route", nodeRoute);
+                put("schedule", nodeSchedule);
             }
         });
         return Utils.createResponse(ErrorCode.NORMAL, node);

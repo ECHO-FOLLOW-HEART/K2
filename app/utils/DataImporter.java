@@ -6,7 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import models.geos.Locality;
 import models.geos.Country;
 import models.misc.*;
+import models.misc.Currency;
 import models.traffic.train.TrainRoute;
+import models.traffic.train.TrainSchedule;
 import models.traffic.train.TrainStation;
 import org.apache.commons.lang3.StringUtils;
 import play.libs.Json;
@@ -277,12 +279,12 @@ public class DataImporter {
                 String timeString = res.getString("fromtime");
                 Matcher matcher = pattern.matcher(timeString);
                 Time fromTime = null;
-                if (matcher.groupCount() == 2)
+                if (matcher.find())
                     fromTime = Time.valueOf(timeString + ":00");
                 timeString = res.getString("totime");
                 matcher = pattern.matcher(timeString);
                 Time toTime = null;
-                if (matcher.groupCount() == 2)
+                if (matcher.find())
                     toTime = Time.valueOf(timeString + ":00");
                 int dayLag = res.getInt("arriveday");
 
@@ -329,6 +331,133 @@ public class DataImporter {
                     put("code", 0);
                     put("total", finalCnt);
                     put("missingStation", finalMissingStation);
+                }
+            });
+        } catch (Exception e) {
+            final Exception finalE = e;
+            Ebean.rollbackTransaction();
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", -1);
+                    put("msg", "MySQL error: " + finalE.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
+     * 导入列车时刻表。
+     *
+     * @param start
+     * @param count
+     * @return
+     */
+    public JsonNode importTrainTimetable(int start, int count) {
+        try {
+            Class.forName("com.mysql.jdbc.Driver").newInstance(); //MYSQL驱动
+            String connStr = String.format("jdbc:mysql://%s:%d/%s", this.hostName, this.port, this.db);
+            Connection conn = DriverManager.getConnection(connStr, this.user, this.password);
+
+            Statement statement = conn.createStatement();
+            String selectSql = String.format("SELECT * FROM vxp_train_stop LIMIT %d, %d", start, count);
+            ResultSet res = statement.executeQuery(selectSql);
+
+            int cnt = 0;
+            List<String> missingRoute = new ArrayList<>();
+            List<String> missingStation = new ArrayList<>();
+
+            while (res.next()) {
+                Long id = res.getLong("id");
+                TrainSchedule schedule = TrainSchedule.finder.byId(id);
+                if (schedule != null)
+                    continue;
+
+                String trainCode = res.getString("traincode");
+                if (trainCode.contains("/"))
+                    trainCode = trainCode.substring(0, trainCode.indexOf("/"));
+                TrainRoute route = TrainRoute.finder.byId(trainCode);
+                if (route == null) {
+                    missingRoute.add(trainCode);
+                    continue;
+                }
+
+                String stationName = res.getString("stationname");
+                TrainStation station = TrainStation.finder.where().eq("name", stationName).findUnique();
+                if (station == null) {
+                    missingStation.add(stationName);
+                    continue;
+                }
+
+                // 时间
+                Pattern pattern = Pattern.compile("([0-9]{2}):([0-9]{2})");
+                String timeString = res.getString("arrivetime");
+                Matcher matcher = pattern.matcher(timeString);
+                Time arriveTime = null;
+                if (matcher.find())
+                    arriveTime = Time.valueOf(timeString + ":00");
+                timeString = res.getString("fromtime");
+                matcher = pattern.matcher(timeString);
+                Time departTIme = null;
+                if (matcher.find())
+                    departTIme = Time.valueOf(timeString + ":00");
+
+                // 站点类型
+                TrainSchedule.StopType stopType = TrainSchedule.StopType.NORMAL;
+                if (arriveTime != null && departTIme == null)
+                    stopType = TrainSchedule.StopType.END;
+                else if (arriveTime == null && departTIme != null)
+                    stopType = TrainSchedule.StopType.START;
+                else if (arriveTime == null && departTIme != null) {
+                    missingStation.add(stationName);
+                    continue;
+                }
+
+                int dayLag = res.getInt("arriveday") - 1;
+                int stopIdx = res.getInt("stopno") - 1;
+                int distance = res.getInt("distance");
+
+                // 获得基础价格和完整价格列表
+                Map<String, Float> priceMap = new HashMap<>();
+                for (String priceTag : new String[]{"yz", "rz", "ywx", "yws", "ywz", "rws", "rwx", "gjrwx", "gjrws", "ydz", "edz", "tdz", "ggz", "bz", "swz"}) {
+                    float price = res.getFloat(priceTag);
+                    if (price <= 0)
+                        continue;
+                    priceMap.put(priceTag, price);
+                }
+                Float basePrice = null;
+                if (priceMap.size() > 0)
+                    basePrice = Collections.min(priceMap.values());
+                else
+                    basePrice = null;
+
+                schedule = new TrainSchedule();
+                schedule.id = id;
+                schedule.route = route;
+                schedule.stop = station;
+                schedule.stopIdx = stopIdx;
+                schedule.stopType = stopType;
+                schedule.arrivalTime = arriveTime;
+                schedule.departureTime = departTIme;
+                schedule.dayLag = dayLag;
+                schedule.distance = distance;
+                schedule.currency = Currency.finder.byId("CNY");
+                schedule.price = ((basePrice == null) ? 0 : (int) (basePrice * 100));
+                if (arriveTime != null)
+                    schedule.runTime = (int) ((arriveTime.getTime() + dayLag * 3600 * 24 * 1000L - schedule.route.departureTime.getTime()) / (1000 * 60));
+                schedule.save();
+
+                cnt++;
+            }
+
+            final int finalCnt = cnt;
+            final List<String> finalMissingStation = missingStation;
+            final List<String> finalMissingRoute = missingRoute;
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", 0);
+                    put("total", finalCnt);
+                    put("missingStation", finalMissingStation);
+                    put("missingStation", finalMissingRoute);
                 }
             });
         } catch (Exception e) {
