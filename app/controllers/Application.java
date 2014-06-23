@@ -12,6 +12,7 @@ import utils.DataImporter;
 import utils.Utils;
 import views.html.*;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -195,16 +196,35 @@ public class Application extends Controller {
     @Transactional
     public static Result trainImport(int start, int count) {
         DataImporter importer = new DataImporter("localhost", 3306, "vxp", "vxp123", "vxp_raw");
-//        final JsonNode nodeStation = importer.importTrainSite(start, count);
-//        final JsonNode nodeRoute = importer.importTrainRoute(start, count);
+        final JsonNode nodeStation = importer.importTrainSite(start, count);
+        final JsonNode nodeRoute = importer.importTrainRoute(start, count);
         final JsonNode nodeSchedule = importer.importTrainTimetable(start, count);
         JsonNode node = Json.toJson(new HashMap<String, Object>() {
             {
-//                put("station", nodeStation);
-//                put("route", nodeRoute);
+                put("station", nodeStation);
+                put("route", nodeRoute);
                 put("schedule", nodeSchedule);
             }
         });
+        return Utils.createResponse(ErrorCode.NORMAL, node);
+    }
+
+    @Transactional
+    public static Result airImport(int start, int count) throws ClassNotFoundException, SQLException, InstantiationException, IllegalAccessException {
+        DataImporter importer = DataImporter.init("localhost", 3306, "vxp", "vxp123", "vxp_raw");
+        importer.connect();
+//        final JsonNode nodePort = importer.importAirport(start, count);
+        final JsonNode nodeRoute =importer.importAirRoutes(start,count);
+//        final JsonNode nodeRoute = importer.importTrainRoute(start, count);
+//        final JsonNode nodeSchedule = importer.importTrainTimetable(start, count);
+        JsonNode node = Json.toJson(new HashMap<String, Object>() {
+            {
+//                put("station", nodePort);
+                put("route", nodeRoute);
+//                put("schedule", nodeSchedule);
+            }
+        });
+        importer.close();
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
 }

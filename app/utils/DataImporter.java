@@ -2,11 +2,12 @@ package utils;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Expr;
+import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.geos.Locality;
 import models.geos.Country;
-import models.misc.*;
 import models.misc.Currency;
+import models.traffic.plane.*;
 import models.traffic.train.TrainRoute;
 import models.traffic.train.TrainSchedule;
 import models.traffic.train.TrainStation;
@@ -24,11 +25,13 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 public class DataImporter {
+    private static DataImporter importer;
     private int port;
     private String db;
     private String password;
     private String user;
     private String hostName;
+    private Connection conn;
 
     public DataImporter(String hostName, int port, String user, String password, String db) {
         this.hostName = hostName;
@@ -36,6 +39,28 @@ public class DataImporter {
         this.user = user;
         this.password = password;
         this.db = db;
+    }
+
+
+    public static DataImporter init(String hostName, int port, String user, String password, String db) {
+        if (importer != null)
+            return importer;
+
+        importer = new DataImporter(hostName, port, user, password, db);
+        return importer;
+    }
+
+    public void connect() throws ClassNotFoundException, IllegalAccessException, InstantiationException, SQLException {
+        Class.forName("com.mysql.jdbc.Driver").newInstance(); //MYSQL驱动
+        String connStr = String.format("jdbc:mysql://%s:%d/%s", importer.hostName, importer.port, importer.db);
+        importer.conn = DriverManager.getConnection(connStr, importer.user, importer.password);
+    }
+
+    public void close() throws SQLException {
+        if (conn != null) {
+            conn.close();
+            conn = null;
+        }
     }
 
     /**
@@ -125,10 +150,10 @@ public class DataImporter {
                 Locality parent = locality.supLocality;
                 if (parent == null)
                     continue;
-                for (Locality siblings : locality.chiLocalityList) {
-                    siblings.supLocality = parent;
-                    siblings.level = parent.level + 1;
-                    siblings.save();
+                for (Locality sibling : locality.chiLocalityList) {
+                    sibling.supLocality = parent;
+                    sibling.level -= 1;
+                    sibling.save();
                 }
                 locality.delete();
             }
@@ -470,5 +495,220 @@ public class DataImporter {
                 }
             });
         }
+    }
+
+    /**
+     * 导入机场数据
+     *
+     * @param start
+     * @param count
+     * @return
+     */
+    public JsonNode importAirport(int start, int count) {
+        try {
+            Statement stmt = this.conn.createStatement();
+            String selectSql = String.format("SELECT * FROM vxp_plane_timetable_new GROUP BY sname LIMIT %d, %d", start, count);
+            ResultSet res = stmt.executeQuery(selectSql);
+
+            List<String> missingCity = new ArrayList<>();
+            int cnt = 0;
+            while (res.next()) {
+                String cityName = res.getString("sname");
+                String airportName = res.getString("arrAirport");
+                List<Locality> cityList = Locality.finder.where().like("zhLocalityName", String.format("%s%%", cityName)).findList();
+                if (cityList.size() == 0) {
+                    missingCity.add(cityName);
+                    continue;
+                }
+                Locality city = cityList.get(0);
+
+                Airport airport = Airport.finder.where().eq("name", airportName).findUnique();
+                if (airport != null)
+                    continue;
+                airport = new Airport();
+                airport.name = airportName;
+                airport.locality = city;
+                airport.save();
+                cnt++;
+            }
+
+            final int finalCnt = cnt;
+            final List<String> finalMissingCity = missingCity;
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", 0);
+                    put("total", finalCnt);
+                    put("missingCity", finalMissingCity);
+                }
+            });
+        } catch (SQLException e) {
+            final Exception finalE = e;
+            Ebean.rollbackTransaction();
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", -1);
+                    put("msg", "MySQL error: " + finalE.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
+     * 导入航班数据
+     *
+     * @param start
+     * @param count
+     * @return
+     */
+    public JsonNode importAirRoutes(int start, int count) {
+        try {
+            Statement stmt = this.conn.createStatement();
+            String selectSql = String.format("SELECT * FROM vxp_plane_timetable_new LIMIT %d, %d", start, count);
+            ResultSet res = stmt.executeQuery(selectSql);
+
+            int cnt = 0;
+            List<String> missingAirport = new ArrayList<>();
+            while (res.next()) {
+                String flightCode = res.getString("code");
+                AirRoute route = AirRoute.finder.where().eq("flightCode", flightCode).findUnique();
+                if (route != null)
+                    continue;
+
+                route = new AirRoute();
+                route.flightCode = flightCode;
+
+                String airportName = res.getString("depAirport");
+                Airport airport = Airport.finder.where().eq("name", airportName).findUnique();
+                if (airport == null) {
+                    missingAirport.add(airportName);
+                    continue;
+                }
+                route.departure = airport;
+                airportName = res.getString("arrAirport");
+                airport = Airport.finder.where().eq("name", airportName).findUnique();
+                if (airport == null) {
+                    missingAirport.add(airportName);
+                    continue;
+                }
+                route.arrival = airport;
+
+                String terminalDesc = res.getString("depTerminal");
+                if (terminalDesc != null && !terminalDesc.isEmpty())
+                    route.departureTerminal = terminalDesc;
+                terminalDesc = res.getString("arrTerminal");
+                if (terminalDesc != null && !terminalDesc.isEmpty())
+                    route.arrivalTerminal = terminalDesc;
+
+                String carrierName = res.getString("name");
+                String carrierFullName = res.getString("fullName");
+                String carrierShortName = res.getString("airwaysShortName");
+                String carrierCode = res.getString("carrier");
+                route.airline = importAirline(carrierCode, carrierName, carrierFullName, carrierShortName);
+
+                route.jetType = res.getString("planetype");
+                route.jetDescription = res.getString("flight_type_fullname");
+
+                route.offerFood = res.getBoolean("meal");
+                route.selfCheckin = res.getBoolean("zhiji");
+                route.distance = res.getInt("distance");
+                route.nonStopFlight = !res.getBoolean("stops");
+                String onTimeStr = res.getString("correct");
+                if (onTimeStr.contains("%"))
+                    route.onTimeStat = Integer.parseInt(onTimeStr.substring(0, onTimeStr.indexOf('%'))) / 100f;
+
+                route.departureTime = res.getTime("btime");
+                route.arrivalTime = res.getTime("etime");
+                route.dayLag = (route.arrivalTime.getTime() > route.departureTime.getTime() ? 0 : 1);
+                route.duration = (int) ((route.arrivalTime.getTime() + route.dayLag * 24 * 3600 * 1000L
+                        - route.departureTime.getTime()) / (1000 * 60));
+
+
+                float surcharge = res.getFloat("tof");
+                float tax = res.getFloat("arf");
+                String agencyName = res.getString("provider");
+                String agencyTel = res.getString("providerTelephone");
+                AirTicketAgency agency = null;
+                if (agencyName != null)
+                    agency = importAirAgency(agencyName, agencyTel);
+                float price = res.getFloat("min_price");
+                float discount = res.getFloat("bareDiscount");
+                FlightPrice priceItem = new FlightPrice();
+                priceItem.route = route;
+                priceItem.agency = agency;
+                priceItem.discount = discount / 10;
+                priceItem.currency = Currency.finder.byId("CNY");
+                priceItem.ticketPrice = (int) (price * 100);
+                priceItem.fuelSurcharge = (int) (surcharge * 100);
+                priceItem.tax = (int) (tax * 100);
+
+                route.currency = Currency.finder.byId("CNY");
+                route.price = priceItem.ticketPrice;
+
+                route.save();
+                priceItem.save();
+                cnt++;
+            }
+            final int finalCnt = cnt;
+            final List<String> finalMissingAirport = missingAirport;
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", 0);
+                    put("total", finalCnt);
+                    put("missingAirport", finalMissingAirport);
+                }
+            });
+        } catch (SQLException e) {
+            final Exception finalE = e;
+            Ebean.rollbackTransaction();
+            return Json.toJson(new HashMap<String, Object>() {
+                {
+                    put("code", -1);
+                    put("msg", "MySQL error: " + finalE.getMessage());
+                }
+            });
+        }
+    }
+
+    /**
+     * 导入机票代理
+     *
+     * @param agencyName
+     * @param agencyTel
+     * @return
+     */
+    private AirTicketAgency importAirAgency(String agencyName, String agencyTel) {
+        AirTicketAgency agency = AirTicketAgency.finder.where().eq("name", agencyName).findUnique();
+        if (agency != null)
+            return agency;
+
+        agency = new AirTicketAgency();
+        agency.name = agencyName;
+        agency.telephone = agencyTel;
+        agency.save();
+        return agency;
+    }
+
+    /**
+     * 导入航空公司
+     *
+     * @param carrierCode
+     * @param carrierName
+     * @param carrierFullName
+     * @param carrierShortName
+     * @return
+     */
+    private Airline importAirline(String carrierCode, String carrierName, String carrierFullName, String carrierShortName) {
+        Airline airline = Airline.finder.byId(carrierCode);
+        if (airline != null)
+            return airline;
+
+        airline = new Airline();
+        airline.airlineCode = carrierCode;
+        airline.airlineName = carrierName;
+        airline.airlineShortName = carrierShortName;
+        airline.airlineFullName = carrierFullName;
+        airline.save();
+
+        return airline;
     }
 }

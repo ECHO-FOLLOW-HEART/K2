@@ -3,10 +3,7 @@ package models.traffic.plane;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import java.util.List;
 
 /**
@@ -15,9 +12,16 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class Airline extends Model{
+public class Airline extends Model {
+    public static Finder<String, Airline> finder = new Finder<>(String.class, Airline.class);
+
+    /**
+     * 航空公司代码。
+     */
     @Id
-    public Long id;
+    @Constraints.MaxLength(3)
+    @Column(length = 3)
+    public String airlineCode;
 
     /**
      * 航空公司名称。
@@ -26,11 +30,15 @@ public class Airline extends Model{
     public String airlineName;
 
     /**
-     * 航空公司代码。
+     * 航空公司全称。
      */
-    @Constraints.Required
-    public String airlineCode;
+    public String airlineFullName;
+
+    /**
+     * 航空公司简称。
+     */
+    public String airlineShortName;
 
     @OneToMany(mappedBy = "airline", fetch = FetchType.LAZY)
-    public List<FlightSchedule> flightScheduleList;
+    public List<AirRoute> airRouteList;
 }
