@@ -12,5 +12,6 @@ libraryDependencies ++= Seq(
   cache,
   javaWs,
   "mysql" % "mysql-connector-java" % "latest.integration",
+  "org.mongodb" % "mongo-java-driver" % "latest.integration",
   filters
 )

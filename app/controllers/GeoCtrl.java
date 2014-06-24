@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.geos.Locality;
 import play.libs.Json;
+import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 
@@ -16,7 +17,7 @@ import java.util.List;
  * <p>
  * Created by zephyre on 14-6-20.
  */
-public class GeoCtrl {
+public class GeoCtrl extends Controller {
     public static JsonNode getLocProfile(Locality loc) {
         ObjectNode response = Json.newObject();
         response.put("id", loc.id);
