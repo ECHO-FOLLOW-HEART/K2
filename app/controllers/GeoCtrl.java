@@ -48,4 +48,25 @@ public class GeoCtrl {
 
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
+
+    public static Result searchLocality(String searchWord, int page, int pageSize) {
+        List<Locality> locList = Locality.finder.where().ilike("localLocalityName", String.format("%%%s%%", searchWord))
+                .setFirstRow(page * pageSize).setMaxRows(pageSize).findList();
+        List<JsonNode> resultList = new ArrayList<>();
+        for (Locality loc : locList) {
+            ObjectNode item = Json.newObject();
+            String tmp = loc.enLocalityName;
+            if (tmp != null && !tmp.isEmpty())
+                item.put("enName", tmp);
+            tmp = loc.zhLocalityName;
+            if (tmp != null && !tmp.isEmpty())
+                item.put("zhName", tmp);
+            item.put("id", loc.id);
+            Locality supLocality = loc.supLocality;
+            if (supLocality != null)
+                item.put("parent", supLocality.id);
+            resultList.add(item);
+        }
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(resultList));
+    }
 }
