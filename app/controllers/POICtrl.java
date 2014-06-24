@@ -65,6 +65,10 @@ public class POICtrl extends Controller {
         if (tagFilter != null && !tagFilter.isEmpty())
             query.put("tags", tagFilter);
         DBCursor cursor = col.find(query).skip(page * pageSize).limit(pageSize);
+        if (sort.equals("asc"))
+            cursor = cursor.sort(new BasicDBObject("ratings.score", 1));
+        else if (sort.equals("desc"))
+            cursor = cursor.sort(new BasicDBObject("ratings.score", -1));
 
         List<JsonNode> resultList = new ArrayList<>();
         while (cursor.hasNext()) {
