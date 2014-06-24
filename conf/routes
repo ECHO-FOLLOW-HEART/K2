@@ -28,4 +28,5 @@ GET        /itineraries/air-routes                    controllers.TrafficCtrl.ge
 GET        /itineraries/air-routes/:flightCode        controllers.TrafficCtrl.getAirRouteByCode(flightCode: String)
 
 # POI
-GET         /poi/view-spots/:spotId                     controllers.POICtrl.getViewSpot(spotId: String)
+GET        /poi/view-spots/search                     controllers.POICtrl.searchViewSpot(locality: Long, tagFilter: String?="", sortFilter: String?="", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
+GET        /poi/view-spots/:spotId                    controllers.POICtrl.getViewSpot(spotId: String)
