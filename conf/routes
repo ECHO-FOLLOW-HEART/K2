@@ -26,7 +26,8 @@ GET        /search/localities                         controllers.GeoCtrl.search
 # 交通查询
 GET        /itineraries/air-routes                    controllers.TrafficCtrl.getAirRoutes(departure: Long, arrival: Long, sortType: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET        /itineraries/air-routes/:flightCode        controllers.TrafficCtrl.getAirRouteByCode(flightCode: String)
+GET        /itineraries/train-routes                  controllers.TrafficCtrl.getTrainRoutes(depType: String?="loc", arrType?="loc", dep: String, arr: String, sortType: String?="price", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
 
 # POI
-GET        /poi/view-spots/search                     controllers.POICtrl.searchViewSpot(locality: Long, tagFilter: String?="", sortFilter: String?="", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
+GET        /poi/view-spots/search                     controllers.POICtrl.searchViewSpot(locality: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 GET        /poi/view-spots/:spotId                    controllers.POICtrl.getViewSpot(spotId: String)

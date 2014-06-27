@@ -20,28 +20,30 @@ import java.util.List;
  */
 public class POICtrl extends Controller {
     /**
-     * 获得经典的详细信息。
+     * 获得景点的详细信息。
      *
      * @param spotId 景点ID。
      * @throws UnknownHostException
      */
     public static Result getViewSpot(String spotId) throws UnknownHostException {
         MongoClient client = Utils.getMongoClient("localhost", 27017);
-        DB db = client.getDB("view_spot");
-        DBCollection col = db.getCollection("core");
+        DB db = client.getDB("poi");
+        DBCollection col = db.getCollection("view_spot");
 
         BasicDBObject query = new BasicDBObject();
-        query.put("_id", new ObjectId(spotId));
+        try {
+            query.put("_id", new ObjectId(spotId));
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid view spot ID: %s.", spotId));
+        }
         DBObject result = col.findOne(query);
 
         if (result == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid view spot ID: %s.", spotId));
 
         ObjectNode json = (ObjectNode) Json.parse(result.toString());
-        json.put("spotId", json.get("_id").get("$oid"));
-        json.remove("_id");
+        json.put("_id", json.get("_id").get("$oid"));
         return Utils.createResponse(ErrorCode.NORMAL, json);
-
     }
 
     /**
@@ -54,14 +56,18 @@ public class POICtrl extends Controller {
      * @param page       起始页码。
      * @param pageSize   页面大小。
      */
-    public static Result searchViewSpot(long locality, String tagFilter, String sortFilter, String sort,
+    public static Result searchViewSpot(String locality, String tagFilter, String sortFilter, String sort,
                                         int page, int pageSize) throws UnknownHostException {
         MongoClient client = Utils.getMongoClient("localhost", 27017);
-        DB db = client.getDB("view_spot");
-        DBCollection col = db.getCollection("core");
+        DB db = client.getDB("poi");
+        DBCollection col = db.getCollection("view_spot");
 
         BasicDBObject query = new BasicDBObject();
-        query.put("geo.locality.localityId", locality);
+        try {
+            query.put("geo.locality.id", new ObjectId(locality));
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", locality));
+        }
         if (tagFilter != null && !tagFilter.isEmpty())
             query.put("tags", tagFilter);
         DBCursor cursor = col.find(query).skip(page * pageSize).limit(pageSize);
@@ -74,7 +80,7 @@ public class POICtrl extends Controller {
         while (cursor.hasNext()) {
             DBObject item = cursor.next();
             ObjectNode node = Json.newObject();
-            node.put("spotId", item.get("_id").toString());
+            node.put("_id", item.get("_id").toString());
 
             Object tmp = item.get("ratings");
             if (tmp != null)

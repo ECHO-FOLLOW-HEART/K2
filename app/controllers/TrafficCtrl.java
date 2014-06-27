@@ -5,13 +5,17 @@ import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Query;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.*;
 import models.traffic.plane.AirRoute;
 import models.traffic.plane.FlightPrice;
+import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import play.mvc.Results;
 import utils.Utils;
 
+import java.net.UnknownHostException;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.List;
@@ -126,5 +130,104 @@ public class TrafficCtrl extends Controller {
             routeJson.put("fuelSurcharge", price.fuelSurcharge / 100.0);
         }
         return routeJson;
+    }
+
+    /**
+     * 查看火车信息
+     *
+     * @param departure
+     * @param arrival
+     * @param sortType
+     * @param sort
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result getTrainRoutes(String depType, String arrType, String departure, String arrival, String sortType, String sort, int page, int pageSize) throws UnknownHostException {
+        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        DB db = client.getDB("traffic");
+        DBCollection col = db.getCollection("train_route");
+
+        ObjectId dep, arr;
+        try {
+            dep = new ObjectId(departure);
+            arr = new ObjectId(arrival);
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s / %s", departure, arrival));
+        }
+
+        String depKey, arrKey;
+        switch (depType) {
+            case "loc":
+                depKey = "details.locId";
+                break;
+            case "stop":
+                depKey = "details.stopId";
+                break;
+            default:
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid type: %s", depType));
+        }
+        switch (arrType) {
+            case "loc":
+                arrKey = "details.locId";
+                break;
+            case "stop":
+                arrKey = "details.stopId";
+                break;
+            default:
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid type: %s", arrType));
+        }
+
+        QueryBuilder qb = new QueryBuilder();
+        qb.and(QueryBuilder.start(depKey).is(dep).get(), QueryBuilder.start(arrKey).is(arr).get());
+        DBObject query = qb.get();
+
+        DBCursor cursor = col.find(query);
+        List<JsonNode> result = new ArrayList<>();
+        while (cursor.hasNext()) {
+            DBObject route = cursor.next();
+            BasicDBList details = (BasicDBList) (route.get("details"));
+            route.removeField("details");
+
+            int depIdx = -1;
+            int arrIdx = -1;
+            for (int i = 0; i < details.size(); i++) {
+                BasicDBObject stop = (BasicDBObject) details.get(i);
+                if (stop.get(depKey.split("\\.")[1]).equals(dep))
+                    depIdx = i;
+                else if (stop.get(depKey.split("\\.")[1]).equals(arr))
+                    arrIdx = i;
+            }
+            if (depIdx == -1 || arrIdx == -1 || arrIdx <= depIdx)
+                continue;
+
+            result.add(Json.parse(route.toString()));
+        }
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+//        return Results.TODO;
+
+//        QueryBuilder queryBuilder = new QueryBuilder();
+//        queryBuilder.
+
+//        query = new BasicDBObjectBuilder()
+//
+//
+//        try {
+//            query.put("geo.locality.id", new ObjectId(locality));
+//        } catch (IllegalArgumentException e) {
+//
+//        }
+//        if (tagFilter != null && !tagFilter.isEmpty())
+//            query.put("tags", tagFilter);
+//        DBCursor cursor = col.find(query).skip(page * pageSize).limit(pageSize);
+//        if (sort.equals("asc"))
+//            cursor = cursor.sort(new BasicDBObject("ratings.score", 1));
+//        else if (sort.equals("desc"))
+//            cursor = cursor.sort(new BasicDBObject("ratings.score", -1));
+//
+//        List<JsonNode> resultList = new ArrayList<>();
+//        while (cursor.hasNext()) {
+//            return play.mvc.Results.TODO;
+//        }
     }
 }
