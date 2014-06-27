@@ -17,8 +17,10 @@ import utils.Utils;
 
 import java.net.UnknownHostException;
 import java.sql.Time;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 
 /**
@@ -143,7 +145,7 @@ public class TrafficCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getTrainRoutes(String depType, String arrType, String departure, String arrival, String sortType, String sort, int page, int pageSize) throws UnknownHostException {
+    public static Result getTrainRoutes(String departure, String arrival, String sortType, String sort, int page, int pageSize) throws UnknownHostException {
         MongoClient client = Utils.getMongoClient("localhost", 27017);
         DB db = client.getDB("traffic");
         DBCollection col = db.getCollection("train_route");
@@ -156,78 +158,207 @@ public class TrafficCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s / %s", departure, arrival));
         }
 
-        String depKey, arrKey;
-        switch (depType) {
-            case "loc":
-                depKey = "details.locId";
-                break;
-            case "stop":
-                depKey = "details.stopId";
-                break;
-            default:
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid type: %s", depType));
-        }
-        switch (arrType) {
-            case "loc":
-                arrKey = "details.locId";
-                break;
-            case "stop":
-                arrKey = "details.stopId";
-                break;
-            default:
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid type: %s", arrType));
-        }
-
+        QueryBuilder query1 = new QueryBuilder();
+        query1.or(QueryBuilder.start("details.locId").is(dep).get(), QueryBuilder.start("details.stopId").is(dep).get()).get();
+        QueryBuilder query2 = new QueryBuilder();
+        query2.or(QueryBuilder.start("details.locId").is(arr).get(), QueryBuilder.start("details.stopId").is(arr).get()).get();
         QueryBuilder qb = new QueryBuilder();
-        qb.and(QueryBuilder.start(depKey).is(dep).get(), QueryBuilder.start(arrKey).is(arr).get());
+        qb.and(query1.get(), query2.get());
         DBObject query = qb.get();
 
         DBCursor cursor = col.find(query);
         List<JsonNode> result = new ArrayList<>();
+        final DateFormat fmt = new SimpleDateFormat("HH:mm");
+        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
+        fmt.setTimeZone(tz);
         while (cursor.hasNext()) {
             DBObject route = cursor.next();
             BasicDBList details = (BasicDBList) (route.get("details"));
             route.removeField("details");
 
+            // 到达节点必须晚于出发节点
             int depIdx = -1;
             int arrIdx = -1;
+            BasicDBObject arrStop = null;
+            BasicDBObject depStop = null;
             for (int i = 0; i < details.size(); i++) {
                 BasicDBObject stop = (BasicDBObject) details.get(i);
-                if (stop.get(depKey.split("\\.")[1]).equals(dep))
+                if (stop.get("stopId").equals(dep) || stop.get("locId").equals(dep)) {
                     depIdx = i;
-                else if (stop.get(depKey.split("\\.")[1]).equals(arr))
+                    depStop = stop;
+                } else if (stop.get("stopId").equals(arr) || stop.get("locId").equals(arr)) {
                     arrIdx = i;
+                    arrStop = stop;
+                }
+
+                if (arrIdx != -1 && depIdx == -1)
+                    // 出现先到达再出发的情况：反向车次
+                    break;
+                else if (arrIdx != -1 && depIdx != -1)
+                    break;
             }
-            if (depIdx == -1 || arrIdx == -1 || arrIdx <= depIdx)
+            if (!(arrIdx != -1 && depIdx != -1))
                 continue;
 
-            result.add(Json.parse(route.toString()));
+            // 建立节点
+            ObjectNode jsonItem = Json.newObject();
+
+            jsonItem.put("dayLag", (int) arrStop.get("dayLag") - (int) depStop.get("dayLag"));
+
+            ObjectNode depNode = Json.newObject();
+            depNode.put("locId", depStop.get("locId").toString());
+            depNode.put("locName", depStop.get("locName").toString());
+            depNode.put("stopId", depStop.get("stopId").toString());
+            depNode.put("stopName", depStop.get("stopName").toString());
+            jsonItem.put("dep", depNode);
+
+            ObjectNode arrNode = Json.newObject();
+            arrNode.put("locId", arrStop.get("locId").toString());
+            arrNode.put("locName", arrStop.get("locName").toString());
+            arrNode.put("stopId", arrStop.get("stopId").toString());
+            arrNode.put("stopName", arrStop.get("stopName").toString());
+            jsonItem.put("arr", arrNode);
+
+            jsonItem.put("depTime", fmt.format(depStop.get("depTime")));
+            jsonItem.put("arrTime", fmt.format(arrStop.get("arrTime")));
+
+            // 路程
+            jsonItem.put("distance", ((int) arrStop.get("distance") - (int) depStop.get("distance")));
+
+            // 票价
+            double minArrPrice = Double.MAX_VALUE, minDepPrice = Double.MAX_VALUE;
+            BasicDBObject priceList = (BasicDBObject) arrStop.get("price");
+            if (priceList != null) {
+                Object[] prices = priceList.values().toArray();
+                for (Object price1 : prices) {
+                    double price = (double) price1;
+                    if (price < minArrPrice)
+                        minArrPrice = price;
+                }
+            }
+            if (minArrPrice == Double.MAX_VALUE)
+                minArrPrice = 0;
+            priceList = (BasicDBObject) depStop.get("price");
+            if (priceList != null) {
+                Object[] prices = priceList.values().toArray();
+                for (Object price1 : prices) {
+                    double price = (double) price1;
+                    if (price < minDepPrice)
+                        minDepPrice = price;
+                }
+            }
+            if (minDepPrice == Double.MAX_VALUE)
+                minDepPrice = 0;
+            jsonItem.put("price", minArrPrice - minDepPrice);
+
+            jsonItem.put("_id", route.get("_id").toString());
+            jsonItem.put("totalDist", (int) route.get("distance"));
+            jsonItem.put("code", route.get("code").toString());
+
+            result.add(jsonItem);
         }
+
+        // 排序
+        final boolean asc = (sort.equals("asc"));
+        Comparator<JsonNode> cmp;
+        if (sortType.equals("price")) {
+            cmp = new Comparator<JsonNode>() {
+                @Override
+                public int compare(JsonNode o1, JsonNode o2) {
+                    double price1 = o1.get("price").asDouble();
+                    double price2 = o2.get("price").asDouble();
+                    int val = (int) (price1 - price2);
+                    return (asc ? val : -val);
+                }
+            };
+        } else {
+            final String s = sortType;
+            cmp = new Comparator<JsonNode>() {
+                @Override
+                public int compare(JsonNode o1, JsonNode o2) {
+                    String k;
+                    if (s.equals("dep"))
+                        k = "depTime";
+                    else
+                        k = "arrTime";
+                    try {
+                        Date time1 = fmt.parse(o1.get(k).asText());
+                        Date time2 = fmt.parse(o2.get(k).asText());
+                        int val = (int) (time1.getTime() - time2.getTime());
+                        return (asc ? val : -val);
+                    } catch (ParseException e) {
+                        return 0;
+                    }
+                }
+            };
+        }
+        Collections.sort(result, cmp);
+        int start = page * pageSize;
+        start = (start < result.size() ? start : result.size() - 1);
+        int to = (page + 1) * pageSize;
+        to = (to <= result.size() ? to : result.size());
+        result = result.subList(start, to);
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-//        return Results.TODO;
+    }
 
-//        QueryBuilder queryBuilder = new QueryBuilder();
-//        queryBuilder.
+    /**
+     * 按照车次获得火车信息。
+     *
+     * @param trainCode
+     * @return
+     * @throws UnknownHostException
+     */
+    public static Result getTrainRouteByCode(String trainCode) throws UnknownHostException {
+        trainCode = trainCode.toUpperCase();
+        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        DB db = client.getDB("traffic");
+        DBCollection col = db.getCollection("train_route");
 
-//        query = new BasicDBObjectBuilder()
-//
-//
-//        try {
-//            query.put("geo.locality.id", new ObjectId(locality));
-//        } catch (IllegalArgumentException e) {
-//
-//        }
-//        if (tagFilter != null && !tagFilter.isEmpty())
-//            query.put("tags", tagFilter);
-//        DBCursor cursor = col.find(query).skip(page * pageSize).limit(pageSize);
-//        if (sort.equals("asc"))
-//            cursor = cursor.sort(new BasicDBObject("ratings.score", 1));
-//        else if (sort.equals("desc"))
-//            cursor = cursor.sort(new BasicDBObject("ratings.score", -1));
-//
-//        List<JsonNode> resultList = new ArrayList<>();
-//        while (cursor.hasNext()) {
-//            return play.mvc.Results.TODO;
-//        }
+        DBObject query = QueryBuilder.start("code").is(trainCode).get();
+        DBObject route = col.findOne(query);
+        if (route == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid train code: %s.", trainCode));
+
+        ObjectNode ret = Json.newObject();
+        ret.put("_id", route.get("_id").toString());
+        ret.put("distance", (int) route.get("distance"));
+        ret.put("code", route.get("code").toString());
+        ret.put("timeCost", (int) route.get("timeCost"));
+
+        int dayLag = (int) route.get("dayLag");
+        ret.put("dayLag", dayLag);
+        DateFormat fmt = new SimpleDateFormat("HH:mm");
+        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
+        fmt.setTimeZone(tz);
+
+        Date depTime = (Date) route.get("depTime");
+        Date arrTime = (Date) route.get("arrTime");
+
+        ret.put("arrTime", fmt.format(arrTime));
+        ret.put("depTime", fmt.format(depTime));
+
+        DBObject depStop = (DBObject) route.get("depStop");
+        DBObject arrStop = (DBObject) route.get("arrStop");
+        DBObject depLoc = (DBObject) route.get("dep");
+        DBObject arrLoc = (DBObject) route.get("arr");
+
+        ObjectNode depNode = Json.newObject();
+        depNode.put("locId", depLoc.get("_id").toString());
+        depNode.put("locName", depLoc.get("name").toString());
+        depNode.put("stopId", depStop.get("_id").toString());
+        depNode.put("stopName", depStop.get("name").toString());
+
+        ObjectNode arrNode = Json.newObject();
+        arrNode.put("locId", arrLoc.get("_id").toString());
+        arrNode.put("locName", arrLoc.get("name").toString());
+        arrNode.put("stopId", arrStop.get("_id").toString());
+        arrNode.put("stopName", arrStop.get("name").toString());
+
+        ret.put("dep", depNode);
+        ret.put("arr", arrNode);
+
+        ret.put("type", route.get("type").toString());
+
+        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 }
