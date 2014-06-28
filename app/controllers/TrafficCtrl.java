@@ -203,7 +203,8 @@ public class TrafficCtrl extends Controller {
             // 建立节点
             ObjectNode jsonItem = Json.newObject();
 
-            jsonItem.put("dayLag", (int) arrStop.get("dayLag") - (int) depStop.get("dayLag"));
+            int dayLag = (int) arrStop.get("dayLag") - (int) depStop.get("dayLag");
+            jsonItem.put("dayLag", dayLag);
 
             ObjectNode depNode = Json.newObject();
             depNode.put("locId", depStop.get("locId").toString());
@@ -219,10 +220,14 @@ public class TrafficCtrl extends Controller {
             arrNode.put("stopName", arrStop.get("stopName").toString());
             jsonItem.put("arr", arrNode);
 
-            jsonItem.put("depTime", fmt.format(depStop.get("depTime")));
-            jsonItem.put("arrTime", fmt.format(arrStop.get("arrTime")));
+            Date depTime = (Date) depStop.get("depTime");
+            Date arrTime = (Date) arrStop.get("arrTime");
+            jsonItem.put("depTime", fmt.format(depTime));
+            jsonItem.put("arrTime", fmt.format(arrTime));
+            jsonItem.put("timeCost", (int) ((arrTime.getTime() + 24 * 3600 * 1000L * dayLag - depTime.getTime()) / (60 * 1000)));
 
             // 路程
+            jsonItem.put("totalDist", (int) route.get("distance"));
             jsonItem.put("distance", ((int) arrStop.get("distance") - (int) depStop.get("distance")));
 
             // 票价
@@ -252,8 +257,8 @@ public class TrafficCtrl extends Controller {
             jsonItem.put("price", minArrPrice - minDepPrice);
 
             jsonItem.put("_id", route.get("_id").toString());
-            jsonItem.put("totalDist", (int) route.get("distance"));
             jsonItem.put("code", route.get("code").toString());
+            jsonItem.put("type", route.get("type").toString());
 
             result.add(jsonItem);
         }
@@ -268,6 +273,16 @@ public class TrafficCtrl extends Controller {
                     double price1 = o1.get("price").asDouble();
                     double price2 = o2.get("price").asDouble();
                     int val = (int) (price1 - price2);
+                    return (asc ? val : -val);
+                }
+            };
+        } else if (sortType.equals("timeCost")) {
+            cmp = new Comparator<JsonNode>() {
+                @Override
+                public int compare(JsonNode o1, JsonNode o2) {
+                    int t1 = o1.get("timeCost").asInt();
+                    int t2 = o2.get("timeCost").asInt();
+                    int val = t1 - t2;
                     return (asc ? val : -val);
                 }
             };
@@ -360,5 +375,22 @@ public class TrafficCtrl extends Controller {
         ret.put("type", route.get("type").toString());
 
         return Utils.createResponse(ErrorCode.NORMAL, ret);
+    }
+
+
+    /**
+     * 按照城市搜索火车站
+     *
+     * @param id
+     * @return
+     */
+    public static Result searchTrainStationByLoc(String id) throws UnknownHostException {
+        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        DB db = client.getDB("traffic");
+        DBCollection col = db.getCollection("train_route");
+
+//        QueryBuilder.start("locId").is(new ObjectId(id))
+
+        return Results.TODO;
     }
 }
