@@ -127,4 +127,131 @@ public class MiscCtrl extends Controller {
         }
         return results;
     }
+
+
+    /**
+     * 发现目的地
+     *
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result exploreLoc(int showDetails, int page, int pageSize) throws UnknownHostException {
+        String uid = request().getQueryString("uid");
+        boolean detailFlag = (showDetails > 0);
+
+        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("locality");
+        BasicDBObjectBuilder facet = BasicDBObjectBuilder.start("zhName", 1);
+        if (detailFlag)
+            facet = facet.add("imageList", 1).add("desc", 1).add("tags", 1).add("ratings.score", 1);
+        DBCursor cursor = col.find(QueryBuilder.start("level").lessThan(3).get(), facet.get())
+                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get())
+                .skip(page * pageSize).limit(pageSize);
+        List<JsonNode> results = new ArrayList<>();
+
+        while (cursor.hasNext()) {
+            DBObject queryRet = cursor.next();
+            ObjectNode node = Json.newObject();
+            node.put("_id", queryRet.get("_id").toString());
+            node.put("name", queryRet.get("zhName").toString());
+
+            // 显示详细信息
+            if (detailFlag) {
+                Object imageList = queryRet.get("imageList");
+                if (imageList != null)
+                    node.put("imageList", Json.toJson(imageList));
+                Object desc = queryRet.get("desc");
+                if (desc != null)
+                    node.put("desc", desc.toString());
+                Object tags = queryRet.get("tags");
+                if (tags != null)
+                    node.put("tags", Json.toJson(tags));
+            }
+            results.add(node);
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+    }
+
+    /**
+     * 发现POI
+     *
+     * @param showDetails
+     * @param vs
+     * @param restaurant
+     * @param hotel
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result explorePOI(int showDetails, int vs, int restaurant, int hotel, int page, int pageSize) throws UnknownHostException {
+        boolean detailFlag = (showDetails > 0);
+        String uid = request().getQueryString("uid");
+
+        ObjectNode results = Json.newObject();
+        if (vs != 0) {
+            List<JsonNode> vsList = explorePOIHlp(detailFlag, "view_spot", uid, page, pageSize);
+            results.put("viewSpot", Json.toJson(vsList));
+        }
+        if (restaurant != 0) {
+            List<JsonNode> vsList = explorePOIHlp(detailFlag, "restaurant", uid, page, pageSize);
+            results.put("restaurant", Json.toJson(vsList));
+        }
+        if (hotel != 0) {
+            List<JsonNode> vsList = explorePOIHlp(detailFlag, "hotel", uid, page, pageSize);
+            results.put("hotel", Json.toJson(vsList));
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, results);
+    }
+
+
+    /**
+     * 发现景点
+     *
+     * @param detailFlag
+     * @param uid
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    private static List<JsonNode> explorePOIHlp(boolean detailFlag, String colName, String uid, int page, int pageSize) throws UnknownHostException {
+        DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
+        BasicDBObjectBuilder facet = BasicDBObjectBuilder.start("name", 1);
+        if (detailFlag)
+            facet = facet.add("imageList", 1).add("intro.desc", 1).add("tags", 1).add("ratings.score", 1);
+//        DBObject explain = col.find(new BasicDBObject(), facet.get())
+//                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get())
+//                .skip(page * pageSize).limit(pageSize).explain();
+
+        DBCursor cursor = col.find(new BasicDBObject(), facet.get())
+                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get())
+                .skip(page * pageSize).limit(pageSize);
+
+        List<JsonNode> results = new ArrayList<>();
+        while (cursor.hasNext()) {
+            DBObject queryRet = cursor.next();
+            ObjectNode node = Json.newObject();
+            node.put("_id", queryRet.get("_id").toString());
+            node.put("name", queryRet.get("name").toString());
+
+            // 显示详细信息
+            if (detailFlag) {
+                Object imageList = queryRet.get("imageList");
+                if (imageList != null)
+                    node.put("imageList", Json.toJson(imageList));
+                try {
+                    Object desc = ((DBObject) queryRet.get("intro")).get("desc");
+                    if (desc != null)
+                        node.put("desc", desc.toString());
+                } catch (NullPointerException ignored) {
+                }
+                Object tags = queryRet.get("tags");
+                if (tags != null)
+                    node.put("tags", Json.toJson(tags));
+            }
+            results.add(node);
+        }
+        return results;
+    }
 }

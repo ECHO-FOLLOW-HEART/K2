@@ -93,13 +93,13 @@ public class POICtrl extends Controller {
             if (tmp != null)
                 node.put("name", tmp.toString());
 
-            tmp = ((DBObject) item.get("introduction")).get("description");
+            tmp = ((DBObject) item.get("intro")).get("desc");
             if (tmp != null) {
                 String desc = tmp.toString();
                 // 只取前36个字符。
                 if (desc.length() > 36)
                     desc = desc.substring(0, 36);
-                node.put("description", desc);
+                node.put("desc", desc);
             }
 
             tmp = item.get("geo");
