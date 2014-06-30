@@ -3,41 +3,46 @@
 # ~~~~
 
 # Home page
-GET         /                                           controllers.Application.index()
+GET           /                                             controllers.Application.index()
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file                               controllers.Assets.at(path="/public", file)
+GET           /assets/*file                                 controllers.Assets.at(path="/public", file)
 
 ####### 测试接口
 
-GET         /test                                       controllers.Application.test()
-GET         /test/feed-data                             controllers.Application.feedData()
-GET         /test/feed-tag                              controllers.Application.feedTag()
+GET           /test                                         controllers.Application.test()
+GET           /test/feed-data                               controllers.Application.feedData()
+GET           /test/feed-tag                                controllers.Application.feedTag()
 
 # 数据导入
-GET         /import/geo                                 controllers.Application.geoImport(start: Int?=0, count: Int?=50)
-GET         /import/train                               controllers.Application.trainImport(start: Int?=0, count: Int?=50)
-GET         /import/air                                 controllers.Application.airImport(start: Int?=0, count: Int?=50)
+GET           /import/geo                                   controllers.Application.geoImport(start: Int?=0, count: Int?=50)
+GET           /import/train                                 controllers.Application.trainImport(start: Int?=0, count: Int?=50)
+GET           /import/air                                   controllers.Application.airImport(start: Int?=0, count: Int?=50)
 
 # 基础地理信息查询
-GET         /geo/localities                             controllers.GeoCtrl.searchLocality(searchWord: String, page: Int?=0, pageSize: Int?=20)
-GET         /geo/localities/:id                         controllers.GeoCtrl.getLocality(id: String)
+GET           /geo/localities                               controllers.GeoCtrl.searchLocality(searchWord: String, page: Int?=0, pageSize: Int?=20)
+GET           /geo/localities/:id                           controllers.GeoCtrl.getLocality(id: String)
 
 # 交通查询
-GET         /itineraries/air-routes                     controllers.TrafficCtrl.getAirRoutes(departure: Long, arrival: Long, sortType: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
-GET         /itineraries/air-routes/:flightCode         controllers.TrafficCtrl.getAirRouteByCode(flightCode: String)
-GET         /itineraries/train-station                  controllers.TrafficCtrl.searchTrainStationByLoc(loc: String)
-GET         /itineraries/train-routes                   controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String, sortType: String?="price", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
-GET         /itineraries/train-routes/:trainCode        controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String)
+GET           /itineraries/air-routes                       controllers.TrafficCtrl.getAirRoutes(departure: Long, arrival: Long, sortType: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
+GET           /itineraries/air-routes/:flightCode           controllers.TrafficCtrl.getAirRouteByCode(flightCode: String)
+GET           /itineraries/train-station                    controllers.TrafficCtrl.searchTrainStationByLoc(loc: String)
+GET           /itineraries/train-routes                     controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String, sortType: String?="price", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
+GET           /itineraries/train-routes/:trainCode          controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String)
 
 # POI
-GET         /poi/view-spots/search                      controllers.POICtrl.searchViewSpot(locality: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
-GET         /poi/view-spots/:spotId                     controllers.POICtrl.getViewSpot(spotId: String)
+GET           /poi/view-spots/search                        controllers.POICtrl.searchViewSpot(locality: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+GET           /poi/view-spots/:spotId                       controllers.POICtrl.getViewSpot(spotId: String)
 
 # 其它
-POST        /sys/feedback                               controllers.MiscCtrl.postFeedback()
-GET         /sys/updates/:platform                      controllers.MiscCtrl.getUpdateInfo(platform: String, platformVer: String, appVer: String)
-GET         /suggestions                                controllers.MiscCtrl.getSuggestions(word: String, pageSize: Int?=5)
+POST          /sys/feedback                                 controllers.MiscCtrl.postFeedback()
+GET           /sys/updates/:platform                        controllers.MiscCtrl.getUpdateInfo(platform: String, platformVer: String, appVer: String)
+GET           /suggestions                                  controllers.MiscCtrl.getSuggestions(word: String, pageSize: Int?=5)
 
 # 用户
-GET         /users/id/:userId
+GET           /users/udid/:udid                             controllers.UserCtrl.getUserByUDID(udid: String)
+GET           /users/:userId                                controllers.UserCtrl.getUserProfileById(userId: String)
+GET           /users/nick-names/:userName                   controllers.UserCtrl.getUserProfileByName(userName: String)
+GET           /users/:userId/favors/view-spots              controllers.UserCtrl.getUserFavoredVS(userId: String, page: Int?=0, pageSize: Int?=20)
+PUT           /users/:userId/favors/view-spots              controllers.UserCtrl.putUserFavoredVS(userId: String)
+DELETE        /users/:userId/favors/view-spots/:vsId        controllers.UserCtrl.removeUserFavoredVS(userId: String, vsId: String)

@@ -97,12 +97,7 @@ public class MiscCtrl extends Controller {
 
     private static List<JsonNode> getSpecSug(String word, int pageSize, String nameField, String dbName, String colName, DBObject extra) throws UnknownHostException {
         Pattern pattern = Pattern.compile("^" + word);
-
         DBCollection colLoc = Utils.getMongoClient().getDB(dbName).getCollection(colName);
-
-//        QueryBuilder qb = new QueryBuilder();
-//        qb.or(QueryBuilder.start(nameField).regex(pattern).get(),
-//                QueryBuilder.start("alias").regex(pattern).get());
 
         DBObject qb = QueryBuilder.start(nameField).regex(pattern).get();
         if (extra != null && extra.keySet().size() > 0)
