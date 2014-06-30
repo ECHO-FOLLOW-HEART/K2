@@ -89,7 +89,7 @@ public class GeoCtrl extends Controller {
         if (searchWord == null || searchWord.trim().isEmpty())
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search word: %s.", searchWord));
 
-        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("geo");
         DBCollection col = db.getCollection("locality");
 
@@ -136,7 +136,7 @@ public class GeoCtrl extends Controller {
      * @throws UnknownHostException
      */
     public static Result getLocality(String id) throws UnknownHostException {
-        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("geo");
         DBCollection col = db.getCollection("locality");
 

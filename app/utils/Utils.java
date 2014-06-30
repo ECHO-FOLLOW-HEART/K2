@@ -60,6 +60,16 @@ public class Utils {
     private static Map<String, MongoClient> mongoClientMap = new HashMap<>();
 
     /**
+     * 获得默认的MongoDB客户端对象。
+     *
+     * @return
+     * @throws UnknownHostException
+     */
+    public static MongoClient getMongoClient() throws UnknownHostException {
+        return getMongoClient("121.201.8.193", 27017);
+    }
+
+    /**
      * 获得MongoDB客户端对象
      *
      * @param host

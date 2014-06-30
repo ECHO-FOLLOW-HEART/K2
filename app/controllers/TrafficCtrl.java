@@ -146,7 +146,7 @@ public class TrafficCtrl extends Controller {
      * @return
      */
     public static Result getTrainRoutes(String departure, String arrival, String sortType, String sort, int page, int pageSize) throws UnknownHostException {
-        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
         DBCollection col = db.getCollection("train_route");
 
@@ -263,6 +263,9 @@ public class TrafficCtrl extends Controller {
             result.add(jsonItem);
         }
 
+        if (result.isEmpty())
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+
         // 排序
         final boolean asc = (sort.equals("asc"));
         Comparator<JsonNode> cmp;
@@ -325,7 +328,7 @@ public class TrafficCtrl extends Controller {
      */
     public static Result getTrainRouteByCode(String trainCode) throws UnknownHostException {
         trainCode = trainCode.toUpperCase();
-        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
         DBCollection col = db.getCollection("train_route");
 
@@ -385,7 +388,7 @@ public class TrafficCtrl extends Controller {
      * @return
      */
     public static Result searchTrainStationByLoc(String id) throws UnknownHostException {
-        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
         DBCollection col = db.getCollection("train_route");
 

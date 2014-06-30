@@ -26,7 +26,7 @@ public class POICtrl extends Controller {
      * @throws UnknownHostException
      */
     public static Result getViewSpot(String spotId) throws UnknownHostException {
-        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("poi");
         DBCollection col = db.getCollection("view_spot");
 
@@ -58,7 +58,7 @@ public class POICtrl extends Controller {
      */
     public static Result searchViewSpot(String locality, String tagFilter, String sortFilter, String sort,
                                         int page, int pageSize) throws UnknownHostException {
-        MongoClient client = Utils.getMongoClient("localhost", 27017);
+        MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("poi");
         DBCollection col = db.getCollection("view_spot");
 

@@ -37,3 +37,7 @@ GET         /poi/view-spots/:spotId                     controllers.POICtrl.getV
 # 其它
 POST        /sys/feedback                               controllers.MiscCtrl.postFeedback()
 GET         /sys/updates/:platform                      controllers.MiscCtrl.getUpdateInfo(platform: String, platformVer: String, appVer: String)
+GET         /suggestions                                controllers.MiscCtrl.getSuggestions(word: String, pageSize: Int?=5)
+
+# 用户
+GET         /users/id/:userId
