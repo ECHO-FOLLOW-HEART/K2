@@ -38,9 +38,9 @@ POST          /plans/ugc/:userId                            controllers.PlanCtrl
 
 # POI
 # 根据目的地获得景点列表
-GET           /poi/view-spots/search                        controllers.POICtrl.searchViewSpot(locality: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+GET           /poi/view-spots/search                        controllers.POICtrl.viewSpotList(locality: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 # 景区详情
-GET           /poi/view-spots/:spotId                       controllers.POICtrl.getViewSpot(spotId: String)
+GET           /poi/view-spots/:spotId                       controllers.POICtrl.viewSpotDetails(spotId: String)
 # 餐厅详情
 
 # 其它

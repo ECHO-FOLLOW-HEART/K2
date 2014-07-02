@@ -3,6 +3,7 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
+import org.apache.commons.lang3.*;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -25,7 +26,7 @@ public class POICtrl extends Controller {
      * @param spotId 景点ID。
      * @throws UnknownHostException
      */
-    public static Result getViewSpot(String spotId) throws UnknownHostException {
+    public static Result viewSpotDetails(String spotId) throws UnknownHostException {
         MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("poi");
         DBCollection col = db.getCollection("view_spot");
@@ -56,15 +57,14 @@ public class POICtrl extends Controller {
      * @param page       起始页码。
      * @param pageSize   页面大小。
      */
-    public static Result searchViewSpot(String locality, String tagFilter, String sortFilter, String sort,
-                                        int page, int pageSize) throws UnknownHostException {
+    public static Result viewSpotList(String locality, String tagFilter, String sortFilter, String sort,
+                                      int page, int pageSize) throws UnknownHostException {
         MongoClient client = Utils.getMongoClient();
-        DB db = client.getDB("poi");
-        DBCollection col = db.getCollection("view_spot");
+        DBCollection col = client.getDB("poi").getCollection("view_spot");
 
         BasicDBObject query = new BasicDBObject();
         try {
-            query.put("geo.locality.id", new ObjectId(locality));
+            query.put("geo.locality._id", new ObjectId(locality));
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", locality));
         }
@@ -95,10 +95,7 @@ public class POICtrl extends Controller {
 
             tmp = ((DBObject) item.get("intro")).get("desc");
             if (tmp != null) {
-                String desc = tmp.toString();
-                // 只取前36个字符。
-                if (desc.length() > 36)
-                    desc = desc.substring(0, 36);
+                String desc = StringUtils.abbreviate(tmp.toString(), 64);
                 node.put("desc", desc);
             }
 
