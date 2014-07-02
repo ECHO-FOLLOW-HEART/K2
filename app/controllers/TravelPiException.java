@@ -5,9 +5,19 @@ package controllers;
  *
  * @author Zephyre
  */
-public class TravelPiException extends Exception{
-    public enum ErrorCode{
-        NORMAL,
+public class TravelPiException extends Exception {
+    public TravelPiException(String msg) {
+        super(msg);
+    }
 
+    public TravelPiException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
+
+    public TravelPiException(Throwable cause) {
+        super(cause);
+    }
+
+    public TravelPiException(){
     }
 }

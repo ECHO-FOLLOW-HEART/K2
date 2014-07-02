@@ -27,12 +27,14 @@ GET           /geo/localities/:id                           controllers.GeoCtrl.
 GET           /itineraries/air-routes                       controllers.TrafficCtrl.getAirRoutes(departure: Long, arrival: Long, sortType: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET           /itineraries/air-routes/:flightCode           controllers.TrafficCtrl.getAirRouteByCode(flightCode: String)
 GET           /itineraries/train-station                    controllers.TrafficCtrl.searchTrainStationByLoc(loc: String)
-GET           /itineraries/train-routes                     controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String, sortType: String?="price", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
+GET           /itineraries/train-routes                     controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String, sortField: String?="price", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
 GET           /itineraries/train-routes/:trainCode          controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String)
 
 # 路线相关接口
+# 发现路线
+GET           /explore/plans/:loc                           controllers.PlanCtrl.explorePlans(loc: String, sortField: String?="", sort: String?="asc", tags: String?="", page: Int?=0, pageSize: Int?=20)
 # 路线查询
-GET           /plans/templates/:planId                      controllers.PlanCtrl.templatePlanDetails(planId: String)
+GET           /plans/templates/:planId                      controllers.PlanCtrl.templatePlanDetails(planId: String, fromLoc: String, backLoc: String?="")
 # 保存路线
 POST          /plans/ugc/:userId                            controllers.PlanCtrl.saveUGCPlan(userId: String)
 
@@ -52,8 +54,7 @@ GET           /suggestions                                  controllers.MiscCtrl
 GET           /explore/localities                           controllers.MiscCtrl.exploreLoc(showDetails: Int?=0, page: Int?=0, pageSize: Int?=20)
 # 发现POI
 GET           /explore/poi                                  controllers.MiscCtrl.explorePOI(showDetails: Int?=0, vs: Int?=0, restaurant: Int?=0, hotel: Int?=0, page: Int?=0, pageSize: Int?=20)
-# 发现路线
-GET           /explore/plans                                controllers.MiscCtrl.explorePlans(loc: String, sortField: String?="", sort: String?="asc", tags: String?="", page: Int?=0, pageSize: Int?=20)
+
 
 # 用户
 GET           /users/udid/:udid                             controllers.UserCtrl.getUserByUDID(udid: String)

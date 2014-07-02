@@ -66,7 +66,6 @@ public class Utils {
      * @throws UnknownHostException
      */
     public static MongoClient getMongoClient() throws UnknownHostException {
-//        return getMongoClient("121.201.8.193", 27017);
         return getMongoClient("localhost", 27017);
     }
 

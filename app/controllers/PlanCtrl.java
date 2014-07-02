@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Planner;
 import utils.Utils;
 
 import java.net.UnknownHostException;
@@ -25,19 +26,28 @@ import java.util.List;
 public class PlanCtrl extends Controller {
 
     /**
-     * 查询线路的详细信息。
+     * 查询路线的详细信息。
      *
-     * @param planId
+     * @param planId    路线id
+     * @param fromLocId 从哪个城市出发
      * @return
      * @throws UnknownHostException
      */
-    public static Result templatePlanDetails(String planId) throws UnknownHostException {
+    public static Result templatePlanDetails(String planId, String fromLocId, String backLocId) throws UnknownHostException {
         DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
-
-        DBObject plan;
+        DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
+        DBObject plan, fromLoc, backLoc;
         try {
             plan = col.findOne(QueryBuilder.start("_id").is(new ObjectId(planId)).get());
             if (plan == null)
+                throw new NullPointerException();
+            fromLoc = locCol.findOne(QueryBuilder.start("_id").is(new ObjectId(fromLocId)).get());
+            if (fromLoc == null)
+                throw new NullPointerException();
+            if (backLocId == null || backLocId.isEmpty())
+                backLocId = fromLocId;
+            backLoc = locCol.findOne(QueryBuilder.start("_id").is(new ObjectId(backLocId)).get());
+            if (backLoc == null)
                 throw new NullPointerException();
         } catch (IllegalArgumentException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
@@ -49,7 +59,7 @@ public class PlanCtrl extends Controller {
         ret.put("loc", Json.toJson(BasicDBObjectBuilder.start("_id", loc.get("_id").toString())
                 .add("name", loc.get("name").toString()).get()));
 
-        for (String key : new String[]{"target", "title", "tags", "days", "intro", "imageList", "viewCnt"}) {
+        for (String key : new String[]{"target", "title", "tags", "days", "desc", "imageList", "viewCnt"}) {
             Object tmp = plan.get(key);
             if (tmp != null)
                 ret.put(key, Json.toJson(tmp));
@@ -57,14 +67,13 @@ public class PlanCtrl extends Controller {
 
         // 获取路线详情
         BasicDBList detailsList = (BasicDBList) plan.get("details");
-
-        int curDay = -1;
         // 整个路线详情列表
         List<JsonNode> detailNodes = new ArrayList<>();
-        // 单日路线详情列表（只处理景区）
-        List<JsonNode> detailNodesD = new ArrayList<>();
 
         if (detailsList != null) {
+            int curDay = -1;
+            // 单日路线详情列表（只处理景区）
+            List<JsonNode> detailNodesD = new ArrayList<>();
 
             // 按照dayIdx和idx的顺序进行排序
             Collections.sort(detailsList, new Comparator<Object>() {
@@ -130,7 +139,13 @@ public class PlanCtrl extends Controller {
                 detailNodes.add(Json.toJson(detailNodesD));
         }
 
+        // 添加大交通
+        Planner.telomere(detailNodes, fromLoc, backLoc);
+
+        // 添加每晚住宿
+
         ret.put("details", Json.toJson(detailNodes));
+
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
@@ -174,5 +189,70 @@ public class PlanCtrl extends Controller {
 
 
         return play.mvc.Results.TODO;
+    }
+
+    /**
+     * 路线发现机制
+     *
+     * @param locId
+     * @param sortField
+     * @param sort
+     * @param tags
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result explorePlans(String locId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException {
+        DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
+        DBCursor cursor;
+
+        try {
+            QueryBuilder builder = QueryBuilder.start("loc._id").is(new ObjectId(locId));
+            if (tags != null && !tags.isEmpty())
+                builder = builder.and("tags").is(tags);
+            int sortVal = 1;
+            if (sort != null && (sort.equals("asc") || sort.equals("desc")))
+                sortVal = sort.equals("asc") ? 1 : -1;
+            cursor = col.find(builder.get());
+            if (sortField != null && !sortField.isEmpty()) {
+                switch (sortField) {
+                    case "days":
+                        cursor.sort(BasicDBObjectBuilder.start("days", sortVal).get());
+                        break;
+                    case "hot":
+                        cursor.sort(BasicDBObjectBuilder.start("viewCnt", sortVal).get());
+                }
+            }
+            cursor.skip(page * pageSize).limit(pageSize);
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", locId));
+        }
+
+        List<JsonNode> results = new ArrayList<>();
+        while (cursor.hasNext()) {
+            DBObject item = cursor.next();
+
+            ObjectNode node = Json.newObject();
+            node.put("_id", item.get("_id").toString());
+            DBObject loc = (DBObject) item.get("loc");
+            node.put("loc", Json.toJson(BasicDBObjectBuilder.start("_id", loc.get("_id").toString())
+                    .add("name", loc.get("name").toString()).get()));
+            node.put("title", item.get("title").toString());
+            node.put("days", (int) item.get("days"));
+            Object intro = item.get("intro");
+            if (intro != null)
+                node.put("intro", intro.toString());
+            Object itemTags = item.get("tags");
+            if (itemTags != null)
+                node.put("tags", Json.toJson(itemTags));
+            Object viewCnt = item.get("viewCnt");
+            if (viewCnt != null)
+                node.put("viewCnt", (int) viewCnt);
+
+            node.put("imageList", Json.toJson(item.get("imageList")));
+            results.add(node);
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 }
