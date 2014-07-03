@@ -47,6 +47,21 @@ public class POICtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, json);
     }
 
+    public static Result viewSpotList(String locality, String tagFilter, String sortFilter, String sort,
+                                      int page, int pageSize) throws UnknownHostException {
+        return poiList("vs", locality, tagFilter, sortFilter, sort, page, pageSize);
+    }
+
+    public static Result hotelList(String locality, String tagFilter, String sortFilter, String sort,
+                                   int page, int pageSize) throws UnknownHostException {
+        return poiList("hotel", locality, tagFilter, sortFilter, sort, page, pageSize);
+    }
+
+    public static Result restaurantList(String locality, String tagFilter, String sortFilter, String sort,
+                                        int page, int pageSize) throws UnknownHostException {
+        return poiList("restaurant", locality, tagFilter, sortFilter, sort, page, pageSize);
+    }
+
     /**
      * 搜索景点的ID。
      *
@@ -57,10 +72,24 @@ public class POICtrl extends Controller {
      * @param page       起始页码。
      * @param pageSize   页面大小。
      */
-    public static Result viewSpotList(String locality, String tagFilter, String sortFilter, String sort,
-                                      int page, int pageSize) throws UnknownHostException {
-        MongoClient client = Utils.getMongoClient();
-        DBCollection col = client.getDB("poi").getCollection("view_spot");
+    private static Result poiList(String poiType, String locality, String tagFilter, String sortFilter, String sort,
+                                  int page, int pageSize) throws UnknownHostException {
+        String colName = null;
+        switch (poiType) {
+            case "vs":
+                colName = "view_spot";
+                break;
+            case "hotel":
+                colName = "hotel";
+                break;
+            case "restaurant":
+                colName = "restaurant";
+                break;
+        }
+        if (colName == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
+
+        DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
 
         BasicDBObject query = new BasicDBObject();
         try {
@@ -82,30 +111,37 @@ public class POICtrl extends Controller {
             ObjectNode node = Json.newObject();
             node.put("_id", item.get("_id").toString());
 
-            Object tmp = item.get("ratings");
+            DBObject tmp = (DBObject) item.get("ratings");
             if (tmp != null)
-                node.put("ratings", Json.parse(tmp.toString()));
-            tmp = item.get("tags");
+                node.put("ratings", Json.toJson(tmp));
+            tmp = (DBObject) item.get("tags");
             if (tmp != null)
-                node.put("tags", Json.parse(tmp.toString()));
+                node.put("tags", Json.toJson(tmp));
 
-            tmp = item.get("name");
-            if (tmp != null)
-                node.put("name", tmp.toString());
+            String name = (String) item.get("name");
+            if (name != null)
+                node.put("name", name);
 
-            tmp = ((DBObject) item.get("intro")).get("desc");
-            if (tmp != null) {
-                String desc = StringUtils.abbreviate(tmp.toString(), 64);
-                node.put("desc", desc);
+            try {
+                String desc = (String) ((DBObject) item.get("intro")).get("desc");
+                if (desc != null) {
+                    desc = StringUtils.abbreviate(desc, 64);
+                    node.put("desc", desc);
+                }
+            } catch (NullPointerException ignore) {
             }
 
-            tmp = item.get("geo");
-            if (tmp != null)
-                node.put("geo", Json.parse(tmp.toString()));
+            tmp = (DBObject) item.get("geo");
+            if (tmp != null) {
+                DBObject loc = (DBObject) tmp.get("locality");
+                String locId = loc.get("_id").toString();
+                loc.put("_id", locId);
+                node.put("geo", Json.toJson(tmp));
+            }
 
-            tmp = item.get("imageList");
+            tmp = (DBObject) item.get("imageList");
             if (tmp != null)
-                node.put("imageList", Json.parse(tmp.toString()));
+                node.put("imageList", Json.toJson(tmp));
 
             resultList.add(node);
         }

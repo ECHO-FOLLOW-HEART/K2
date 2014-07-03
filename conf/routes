@@ -24,7 +24,8 @@ GET           /import/air                                   controllers.Applicat
 GET           /geo/localities/:id                           controllers.GeoCtrl.getLocality(id: String)
 
 # 交通查询
-GET           /itineraries/air-routes                       controllers.TrafficCtrl.getAirRoutes(departure: Long, arrival: Long, sortType: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
+#GET           /itineraries/air-routes                       controllers.TrafficCtrl.getAirRoutesOld(departure: Long, arrival: Long, sortType: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
+#GET           /itineraries/air-routes/:flightCode           controllers.TrafficCtrl.getAirRouteByCodeOld(flightCode: String)
 GET           /itineraries/air-routes/:flightCode           controllers.TrafficCtrl.getAirRouteByCode(flightCode: String)
 GET           /itineraries/train-station                    controllers.TrafficCtrl.searchTrainStationByLoc(loc: String)
 GET           /itineraries/train-routes                     controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String, sortField: String?="price", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
@@ -34,13 +35,16 @@ GET           /itineraries/train-routes/:trainCode          controllers.TrafficC
 # 发现路线
 GET           /explore/plans/:loc                           controllers.PlanCtrl.explorePlans(loc: String, sortField: String?="", sort: String?="asc", tags: String?="", page: Int?=0, pageSize: Int?=20)
 # 路线查询
-GET           /plans/templates/:planId                      controllers.PlanCtrl.templatePlanDetails(planId: String, fromLoc: String, backLoc: String?="")
+GET           /plans/templates/:planId                      controllers.PlanCtrl.templatePlanDetails(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
 # 保存路线
 POST          /plans/ugc/:userId                            controllers.PlanCtrl.saveUGCPlan(userId: String)
 
 # POI
 # 根据目的地获得景点列表
 GET           /poi/view-spots/search                        controllers.POICtrl.viewSpotList(locality: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+GET           /poi/view-spots/localities/:locId             controllers.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+GET           /poi/hotels/localities/:locId                 controllers.POICtrl.hotelList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+GET           /poi/restaurants/localities/:locId            controllers.POICtrl.restaurantList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 # 景区详情
 GET           /poi/view-spots/:spotId                       controllers.POICtrl.viewSpotDetails(spotId: String)
 # 餐厅详情
