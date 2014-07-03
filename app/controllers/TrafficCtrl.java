@@ -35,15 +35,32 @@ public class TrafficCtrl extends Controller {
     /**
      * 按照航班号获得航班信息。
      *
-     * @param flightCode 航班号。
-     * @return 航班信息。
+     * @param flightCode
+     * @return
      */
-    public static Result getAirRouteByCode(String flightCode) {
-        AirRoute route = AirRoute.finder.byId(flightCode);
-        if (route == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,
-                    String.format("Invalid flight code: %s", flightCode));
-        return Utils.createResponse(ErrorCode.NORMAL, getAirRouteNode(route));
+    public static Result getAirRouteByCode(String flightCode) throws UnknownHostException {
+        if (flightCode == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
+
+        flightCode = flightCode.toUpperCase();
+        DBCollection col = Utils.getMongoClient().getDB("traffic").getCollection("air_route");
+        DBObject flight = col.findOne(QueryBuilder.start("code").is(flightCode).get());
+        if (flight == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid flight code: %s.", flightCode));
+
+        flight.put("_id", flight.get("_id").toString());
+        for (String k : new String[]{"arrAirport", "arr", "depAirport", "dep", "carrier"}) {
+            DBObject tmp = (DBObject) flight.get(k);
+            tmp.put("_id", tmp.get("_id").toString());
+        }
+
+        final DateFormat fmt = new SimpleDateFormat("HH:mm");
+        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
+        fmt.setTimeZone(tz);
+        for (String k : new String[]{"depTime", "arrTime"})
+            flight.put(k, fmt.format((Date) flight.get(k)));
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(flight));
     }
 
     /**
@@ -57,8 +74,8 @@ public class TrafficCtrl extends Controller {
      * @param pageSize   页面大小
      * @return 航班列表
      */
-    public static Result getAirRoutes(long departure, long arrival, String sortType, String sort,
-                                      String timeFilterType, int timeFilter, int page, int pageSize) {
+    public static Result getAirRoutesOld(long departure, long arrival, String sortType, String sort,
+                                         String timeFilterType, int timeFilter, int page, int pageSize) {
         ExpressionList<AirRoute> expList = AirRoute.finder.fetch("airline").fetch("priceList")
                 .fetch("departure").fetch("departure.locality")
                 .fetch("arrival").fetch("arrival.locality")
@@ -141,7 +158,7 @@ public class TrafficCtrl extends Controller {
      *
      * @param departure
      * @param arrival
-     * @param sortType
+     * @param sortField
      * @param sort
      * @param page
      * @param pageSize
@@ -173,7 +190,7 @@ public class TrafficCtrl extends Controller {
                 break;
         }
 
-        BasicDBList routeList = Traffic.searchTrainRoute(departure, arrival, null, null, null, null, sf, st);
+        BasicDBList routeList = Traffic.searchTrainRoute(departure, arrival, null, null, null, null, null, sf, st);
         int fromIdx = page * pageSize;
         if (fromIdx >= routeList.size())
             fromIdx = routeList.size() - 1;
