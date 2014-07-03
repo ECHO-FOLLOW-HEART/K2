@@ -33,7 +33,7 @@ public class PlanCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result templatePlanDetails(String planId, String fromLocId, String backLocId) throws UnknownHostException {
+    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int traffic, int hotel) throws UnknownHostException, TravelPiException {
         DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
         DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
         DBObject plan, fromLoc, backLoc;
@@ -52,6 +52,8 @@ public class PlanCtrl extends Controller {
         } catch (IllegalArgumentException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
         }
+
+        // 获得基准时间
 
         ObjectNode ret = Json.newObject();
         ret.put("_id", plan.get("_id").toString());
@@ -139,8 +141,12 @@ public class PlanCtrl extends Controller {
                 detailNodes.add(Json.toJson(detailNodesD));
         }
 
-        // 添加大交通
-        Planner.telomere(detailNodes, fromLoc, backLoc);
+        if (traffic != 0) {
+            // TODO 交通的起止时间，需要根据当天的游玩景点而定。
+            // 添加大交通
+            Planner.telomere(detailNodes, fromLoc, true);
+            Planner.telomere(detailNodes, backLoc, false);
+        }
 
         // 添加每晚住宿
 

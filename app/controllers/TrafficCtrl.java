@@ -19,10 +19,7 @@ import java.net.UnknownHostException;
 import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 
 /**
@@ -75,7 +72,8 @@ public class TrafficCtrl extends Controller {
      * @return 航班列表
      */
     public static Result getAirRoutes(String depId, String arrId, String sortField, String sort,
-                                      String timeFilterType, int timeFilter, int page, int pageSize) throws TravelPiException {
+                                      String timeFilterType, int timeFilter, int page, int pageSize)
+            throws TravelPiException {
         Traffic.SortField sf = null;
         switch (sortField) {
             case "price":
@@ -101,7 +99,50 @@ public class TrafficCtrl extends Controller {
                 break;
         }
 
-        BasicDBList routeList = Traffic.searchAirRoutes(depId, arrId, null, null, null, null, sf, st, page, pageSize);
+        // 时间段过滤
+        List<Calendar> timeLimits = null;
+        switch (timeFilter) {
+            case 0:
+                break;
+            case 1:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 6, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
+                    add(cal);
+                }};
+                break;
+            case 2:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
+                    add(cal);
+                }};
+                break;
+            case 3:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 23, 59);
+                    add(cal);
+                }};
+                break;
+        }
+        List<Calendar> depLimits = null;
+        List<Calendar> arrLimits = null;
+        if (timeFilterType.equals("dep"))
+            depLimits = timeLimits;
+        else if (timeFilterType.equals("arr"))
+            arrLimits = timeLimits;
+
+        BasicDBList routeList = Traffic.searchAirRoutes(depId, arrId, null, depLimits, arrLimits, null, sf, st, page, pageSize);
         for (Object tmp : routeList) {
             DBObject flight = (DBObject) tmp;
             flight.put("_id", flight.get("_id").toString());
@@ -131,7 +172,9 @@ public class TrafficCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getTrainRoutes(String departure, String arrival, String sortField, String sort, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result getTrainRoutes(String departure, String arrival, String sortField, String sort,
+                                        String timeFilterType, int timeFilter, int page, int pageSize)
+            throws UnknownHostException, TravelPiException {
         Traffic.SortField sf = null;
         switch (sortField) {
             case "price":
@@ -157,7 +200,51 @@ public class TrafficCtrl extends Controller {
                 break;
         }
 
-        BasicDBList routeList = Traffic.searchTrainRoute(departure, arrival, null, null, null, null, null, sf, st);
+        // 时间段过滤
+        List<Calendar> timeLimits = null;
+        switch (timeFilter) {
+            case 0:
+                break;
+            case 1:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 6, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
+                    add(cal);
+                }};
+                break;
+            case 2:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
+                    add(cal);
+                }};
+                break;
+            case 3:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 23, 59);
+                    add(cal);
+                }};
+                break;
+        }
+        List<Calendar> depLimits = null;
+        List<Calendar> arrLimits = null;
+        if (timeFilterType.equals("dep"))
+            depLimits = timeLimits;
+        else if (timeFilterType.equals("arr"))
+            arrLimits = timeLimits;
+
+        BasicDBList routeList = Traffic.searchTrainRoute(departure, arrival, null, depLimits, arrLimits, null, null, sf, st);
+
         int fromIdx = page * pageSize;
         if (fromIdx >= routeList.size())
             fromIdx = routeList.size() - 1;

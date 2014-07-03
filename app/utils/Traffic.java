@@ -62,25 +62,25 @@ public class Traffic {
             query.and("price.price").greaterThanEquals(lower).and("price.price").lessThanEquals(upper);
         }
 
-        for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {
-            {
-                put("depTime", depTimeLimit);
-                put("arrTime", arrTimeLimit);
-            }
-        }.entrySet()) {
-            String k = entry.getKey();
-            List<Calendar> timeLimit = entry.getValue();
-
-            if (timeLimit != null && timeLimit.size() == 2) {
-                Calendar lower = timeLimit.get(0);
-                Calendar upper = timeLimit.get(1);
-
-                lower.set(1980, Calendar.JANUARY, 1);
-                upper.set(1980, Calendar.JANUARY, 1);
-
-                query.and(k).greaterThan(lower.getTime()).and(k).lessThanEquals(upper.getTime());
-            }
-        }
+//        for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {
+//            {
+//                put("depTime", depTimeLimit);
+//                put("arrTime", arrTimeLimit);
+//            }
+//        }.entrySet()) {
+//            String k = entry.getKey();
+//            List<Calendar> timeLimit = entry.getValue();
+//
+//            if (timeLimit != null && timeLimit.size() == 2) {
+//                Calendar lower = timeLimit.get(0);
+//                Calendar upper = timeLimit.get(1);
+//
+//                lower.set(1980, Calendar.JANUARY, 1);
+//                upper.set(1980, Calendar.JANUARY, 1);
+//
+//                query.and(k).greaterThan(lower.getTime()).and(k).lessThanEquals(upper.getTime());
+//            }
+//        }
 
         DBCursor cursor = col.find(new QueryBuilder().and(query1.get(), query2.get()).get());
 
@@ -115,11 +115,92 @@ public class Traffic {
         if (st != 0 && stKey != null)
             cursor.sort(BasicDBObjectBuilder.start(stKey, st).get());
 
-        cursor.skip(page * pageSize).limit(pageSize);
+        // 过滤
+        final List<FilterDelegate<Object>> filterRules = new ArrayList<>();
+
+        // 出发时间和到达时间的过滤
+        for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {{
+            put("depTime", depTimeLimit);
+            put("arrTime", arrTimeLimit);
+        }}.entrySet()) {
+            final List<Calendar> timeLimit = entry.getValue();
+            final String k = entry.getKey();
+            if (timeLimit != null && timeLimit.size() == 2) {
+                filterRules.add(new FilterDelegate<Object>() {
+                    @Override
+                    public boolean filter(Object item) {
+                        DBObject routeItem = (DBObject) item;
+                        Calendar lower = timeLimit.get(0);
+                        Calendar upper = timeLimit.get(1);
+                        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                        cal.setTime((Date) routeItem.get(k));
+                        // cal是否可以处于lower/upper之间。将cal置为刚好大于lower，然后判断cal是否小于upper
+                        for (int field : new int[]{Calendar.YEAR, Calendar.DAY_OF_YEAR})
+                            cal.set(field, lower.get(field));
+                        cal.add(Calendar.DAY_OF_YEAR, -1);
+                        while (cal.before(lower))
+                            cal.add(Calendar.DAY_OF_YEAR, 1);
+
+                        return cal.before(upper);
+                    }
+                });
+            }
+        }
+
+        // 端点时间过滤
+        if (epTimeLimit != null && epTimeLimit.size() == 2) {
+            filterRules.add(new FilterDelegate<Object>() {
+                @Override
+                public boolean filter(Object item) {
+                    DBObject routeItem = (DBObject) item;
+                    Calendar lower = epTimeLimit.get(0);
+                    Calendar upper = epTimeLimit.get(1);
+                    Calendar dep = Calendar.getInstance(Utils.getDefaultTimeZone());
+                    dep.setTime((Date) routeItem.get("depTime"));
+                    Calendar arr = Calendar.getInstance(Utils.getDefaultTimeZone());
+                    arr.setTime((Date) routeItem.get("arrTime"));
+                    long duration = arr.getTimeInMillis() - dep.getTimeInMillis();
+
+                    // dep是否可以处于lower/upper之间。将dep置为刚好大于lower，然后判断cal是否小于upper
+                    for (int field : new int[]{Calendar.YEAR, Calendar.DAY_OF_YEAR})
+                        dep.set(field, lower.get(field));
+                    dep.add(Calendar.DAY_OF_YEAR, -1);
+                    while (dep.before(lower))
+                        dep.add(Calendar.DAY_OF_YEAR, 1);
+                    arr.setTimeInMillis(dep.getTimeInMillis() + duration);
+
+                    return arr.before(upper);
+                }
+            });
+        }
+
+        // 如果不存在手动过滤，则可以直接使用cursor的分页机制
+        if (filterRules.isEmpty())
+            cursor.skip(page * pageSize).limit(pageSize);
 
         BasicDBList results = new BasicDBList();
         while (cursor.hasNext())
             results.add(cursor.next());
+
+        if (!filterRules.isEmpty()) {
+            for (FilterDelegate<Object> rule : filterRules) {
+                List<Object> filtered = FPUtils.filter(results, rule);
+                results.clear();
+                for (Object obj : filtered)
+                    results.add(obj);
+            }
+            int fromIdx = page * pageSize;
+            if (fromIdx >= results.size())
+                fromIdx = results.size() - 1;
+            int toIdx = (page + 1) * pageSize;
+            if (toIdx > results.size())
+                toIdx = results.size();
+            List<Object> filtered = results.subList(fromIdx, toIdx);
+            BasicDBList r = new BasicDBList();
+            for (Object obj : filtered)
+                r.add(obj);
+            results = r;
+        }
 
         return results;
     }
@@ -254,19 +335,18 @@ public class Traffic {
                     @Override
                     public boolean filter(Object item) {
                         DBObject routeItem = (DBObject) item;
+                        Calendar lower = timeLimit.get(0);
+                        Calendar upper = timeLimit.get(1);
                         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
                         cal.setTime((Date) routeItem.get(k));
+                        // cal是否可以处于lower/upper之间。将cal置为刚好大于lower，然后判断cal是否小于upper
+                        for (int field : new int[]{Calendar.YEAR, Calendar.DAY_OF_YEAR})
+                            cal.set(field, lower.get(field));
+                        cal.add(Calendar.DAY_OF_YEAR, -1);
+                        while (cal.before(lower))
+                            cal.add(Calendar.DAY_OF_YEAR, 1);
 
-                        Calendar lower = timeLimit.get(0);
-                        lower.set(Calendar.YEAR, cal.get(Calendar.YEAR));
-                        lower.set(Calendar.MONTH, cal.get(Calendar.MONTH));
-                        lower.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH));
-                        Calendar upper = timeLimit.get(1);
-                        upper.set(Calendar.YEAR, cal.get(Calendar.YEAR));
-                        upper.set(Calendar.MONTH, cal.get(Calendar.MONTH));
-                        upper.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH));
-
-                        return (cal.after(lower) && cal.before(upper));
+                        return cal.before(upper);
                     }
                 });
             }
@@ -277,22 +357,24 @@ public class Traffic {
             filterRules.add(new FilterDelegate<Object>() {
                 @Override
                 public boolean filter(Object item) {
+                    DBObject routeItem = (DBObject) item;
                     Calendar lower = epTimeLimit.get(0);
                     Calendar upper = epTimeLimit.get(1);
-                    DBObject routeItem = (DBObject) item;
-                    Calendar dep = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    Calendar dep = Calendar.getInstance(Utils.getDefaultTimeZone());
                     dep.setTime((Date) routeItem.get("depTime"));
-                    Calendar arr = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    Calendar arr = Calendar.getInstance(Utils.getDefaultTimeZone());
                     arr.setTime((Date) routeItem.get("arrTime"));
                     long duration = arr.getTimeInMillis() - dep.getTimeInMillis();
-                    // 将dep的时间置为lower-upper区间里面
-                    for (int k : new int[]{Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH})
-                        dep.set(k, lower.get(k));
-                    if (dep.before(lower))
-                        dep.add(Calendar.DAY_OF_MONTH, 1);
+
+                    // dep是否可以处于lower/upper之间。将dep置为刚好大于lower，然后判断cal是否小于upper
+                    for (int field : new int[]{Calendar.YEAR, Calendar.DAY_OF_YEAR})
+                        dep.set(field, lower.get(field));
+                    dep.add(Calendar.DAY_OF_YEAR, -1);
+                    while (dep.before(lower))
+                        dep.add(Calendar.DAY_OF_YEAR, 1);
                     arr.setTimeInMillis(dep.getTimeInMillis() + duration);
 
-                    return dep.after(lower) && dep.before(upper) && arr.after(lower) && arr.before(upper);
+                    return arr.before(upper);
                 }
             });
         }

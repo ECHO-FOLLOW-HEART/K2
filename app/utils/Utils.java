@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
 
 import static play.mvc.Results.ok;
 
@@ -85,6 +86,16 @@ public class Utils {
         client = new MongoClient(host, port);
         mongoClientMap.put(key, client);
         return client;
+    }
+
+
+    /**
+     * 默认的时区设置为Asia/Shanghai。
+     *
+     * @return
+     */
+    public static TimeZone getDefaultTimeZone(){
+        return TimeZone.getTimeZone("Asia/Shanghai");
     }
 
 }
