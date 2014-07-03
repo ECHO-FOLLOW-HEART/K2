@@ -3,6 +3,7 @@ package utils;
 import com.mongodb.*;
 import controllers.TravelPiException;
 import org.bson.types.ObjectId;
+
 import java.net.UnknownHostException;
 import java.util.*;
 
@@ -18,6 +19,112 @@ public class Traffic {
     public enum SortType {ASC, DESC}
 
     /**
+     * 搜索航班信息。
+     *
+     * @param depId
+     * @param arrId
+     * @param priceLimits
+     * @param depTimeLimit
+     * @param arrTimeLimit
+     * @throws TravelPiException
+     */
+    public static BasicDBList searchAirRoutes(String depId, String arrId, final List<Double> priceLimits,
+                                              final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit,
+                                              final List<Calendar> epTimeLimit,
+                                              final SortField sortField, final SortType sortType, int page, int pageSize) throws TravelPiException {
+        MongoClient client;
+        try {
+            client = Utils.getMongoClient();
+        } catch (UnknownHostException | NullPointerException e) {
+            throw new TravelPiException(e);
+        }
+        assert client != null;
+        DB db = client.getDB("traffic");
+        DBCollection col = db.getCollection("air_route");
+
+        ObjectId dep, arr;
+        try {
+            dep = new ObjectId(depId);
+            arr = new ObjectId(arrId);
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(String.format("Invalid departure/arrival ID: %s / %s.", depId, arrId), e);
+        }
+
+        QueryBuilder query1 = new QueryBuilder().or(QueryBuilder.start("arrAirport._id").is(arr).get(),
+                QueryBuilder.start("arr._id").is(arr).get());
+        QueryBuilder query2 = new QueryBuilder().or(QueryBuilder.start("depAirport._id").is(dep).get(),
+                QueryBuilder.start("dep._id").is(dep).get());
+        QueryBuilder query = new QueryBuilder().and(query1.get(), query2.get());
+
+        if (priceLimits != null && priceLimits.size() == 2) {
+            Double lower = priceLimits.get(0);
+            Double upper = priceLimits.get(1);
+            query.and("price.price").greaterThanEquals(lower).and("price.price").lessThanEquals(upper);
+        }
+
+        for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {
+            {
+                put("depTime", depTimeLimit);
+                put("arrTime", arrTimeLimit);
+            }
+        }.entrySet()) {
+            String k = entry.getKey();
+            List<Calendar> timeLimit = entry.getValue();
+
+            if (timeLimit != null && timeLimit.size() == 2) {
+                Calendar lower = timeLimit.get(0);
+                Calendar upper = timeLimit.get(1);
+
+                lower.set(1980, Calendar.JANUARY, 1);
+                upper.set(1980, Calendar.JANUARY, 1);
+
+                query.and(k).greaterThan(lower.getTime()).and(k).lessThanEquals(upper.getTime());
+            }
+        }
+
+        DBCursor cursor = col.find(new QueryBuilder().and(query1.get(), query2.get()).get());
+
+        // 排序
+        int st = 0;
+        if (sortType != null) {
+            switch (sortType) {
+                case ASC:
+                    st = 1;
+                    break;
+                case DESC:
+                    st = -1;
+                    break;
+            }
+        }
+        String stKey = null;
+        switch (sortField) {
+            case PRICE:
+                stKey = "price.price";
+                break;
+            case TIME_COST:
+                stKey = "timeCost";
+                break;
+            case DEP_TIME:
+                stKey = "depTime";
+                break;
+            case ARR_TIME:
+                stKey = "arrTime";
+                break;
+        }
+
+        if (st != 0 && stKey != null)
+            cursor.sort(BasicDBObjectBuilder.start(stKey, st).get());
+
+        cursor.skip(page * pageSize).limit(pageSize);
+
+        BasicDBList results = new BasicDBList();
+        while (cursor.hasNext())
+            results.add(cursor.next());
+
+        return results;
+    }
+
+    /**
      * 搜索列车信息。
      *
      * @param depId
@@ -29,8 +136,8 @@ public class Traffic {
      * @throws TravelPiException
      */
     public static BasicDBList searchTrainRoute(String depId, String arrId, final List<Double> priceLimits,
-                                               final List<Date> depTimeLimit, final List<Date> arrTimeLimit,
-                                               final List<String> trainClasses,
+                                               final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit,
+                                               final List<Calendar> epTimeLimit, final List<String> trainClasses,
                                                final SortField sortField, final SortType sortType) throws TravelPiException {
         MongoClient client;
         try {
@@ -112,16 +219,18 @@ public class Traffic {
             BasicDBObjectBuilder priceBuilder = BasicDBObjectBuilder.start();
             DBObject arrPrice = (DBObject) arrStop.get("price");
             DBObject depPrice = (DBObject) depStop.get("price");
-            for (String priceKey : arrPrice.keySet()) {
-                double arrVal = (double) arrPrice.get(priceKey);
-                double depVal = (depPrice != null && depPrice.containsField(priceKey) ? (double) depPrice.get(priceKey) : 0);
-                priceBuilder.add(priceKey, arrVal - depVal);
+            if (arrPrice != null) {
+                for (String priceKey : arrPrice.keySet()) {
+                    double arrVal = (double) arrPrice.get(priceKey);
+                    double depVal = (depPrice != null && depPrice.containsField(priceKey) ? (double) depPrice.get(priceKey) : 0);
+                    priceBuilder.add(priceKey, arrVal - depVal);
+                }
+                DBObject priceList = priceBuilder.get();
+                builder.add("priceList", priceList);
+                // 最低票价
+                if (!priceList.keySet().isEmpty())
+                    builder.add("price", Collections.min(priceList.toMap().values()));
             }
-            DBObject priceList = priceBuilder.get();
-            builder.add("priceList", priceList);
-            // 最低票价
-            if (!priceList.keySet().isEmpty())
-                builder.add("price", Collections.min(priceList.toMap().values()));
 
             builder.add("_id", route.get("_id"));
             builder.add("code", route.get("code"));
@@ -134,38 +243,58 @@ public class Traffic {
         final List<FilterDelegate<Object>> filterRules = new ArrayList<>();
 
         // 出发时间和到达时间的过滤
-        for (Map.Entry<String, List<Date>> entry : new HashMap<String, List<Date>>() {{
+        for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {{
             put("depTime", depTimeLimit);
             put("arrTime", arrTimeLimit);
         }}.entrySet()) {
-            final List<Date> timeLimit = entry.getValue();
+            final List<Calendar> timeLimit = entry.getValue();
             final String k = entry.getKey();
             if (timeLimit != null && timeLimit.size() == 2) {
                 filterRules.add(new FilterDelegate<Object>() {
                     @Override
                     public boolean filter(Object item) {
                         DBObject routeItem = (DBObject) item;
-                        Calendar cal = Calendar.getInstance();
+                        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
                         cal.setTime((Date) routeItem.get(k));
-                        Calendar lower = Calendar.getInstance();
-                        lower.setTime(depTimeLimit.get(0));
-                        Calendar upper = Calendar.getInstance();
-                        upper.setTime(arrTimeLimit.get(1));
-                        lower.set(
-                                cal.get(Calendar.YEAR),
-                                cal.get(Calendar.MONTH),
-                                cal.get(Calendar.DAY_OF_YEAR)
-                        );
-                        upper.set(
-                                cal.get(Calendar.YEAR),
-                                cal.get(Calendar.MONTH),
-                                cal.get(Calendar.DAY_OF_YEAR)
-                        );
+
+                        Calendar lower = timeLimit.get(0);
+                        lower.set(Calendar.YEAR, cal.get(Calendar.YEAR));
+                        lower.set(Calendar.MONTH, cal.get(Calendar.MONTH));
+                        lower.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH));
+                        Calendar upper = timeLimit.get(1);
+                        upper.set(Calendar.YEAR, cal.get(Calendar.YEAR));
+                        upper.set(Calendar.MONTH, cal.get(Calendar.MONTH));
+                        upper.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH));
 
                         return (cal.after(lower) && cal.before(upper));
                     }
                 });
             }
+        }
+
+        // 端点时间过滤
+        if (epTimeLimit != null && epTimeLimit.size() == 2) {
+            filterRules.add(new FilterDelegate<Object>() {
+                @Override
+                public boolean filter(Object item) {
+                    Calendar lower = epTimeLimit.get(0);
+                    Calendar upper = epTimeLimit.get(1);
+                    DBObject routeItem = (DBObject) item;
+                    Calendar dep = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    dep.setTime((Date) routeItem.get("depTime"));
+                    Calendar arr = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    arr.setTime((Date) routeItem.get("arrTime"));
+                    long duration = arr.getTimeInMillis() - dep.getTimeInMillis();
+                    // 将dep的时间置为lower-upper区间里面
+                    for (int k : new int[]{Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH})
+                        dep.set(k, lower.get(k));
+                    if (dep.before(lower))
+                        dep.add(Calendar.DAY_OF_MONTH, 1);
+                    arr.setTimeInMillis(dep.getTimeInMillis() + duration);
+
+                    return dep.after(lower) && dep.before(upper) && arr.after(lower) && arr.before(upper);
+                }
+            });
         }
 
         // 价格的过滤
@@ -199,11 +328,14 @@ public class Traffic {
         }
 
         for (FilterDelegate<Object> rule : filterRules) {
-            routeList = (BasicDBList) FPUtils.filter(routeList, rule);
+            List<Object> filtered = FPUtils.filter(routeList, rule);
+            routeList.clear();
+            for (Object obj : filtered)
+                routeList.add(obj);
         }
 
         // 排序
-        if (sortField!=null && sortType!=null) {
+        if (sortField != null && sortType != null) {
             final boolean asc = (sortType == SortType.ASC);
             Comparator<Object> cmp;
             switch (sortField) {
