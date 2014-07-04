@@ -28,6 +28,6 @@ public class PlanTag extends Model {
     @Constraints.Required
     public String planTagName;
 
-    @ManyToMany(mappedBy = "planTagList",fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "planTagList", fetch = FetchType.LAZY)
     public List<PlanEntry> planEntryList;
 }

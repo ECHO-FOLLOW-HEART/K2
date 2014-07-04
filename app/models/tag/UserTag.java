@@ -13,7 +13,7 @@ import javax.persistence.Id;
  * @author zephyre
  */
 @Entity
-public class UserTag extends Model{
+public class UserTag extends Model {
     @Id
     public Long id;
 

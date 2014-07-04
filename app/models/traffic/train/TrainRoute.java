@@ -4,9 +4,11 @@ import models.misc.Currency;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 import java.sql.Time;
-import java.util.List;
 
 /**
  * 列车车次信息。

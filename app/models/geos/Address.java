@@ -3,7 +3,6 @@ package models.geos;
 import play.data.validation.Constraints;
 
 import javax.persistence.Embeddable;
-import javax.persistence.ManyToOne;
 
 /**
  * 地址信息

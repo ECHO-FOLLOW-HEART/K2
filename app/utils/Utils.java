@@ -5,8 +5,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
-import org.bson.types.BasicBSONList;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Result;
@@ -25,6 +23,8 @@ import static play.mvc.Results.ok;
  * @author Zephyre
  */
 public class Utils {
+    private static Map<String, MongoClient> mongoClientMap = new HashMap<>();
+
     public static Object create(Class c, Map<String, Object> kvPairs) {
         Object obj = null;
         try {
@@ -61,8 +61,6 @@ public class Utils {
         }
         return ok(response);
     }
-
-    private static Map<String, MongoClient> mongoClientMap = new HashMap<>();
 
     /**
      * 获得默认的MongoDB客户端对象。

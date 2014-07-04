@@ -12,7 +12,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class SubContinent extends Model{
+public class SubContinent extends Model {
     @Id
     public Long id;
 

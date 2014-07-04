@@ -2,10 +2,9 @@ package utils;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Expr;
-import com.avaje.ebean.ExpressionList;
 import com.fasterxml.jackson.databind.JsonNode;
-import models.geos.Locality;
 import models.geos.Country;
+import models.geos.Locality;
 import models.misc.Currency;
 import models.traffic.plane.*;
 import models.traffic.train.TrainRoute;

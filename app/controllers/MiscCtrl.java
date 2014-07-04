@@ -85,14 +85,17 @@ public class MiscCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getSuggestions(String word, int pageSize) throws UnknownHostException {
-        DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$lt", 3).get()).get();
-        List<JsonNode> locSug = getSpecSug(word, pageSize, "zhName", "geo", "locality", extra);
-        List<JsonNode> vsSug = getSpecSug(word, pageSize, "name", "poi", "view_spot", null);
-
+    public static Result getSuggestions(String word, int loc, int vs, int pageSize) throws UnknownHostException {
         ObjectNode ret = Json.newObject();
-        ret.put("loc", Json.toJson(locSug));
-        ret.put("vs", Json.toJson(vsSug));
+        if (loc != 0) {
+            DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gt", 1).get()).get();
+            List<JsonNode> locSug = getSpecSug(word, pageSize, "zhName", "geo", "locality", extra);
+            ret.put("loc", Json.toJson(locSug));
+        }
+        if (vs != 0) {
+            List<JsonNode> vsSug = getSpecSug(word, pageSize, "name", "poi", "view_spot", null);
+            ret.put("vs", Json.toJson(vsSug));
+        }
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 

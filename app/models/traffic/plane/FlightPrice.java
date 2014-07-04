@@ -1,6 +1,5 @@
 package models.traffic.plane;
 
-import com.avaje.ebean.annotation.UpdatedTimestamp;
 import models.misc.Currency;
 import play.data.validation.Constraints;
 import play.db.ebean.Model;

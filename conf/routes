@@ -51,7 +51,7 @@ GET           /poi/view-spots/:spotId                       controllers.POICtrl.
 # 其它
 POST          /sys/feedback                                 controllers.MiscCtrl.postFeedback()
 GET           /sys/updates/:platform                        controllers.MiscCtrl.getUpdateInfo(platform: String, platformVer: String, appVer: String)
-GET           /suggestions                                  controllers.MiscCtrl.getSuggestions(word: String, pageSize: Int?=5)
+GET           /suggestions                                  controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, pageSize: Int?=5)
 
 # 发现目的地（推荐机制）
 GET           /explore/localities                           controllers.MiscCtrl.exploreLoc(showDetails: Int?=0, page: Int?=0, pageSize: Int?=20)

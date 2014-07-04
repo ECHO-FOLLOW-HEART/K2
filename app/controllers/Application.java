@@ -2,16 +2,20 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
-import models.geos.*;
+import models.geos.Continent;
+import models.geos.Country;
+import models.geos.Locality;
+import models.geos.SubContinent;
 import models.tag.LocalityTag;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.libs.Json;
-import play.mvc.*;
-
+import play.mvc.Controller;
+import play.mvc.Result;
+import play.mvc.Results;
 import utils.DataImporter;
 import utils.Utils;
-import views.html.*;
+import views.html.index;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -215,7 +219,7 @@ public class Application extends Controller {
         DataImporter importer = DataImporter.init("localhost", 3306, "vxp", "vxp123", "vxp_raw");
         importer.connect();
 //        final JsonNode nodePort = importer.importAirport(start, count);
-        final JsonNode nodeRoute =importer.importAirRoutes(start,count);
+        final JsonNode nodeRoute = importer.importAirRoutes(start, count);
 //        final JsonNode nodeRoute = importer.importTrainRoute(start, count);
 //        final JsonNode nodeSchedule = importer.importTrainTimetable(start, count);
         JsonNode node = Json.toJson(new HashMap<String, Object>() {

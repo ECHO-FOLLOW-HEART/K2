@@ -30,7 +30,7 @@ public class TravelPiException extends Exception {
 
     @Override
     public String toString() {
-        if (getCause()!=null)
+        if (getCause() != null)
             return String.format("Message: %s, cause: %s, code: %d.", getMessage(), getCause().getMessage(), errCode);
         else
             return String.format("Message: %s, code: %d.", getMessage(), errCode);

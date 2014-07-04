@@ -6,7 +6,6 @@ import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import org.bson.types.ObjectId;
-import play.filters.csrf.CSRF;
 import play.libs.Json;
 
 import java.net.UnknownHostException;

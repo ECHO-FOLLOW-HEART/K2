@@ -28,6 +28,6 @@ public class LocalityTag extends Model {
     @Constraints.Required
     public String cityTagName;
 
-    @ManyToMany(mappedBy = "tagList",fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "tagList", fetch = FetchType.LAZY)
     public List<Locality> localityList;
 }

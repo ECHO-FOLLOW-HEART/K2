@@ -117,7 +117,7 @@ public class Locality extends Model {
     /**
      * 下级所属城市列表。
      */
-    @OneToMany(fetch=FetchType.LAZY, mappedBy = "supLocality")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "supLocality")
     public List<Locality> chiLocalityList;
 
     /**

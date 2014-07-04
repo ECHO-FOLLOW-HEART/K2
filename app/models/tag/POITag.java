@@ -3,10 +3,7 @@ package models.tag;
 import play.db.ebean.Model;
 
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import java.util.List;
 
 /**
  * POI的标签。

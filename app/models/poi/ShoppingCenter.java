@@ -1,7 +1,6 @@
 package models.poi;
 
 import javax.persistence.Entity;
-import javax.persistence.Temporal;
 import java.sql.Time;
 
 /**

@@ -12,7 +12,7 @@ import javax.persistence.MappedSuperclass;
  * @author Zephyre
  */
 @MappedSuperclass
-public class ImageItem extends Model{
+public class ImageItem extends Model {
     @Id
     public Long id;
 

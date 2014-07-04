@@ -14,10 +14,6 @@ import java.util.*;
  */
 public class Traffic {
 
-    public enum SortField {PRICE, DEP_TIME, ARR_TIME, TIME_COST}
-
-    public enum SortType {ASC, DESC}
-
     /**
      * 搜索航班信息。
      *
@@ -464,4 +460,8 @@ public class Traffic {
 
         return routeList;
     }
+
+    public enum SortField {PRICE, DEP_TIME, ARR_TIME, TIME_COST}
+
+    public enum SortType {ASC, DESC}
 }

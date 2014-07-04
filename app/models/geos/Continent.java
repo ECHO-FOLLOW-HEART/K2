@@ -15,7 +15,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class Continent extends Model{
+public class Continent extends Model {
     @Id
     public Long id;
 

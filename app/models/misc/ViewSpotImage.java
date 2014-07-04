@@ -1,10 +1,8 @@
 package models.misc;
 
-import models.poi.Hotel;
 import models.poi.ViewSpot;
 import play.data.validation.Constraints;
 
-import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
