@@ -2,16 +2,20 @@ package utils;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.BasicDBList;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
+import org.bson.types.BasicBSONList;
+import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Result;
 
 import java.lang.reflect.Field;
 import java.net.UnknownHostException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TimeZone;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static play.mvc.Results.ok;
 
@@ -94,8 +98,39 @@ public class Utils {
      *
      * @return
      */
-    public static TimeZone getDefaultTimeZone(){
+    public static TimeZone getDefaultTimeZone() {
         return TimeZone.getTimeZone("Asia/Shanghai");
+    }
+
+
+    public static JsonNode bsonToJson(Object node) {
+        DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+        fmt.setTimeZone(getDefaultTimeZone());
+        return bsonToJson(node, fmt);
+    }
+
+    public static JsonNode bsonToJson(Object node, DateFormat dateFmt) {
+
+        if (node instanceof Date)
+            return Json.toJson(dateFmt.format((Date) node));
+        else if (node instanceof Calendar)
+            return Json.toJson(dateFmt.format(((Calendar) node).getTime()));
+        else if (node instanceof ObjectId)
+            return Json.toJson(node.toString());
+        else if (node instanceof BasicDBList) {
+            List<JsonNode> jsonList = new ArrayList<>();
+            BasicDBList nodeList = (BasicDBList) node;
+            for (Object tmp : nodeList)
+                jsonList.add(bsonToJson(tmp));
+            return Json.toJson(jsonList);
+        } else if (node instanceof DBObject) {
+            DBObject nodeMap = (DBObject) node;
+            ObjectNode jsonMap = Json.newObject();
+            for (String key : nodeMap.keySet())
+                jsonMap.put(key, bsonToJson(nodeMap.get(key)));
+            return jsonMap;
+        } else
+            return (node == null ? null : Json.toJson(node));
     }
 
 }
