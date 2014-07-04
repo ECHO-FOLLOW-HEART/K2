@@ -191,6 +191,7 @@ public class Planner {
                     .add("arrStopName", ((DBObject) route.get("arr")).get("stopName"))
                     .add("arrLocId", ((DBObject) route.get("arr")).get("locId"))
                     .add("arrLocName", ((DBObject) route.get("arr")).get("locName"))
+                    .add("code", route.get("code"))
                     .add("type", "majorTraffic")
                     .add("subType", "train").get();
             Date depTime = (Date) route.get("depTime");
