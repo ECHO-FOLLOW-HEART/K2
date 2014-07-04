@@ -148,7 +148,7 @@ public class MiscCtrl extends Controller {
         BasicDBObjectBuilder facet = BasicDBObjectBuilder.start("zhName", 1);
         if (detailFlag)
             facet = facet.add("imageList", 1).add("desc", 1).add("tags", 1).add("ratings.score", 1);
-        DBCursor cursor = col.find(QueryBuilder.start("level").lessThan(3).get(), facet.get())
+        DBCursor cursor = col.find(QueryBuilder.start("level").is(2).get(), facet.get())
                 .sort(BasicDBObjectBuilder.start("ratings.score", -1).get())
                 .skip(page * pageSize).limit(pageSize);
         List<JsonNode> results = new ArrayList<>();
