@@ -1,7 +1,7 @@
 package utils;
 
 import com.mongodb.*;
-import controllers.TravelPiException;
+import exception.TravelPiException;
 import org.bson.types.ObjectId;
 
 import java.net.UnknownHostException;

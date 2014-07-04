@@ -1,13 +1,9 @@
 package controllers;
 
-import com.avaje.ebean.Expr;
-import com.avaje.ebean.ExpressionList;
-import com.avaje.ebean.Query;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import models.traffic.plane.AirRoute;
-import models.traffic.plane.FlightPrice;
+import exception.ErrorCode;
+import exception.TravelPiException;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -16,7 +12,6 @@ import utils.Traffic;
 import utils.Utils;
 
 import java.net.UnknownHostException;
-import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;

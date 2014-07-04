@@ -3,6 +3,7 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
+import exception.ErrorCode;
 import models.geos.Locality;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -12,7 +13,6 @@ import utils.Utils;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Pattern;
 

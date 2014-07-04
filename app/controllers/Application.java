@@ -1,6 +1,7 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import exception.ErrorCode;
 import models.geos.*;
 import models.tag.LocalityTag;
 import play.db.ebean.Model;
