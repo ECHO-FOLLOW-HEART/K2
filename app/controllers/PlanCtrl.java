@@ -174,7 +174,7 @@ public class PlanCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static Result saveUGCPlan(String userId) throws UnknownHostException {
+    public static Result saveUGCPlan(String userId) throws UnknownHostException, TravelPiException {
         ObjectNode plan = (ObjectNode) request().body().asJson();
         DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
 
@@ -221,7 +221,7 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String locId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException {
+    public static Result explorePlans(String locId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException, TravelPiException {
         DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
         DBCursor cursor;
 

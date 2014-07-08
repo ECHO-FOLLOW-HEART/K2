@@ -3,7 +3,9 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
+import core.POI;
 import exception.ErrorCode;
+import exception.TravelPiException;
 import models.geos.Locality;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -85,7 +87,7 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result searchLocality(String searchWord, int page, int pageSize) throws UnknownHostException {
+    public static Result searchLocality(String searchWord, int page, int pageSize) throws UnknownHostException, TravelPiException {
         if (searchWord == null || searchWord.trim().isEmpty())
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search word: %s.", searchWord));
 
@@ -129,37 +131,31 @@ public class GeoCtrl extends Controller {
 
 
     /**
-     * 获得城市信息
+     * 获得城市信息。
      *
      * @param id
      * @return
-     * @throws UnknownHostException
      */
-    public static Result getLocality(String id) throws UnknownHostException {
-        MongoClient client = Utils.getMongoClient();
-        DB db = client.getDB("geo");
-        DBCollection col = db.getCollection("locality");
+    public static Result getLocality(String id, int relatedVs, int hotel, int restaurant) {
 
-        DBObject loc = col.findOne(QueryBuilder.start("_id").is(new ObjectId(id)).get());
-        if (loc == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", id));
+        try {
+            ObjectNode result = core.Locality.getLocDetailsJson(core.Locality.locDetails(id), 3);
 
-        BasicDBList siblings = (BasicDBList) loc.get("siblings");
-        if (siblings != null) {
-            for (Object sibling : siblings) {
-                DBObject sib = (DBObject) sibling;
-                sib.put("_id", sib.get("_id").toString());
-            }
+            int page = 0;
+            int pageSize = 10;
+            if (relatedVs != 0) {
+                BasicDBList retVsList = new BasicDBList();
+                for (Object tmp1 : POI.explore(true, POI.POIType.VIEW_SPOT, id, page, pageSize)) {
+                    ObjectNode vs = POI.getPOIInfoJson((DBObject) tmp1, 1);
+                    retVsList.add(vs);
+                }
+                result.put("relatedVs", Json.toJson(retVsList));
+            } else
+                result.put("relatedVs", Json.toJson(new ArrayList<>()));
+
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
-        DBObject p;
-        if ((p = (DBObject) loc.get("parent")) != null) {
-            ObjectId pid = (ObjectId) p.get("_id");
-            p.put("_id", pid.toString());
-        }
-        loc.put("_id", loc.get("_id").toString());
-
-        JsonNode ret = Json.parse(loc.toString());
-
-        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 }

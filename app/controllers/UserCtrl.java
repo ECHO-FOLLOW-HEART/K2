@@ -2,6 +2,7 @@ package controllers;
 
 import com.mongodb.*;
 import exception.ErrorCode;
+import exception.TravelPiException;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -49,7 +50,7 @@ public class UserCtrl extends Controller {
 
             return Utils.createResponse(ErrorCode.NORMAL,
                     Json.toJson(builder.get()));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException|TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
     }
@@ -60,7 +61,7 @@ public class UserCtrl extends Controller {
      * @param userName
      * @return
      */
-    public static Result getUserProfileByName(String userName) throws UnknownHostException {
+    public static Result getUserProfileByName(String userName) throws UnknownHostException, TravelPiException {
         DBCollection col = Utils.getMongoClient("localhost", 27017).getDB("user").getCollection("user_info");
         DBObject userItem = col.findOne(QueryBuilder.start("name").is(userName).get());
         if (userItem == null)
@@ -92,7 +93,7 @@ public class UserCtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException|TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
     }
@@ -103,7 +104,7 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static Result putUserFavoredVS(String userId) throws UnknownHostException {
+    public static Result putUserFavoredVS(String userId) throws UnknownHostException, TravelPiException {
         ObjectId vsId, uid;
         try {
             uid = new ObjectId(userId);
@@ -135,7 +136,7 @@ public class UserCtrl extends Controller {
      * @param vsId
      * @return
      */
-    public static Result removeUserFavoredVS(String userId, String vsId) throws UnknownHostException {
+    public static Result removeUserFavoredVS(String userId, String vsId) throws UnknownHostException, TravelPiException {
         ObjectId vsOid, userOid;
         try {
             userOid = new ObjectId(userId);
@@ -157,8 +158,8 @@ public class UserCtrl extends Controller {
      * @param udid
      * @return
      */
-    public static Result getUserByUDID(String udid) throws UnknownHostException {
-        DBCollection col = Utils.getMongoClient("localhost", 27017).getDB("user").getCollection("user_info");
+    public static Result getUserByUDID(String udid) throws UnknownHostException, TravelPiException {
+        DBCollection col = Utils.getMongoClient().getDB("user").getCollection("user_info");
         DBObject user = col.findOne(BasicDBObjectBuilder.start("udid", udid).get());
         if (user == null) {
             // 用户没有找到，重新生成

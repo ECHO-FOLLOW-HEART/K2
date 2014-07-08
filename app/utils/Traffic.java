@@ -31,7 +31,7 @@ public class Traffic {
         MongoClient client;
         try {
             client = Utils.getMongoClient();
-        } catch (UnknownHostException | NullPointerException e) {
+        } catch (NullPointerException e) {
             throw new TravelPiException(e);
         }
         assert client != null;
@@ -219,7 +219,7 @@ public class Traffic {
         MongoClient client;
         try {
             client = Utils.getMongoClient();
-        } catch (UnknownHostException | NullPointerException e) {
+        } catch (NullPointerException e) {
             throw new TravelPiException(e);
         }
         assert client != null;

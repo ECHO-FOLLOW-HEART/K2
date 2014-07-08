@@ -4,16 +4,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import com.mongodb.util.JSON;
+import core.Locality;
+import core.POI;
 import exception.ErrorCode;
+import exception.TravelPiException;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Constants;
 import utils.Utils;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -23,7 +29,7 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 public class MiscCtrl extends Controller {
-    public static Result postFeedback() throws UnknownHostException {
+    public static Result postFeedback() throws UnknownHostException, TravelPiException {
         JsonNode feedback = request().body().asJson();
         ObjectId uid = null;
         try {
@@ -33,7 +39,7 @@ public class MiscCtrl extends Controller {
             if (userItem == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", uid));
         } catch (NullPointerException ignored) {
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", feedback.get("uid").asText()));
         }
         String body = null;
@@ -85,7 +91,7 @@ public class MiscCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getSuggestions(String word, int loc, int vs, int pageSize) throws UnknownHostException {
+    public static Result getSuggestions(String word, int loc, int vs, int pageSize) throws UnknownHostException, TravelPiException {
         ObjectNode ret = Json.newObject();
         if (loc != 0) {
             DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gt", 1).get()).get();
@@ -99,7 +105,7 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
-    private static List<JsonNode> getSpecSug(String word, int pageSize, String nameField, String dbName, String colName, DBObject extra) throws UnknownHostException {
+    private static List<JsonNode> getSpecSug(String word, int pageSize, String nameField, String dbName, String colName, DBObject extra) throws UnknownHostException, TravelPiException {
         Pattern pattern = Pattern.compile("^" + word);
         DBCollection colLoc = Utils.getMongoClient().getDB(dbName).getCollection(colName);
 
@@ -140,7 +146,7 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result exploreLoc(int showDetails, int page, int pageSize) throws UnknownHostException {
+    public static Result exploreLoc(int showDetails, int page, int pageSize) throws UnknownHostException, TravelPiException {
         String uid = request().getQueryString("uid");
         boolean detailFlag = (showDetails > 0);
 
@@ -188,7 +194,7 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePOI(int showDetails, int vs, int restaurant, int hotel, int page, int pageSize) throws UnknownHostException {
+    public static Result explorePOI(int showDetails, int vs, int restaurant, int hotel, int page, int pageSize) throws UnknownHostException, TravelPiException {
         boolean detailFlag = (showDetails > 0);
         String uid = request().getQueryString("uid");
 
@@ -219,7 +225,7 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    private static List<JsonNode> explorePOIHlp(boolean detailFlag, String colName, String uid, int page, int pageSize) throws UnknownHostException {
+    private static List<JsonNode> explorePOIHlp(boolean detailFlag, String colName, String uid, int page, int pageSize) throws UnknownHostException, TravelPiException {
         DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
         BasicDBObjectBuilder facet = BasicDBObjectBuilder.start("name", 1);
         if (detailFlag)
@@ -259,4 +265,82 @@ public class MiscCtrl extends Controller {
         return results;
     }
 
+
+    /**
+     * 广义的发现接口（通过一系列开关来控制）
+     *
+     * @param loc
+     * @param vs
+     * @param hotel
+     * @param restaurant
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, int page, int pageSize) throws UnknownHostException, TravelPiException {
+        boolean detailsFlag = (details != 0);
+        DBObject results = new BasicDBObject();
+
+        // 发现城市
+        if (loc != 0) {
+            BasicDBList retLocList = new BasicDBList();
+
+            for (Object obj : Locality.explore(detailsFlag, page, pageSize)) {
+                retLocList.add(Locality.getLocDetailsJson((DBObject) obj, 2));
+            }
+            results.put("loc", retLocList);
+        }
+
+        List<POI.POIType> poiKeyList = new ArrayList<>();
+        if (vs != 0)
+            poiKeyList.add(POI.POIType.VIEW_SPOT);
+        if (hotel != 0)
+            poiKeyList.add(POI.POIType.HOTEL);
+        if (restaurant != 0)
+            poiKeyList.add(POI.POIType.RESTAURANT);
+
+        HashMap<POI.POIType, String> poiMap = new HashMap<POI.POIType, String>() {
+            {
+                put(POI.POIType.VIEW_SPOT, "vs");
+                put(POI.POIType.HOTEL, "hotel");
+                put(POI.POIType.RESTAURANT, "restaurant");
+            }
+        };
+
+        for (POI.POIType poiType : poiKeyList) {
+            // 发现POI
+            BasicDBList retPoiList = new BasicDBList();
+            for (Object obj : POI.explore(detailsFlag, poiType, null, page, pageSize)) {
+                DBObject poiObj = (DBObject) obj;
+                BasicDBObjectBuilder builder = BasicDBObjectBuilder.start("_id", poiObj.get("_id").toString()).add("name", poiObj.get("name"));
+                if (detailsFlag) {
+                    for (String k : new String[]{"imageList", "tags"}) {
+                        BasicDBList retValList = new BasicDBList();
+                        Object valList = poiObj.get(k);
+                        if (valList == null || !(valList instanceof BasicDBList))
+                            valList = new BasicDBList();
+                        for (Object val : (BasicDBList) valList)
+                            retValList.add(val.toString());
+                        builder.add(k, retValList);
+                    }
+                    Object tmp = poiObj.get("desc");
+                    builder.add("desc", (tmp == null ? "" : StringUtils.abbreviate(tmp.toString(), Constants.ABBREVIATE_LEN)));
+                    builder.add("favorCnt", 0).add("voteCnt", 0);
+                }
+
+                Object tmp = poiObj.get("geo");
+                if (tmp == null || !(tmp instanceof DBObject))
+                    tmp = new BasicDBObject();
+                DBObject geoNode = (DBObject) tmp;
+                BasicDBObjectBuilder geoBuilder = BasicDBObjectBuilder.start();
+                geoBuilder.add("locId", geoNode.get("locId").toString()).add("locName", geoNode.get("locName"));
+                builder.add("geo", geoBuilder.get());
+
+                retPoiList.add(builder.get());
+            }
+            results.put(poiMap.get(poiType), retPoiList);
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+    }
 }

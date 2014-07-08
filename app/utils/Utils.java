@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBList;
 import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
+import exception.ErrorCode;
+import exception.TravelPiException;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Result;
@@ -68,7 +70,7 @@ public class Utils {
      * @return
      * @throws UnknownHostException
      */
-    public static MongoClient getMongoClient() throws UnknownHostException {
+    public static MongoClient getMongoClient() throws TravelPiException {
         return getMongoClient("localhost", 27017);
     }
 
@@ -79,13 +81,17 @@ public class Utils {
      * @param port
      * @return
      */
-    public static MongoClient getMongoClient(String host, int port) throws UnknownHostException {
+    public static MongoClient getMongoClient(String host, int port) throws TravelPiException {
         String key = host + String.valueOf(port);
         MongoClient client = mongoClientMap.get(key);
         if (client != null)
             return client;
 
-        client = new MongoClient(host, port);
+        try {
+            client = new MongoClient(host, port);
+        } catch (UnknownHostException e) {
+            throw new TravelPiException(ErrorCode.DATABASE_ERROR, String.format("Invalid database connection: host=%s, port=%d", host, port));
+        }
         mongoClientMap.put(key, client);
         return client;
     }
@@ -130,5 +136,4 @@ public class Utils {
         } else
             return (node == null ? null : Json.toJson(node));
     }
-
 }

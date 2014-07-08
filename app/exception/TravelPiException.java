@@ -6,7 +6,7 @@ package exception;
  * @author Zephyre
  */
 public class TravelPiException extends Exception {
-    private int errCode = ErrorCode.NORMAL;
+    public int errCode = ErrorCode.NORMAL;
 
     public TravelPiException(String msg) {
         super(msg);
@@ -22,6 +22,11 @@ public class TravelPiException extends Exception {
 
     public TravelPiException(int code, String msg, Throwable cause) {
         super(msg, cause);
+        errCode = code;
+    }
+
+    public TravelPiException(int code, String msg) {
+        super(msg);
         errCode = code;
     }
 

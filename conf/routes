@@ -20,8 +20,8 @@ GET           /import/train                                 controllers.Applicat
 GET           /import/air                                   controllers.Application.airImport(start: Int?=0, count: Int?=50)
 
 # 基础地理信息查询
-#GET           /geo/localities                               controllers.GeoCtrl.searchLocality(searchWord: String, page: Int?=0, pageSize: Int?=20)
-GET           /geo/localities/:id                           controllers.GeoCtrl.getLocality(id: String)
+# 查询城市详情
+GET           /geo/localities/:id                           controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 
 # 交通查询
 GET           /itineraries/air-routes                       controllers.TrafficCtrl.getAirRoutes(dep: String, arr: String, sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
@@ -45,8 +45,12 @@ GET           /poi/view-spots/localities/:locId             controllers.POICtrl.
 GET           /poi/hotels/localities/:locId                 controllers.POICtrl.hotelList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 GET           /poi/restaurants/localities/:locId            controllers.POICtrl.restaurantList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 # 景区详情
-GET           /poi/view-spots/:spotId                       controllers.POICtrl.viewSpotDetails(spotId: String)
+GET           /poi/view-spots/:spotId                       controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=1, showRelated: Int=0)
+# 获得景区概貌
+GET           /poi/view-spots/:spotId/profiles              controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=0, showRelated: Int=1)
 # 餐厅详情
+# 获得相关景点
+GET           /poi/view-spots/:spotId/related               controllers.POICtrl.relatedViewSpotList(spotId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
 # 其它
 POST          /sys/feedback                                 controllers.MiscCtrl.postFeedback()
@@ -54,10 +58,11 @@ GET           /sys/updates/:platform                        controllers.MiscCtrl
 GET           /suggestions                                  controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, pageSize: Int?=5)
 
 # 发现目的地（推荐机制）
-GET           /explore/localities                           controllers.MiscCtrl.exploreLoc(showDetails: Int?=0, page: Int?=0, pageSize: Int?=20)
-# 发现POI
-GET           /explore/poi                                  controllers.MiscCtrl.explorePOI(showDetails: Int?=0, vs: Int?=0, restaurant: Int?=0, hotel: Int?=0, page: Int?=0, pageSize: Int?=20)
-
+GET           /explore                                      controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
+#
+#GET           /explore/localities                           controllers.MiscCtrl.exploreLoc(showDetails: Int?=0, page: Int?=0, pageSize: Int?=20)
+## 发现POI
+#GET           /explore/poi                                  controllers.MiscCtrl.explorePOI(showDetails: Int?=0, vs: Int?=0, restaurant: Int?=0, hotel: Int?=0, page: Int?=0, pageSize: Int?=20)
 
 # 用户
 GET           /users/udid/:udid                             controllers.UserCtrl.getUserByUDID(udid: String)

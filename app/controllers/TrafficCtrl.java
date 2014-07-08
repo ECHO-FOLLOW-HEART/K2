@@ -30,7 +30,7 @@ public class TrafficCtrl extends Controller {
      * @param flightCode
      * @return
      */
-    public static Result getAirRouteByCode(String flightCode) throws UnknownHostException {
+    public static Result getAirRouteByCode(String flightCode) throws UnknownHostException, TravelPiException {
         if (flightCode == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
 
@@ -274,7 +274,7 @@ public class TrafficCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getTrainRouteByCode(String trainCode) throws UnknownHostException {
+    public static Result getTrainRouteByCode(String trainCode) throws UnknownHostException, TravelPiException {
         trainCode = trainCode.toUpperCase();
         MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
@@ -335,7 +335,7 @@ public class TrafficCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result searchTrainStationByLoc(String id) throws UnknownHostException {
+    public static Result searchTrainStationByLoc(String id) throws UnknownHostException, TravelPiException {
         MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
         DBCollection col = db.getCollection("train_route");
