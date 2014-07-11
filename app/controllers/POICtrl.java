@@ -286,4 +286,49 @@ public class POICtrl extends Controller {
 
         return viewSpotList(locId, tagFilter, sortFilter, sort, page, pageSize);
     }
+
+
+    /**
+     * 根据关键词搜索POI信息。
+     *
+     * @param poiType
+     * @param locId
+     * @param keyword
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result poiSearch(String poiType, String locId, String keyword, int page, int pageSize) {
+        if (locId.isEmpty())
+            locId = null;
+
+        PoiAPI.POIType type = null;
+        switch (poiType) {
+            case "vs":
+                type = PoiAPI.POIType.VIEW_SPOT;
+                break;
+            case "hotel":
+                type = PoiAPI.POIType.HOTEL;
+                break;
+            case "restaurant":
+                type = PoiAPI.POIType.RESTAURANT;
+                break;
+        }
+        if (type == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
+
+        List<JsonNode> results = new ArrayList<>();
+        try {
+            BasicDBList poiList = PoiAPI.poiSearch(type, locId, keyword, true, null, false, page, pageSize);
+            for (Object tmp : poiList) {
+                DBObject poi = (DBObject) tmp;
+                ObjectNode node = PoiAPI.getPOIInfoJson(poi, 2);
+                results.add(node);
+            }
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+    }
 }
