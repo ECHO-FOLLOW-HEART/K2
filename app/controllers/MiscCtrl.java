@@ -4,14 +4,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import com.mongodb.util.JSON;
+
 import core.LocalityAPI;
 import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.misc.MiscInfo;
+
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -212,8 +215,8 @@ public class MiscCtrl extends Controller {
 
             // TODO 加入分辨率和格式的适配
             // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-
-            node.put("image", info.appHomeImage);
+            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width,height,quality,format,interlace);
+            node.put("image", url);
 
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (TravelPiException e) {
