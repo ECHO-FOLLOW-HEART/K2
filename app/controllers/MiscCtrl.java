@@ -163,8 +163,10 @@ public class MiscCtrl extends Controller {
         // 发现城市
         if (loc != 0) {
             List<JsonNode> retLocList = new ArrayList<>();
-            for (Object obj : LocalityAPI.explore(detailsFlag, page, pageSize))
-                retLocList.add(LocalityAPI.getLocDetailsJson((DBObject) obj, 2));
+            // TODO 获得城市信息
+//            for (Object obj : LocalityAPI.explore(detailsFlag, page, pageSize))
+//
+//                retLocList.add(LocalityAPI.getLocDetailsJson((DBObject) obj, 2));
             results.put("loc", Json.toJson(retLocList));
         }
 

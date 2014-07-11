@@ -9,8 +9,8 @@ import org.mongodb.morphia.annotations.Embedded;
  */
 @Embedded
 public class Coords {
-    public double lat;
-    public double lng;
-    public double blat;
-    public double blng;
+    public Double lat;
+    public Double lng;
+    public Double blat;
+    public Double blng;
 }

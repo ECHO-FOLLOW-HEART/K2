@@ -7,6 +7,7 @@ import core.LocalityAPI;
 import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.TravelPiBaseItem;
 import models.geos.Locality;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -89,6 +90,8 @@ public class GeoCtrl extends Controller {
      * @return
      */
     public static Result searchLocality(String searchWord, int page, int pageSize) throws UnknownHostException, TravelPiException {
+
+
         if (searchWord == null || searchWord.trim().isEmpty())
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search word: %s.", searchWord));
 
@@ -140,7 +143,8 @@ public class GeoCtrl extends Controller {
     public static Result getLocality(String id, int relatedVs, int hotel, int restaurant) {
 
         try {
-            ObjectNode result = LocalityAPI.getLocDetailsJson(LocalityAPI.locDetails(id), 3);
+//            ObjectNode result = LocalityAPI.getLocDetailsJson(LocalityAPI.locDetails(id), 3);
+            ObjectNode result = (ObjectNode) LocalityAPI.locDetails(id, 3).toJson(3);
 
             int page = 0;
             int pageSize = 10;
@@ -161,11 +165,10 @@ public class GeoCtrl extends Controller {
     }
 
     public static Result lookupLocality(int baiduId) throws TravelPiException {
-        DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
-        DBObject loc = locCol.findOne(QueryBuilder.start("baiduId").is(baiduId).get());
+        TravelPiBaseItem loc = LocalityAPI.locDetailsByBaiduId(baiduId);
         if (loc == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
-
-        return Utils.createResponse(ErrorCode.NORMAL, LocalityAPI.getLocDetailsJson(LocalityAPI.locDetails((ObjectId) loc.get("_id")), 1));
+        else
+            return Utils.createResponse(ErrorCode.NORMAL, loc.toJson());
     }
 }

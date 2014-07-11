@@ -90,7 +90,9 @@ public class PlanAPI {
 
         builder.add("_id", item.get("_id").toString());
         DBObject loc = (DBObject) item.get("loc");
-        builder.add("loc", LocalityAPI.getLocDetailsJson(LocalityAPI.locDetails((ObjectId) loc.get("_id")), 1));
+
+        builder.add("loc", LocalityAPI.locDetails((ObjectId) loc.get("_id"), 1).toJson(1));
+//        builder.add("loc", LocalityAPI.getLocDetailsJson(LocalityAPI.locDetails((ObjectId) loc.get("_id")), 1));
 
         Object tmp;
         tmp = item.get("title");

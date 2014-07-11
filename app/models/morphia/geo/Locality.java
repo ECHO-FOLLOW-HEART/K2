@@ -69,18 +69,62 @@ public class Locality extends TravelPiBaseItem {
         else
             builder.add("parent", null);
 
-        BasicDBList sibNodeList = new BasicDBList();
-        if (siblings != null) {
-            for (Locality sib : siblings)
-                sibNodeList.add(BasicDBObjectBuilder.start().add("_id", sib.id.toString()).add("name", sib.zhName).get());
-        }
-        builder.add("siblings", sibNodeList);
+//        BasicDBList sibNodeList = new BasicDBList();
+//        if (siblings != null) {
+//            for (Locality sib : siblings)
+//                sibNodeList.add(BasicDBObjectBuilder.start().add("_id", sib.id.toString()).add("name", sib.zhName).get());
+//        }
+//        builder.add("siblings", sibNodeList);
 
         return Json.toJson(builder.get());
     }
 
     @Override
     public JsonNode toJson() {
-        return null;
+        return toJson(1);
+    }
+
+    public JsonNode toJson(int level) {
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        builder.add("_id", id.toString()).add("name", zhName).add("level", level);
+
+        if (parent != null)
+            builder.add("parent", BasicDBObjectBuilder.start().add("_id", parent.id.toString()).add("name", zhName).get());
+        else
+            builder.add("parent", null);
+
+        if (level > 1) {
+            builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
+
+            BasicDBList imageListNodes = new BasicDBList();
+            if (imageList != null) {
+                for (String url : imageList)
+                    imageListNodes.add(url);
+            }
+            builder.add("imageList", imageListNodes);
+
+            BasicDBList tagsNodes = new BasicDBList();
+            if (tags != null) {
+                for (String tag : tags)
+                    tagsNodes.add(tag);
+            }
+            builder.add("tags", tagsNodes);
+
+            if (coords != null) {
+                builder.add("blat", (coords.blat != null ? coords.blat : ""));
+                builder.add("blng", (coords.blng != null ? coords.blng : ""));
+                builder.add("lat", (coords.lat != null ? coords.lat : ""));
+                builder.add("lng", (coords.lng != null ? coords.lng : ""));
+            }
+        }
+
+//        BasicDBList sibNodeList = new BasicDBList();
+//        if (siblings != null) {
+//            for (Locality sib : siblings)
+//                sibNodeList.add(BasicDBObjectBuilder.start().add("_id", sib.id.toString()).add("name", sib.zhName).get());
+//        }
+//        builder.add("siblings", sibNodeList);
+
+        return Json.toJson(builder.get());
     }
 }
