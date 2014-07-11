@@ -43,8 +43,8 @@ public class PoiAPI {
      * @param pageSize
      * @return
      */
-    public static DBObject poiSearch(POIType poiType, String locId, String searchWord, boolean details,
-                                     String sortField, boolean asc, int page, int pageSize) throws TravelPiException {
+    public static BasicDBList poiSearch(POIType poiType, String locId, String searchWord, boolean details,
+                                        String sortField, boolean asc, int page, int pageSize) throws TravelPiException {
         String colName;
         switch (poiType) {
             case VIEW_SPOT:
@@ -76,10 +76,12 @@ public class PoiAPI {
             facet.add("imageList", 1).add("tags", 1).add("desc", 1).add("geo.locId", 1).add("geo.locName", 1);
 
         BasicDBObjectBuilder sortBuilder = BasicDBObjectBuilder.start();
-        switch (sortField) {
-            case "score":
-                sortBuilder.add("ratings.score", (asc ? 1 : -1));
-                break;
+        if (sortField != null) {
+            switch (sortField) {
+                case "score":
+                    sortBuilder.add("ratings.score", (asc ? 1 : -1));
+                    break;
+            }
         }
         DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
         DBCursor cursor = col.find(query.get()).skip(page * pageSize).limit(pageSize);
