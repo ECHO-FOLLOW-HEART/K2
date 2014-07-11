@@ -192,7 +192,14 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, results);
     }
 
-    public static Result appHomeImage() {
+    /**
+     * 获得App首页的图像。
+     *
+     * @param width     指定宽度
+     * @param height    指定高度
+     * @return
+     */
+    public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
 //            Class.forName("exception.ErrorCode");
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
@@ -202,7 +209,12 @@ public class MiscCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
 
             ObjectNode node = Json.newObject();
+
+            // TODO 加入分辨率和格式的适配
+            // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
+
             node.put("image", info.appHomeImage);
+
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());

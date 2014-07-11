@@ -55,7 +55,7 @@ public class MorphiaFactory {
                     ds = morphia.createDatastore(new MongoClient(), "geo");
                     break;
                 case POI:
-                    ds = morphia.createDatastore(new MongoClient(), "geo");
+                    ds = morphia.createDatastore(new MongoClient(), "poi");
                     break;
                 case PLAN:
                     ds = morphia.createDatastore(new MongoClient(), "plan");
