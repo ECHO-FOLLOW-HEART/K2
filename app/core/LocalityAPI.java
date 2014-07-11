@@ -17,7 +17,7 @@ import java.net.UnknownHostException;
  *
  * @author Zephyre
  */
-public class Locality {
+public class LocalityAPI {
 
     /**
      * 获得城市详情。

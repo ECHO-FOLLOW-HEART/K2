@@ -3,6 +3,7 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
+import core.PlanAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import org.bson.types.ObjectId;
@@ -33,38 +34,40 @@ public class PlanCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int traffic, int hotel) throws UnknownHostException, TravelPiException {
-        DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
-        DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
-        DBObject plan, fromLoc, backLoc;
+    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int traffic, int hotel) {
         try {
-            plan = col.findOne(QueryBuilder.start("_id").is(new ObjectId(planId)).get());
-            if (plan == null)
-                throw new NullPointerException();
-            fromLoc = locCol.findOne(QueryBuilder.start("_id").is(new ObjectId(fromLocId)).get());
-            if (fromLoc == null)
-                throw new NullPointerException();
-            if (backLocId == null || backLocId.isEmpty())
-                backLocId = fromLocId;
-            backLoc = locCol.findOne(QueryBuilder.start("_id").is(new ObjectId(backLocId)).get());
-            if (backLoc == null)
-                throw new NullPointerException();
-            backLocId = backLoc.get("_id").toString();
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
+            DBObject plan = PlanAPI.getPlan(planId);
+
+            DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
+            DBObject fromLoc, backLoc;
+            try {
+                fromLoc = locCol.findOne(QueryBuilder.start("_id").is(new ObjectId(fromLocId)).get());
+                if (fromLoc == null)
+                    throw new NullPointerException();
+                if (backLocId == null || backLocId.isEmpty())
+                    backLocId = fromLocId;
+                backLoc = locCol.findOne(QueryBuilder.start("_id").is(new ObjectId(backLocId)).get());
+                if (backLoc == null)
+                    throw new NullPointerException();
+                backLocId = backLoc.get("_id").toString();
+            } catch (IllegalArgumentException | NullPointerException e) {
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
+            }
+
+            // 获得基准时间（默认为3天后）
+            Calendar calBase = Calendar.getInstance();
+            calBase.add(Calendar.DAY_OF_YEAR, 3);
+            calBase.set(Calendar.HOUR, 0);
+            calBase.set(Calendar.MINUTE, 0);
+            calBase.set(Calendar.SECOND, 0);
+            calBase.set(Calendar.MILLISECOND, 0);
+
+            DBObject ret1 = Planner.generateUgcPlan(plan, fromLocId, backLocId, calBase);
+
+            return Utils.createResponse(ErrorCode.NORMAL, Utils.bsonToJson(ret1));
+        }catch(TravelPiException e){
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
-
-        // 获得基准时间（默认为3天后）
-        Calendar calBase = Calendar.getInstance();
-        calBase.add(Calendar.DAY_OF_YEAR, 3);
-        calBase.set(Calendar.HOUR, 0);
-        calBase.set(Calendar.MINUTE, 0);
-        calBase.set(Calendar.SECOND, 0);
-        calBase.set(Calendar.MILLISECOND, 0);
-
-        DBObject ret1 = Planner.generateUgcPlan(planId, fromLocId, backLocId, calBase);
-
-        return Utils.createResponse(ErrorCode.NORMAL, Utils.bsonToJson(ret1));
 
 //        ObjectNode ret = Json.newObject();
 //        ret.put("_id", plan.get("_id").toString());
@@ -221,55 +224,11 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String locId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException, TravelPiException {
-        DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
-        DBCursor cursor;
-
-        try {
-            QueryBuilder builder = QueryBuilder.start("loc._id").is(new ObjectId(locId));
-            if (tags != null && !tags.isEmpty())
-                builder = builder.and("tags").is(tags);
-            int sortVal = 1;
-            if (sort != null && (sort.equals("asc") || sort.equals("desc")))
-                sortVal = sort.equals("asc") ? 1 : -1;
-            cursor = col.find(builder.get());
-            if (sortField != null && !sortField.isEmpty()) {
-                switch (sortField) {
-                    case "days":
-                        cursor.sort(BasicDBObjectBuilder.start("days", sortVal).get());
-                        break;
-                    case "hot":
-                        cursor.sort(BasicDBObjectBuilder.start("viewCnt", sortVal).get());
-                }
-            }
-            cursor.skip(page * pageSize).limit(pageSize);
-        } catch (IllegalArgumentException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", locId));
-        }
-
+    public static Result explorePlans(String locId, String poiId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
-        while (cursor.hasNext()) {
-            DBObject item = cursor.next();
-
-            ObjectNode node = Json.newObject();
-            node.put("_id", item.get("_id").toString());
-            DBObject loc = (DBObject) item.get("loc");
-            node.put("loc", Json.toJson(BasicDBObjectBuilder.start("_id", loc.get("_id").toString())
-                    .add("name", loc.get("name").toString()).get()));
-            node.put("title", item.get("title").toString());
-            node.put("days", (int) item.get("days"));
-            Object intro = item.get("intro");
-            if (intro != null)
-                node.put("intro", intro.toString());
-            Object itemTags = item.get("tags");
-            if (itemTags != null)
-                node.put("tags", Json.toJson(itemTags));
-            Object viewCnt = item.get("viewCnt");
-            if (viewCnt != null)
-                node.put("viewCnt", (int) viewCnt);
-
-            node.put("imageList", Json.toJson(item.get("imageList")));
-            results.add(node);
+        for (Object tmp : PlanAPI.explore(locId, poiId, sort, tags, page, pageSize, sortField)) {
+            DBObject planNode = (DBObject) tmp;
+            results.add(PlanAPI.getPlanJson(planNode));
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));

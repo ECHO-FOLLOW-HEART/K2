@@ -4,7 +4,6 @@ import com.mongodb.*;
 import exception.TravelPiException;
 import org.bson.types.ObjectId;
 
-import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -185,13 +184,16 @@ public class Traffic {
                 for (Object obj : filtered)
                     results.add(obj);
             }
+            List<Object> filtered;
             int fromIdx = page * pageSize;
             if (fromIdx >= results.size())
-                fromIdx = results.size() - 1;
-            int toIdx = (page + 1) * pageSize;
-            if (toIdx > results.size())
-                toIdx = results.size();
-            List<Object> filtered = results.subList(fromIdx, toIdx);
+                filtered = new ArrayList<>();
+            else {
+                int toIdx = (page + 1) * pageSize;
+                if (toIdx > results.size())
+                    toIdx = results.size();
+                filtered = results.subList(fromIdx, toIdx);
+            }
             BasicDBList r = new BasicDBList();
             for (Object obj : filtered)
                 r.add(obj);

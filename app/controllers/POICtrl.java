@@ -3,7 +3,7 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import core.POI;
+import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import org.apache.commons.lang3.StringUtils;
@@ -32,74 +32,88 @@ public class POICtrl extends Controller {
      * @param showRelated 获得相关景点。
      */
     public static Result viewSpotInfo(String spotId, int showDetails, int showRelated) throws TravelPiException {
-        boolean detailsFlag = (showDetails != 0);
-        DBObject poiInfo = POI.getPOIInfo(spotId, POI.POIType.VIEW_SPOT, detailsFlag);
+        boolean details = (showDetails != 0);
+        DBObject poiInfo = PoiAPI.getPOIInfo(spotId, PoiAPI.POIType.VIEW_SPOT, details);
+        ObjectNode results = PoiAPI.getPOIInfoJson(poiInfo, (details ? 3 : 2));
 
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", poiInfo.get("_id").toString());
-        builder.add("name", poiInfo.get("name").toString());
-
-        Object tmp;
-        tmp = poiInfo.get("desc");
-        if (detailsFlag)
-            builder.add("desc", (tmp == null ? "" : tmp.toString()));
-        else
-            builder.add("desc", (tmp == null ? "" : StringUtils.abbreviate(tmp.toString(), 64)));
-
-        for (String k : new String[]{"tags", "imageList"}) {
-            tmp = poiInfo.get(k);
-            if (tmp == null || !(tmp instanceof BasicDBList))
-                tmp = new BasicDBList();
-            BasicDBList valList = new BasicDBList();
-            for (Object tmp1 : (BasicDBList) tmp)
-                valList.add(tmp1.toString());
-            builder.add(k, valList);
+        if (showRelated != 0) {
+            // 获得相关景点
+            List<JsonNode> related = new ArrayList<>();
+            int page = 0;
+            int pageSize = 10;
+            String locId = results.get("geo").get("locId").asText();
+            for (Object tmp : PoiAPI.explore(true, PoiAPI.POIType.VIEW_SPOT, locId, page, pageSize))
+                related.add(PoiAPI.getPOIInfoJson((DBObject) tmp, 2));
+            results.put("related", Json.toJson(related));
         }
 
-        if (detailsFlag) {
-            for (String k : new String[]{"voteCnt", "favorCnt"}) {
-                tmp = poiInfo.get(k);
-                if (tmp == null || !(tmp instanceof Integer))
-                    builder.add(k, "");
-                else
-                    builder.add(k, tmp);
-            }
+        return Utils.createResponse(ErrorCode.NORMAL, results);
 
-//            tmp = poiInfo.get("ratings");
+//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+//        builder.add("_id", poiInfo.get("_id").toString());
+//        builder.add("name", poiInfo.get("name").toString());
+//
+//        Object tmp;
+//        tmp = poiInfo.get("desc");
+//        if (detailsFlag)
+//            builder.add("desc", (tmp == null ? "" : tmp.toString()));
+//        else
+//            builder.add("desc", (tmp == null ? "" : StringUtils.abbreviate(tmp.toString(), 64)));
+//
+//        for (String k : new String[]{"tags", "imageList"}) {
+//            tmp = poiInfo.get(k);
+//            if (tmp == null || !(tmp instanceof BasicDBList))
+//                tmp = new BasicDBList();
+//            BasicDBList valList = new BasicDBList();
+//            for (Object tmp1 : (BasicDBList) tmp)
+//                valList.add(tmp1.toString());
+//            builder.add(k, valList);
+//        }
+//
+//        if (detailsFlag) {
+//            for (String k : new String[]{"voteCnt", "favorCnt"}) {
+//                tmp = poiInfo.get(k);
+//                if (tmp == null || !(tmp instanceof Integer))
+//                    builder.add(k, "");
+//                else
+//                    builder.add(k, tmp);
+//            }
+//
+////            tmp = poiInfo.get("ratings");
+////            if (tmp == null || !(tmp instanceof DBObject))
+////                tmp = new BasicDBObject();
+////            DBObject ratings = (DBObject) tmp;
+////            DBObject retRatings = new BasicDBObject();
+////            tmp = ratings.get("voteCnt");
+////            retRatings.put("voteCnt", ((tmp == null || !(tmp instanceof Integer)) ? "" : (int) tmp));
+////            builder.add("ratings", retRatings);
+//
+//            tmp = poiInfo.get("price");
+//            builder.add("cost", ((tmp == null || !(tmp instanceof Double)) ? "" : (double) tmp));
+//            tmp = poiInfo.get("priceDesc");
+//            builder.add("costDesc", (tmp == null ? "" : tmp.toString()));
+//
+//            tmp = poiInfo.get("geo");
 //            if (tmp == null || !(tmp instanceof DBObject))
 //                tmp = new BasicDBObject();
-//            DBObject ratings = (DBObject) tmp;
-//            DBObject retRatings = new BasicDBObject();
-//            tmp = ratings.get("voteCnt");
-//            retRatings.put("voteCnt", ((tmp == null || !(tmp instanceof Integer)) ? "" : (int) tmp));
-//            builder.add("ratings", retRatings);
-
-            tmp = poiInfo.get("price");
-            builder.add("cost", ((tmp == null || !(tmp instanceof Double)) ? "" : (double) tmp));
-            tmp = poiInfo.get("priceDesc");
-            builder.add("costDesc", (tmp == null ? "" : tmp.toString()));
-
-            tmp = poiInfo.get("geo");
-            if (tmp == null || !(tmp instanceof DBObject))
-                tmp = new BasicDBObject();
-            DBObject geo = (DBObject) tmp;
-            DBObject retGeo = new BasicDBObject();
-            for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
-                tmp = geo.get(k);
-                if (tmp != null && (tmp instanceof Double))
-                    retGeo.put(k, tmp);
-                else
-                    retGeo.put(k, "");
-            }
-            for (String k : new String[]{"locId", "locName"}) {
-                tmp = geo.get(k);
-                retGeo.put(k, (tmp == null ? "" : tmp.toString()));
-            }
-
-            builder.add("geo", retGeo);
-        }
-
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
+//            DBObject geo = (DBObject) tmp;
+//            DBObject retGeo = new BasicDBObject();
+//            for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
+//                tmp = geo.get(k);
+//                if (tmp != null && (tmp instanceof Double))
+//                    retGeo.put(k, tmp);
+//                else
+//                    retGeo.put(k, "");
+//            }
+//            for (String k : new String[]{"locId", "locName"}) {
+//                tmp = geo.get(k);
+//                retGeo.put(k, (tmp == null ? "" : tmp.toString()));
+//            }
+//
+//            builder.add("geo", retGeo);
+//        }
+//
+//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
 
 
 //        ObjectNode result = Json.newObject();

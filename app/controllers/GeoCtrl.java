@@ -3,7 +3,8 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import core.POI;
+import core.LocalityAPI;
+import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.geos.Locality;
@@ -139,14 +140,14 @@ public class GeoCtrl extends Controller {
     public static Result getLocality(String id, int relatedVs, int hotel, int restaurant) {
 
         try {
-            ObjectNode result = core.Locality.getLocDetailsJson(core.Locality.locDetails(id), 3);
+            ObjectNode result = LocalityAPI.getLocDetailsJson(LocalityAPI.locDetails(id), 3);
 
             int page = 0;
             int pageSize = 10;
             if (relatedVs != 0) {
                 BasicDBList retVsList = new BasicDBList();
-                for (Object tmp1 : POI.explore(true, POI.POIType.VIEW_SPOT, id, page, pageSize)) {
-                    ObjectNode vs = POI.getPOIInfoJson((DBObject) tmp1, 1);
+                for (Object tmp1 : PoiAPI.explore(true, PoiAPI.POIType.VIEW_SPOT, id, page, pageSize)) {
+                    ObjectNode vs = PoiAPI.getPOIInfoJson((DBObject) tmp1, 1);
                     retVsList.add(vs);
                 }
                 result.put("relatedVs", Json.toJson(retVsList));
@@ -157,5 +158,14 @@ public class GeoCtrl extends Controller {
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+    }
+
+    public static Result lookupLocality(int baiduId) throws TravelPiException {
+        DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
+        DBObject loc = locCol.findOne(QueryBuilder.start("baiduId").is(baiduId).get());
+        if (loc == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
+
+        return Utils.createResponse(ErrorCode.NORMAL, LocalityAPI.getLocDetailsJson(LocalityAPI.locDetails((ObjectId) loc.get("_id")), 1));
     }
 }

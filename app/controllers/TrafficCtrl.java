@@ -240,13 +240,16 @@ public class TrafficCtrl extends Controller {
 
         BasicDBList routeList = Traffic.searchTrainRoute(departure, arrival, null, depLimits, arrLimits, null, null, sf, st);
 
+        List<Object> ret;
         int fromIdx = page * pageSize;
         if (fromIdx >= routeList.size())
-            fromIdx = routeList.size() - 1;
-        int toIdx = fromIdx + pageSize;
-        if (toIdx > routeList.size())
-            toIdx = routeList.size();
-        List<Object> ret = routeList.subList(fromIdx, toIdx);
+            ret = new ArrayList<>();
+        else {
+            int toIdx = fromIdx + pageSize;
+            if (toIdx > routeList.size())
+                toIdx = routeList.size();
+            ret = routeList.subList(fromIdx, toIdx);
+        }
 
         final DateFormat fmt = new SimpleDateFormat("HH:mm");
         TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");

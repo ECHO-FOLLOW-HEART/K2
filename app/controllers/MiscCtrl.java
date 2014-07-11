@@ -4,16 +4,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import com.mongodb.util.JSON;
-import core.Locality;
-import core.POI;
+import core.LocalityAPI;
+import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import org.apache.commons.lang3.StringUtils;
+import models.MorphiaFactory;
+import models.morphia.misc.MiscInfo;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.Constants;
 import utils.Utils;
 
 import java.net.UnknownHostException;
@@ -91,17 +92,19 @@ public class MiscCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getSuggestions(String word, int loc, int vs, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result getSuggestions(String word, int loc, int vs, int hotel, int restaurant, int pageSize) throws UnknownHostException, TravelPiException {
         ObjectNode ret = Json.newObject();
         if (loc != 0) {
             DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gt", 1).get()).get();
             List<JsonNode> locSug = getSpecSug(word, pageSize, "zhName", "geo", "locality", extra);
             ret.put("loc", Json.toJson(locSug));
         }
-        if (vs != 0) {
-            List<JsonNode> vsSug = getSpecSug(word, pageSize, "name", "poi", "view_spot", null);
-            ret.put("vs", Json.toJson(vsSug));
-        }
+        if (vs != 0)
+            ret.put("vs", Json.toJson(PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, 0, pageSize)));
+        if (hotel != 0)
+            ret.put("hotel", Json.toJson(PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, 0, pageSize)));
+        if (restaurant != 0)
+            ret.put("restaurant", Json.toJson(PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, 0, pageSize)));
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
@@ -140,133 +143,6 @@ public class MiscCtrl extends Controller {
 
 
     /**
-     * 发现目的地
-     *
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result exploreLoc(int showDetails, int page, int pageSize) throws UnknownHostException, TravelPiException {
-        String uid = request().getQueryString("uid");
-        boolean detailFlag = (showDetails > 0);
-
-        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("locality");
-        BasicDBObjectBuilder facet = BasicDBObjectBuilder.start("zhName", 1);
-        if (detailFlag)
-            facet = facet.add("imageList", 1).add("desc", 1).add("tags", 1).add("ratings.score", 1);
-        DBCursor cursor = col.find(QueryBuilder.start("level").is(2).get(), facet.get())
-                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get())
-                .skip(page * pageSize).limit(pageSize);
-        List<JsonNode> results = new ArrayList<>();
-
-        while (cursor.hasNext()) {
-            DBObject queryRet = cursor.next();
-            ObjectNode node = Json.newObject();
-            node.put("_id", queryRet.get("_id").toString());
-            node.put("name", queryRet.get("zhName").toString());
-
-            // 显示详细信息
-            if (detailFlag) {
-                Object imageList = queryRet.get("imageList");
-                if (imageList != null)
-                    node.put("imageList", Json.toJson(imageList));
-                Object desc = queryRet.get("desc");
-                if (desc != null)
-                    node.put("desc", desc.toString());
-                Object tags = queryRet.get("tags");
-                if (tags != null)
-                    node.put("tags", Json.toJson(tags));
-            }
-            results.add(node);
-        }
-
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
-    }
-
-    /**
-     * 发现POI
-     *
-     * @param showDetails
-     * @param vs
-     * @param restaurant
-     * @param hotel
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result explorePOI(int showDetails, int vs, int restaurant, int hotel, int page, int pageSize) throws UnknownHostException, TravelPiException {
-        boolean detailFlag = (showDetails > 0);
-        String uid = request().getQueryString("uid");
-
-        ObjectNode results = Json.newObject();
-        if (vs != 0) {
-            List<JsonNode> vsList = explorePOIHlp(detailFlag, "view_spot", uid, page, pageSize);
-            results.put("viewSpot", Json.toJson(vsList));
-        }
-        if (restaurant != 0) {
-            List<JsonNode> vsList = explorePOIHlp(detailFlag, "restaurant", uid, page, pageSize);
-            results.put("restaurant", Json.toJson(vsList));
-        }
-        if (hotel != 0) {
-            List<JsonNode> vsList = explorePOIHlp(detailFlag, "hotel", uid, page, pageSize);
-            results.put("hotel", Json.toJson(vsList));
-        }
-
-        return Utils.createResponse(ErrorCode.NORMAL, results);
-    }
-
-
-    /**
-     * 发现景点
-     *
-     * @param detailFlag
-     * @param uid
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    private static List<JsonNode> explorePOIHlp(boolean detailFlag, String colName, String uid, int page, int pageSize) throws UnknownHostException, TravelPiException {
-        DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
-        BasicDBObjectBuilder facet = BasicDBObjectBuilder.start("name", 1);
-        if (detailFlag)
-            facet = facet.add("imageList", 1).add("intro.desc", 1).add("tags", 1).add("ratings.score", 1);
-//        DBObject explain = col.find(new BasicDBObject(), facet.get())
-//                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get())
-//                .skip(page * pageSize).limit(pageSize).explain();
-
-        DBCursor cursor = col.find(new BasicDBObject(), facet.get())
-                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get())
-                .skip(page * pageSize).limit(pageSize);
-
-        List<JsonNode> results = new ArrayList<>();
-        while (cursor.hasNext()) {
-            DBObject queryRet = cursor.next();
-            ObjectNode node = Json.newObject();
-            node.put("_id", queryRet.get("_id").toString());
-            node.put("name", queryRet.get("name").toString());
-
-            // 显示详细信息
-            if (detailFlag) {
-                Object imageList = queryRet.get("imageList");
-                if (imageList != null)
-                    node.put("imageList", Json.toJson(imageList));
-                try {
-                    Object desc = ((DBObject) queryRet.get("intro")).get("desc");
-                    if (desc != null)
-                        node.put("desc", desc.toString());
-                } catch (NullPointerException ignored) {
-                }
-                Object tags = queryRet.get("tags");
-                if (tags != null)
-                    node.put("tags", Json.toJson(tags));
-            }
-            results.add(node);
-        }
-        return results;
-    }
-
-
-    /**
      * 广义的发现接口（通过一系列开关来控制）
      *
      * @param loc
@@ -279,68 +155,57 @@ public class MiscCtrl extends Controller {
      */
     public static Result explore(int details, int loc, int vs, int hotel, int restaurant, int page, int pageSize) throws UnknownHostException, TravelPiException {
         boolean detailsFlag = (details != 0);
-        DBObject results = new BasicDBObject();
+        ObjectNode results = Json.newObject();
 
         // 发现城市
         if (loc != 0) {
-            BasicDBList retLocList = new BasicDBList();
-
-            for (Object obj : Locality.explore(detailsFlag, page, pageSize)) {
-                retLocList.add(Locality.getLocDetailsJson((DBObject) obj, 2));
-            }
-            results.put("loc", retLocList);
+            List<JsonNode> retLocList = new ArrayList<>();
+            for (Object obj : LocalityAPI.explore(detailsFlag, page, pageSize))
+                retLocList.add(LocalityAPI.getLocDetailsJson((DBObject) obj, 2));
+            results.put("loc", Json.toJson(retLocList));
         }
 
-        List<POI.POIType> poiKeyList = new ArrayList<>();
+        List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
         if (vs != 0)
-            poiKeyList.add(POI.POIType.VIEW_SPOT);
+            poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
         if (hotel != 0)
-            poiKeyList.add(POI.POIType.HOTEL);
+            poiKeyList.add(PoiAPI.POIType.HOTEL);
         if (restaurant != 0)
-            poiKeyList.add(POI.POIType.RESTAURANT);
+            poiKeyList.add(PoiAPI.POIType.RESTAURANT);
 
-        HashMap<POI.POIType, String> poiMap = new HashMap<POI.POIType, String>() {
+        HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
             {
-                put(POI.POIType.VIEW_SPOT, "vs");
-                put(POI.POIType.HOTEL, "hotel");
-                put(POI.POIType.RESTAURANT, "restaurant");
+                put(PoiAPI.POIType.VIEW_SPOT, "vs");
+                put(PoiAPI.POIType.HOTEL, "hotel");
+                put(PoiAPI.POIType.RESTAURANT, "restaurant");
             }
         };
 
-        for (POI.POIType poiType : poiKeyList) {
+        for (PoiAPI.POIType poiType : poiKeyList) {
             // 发现POI
-            BasicDBList retPoiList = new BasicDBList();
-            for (Object obj : POI.explore(detailsFlag, poiType, null, page, pageSize)) {
-                DBObject poiObj = (DBObject) obj;
-                BasicDBObjectBuilder builder = BasicDBObjectBuilder.start("_id", poiObj.get("_id").toString()).add("name", poiObj.get("name"));
-                if (detailsFlag) {
-                    for (String k : new String[]{"imageList", "tags"}) {
-                        BasicDBList retValList = new BasicDBList();
-                        Object valList = poiObj.get(k);
-                        if (valList == null || !(valList instanceof BasicDBList))
-                            valList = new BasicDBList();
-                        for (Object val : (BasicDBList) valList)
-                            retValList.add(val.toString());
-                        builder.add(k, retValList);
-                    }
-                    Object tmp = poiObj.get("desc");
-                    builder.add("desc", (tmp == null ? "" : StringUtils.abbreviate(tmp.toString(), Constants.ABBREVIATE_LEN)));
-                    builder.add("favorCnt", 0).add("voteCnt", 0);
-                }
-
-                Object tmp = poiObj.get("geo");
-                if (tmp == null || !(tmp instanceof DBObject))
-                    tmp = new BasicDBObject();
-                DBObject geoNode = (DBObject) tmp;
-                BasicDBObjectBuilder geoBuilder = BasicDBObjectBuilder.start();
-                geoBuilder.add("locId", geoNode.get("locId").toString()).add("locName", geoNode.get("locName"));
-                builder.add("geo", geoBuilder.get());
-
-                retPoiList.add(builder.get());
-            }
-            results.put(poiMap.get(poiType), retPoiList);
+            List<JsonNode> retPoiList = new ArrayList<>();
+            for (Object obj : PoiAPI.explore(detailsFlag, poiType, null, page, pageSize))
+                retPoiList.add(PoiAPI.getPOIInfoJson((DBObject) obj, 2));
+            results.put(poiMap.get(poiType), Json.toJson(retPoiList));
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+        return Utils.createResponse(ErrorCode.NORMAL, results);
+    }
+
+    public static Result appHomeImage() {
+        try {
+//            Class.forName("exception.ErrorCode");
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            MiscInfo info = ds.createQuery(MiscInfo.class).get();
+
+            if (info == null)
+                return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
+
+            ObjectNode node = Json.newObject();
+            node.put("image", info.appHomeImage);
+            return Utils.createResponse(ErrorCode.NORMAL, node);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
     }
 }

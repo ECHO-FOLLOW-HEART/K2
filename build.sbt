@@ -1,10 +1,12 @@
-name := """core-api"""
+name := """com.lvxingpai.api"""
 
-version := "1.0-SNAPSHOT"
+version := "1.0"
 
 lazy val root = (project in file(".")).enablePlugins(PlayJava)
 
 scalaVersion := "2.11.1"
+
+conflictWarning := ConflictWarning.disable
 
 libraryDependencies ++= Seq(
   javaJdbc,
@@ -13,5 +15,7 @@ libraryDependencies ++= Seq(
   javaWs,
   "mysql" % "mysql-connector-java" % "latest.integration",
   "org.mongodb" % "mongo-java-driver" % "latest.integration",
+  "org.mongodb.morphia" % "morphia" % "latest.integration",
+//  "com.vxp" % "plan_2.10" % "1.0.1",
   filters
 )

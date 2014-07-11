@@ -8,6 +8,8 @@ import com.mongodb.MongoClient;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.Morphia;
 import play.libs.Json;
 import play.mvc.Result;
 
@@ -26,6 +28,30 @@ import static play.mvc.Results.ok;
  */
 public class Utils {
     private static Map<String, MongoClient> mongoClientMap = new HashMap<>();
+    private static Datastore datastore = null;
+    private static Morphia morphia = null;
+
+    private synchronized static void initMongoDB() throws TravelPiException {
+        String dbName = "travelpi";
+        morphia = new Morphia();
+        try {
+            datastore = morphia.createDatastore(new MongoClient(), dbName);
+        } catch (UnknownHostException e) {
+            throw new TravelPiException(ErrorCode.DATABASE_ERROR, "Cannot initialize the MongoDB client.");
+        }
+    }
+
+    public synchronized static Morphia getMorphia() throws TravelPiException {
+        if (morphia == null)
+            initMongoDB();
+        return morphia;
+    }
+
+    public synchronized static Datastore getDatastore() throws TravelPiException {
+        if (datastore == null)
+            initMongoDB();
+        return datastore;
+    }
 
     public static Object create(Class c, Map<String, Object> kvPairs) {
         Object obj = null;

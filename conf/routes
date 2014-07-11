@@ -18,9 +18,12 @@ GET           /test/feed-tag                                controllers.Applicat
 GET           /import/geo                                   controllers.Application.geoImport(start: Int?=0, count: Int?=50)
 GET           /import/train                                 controllers.Application.trainImport(start: Int?=0, count: Int?=50)
 GET           /import/air                                   controllers.Application.airImport(start: Int?=0, count: Int?=50)
+GET           /import/countries                             controllers.Application.countryImport()
+GET           /import/localities                            controllers.Application.localityImport()
 
 # 基础地理信息查询
 # 查询城市详情
+GET           /geo/localities/search                        controllers.GeoCtrl.lookupLocality(baiduId: Int)
 GET           /geo/localities/:id                           controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 
 # 交通查询
@@ -32,7 +35,7 @@ GET           /itineraries/train-routes/:trainCode          controllers.TrafficC
 
 # 路线相关接口
 # 发现路线
-GET           /explore/plans/:loc                           controllers.PlanCtrl.explorePlans(loc: String, sortField: String?="", sort: String?="asc", tags: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /explore/plans                                controllers.PlanCtrl.explorePlans(loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tags: String?="", page: Int?=0, pageSize: Int?=20)
 # 路线查询
 GET           /plans/templates/:planId                      controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
 # 保存路线
@@ -44,7 +47,7 @@ GET           /poi/view-spots/search                        controllers.POICtrl.
 GET           /poi/view-spots/localities/:locId             controllers.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 GET           /poi/hotels/localities/:locId                 controllers.POICtrl.hotelList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 GET           /poi/restaurants/localities/:locId            controllers.POICtrl.restaurantList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
-# 景区详情
+# 景点详情
 GET           /poi/view-spots/:spotId                       controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=1, showRelated: Int=0)
 # 获得景区概貌
 GET           /poi/view-spots/:spotId/profiles              controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=0, showRelated: Int=1)
@@ -55,14 +58,10 @@ GET           /poi/view-spots/:spotId/related               controllers.POICtrl.
 # 其它
 POST          /sys/feedback                                 controllers.MiscCtrl.postFeedback()
 GET           /sys/updates/:platform                        controllers.MiscCtrl.getUpdateInfo(platform: String, platformVer: String, appVer: String)
-GET           /suggestions                                  controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, pageSize: Int?=5)
+GET           /suggestions                                  controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
 
 # 发现目的地（推荐机制）
 GET           /explore                                      controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
-#
-#GET           /explore/localities                           controllers.MiscCtrl.exploreLoc(showDetails: Int?=0, page: Int?=0, pageSize: Int?=20)
-## 发现POI
-#GET           /explore/poi                                  controllers.MiscCtrl.explorePOI(showDetails: Int?=0, vs: Int?=0, restaurant: Int?=0, hotel: Int?=0, page: Int?=0, pageSize: Int?=20)
 
 # 用户
 GET           /users/udid/:udid                             controllers.UserCtrl.getUserByUDID(udid: String)
@@ -71,3 +70,6 @@ GET           /users/nick-names/:userName                   controllers.UserCtrl
 GET           /users/:userId/favors/view-spots              controllers.UserCtrl.getUserFavoredVS(userId: String, page: Int?=0, pageSize: Int?=20)
 PUT           /users/:userId/favors/view-spots              controllers.UserCtrl.putUserFavoredVS(userId: String)
 DELETE        /users/:userId/favors/view-spots/:vsId        controllers.UserCtrl.removeUserFavoredVS(userId: String, vsId: String)
+
+# 其它接口
+GET             /home-images                                controllers.MiscCtrl.appHomeImage()

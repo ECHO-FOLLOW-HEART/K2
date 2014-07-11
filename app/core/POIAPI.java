@@ -1,5 +1,6 @@
 package core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import exception.ErrorCode;
@@ -10,6 +11,8 @@ import play.libs.Json;
 import utils.Constants;
 import utils.Utils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -17,7 +20,7 @@ import java.util.regex.Pattern;
  *
  * @author Zephyre
  */
-public class POI {
+public class PoiAPI {
 
     public enum POIType {
         VIEW_SPOT,
@@ -120,7 +123,9 @@ public class POI {
             if (showDetails)
                 poi = col.findOne(query);
             else
-                poi = col.findOne(query, BasicDBObjectBuilder.start("imageList", 1).add("tags", 1).add("desc", 1).get());
+                poi = col.findOne(query, BasicDBObjectBuilder.start()
+                        .add("name", 1).add("imageList", 1).add("tags", 1).add("desc", 1)
+                        .add("geo", 1).get());
             if (poi == null)
                 throw new NullPointerException();
             return poi;
@@ -181,6 +186,41 @@ public class POI {
 
         return results;
     }
+
+
+    public static List<JsonNode> getSuggestions(POIType poiType, String word, int page, int pageSize) throws TravelPiException {
+        String colName;
+        switch (poiType) {
+            case VIEW_SPOT:
+                colName = "view_spot";
+                break;
+            case HOTEL:
+                colName = "hotel";
+                break;
+            case RESTAURANT:
+                colName = "restaurant";
+                break;
+            default:
+                return new ArrayList<>();
+        }
+
+        Pattern pattern = Pattern.compile("^" + word);
+        DBCollection colLoc;
+        try {
+            colLoc = Utils.getMongoClient().getDB("poi").getCollection(colName);
+        } catch (TravelPiException e) {
+            throw new TravelPiException(ErrorCode.DATABASE_ERROR, e.getMessage(), e);
+        }
+
+        DBObject qb = QueryBuilder.start("name").regex(pattern).get();
+        DBCursor cursor = colLoc.find(qb, BasicDBObjectBuilder.start("name", 1).add("geo", 1).get())
+                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get()).limit(pageSize);
+        List<JsonNode> results = new ArrayList<>();
+        while (cursor.hasNext())
+            results.add(getPOIInfoJson(cursor.next(), 1));
+        return results;
+    }
+
 
     /**
      * 获得Json格式的POI信息。
