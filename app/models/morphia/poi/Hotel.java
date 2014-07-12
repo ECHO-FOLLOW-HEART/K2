@@ -1,8 +1,8 @@
-package models.morphia.traffic;
+package models.morphia.poi;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import models.morphia.geo.Address;
 import models.TravelPiBaseItem;
+import models.morphia.geo.Address;
 import models.morphia.misc.Contact;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
@@ -12,31 +12,37 @@ import org.mongodb.morphia.annotations.Id;
 import java.util.List;
 
 /**
- * 机场。
+ * 酒店。
  *
  * @author Zephyre
  */
 @Entity
-public class Airport extends TravelPiBaseItem {
-
+public class Hotel extends TravelPiBaseItem {
     @Id
     public ObjectId id;
 
     @Embedded
-    public Address address;
-
-    public String zhName;
-
-    public String enName;
-
-    public String url;
-
-    public String desc;
+    public Ratings ratings;
 
     @Embedded
     public Contact contact;
 
-    public List<String> alias;
+    @Embedded
+    public Address address;
+
+    public String name;
+
+    public String url;
+
+    public Float price;
+
+    public String priceDesc;
+
+    public String desc;
+
+    public List<String> imageList;
+
+    public List<String> tags;
 
     @Override
     public JsonNode toJson() {

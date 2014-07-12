@@ -16,6 +16,9 @@ libraryDependencies ++= Seq(
   "mysql" % "mysql-connector-java" % "latest.integration",
   "org.mongodb" % "mongo-java-driver" % "latest.integration",
   "org.mongodb.morphia" % "morphia" % "latest.integration",
+  "org.mongodb.morphia" % "morphia-validation" % "latest.integration",
 //  "com.vxp" % "plan_2.10" % "1.0.1",
   filters
 )
+
+//externalPom(Def.setting(baseDirectory.value / "morphia-validation.xml"))

@@ -5,6 +5,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.ValidationExtension;
 import play.Configuration;
 
 import java.net.UnknownHostException;
@@ -24,6 +25,7 @@ public class MorphiaFactory {
     public enum DBType {
         GEO,
         POI,
+        TRAFFIC,
         PLAN,
         USER,
         MISC
@@ -61,6 +63,7 @@ public class MorphiaFactory {
         }
 
         morphia = new Morphia();
+        new ValidationExtension(morphia);
         morphia.map(models.morphia.misc.MiscInfo.class);
 //        morphia.mapPackage("models.morphia", true);
     }
@@ -79,6 +82,9 @@ public class MorphiaFactory {
                 break;
             case POI:
                 ds = morphia.createDatastore(client, "poi");
+                break;
+            case TRAFFIC:
+                ds = morphia.createDatastore(client, "traffic");
                 break;
             case PLAN:
                 ds = morphia.createDatastore(client, "plan");

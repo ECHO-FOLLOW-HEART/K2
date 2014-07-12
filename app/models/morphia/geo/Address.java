@@ -1,6 +1,5 @@
-package models;
+package models.morphia.geo;
 
-import models.morphia.geo.Locality;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Reference;
 
