@@ -10,6 +10,9 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import utils.Utils;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Locality相关的核心接口。
  *
@@ -49,6 +52,8 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
 
+        List<String> fields = new ArrayList<>();
+//        fields.addAll(ArrayLists (new String[]{"name"}).)
         query.retrievedFields(true, "zhName", "parent", "level");
         if (level > 1)
             query.retrievedFields(true, "desc", "imageList", "tags", "coords");
