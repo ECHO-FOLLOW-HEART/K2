@@ -26,7 +26,8 @@ public class MorphiaFactory {
         POI,
         PLAN,
         USER,
-        MISC
+        MISC,
+        TRAFFIC
     }
 
     private static Hashtable<DBType, Datastore> dsMap = new Hashtable<>();
@@ -88,6 +89,9 @@ public class MorphiaFactory {
                 break;
             case MISC:
                 ds = morphia.createDatastore(client, "misc");
+                break;
+            case TRAFFIC:
+                ds = morphia.createDatastore(client, "traffic");
                 break;
         }
         if (ds != null)

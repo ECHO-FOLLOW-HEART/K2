@@ -18,6 +18,7 @@ GET           /test/feed-tag                                     controllers.App
 GET           /import/geo                                        controllers.Application.geoImport(start: Int?=0, count: Int?=50)
 GET           /import/train                                      controllers.Application.trainImport(start: Int?=0, count: Int?=50)
 GET           /import/air                                        controllers.Application.airImport(start: Int?=0, count: Int?=50)
+GET           /import/airport                                    controllers.Importer.airportImport()
 
 
 GET           /import/countries                                  controllers.Importer.countryImport()

@@ -1,11 +1,16 @@
 package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.BasicDBObjectBuilder;
+
 import models.TravelPiBaseItem;
+
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+
 import play.data.validation.Constraints;
+import play.libs.Json;
 
 /**
  * 航空公司。
@@ -31,6 +36,10 @@ public class Airline extends TravelPiBaseItem{
 
     @Override
     public JsonNode toJson() {
-        return null;
+    	BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("_id", id)
+    			.add("code", code).add("name", name)
+    			.add("fullName", fullName).add("shortName",shortName);
+    	
+        return Json.toJson(builder.get());
     }
 }
