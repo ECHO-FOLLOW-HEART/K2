@@ -3,7 +3,6 @@ package models.morphia.geo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObjectBuilder;
-import models.Coords;
 import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.*;

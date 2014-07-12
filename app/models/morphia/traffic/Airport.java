@@ -4,6 +4,7 @@ import java.util.List;
 
 import models.TravelPiBaseItem;
 import models.morphia.geo.Address;
+import models.morphia.misc.Contact;
 
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
@@ -41,6 +42,8 @@ public class Airport extends TravelPiBaseItem {
 	public String tel;
 
 	public List<String> alias;
+    @Embedded
+    public Contact contact;
 
 	@Override
 	public JsonNode toJson() {

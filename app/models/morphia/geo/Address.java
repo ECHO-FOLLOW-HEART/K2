@@ -1,6 +1,5 @@
 package models.morphia.geo;
 
-import models.Coords;
 
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Reference;

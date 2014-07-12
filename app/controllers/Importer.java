@@ -3,13 +3,16 @@ package controllers;
 import com.mongodb.*;
 import com.mysql.fabric.xmlrpc.base.Array;
 
+import exception.ErrorCode;
 import exception.TravelPiException;
-import models.Coords;
 import models.MorphiaFactory;
 import models.MorphiaFactory.DBType;
+import models.morphia.geo.Coords;
 import models.morphia.geo.Country;
 import models.morphia.geo.Locality;
 import models.morphia.traffic.Airport;
+import models.morphia.geo.Country;
+import models.morphia.traffic.Airline;
 
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -21,9 +24,7 @@ import play.mvc.Results;
 import utils.Utils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -233,4 +234,23 @@ public class Importer extends Controller {
 		return airport;
     }
     
+
+    public static Result test() {
+        try {
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+
+            Airline al = new Airline();
+
+            al.code = "MU2843";
+            al.name = "name";
+            al.fullName = "fullName";
+
+            ds.save(al);
+
+            return Utils.createResponse(ErrorCode.NORMAL, "OK");
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
 }

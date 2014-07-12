@@ -1,4 +1,4 @@
-package models;
+package models.morphia.geo;
 
 import org.mongodb.morphia.annotations.Embedded;
 

@@ -5,6 +5,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import org.mongodb.morphia.ValidationExtension;
 import play.Configuration;
 
 import java.net.UnknownHostException;
@@ -62,6 +63,7 @@ public class MorphiaFactory {
         }
 
         morphia = new Morphia();
+        new ValidationExtension(morphia);
         morphia.map(models.morphia.misc.MiscInfo.class);
 //        morphia.mapPackage("models.morphia", true);
     }

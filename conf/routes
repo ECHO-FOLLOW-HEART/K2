@@ -23,6 +23,7 @@ GET           /import/airport                                    controllers.Imp
 
 GET           /import/countries                                  controllers.Importer.countryImport()
 GET           /import/localities                                 controllers.Importer.localityImport()
+GET           /import/tests                                      controllers.Importer.test()
 
 # 基础地理信息查询
 # 查询城市详情
