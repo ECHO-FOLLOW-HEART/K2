@@ -2,7 +2,9 @@ package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import models.TravelPiBaseItem;
+import models.morphia.misc.Contact;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import play.data.validation.Constraints;
@@ -28,6 +30,9 @@ public class Airline extends TravelPiBaseItem{
     public String fullName;
 
     public String shortName;
+
+    @Embedded
+    public Contact contact;
 
     @Override
     public JsonNode toJson() {

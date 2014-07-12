@@ -3,6 +3,7 @@ package models.morphia.traffic;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.Address;
 import models.TravelPiBaseItem;
+import models.morphia.misc.Contact;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
@@ -32,7 +33,8 @@ public class Airport extends TravelPiBaseItem {
 
     public String desc;
 
-    public String tel;
+    @Embedded
+    public Contact contact;
 
     public List<String> alias;
 
