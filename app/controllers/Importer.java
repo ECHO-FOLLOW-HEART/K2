@@ -7,9 +7,11 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.MorphiaFactory.DBType;
+import models.morphia.geo.Address;
 import models.morphia.geo.Coords;
 import models.morphia.geo.Country;
 import models.morphia.geo.Locality;
+import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.Airport;
 import models.morphia.geo.Country;
 import models.morphia.traffic.Airline;
@@ -165,8 +167,26 @@ public class Importer extends Controller {
         return locality;
 
     }
+
+    public static Result airRouteImport(int start  , int count ) throws TravelPiException, IllegalAccessException, NoSuchFieldException {
+        DB db = Utils.getMongoClient().getDB("traffic");
+        DBCollection col = db.getCollection("air_route_old");
+        DBCursor cursor = col.find(QueryBuilder.start().get(), BasicDBObjectBuilder.start("_id", 1).get());
+
+        MorphiaFactory factory = MorphiaFactory.getInstance();
+        Datastore ds = factory.getDatastore(DBType.TRAFFIC);
+
+        while (cursor.hasNext()) {
+            DBObject ar = cursor.next();
+            AirRoute airRoute = airRouteFromOldDb((ObjectId) ar.get("_id"));
+            if(airRoute!=null){
+                ds.save(airRoute);
+            }
+        }
+        return Results.ok();
+    }
     
-    private static models.morphia.traffic.AirRoute _airRouteImport(ObjectId id, Datastore ds) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+    private static models.morphia.traffic.AirRoute airRouteFromOldDb(ObjectId id) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
         DBCollection col = Utils.getMongoClient().getDB("traffic").getCollection("air_route_old");
         DBObject ar = col.findOne(BasicDBObjectBuilder.start("_id", id).get());
         if (ar == null)
@@ -189,11 +209,24 @@ public class Importer extends Controller {
         	Airport arrAirport = airPortfromOldDb((ObjectId) ((BasicDBObject)tmp).get("_id"));
         	airRoute.arrAirport = arrAirport;
         }
-        
+        tmp = ar.get("dep");
+        if(tmp != null) {
+            ObjectId depLocId = (ObjectId) ((BasicDBObject) tmp).get("_id");
+            Locality depLoc = new Locality();
+            depLoc.id = depLocId;
+            airRoute.depLoc = depLoc;
+        }
+        tmp = ar.get("arr");
+        if(tmp != null) {
+            ObjectId arrLocId = (ObjectId) ((BasicDBObject) tmp).get("_id");
+            Locality arrLoc = new Locality();
+            arrLoc.id = arrLocId;
+            airRoute.arrLoc = arrLoc;
+        }
 		return airRoute;
     }
     
-    public static Result airportImport() throws TravelPiException, IllegalAccessException, NoSuchFieldException {
+    public static Result airportImport(int start  , int count ) throws TravelPiException, IllegalAccessException, NoSuchFieldException {
         DB db = Utils.getMongoClient().getDB("traffic");
         DBCollection col = db.getCollection("airport_old");
         DBCursor cursor = col.find(QueryBuilder.start().get(), BasicDBObjectBuilder.start("_id", 1).get());
@@ -227,9 +260,25 @@ public class Importer extends Controller {
         if(alias != null){
             airport.alias = Arrays.asList(((BasicDBList) alias).toArray(new String[]{""}));
         }
-        Object address = ap.get("alias");
-        if(alias != null){
-//            airport.address = w
+        Object geo = ap.get("geo");
+        if(geo != null){
+        	Address address = new models.morphia.geo.Address();
+        	Double lat = (Double) ((BasicDBObject)geo).get("lat");
+        	Double lng = (Double) ((BasicDBObject)geo).get("lng");
+        	String addr = (String) ((BasicDBObject)geo).get("address");
+        	address.address = addr;
+        	Coords coords = new models.morphia.geo.Coords();
+        	coords.lat = lat;
+        	coords.lng = lng;
+        	address.coords = coords;
+            Object loc = ((BasicDBObject)geo).get("locality");
+            if(loc != null){
+            	ObjectId locId = (ObjectId) ((BasicDBObject)loc).get("id");
+            	Locality locality = new Locality();
+            	locality.id = locId;
+            	address.loc = locality;
+            }
+            airport.address = address;
         }
 		return airport;
     }
