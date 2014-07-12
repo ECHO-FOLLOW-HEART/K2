@@ -12,9 +12,6 @@ import models.tag.LocalityTag;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
-import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.UpdateOperations;
-import org.mongodb.morphia.query.UpdateResults;
 import play.db.ebean.Model;
 import play.db.ebean.Transactional;
 import play.libs.Json;
@@ -34,30 +31,7 @@ import java.util.List;
 public class Application extends Controller {
 
     public static Result index() throws TravelPiException {
-        Morphia morphia = Utils.getMorphia();
-        Datastore ds = Utils.getDatastore();
-        morphia.map(models.morphia.geo.Locality.class);
-        morphia.map(models.morphia.geo.Country.class);
-
-//        models.morphia.geo.Country country = models.morphia.geo.Country.newInstance("CN", "中国");
-//        country.enName = "CHINA";
-//        country.code3 = "CHN";
-//        ds.save(country);
-
-        UpdateOperations<models.morphia.geo.Country> ops = ds.createUpdateOperations(models.morphia.geo.Country.class).set("code3", "CH3");
-        Query<models.morphia.geo.Country> query = ds.createQuery(models.morphia.geo.Country.class).field("_id").equal("CN");
-
-        models.morphia.geo.Country newCountry = query.get();
-
-        UpdateResults results = ds.update(query, ops);
-
-        query = ds.createQuery(models.morphia.geo.Country.class).field("_id").equal("CN");
-        newCountry = query.get();
-
-        return ok(Json.toJson(morphia.toDBObject(newCountry)));
-//        models.morphia.geo.Locality loc = ds.createQuery(models.morphia.geo.Locality.class).field("zhName").equal("成都").get();
-
-//        return ok(loc.getJsonNode());
+        return ok("WELCOME");
     }
 
     @Transactional
