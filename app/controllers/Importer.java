@@ -127,17 +127,17 @@ public class Importer extends Controller {
         }
         locality.coords = coords;
 
-        locality.country = ds.createQuery(Country.class).field("_id").equal("CN").get();
-
-        tmp = loc.get("parent");
-        if (tmp != null) {
-            ObjectId pid = (ObjectId) ((DBObject) tmp).get("_id");
-            models.morphia.geo.Locality parent = ds.createQuery(models.morphia.geo.Locality.class).field("_id").equal(pid).get();
-            if (parent == null)
-                parent = locImport(pid, ds);
-         
-            locality.parent = parent;
-        }
+//        locality.country = ds.createQuery(Country.class).field("_id").equal("CN").get();
+//
+//        tmp = loc.get("parent");
+//        if (tmp != null) {
+//            ObjectId pid = (ObjectId) ((DBObject) tmp).get("_id");
+//            models.morphia.geo.Locality parent = ds.createQuery(models.morphia.geo.Locality.class).field("_id").equal(pid).get();
+//            if (parent == null)
+//                parent = locImport(pid, ds);
+//
+//            locality.parent = parent;
+//        }
 
 //        tmp = loc.get("siblings");
 //        if (tmp != null && tmp instanceof BasicDBList) {

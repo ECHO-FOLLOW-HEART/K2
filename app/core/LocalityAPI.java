@@ -12,6 +12,7 @@ import utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Locality相关的核心接口。
@@ -36,6 +37,13 @@ public class LocalityAPI {
         }
     }
 
+    /**
+     * 通过百度ID获得城市详情。
+     *
+     * @param baiduId
+     * @return
+     * @throws TravelPiException
+     */
     public static Locality locDetailsByBaiduId(int baiduId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         return ds.createQuery(Locality.class).field("baiduId").equal(baiduId).get();
@@ -60,6 +68,26 @@ public class LocalityAPI {
         return query.get();
     }
 
+
+    /**
+     * 通过关键词对城市进行搜索。
+     *
+     * @param keyword      搜索关键词
+     * @param prefix    是否为前缀搜索？
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static List<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Pattern pattern;
+        if (prefix)
+            pattern= Pattern.compile("^"+keyword);
+        else
+            pattern=Pattern.compile(keyword);
+        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern);
+        return query.offset(page * pageSize).limit(pageSize).asList();
+    }
 
     /**
      * 发现城市。

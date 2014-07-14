@@ -28,13 +28,13 @@ public class Hotel extends TravelPiBaseItem {
     public Contact contact;
 
     @Embedded
-    public Address address;
+    public Address addr;
 
     public String name;
 
     public String url;
 
-    public Float price;
+    public Double price;
 
     public String priceDesc;
 
@@ -43,6 +43,8 @@ public class Hotel extends TravelPiBaseItem {
     public List<String> imageList;
 
     public List<String> tags;
+
+    public List<String> alias;
 
     @Override
     public JsonNode toJson() {

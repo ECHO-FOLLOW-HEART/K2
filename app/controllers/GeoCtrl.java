@@ -2,23 +2,21 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.*;
+import com.mongodb.BasicDBList;
+import com.mongodb.DBObject;
 import core.LocalityAPI;
 import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.TravelPiBaseItem;
 import models.geos.Locality;
-import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
 
 
 /**
@@ -85,52 +83,59 @@ public class GeoCtrl extends Controller {
      * 搜索城市信息
      *
      * @param searchWord
+     * @param prefix     是否为前缀搜索？
      * @param page
      * @param pageSize
      * @return
      */
-    public static Result searchLocality(String searchWord, int page, int pageSize) throws UnknownHostException, TravelPiException {
-
-
-        if (searchWord == null || searchWord.trim().isEmpty())
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search word: %s.", searchWord));
-
-        MongoClient client = Utils.getMongoClient();
-        DB db = client.getDB("geo");
-        DBCollection col = db.getCollection("locality");
-
-        QueryBuilder qb = new QueryBuilder();
-        qb.or(QueryBuilder.start("zhName").regex(Pattern.compile("^" + searchWord)).get(),
-                QueryBuilder.start("alias").regex(Pattern.compile("^" + searchWord)).get());
-
-        BasicDBObjectBuilder fields = new BasicDBObjectBuilder();
-        fields.add("zhName", 1).add("level", 1).add("baiduId", 1).add("distId", 1).add("lat", 1).add("lng", 1)
-                .add("desc", 1).add("siblings", 1).add("parent", 1);
-        DBCursor cursor = col.find(qb.get(), fields.get()).skip(page * pageSize).limit(pageSize);
+    public static Result searchLocality(String searchWord, int prefix, int page, int pageSize) throws TravelPiException {
+        List<models.morphia.geo.Locality> localities = LocalityAPI.searchLocalities(searchWord, (prefix != 0), page, pageSize);
 
         List<JsonNode> results = new ArrayList<>();
-        while (cursor.hasNext()) {
-            DBObject loc = cursor.next();
-            loc.put("_id", loc.get("_id").toString());
+        for (models.morphia.geo.Locality loc : localities)
+            results.add(loc.toJson(1));
 
-            BasicDBList siblings;
-            if ((siblings = (BasicDBList) loc.get("siblings")) != null) {
-                for (Object sibling : siblings) {
-                    DBObject sib = (DBObject) sibling;
-                    sib.put("_id", sib.get("_id").toString());
-                }
-            }
-            DBObject p;
-            if ((p = (DBObject) loc.get("parent")) != null) {
-                ObjectId pid = (ObjectId) p.get("_id");
-                p.put("_id", pid.toString());
-            }
-            loc.put("_id", loc.get("_id").toString());
-
-            JsonNode jsonItem = Json.parse(loc.toString());
-            results.add(jsonItem);
-        }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+//
+//        if (searchWord == null || searchWord.trim().isEmpty())
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search word: %s.", searchWord));
+//
+//        MongoClient client = Utils.getMongoClient();
+//        DB db = client.getDB("geo");
+//        DBCollection col = db.getCollection("locality");
+//
+//        QueryBuilder qb = new QueryBuilder();
+//        qb.or(QueryBuilder.start("zhName").regex(Pattern.compile("^" + searchWord)).get(),
+//                QueryBuilder.start("alias").regex(Pattern.compile("^" + searchWord)).get());
+//
+//        BasicDBObjectBuilder fields = new BasicDBObjectBuilder();
+//        fields.add("zhName", 1).add("level", 1).add("baiduId", 1).add("distId", 1).add("lat", 1).add("lng", 1)
+//                .add("desc", 1).add("siblings", 1).add("parent", 1);
+//        DBCursor cursor = col.find(qb.get(), fields.get()).skip(page * pageSize).limit(pageSize);
+//
+//        List<JsonNode> results = new ArrayList<>();
+//        while (cursor.hasNext()) {
+//            DBObject loc = cursor.next();
+//            loc.put("_id", loc.get("_id").toString());
+//
+//            BasicDBList siblings;
+//            if ((siblings = (BasicDBList) loc.get("siblings")) != null) {
+//                for (Object sibling : siblings) {
+//                    DBObject sib = (DBObject) sibling;
+//                    sib.put("_id", sib.get("_id").toString());
+//                }
+//            }
+//            DBObject p;
+//            if ((p = (DBObject) loc.get("parent")) != null) {
+//                ObjectId pid = (ObjectId) p.get("_id");
+//                p.put("_id", pid.toString());
+//            }
+//            loc.put("_id", loc.get("_id").toString());
+//
+//            JsonNode jsonItem = Json.parse(loc.toString());
+//            results.add(jsonItem);
+//        }
+//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
 

@@ -10,6 +10,12 @@ import org.mongodb.morphia.annotations.Embedded;
 @Embedded
 public class Ratings {
     public Integer score;
+
     public Integer viewCnt;
+
     public Integer favorCnt;
+
+    public Integer dinningIdx;
+
+    public Integer shoppingIdx;
 }

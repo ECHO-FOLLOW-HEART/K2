@@ -6,18 +6,16 @@ import models.morphia.geo.Address;
 import models.morphia.misc.Contact;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 
 import java.util.List;
 
 /**
- * 酒店。
+ * 景点信息。
  *
  * @author Zephyre
  */
-@Entity
-public class Restaurant extends TravelPiBaseItem {
+public class ViewSpot extends TravelPiBaseItem {
     @Id
     public ObjectId id;
 
@@ -45,6 +43,18 @@ public class Restaurant extends TravelPiBaseItem {
     public List<String> tags;
 
     public List<String> alias;
+
+    public Boolean worldHeritage;
+
+    public Integer spotId;
+
+    /**
+     * AAA景区：3
+     * AAAA景区：4
+     */
+    public Integer rankingA;
+
+    public String openTime;
 
     @Override
     public JsonNode toJson() {

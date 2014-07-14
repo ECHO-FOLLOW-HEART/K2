@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObjectBuilder;
 import models.TravelPiBaseItem;
+import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.*;
 import play.data.validation.Constraints;
@@ -21,6 +22,7 @@ public class Locality extends TravelPiBaseItem {
     @Id
     public ObjectId id;
 
+    @Indexed()
     public String zhName;
 
     public String enName;
@@ -37,14 +39,26 @@ public class Locality extends TravelPiBaseItem {
     @Version
     public long ver;
 
-    @Reference(lazy = true)
+    @Reference(lazy = true, ignoreMissing = true)
     public Country country;
 
-    @Reference(lazy = true)
+    @Reference(lazy = true, ignoreMissing = true)
     public Locality parent;
 
-    @Reference(lazy = true)
-    public List<Locality> siblings;
+    public String countryId;
+
+    public String countryEnName;
+
+    public String countryZhName;
+
+    @Embedded
+    public SimpleRef superAdm;
+
+    @Embedded
+    public List<SimpleRef> sib;
+
+//    @Reference(lazy = true)
+//    public List<Locality> siblings;
 
     public List<String> tags;
 
@@ -63,10 +77,10 @@ public class Locality extends TravelPiBaseItem {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("level", level);
 
-        if (parent != null)
-            builder.add("parent", BasicDBObjectBuilder.start().add("_id", parent.id.toString()).add("name", zhName).get());
-        else
-            builder.add("parent", null);
+//        if (parent != null)
+//            builder.add("parent", BasicDBObjectBuilder.start().add("_id", parent.id.toString()).add("name", zhName).get());
+//        else
+        builder.add("parent", null);
 
 //        BasicDBList sibNodeList = new BasicDBList();
 //        if (siblings != null) {
@@ -87,10 +101,10 @@ public class Locality extends TravelPiBaseItem {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("level", level);
 
-        if (parent != null)
-            builder.add("parent", BasicDBObjectBuilder.start().add("_id", parent.id.toString()).add("name", zhName).get());
-        else
-            builder.add("parent", null);
+//        if (parent != null)
+//            builder.add("parent", BasicDBObjectBuilder.start().add("_id", parent.id.toString()).add("name", zhName).get());
+//        else
+        builder.add("parent", null);
 
         if (level > 1) {
             builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
