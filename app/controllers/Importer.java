@@ -189,38 +189,37 @@ public class Importer extends Controller {
         if (ar == null)
             return null;
 
-        models.morphia.traffic.AirRoute airRoute = new models.morphia.traffic.AirRoute();
-        airRoute.id = (ObjectId) ar.get("_id");
-        airRoute.distance = (Integer) ar.get("distance");
-        airRoute.flightCode = (String) ar.get("code");
-
-        Object tmp;
-        tmp = ar.get("depAirport");
-        if (tmp != null) {
-            Airport depAirport = airPortfromOldDb((ObjectId) ((BasicDBObject) tmp).get("_id"));
-            airRoute.depAirport = depAirport;
-        }
-
-        tmp = ar.get("arrAirport");
-        if (tmp != null) {
-            Airport arrAirport = airPortfromOldDb((ObjectId) ((BasicDBObject) tmp).get("_id"));
-            airRoute.arrAirport = arrAirport;
-        }
-        tmp = ar.get("dep");
-        if (tmp != null) {
-            ObjectId depLocId = (ObjectId) ((BasicDBObject) tmp).get("_id");
-            Locality depLoc = new Locality();
-            depLoc.id = depLocId;
-            airRoute.depLoc = depLoc;
-        }
-        tmp = ar.get("arr");
-        if (tmp != null) {
-            ObjectId arrLocId = (ObjectId) ((BasicDBObject) tmp).get("_id");
-            Locality arrLoc = new Locality();
-            arrLoc.id = arrLocId;
-            airRoute.arrLoc = arrLoc;
-        }
-        return airRoute;
+        //        airRoute.id = (ObjectId) ar.get("_id");
+//        airRoute.distance = (Integer) ar.get("distance");
+//        airRoute.flightCode = (String) ar.get("code");
+//
+//        Object tmp;
+//        tmp = ar.get("depAirport");
+//        if (tmp != null) {
+//            Airport depAirport = airPortfromOldDb((ObjectId) ((BasicDBObject) tmp).get("_id"));
+//            airRoute.depAirport = depAirport;
+//        }
+//
+//        tmp = ar.get("arrAirport");
+//        if (tmp != null) {
+//            Airport arrAirport = airPortfromOldDb((ObjectId) ((BasicDBObject) tmp).get("_id"));
+//            airRoute.arrAirport = arrAirport;
+//        }
+//        tmp = ar.get("dep");
+//        if (tmp != null) {
+//            ObjectId depLocId = (ObjectId) ((BasicDBObject) tmp).get("_id");
+//            Locality depLoc = new Locality();
+//            depLoc.id = depLocId;
+//            airRoute.depLoc = depLoc;
+//        }
+//        tmp = ar.get("arr");
+//        if (tmp != null) {
+//            ObjectId arrLocId = (ObjectId) ((BasicDBObject) tmp).get("_id");
+//            Locality arrLoc = new Locality();
+//            arrLoc.id = arrLocId;
+//            airRoute.arrLoc = arrLoc;
+//        }
+        return new AirRoute();
     }
 
     public static Result airportImport(int start, int count) throws TravelPiException, IllegalAccessException, NoSuchFieldException {

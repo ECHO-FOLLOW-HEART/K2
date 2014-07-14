@@ -10,6 +10,8 @@ import models.morphia.misc.SimpleRef;
 import models.morphia.poi.Ratings;
 import models.morphia.poi.Restaurant;
 import models.morphia.poi.ViewSpot;
+import models.morphia.traffic.AirPrice;
+import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.Airline;
 import models.morphia.traffic.Airport;
 import org.bson.types.ObjectId;
@@ -17,9 +19,7 @@ import org.mongodb.morphia.Datastore;
 import utils.Utils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class Main {
 
@@ -162,11 +162,11 @@ public class Main {
     public static void importPoi() throws TravelPiException, NoSuchFieldException, IllegalAccessException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         DBCollection col = Utils.getMongoClient("localhost", 28017).getDB("poi").getCollection("restaurant");
-        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53b05a7e10114e05e4483b47")).get());
+        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53b0d14510114e05e4497daf")).get());
 //        DBCursor cursor = col.find(QueryBuilder.start().get());
         System.out.println(String.format("TOTAL RECORDS: %d", cursor.count()));
 
-        int i = 12433;
+        int i = 94969;
         while (cursor.hasNext()) {
             i++;
             Object tmp;
@@ -348,18 +348,122 @@ public class Main {
         }
     }
 
+
+    public static void importAirRoute() throws TravelPiException, IllegalAccessException, NoSuchFieldException {
+        DB db = Utils.getMongoClient().getDB("traffic");
+        DBCollection col = db.getCollection("air_route");
+        DBCursor cursor = col.find(QueryBuilder.start().get());
+
+        MorphiaFactory factory = MorphiaFactory.getInstance();
+        Datastore ds = factory.getDatastore(MorphiaFactory.DBType.TRAFFIC);
+
+        int i = -1;
+        while (cursor.hasNext()) {
+            i++;
+            Object tmp;
+            DBObject ar = cursor.next();
+
+            AirRoute airRoute = new AirRoute();
+            airRoute.id = (ObjectId) ar.get("_id");
+            tmp = ar.get("distance");
+            if (tmp != null)
+                airRoute.distance = ((Number) tmp).intValue();
+            airRoute.flightCode = (String) ar.get("code");
+            tmp = ar.get("timeCost");
+            if (tmp != null)
+                airRoute.timeCost = ((Number) tmp).intValue();
+
+            for (String k : new String[]{"depAirport", "arrAirport"}) {
+                tmp = ar.get(k);
+                if (tmp != null) {
+                    SimpleRef ref = new SimpleRef();
+                    BasicDBObject tmp2 = (BasicDBObject) tmp;
+                    ref.id = (ObjectId) tmp2.get("_id");
+                    ref.zhName = (String) tmp2.get("name");
+                    Field field = AirRoute.class.getField(k);
+                    field.set(airRoute, ref);
+                }
+            }
+            for (Map.Entry<String, String> entry : (new HashMap<String, String>() {
+                {
+                    put("dep", "depLoc");
+                    put("arr", "arrLoc");
+                }
+            }).entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
+
+                tmp = ar.get(k);
+                if (tmp != null) {
+                    SimpleRef ref = new SimpleRef();
+                    BasicDBObject tmp2 = (BasicDBObject) tmp;
+                    ref.id = (ObjectId) tmp2.get("_id");
+                    ref.zhName = (String) tmp2.get("name");
+                    Field field = AirRoute.class.getField(v);
+                    field.set(airRoute, ref);
+                }
+            }
+            for (String k : new String[]{"depTime", "arrTime"}) {
+                tmp = ar.get(k);
+                if (tmp == null || !(tmp instanceof Date))
+                    continue;
+                Field field = AirRoute.class.getField(k);
+                field.set(airRoute, tmp);
+            }
+
+            tmp = ar.get("price");
+            if (tmp != null && tmp instanceof DBObject) {
+                DBObject tmp2 = (DBObject) tmp;
+                AirPrice price = new AirPrice();
+                for (String k : new String[]{"price", "tax", "surcharge", "discount"}) {
+                    Number val = (Number) tmp2.get(k);
+                    if (val != null) {
+                        Field field = AirPrice.class.getField(k);
+                        field.set(price, val.doubleValue());
+                    }
+                }
+                price.provider = (String) tmp2.get("provider");
+                airRoute.price = price;
+            }
+
+            tmp = ar.get("carrier");
+            if (tmp != null && tmp instanceof DBObject) {
+                DBObject tmp2 = (DBObject) tmp;
+                SimpleRef carrier = new SimpleRef();
+                carrier.id = (ObjectId) tmp2.get("_id");
+                carrier.zhName = (String) tmp2.get("name");
+                airRoute.carrier = carrier;
+            }
+
+            for (String k : new String[]{"selfChk", "meal", "nonStop", "arrTerm", "depTerm"}) {
+                tmp = ar.get(k);
+                if (tmp == null)
+                    continue;
+                Field field = AirRoute.class.getField(k);
+                field.set(airRoute, (ar.get(k)));
+            }
+
+            tmp = ar.get("jetType");
+            if (tmp != null && tmp instanceof DBObject) {
+                DBObject tmp2 = (DBObject) tmp;
+                airRoute.jetName = (String) tmp2.get("short");
+                airRoute.jetFullName = (String) tmp2.get("full");
+            }
+
+            ds.save(airRoute);
+            System.out.println(String.format("%d: %s", i, airRoute.id.toString()));
+        }
+    }
+
     public static void main(String[] args) {
         System.out.println("HelloWorld");
         try {
-//            importPoi();
+            importPoi();
 //            importAirline();
-            importAirport();
-        } catch (TravelPiException e) {
+//            importAirport();
+//            importAirRoute();
+        } catch (TravelPiException | IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        } catch (NoSuchFieldException e) {
-//            e.printStackTrace();
         }
     }
 }
