@@ -29,7 +29,7 @@ public class Airport extends TravelPiBaseItem {
 	public ObjectId id;
 
 	@Embedded
-	public Address address;
+	public Address addr;
 
 	public String zhName;
 
@@ -39,17 +39,22 @@ public class Airport extends TravelPiBaseItem {
 
 	public String desc;
 
-	public String tel;
+	@Embedded
+    public Contact contact;
 
 	public List<String> alias;
-    @Embedded
-    public Contact contact;
 
 	@Override
 	public JsonNode toJson() {
 		BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-		builder.add("_id", id.toString()).add("name", zhName).add("url", url)
-		.add("tel", tel).add("alias", alias);
+		builder.add("_id", id.toString()).add("name", zhName).add("url", url).add("alias", alias);
+        if (contact!=null && contact.phoneList!=null && !contact.phoneList.isEmpty()){
+            BasicDBList phoneList = new BasicDBList();
+            for (String val:contact.phoneList)
+                phoneList.add(val);
+            builder.add("tel", phoneList);
+        }
+
 		if (alias != null) {
 			BasicDBList aliasListNodes = new BasicDBList();
 			for (String a : alias) {
@@ -58,21 +63,21 @@ public class Airport extends TravelPiBaseItem {
 			builder.add("alias", aliasListNodes);
 		}
 
-		if (address != null) {
+		if (addr != null) {
 			BasicDBObjectBuilder addressBuilder = BasicDBObjectBuilder.start();
-			addressBuilder.add("address", (address.address != null ? address.address : ""));
-			if(address.loc != null){
-				addressBuilder.add("loc", BasicDBObjectBuilder.start().add("_id", address.loc.id).add("name", address.loc.zhName));
+			addressBuilder.add("addr", (addr.address != null ? addr.address : ""));
+			if(addr.loc != null){
+				addressBuilder.add("loc", BasicDBObjectBuilder.start().add("_id", addr.loc.id).add("name", addr.loc.zhName));
 			}
-			if(address.coords != null){
+			if(addr.coords != null){
 				BasicDBObjectBuilder coordsBuilder = BasicDBObjectBuilder.start();
-				coordsBuilder.add("blat", (address.coords.blat != null ? address.coords.blat : ""));
-				coordsBuilder.add("blng", (address.coords.blng != null ? address.coords.blng : ""));
-				coordsBuilder.add("lat", (address.coords.lat != null ? address.coords.lat : ""));
-				coordsBuilder.add("lng", (address.coords.lng != null ? address.coords.lng : ""));
+				coordsBuilder.add("blat", (addr.coords.blat != null ? addr.coords.blat : ""));
+				coordsBuilder.add("blng", (addr.coords.blng != null ? addr.coords.blng : ""));
+				coordsBuilder.add("lat", (addr.coords.lat != null ? addr.coords.lat : ""));
+				coordsBuilder.add("lng", (addr.coords.lng != null ? addr.coords.lng : ""));
 				addressBuilder.add("coords", coordsBuilder.get());
 			}
-			builder.add("address", addressBuilder);
+			builder.add("addr", addressBuilder);
 		}
 		return Json.toJson(builder.get());
 	}

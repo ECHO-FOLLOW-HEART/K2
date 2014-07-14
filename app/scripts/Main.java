@@ -7,10 +7,11 @@ import models.morphia.geo.Address;
 import models.morphia.geo.Coords;
 import models.morphia.misc.Contact;
 import models.morphia.misc.SimpleRef;
-import models.morphia.poi.Hotel;
 import models.morphia.poi.Ratings;
 import models.morphia.poi.Restaurant;
 import models.morphia.poi.ViewSpot;
+import models.morphia.traffic.Airline;
+import models.morphia.traffic.Airport;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import utils.Utils;
@@ -161,11 +162,11 @@ public class Main {
     public static void importPoi() throws TravelPiException, NoSuchFieldException, IllegalAccessException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         DBCollection col = Utils.getMongoClient("localhost", 28017).getDB("poi").getCollection("restaurant");
-//        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53b0583210114e059545dc12")).get());
-        DBCursor cursor = col.find(QueryBuilder.start().get());
+        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53b05a7e10114e05e4483b47")).get());
+//        DBCursor cursor = col.find(QueryBuilder.start().get());
         System.out.println(String.format("TOTAL RECORDS: %d", cursor.count()));
 
-        int i = -1;
+        int i = 12433;
         while (cursor.hasNext()) {
             i++;
             Object tmp;
@@ -260,16 +261,105 @@ public class Main {
         }
     }
 
+    public static void importAirline() throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        DBCollection col = Utils.getMongoClient("localhost", 28017).getDB("traffic").getCollection("airline");
+//        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53b05a7e10114e05e4483b47")).get());
+        DBCursor cursor = col.find(QueryBuilder.start().get());
+        System.out.println(String.format("TOTAL RECORDS: %d", cursor.count()));
+
+        int i = 0;
+        while (cursor.hasNext()) {
+            i++;
+            Object tmp;
+            DBObject poiDB = cursor.next();
+
+            Airline node = new Airline();
+            node.id = (ObjectId) poiDB.get("_id");
+            node.code = poiDB.get("code").toString();
+            node.name = poiDB.get("name").toString();
+            tmp = poiDB.get("fullName");
+            if (tmp != null)
+                node.fullName = tmp.toString();
+            tmp = poiDB.get("shortName");
+            if (tmp != null)
+                node.shortName = tmp.toString();
+
+            System.out.println(String.format("%d: %s", i, node.id.toString()));
+            ds.save(node);
+        }
+    }
+
+
+    public static void importAirport() throws TravelPiException {
+        DB db = Utils.getMongoClient().getDB("traffic");
+        DBCollection col = db.getCollection("airport");
+        DBCursor cursor = col.find(QueryBuilder.start().get());
+
+        MorphiaFactory factory = MorphiaFactory.getInstance();
+        Datastore ds = factory.getDatastore(MorphiaFactory.DBType.TRAFFIC);
+
+        while (cursor.hasNext()) {
+            Object tmp;
+            DBObject ap = cursor.next();
+//            Airport airPort = airPortfromOldDb((ObjectId) loc.get("_id"));
+
+            Airport airport = new models.morphia.traffic.Airport();
+            airport.id = (ObjectId) ap.get("_id");
+            airport.zhName = (String) ap.get("name");
+            airport.enName = (String) ap.get("enName");
+            airport.url = (String) ap.get("url");
+            airport.desc = (String) ap.get("desc");
+
+            tmp = ap.get("tel");
+            if (tmp != null) {
+                Contact c = new Contact();
+                c.phoneList = Arrays.asList(tmp.toString());
+                airport.contact = c;
+            }
+
+            Object alias = ap.get("alias");
+            if (alias != null) {
+                airport.alias = Arrays.asList(((BasicDBList) alias).toArray(new String[]{""}));
+            }
+            Object geo = ap.get("geo");
+            if (geo != null) {
+                Address address = new models.morphia.geo.Address();
+                Double lat = (Double) ((BasicDBObject) geo).get("lat");
+                Double lng = (Double) ((BasicDBObject) geo).get("lng");
+                address.address = (String) ((BasicDBObject) geo).get("addr");
+                Coords coords = new models.morphia.geo.Coords();
+                coords.lat = lat;
+                coords.lng = lng;
+                address.coords = coords;
+                Object loc = ((BasicDBObject) geo).get("locality");
+                if (loc != null) {
+                    ObjectId locId = (ObjectId) ((BasicDBObject) loc).get("id");
+                    String locName = ((BasicDBObject) loc).get("localityName").toString();
+                    SimpleRef ref = new SimpleRef();
+                    ref.id = locId;
+                    ref.zhName = locName;
+                    address.loc = ref;
+                }
+                airport.addr = address;
+            }
+
+            ds.save(airport);
+        }
+    }
+
     public static void main(String[] args) {
         System.out.println("HelloWorld");
         try {
-            importPoi();
+//            importPoi();
+//            importAirline();
+            importAirport();
         } catch (TravelPiException e) {
             e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
+//        } catch (IllegalAccessException e) {
+//            e.printStackTrace();
+//        } catch (NoSuchFieldException e) {
+//            e.printStackTrace();
         }
     }
 }
