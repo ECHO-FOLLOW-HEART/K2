@@ -458,16 +458,13 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("HelloWorld");
         try {
-            importPoi();
+//            importPoi();
 //            importAirline();
 //            importTrainStation();
 //            importAirport();
 //            importAirRoute();
-        } catch (TravelPiException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (NoSuchFieldException e) {
+            importTrainRoute();
+        } catch (TravelPiException | IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }
     }
@@ -519,6 +516,149 @@ public class Main {
                     }
             }
         }
+    }
+
+    private static void importTrainRoute() throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+        DBCollection col = Utils.getMongoClient().getDB("traffic").getCollection("train_route");
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        DBCursor cursor = col.find(QueryBuilder.start().get());
+//        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53abe38410114e5847e7043d")).get());
+        int i = -1;
+        while (cursor.hasNext()) {
+            i++;
+            Object tmp;
+            DBObject node = cursor.next();
+            TrainRoute route = new TrainRoute();
+            route.id = (ObjectId) node.get("_id");
+
+            route.code = (String) node.get("code");
+            route.distance = (int) node.get("distance");
+            route.timeCost = (int) node.get("timeCost");
+            route.type = (String) node.get("type");
+
+            for (String k : new String[]{"arrStop", "depStop"}) {
+                tmp = node.get(k);
+                if (tmp == null || !(tmp instanceof DBObject))
+                    continue;
+                DBObject stopNode = (DBObject) tmp;
+                SimpleRef stop = new SimpleRef();
+                stop.id = (ObjectId) stopNode.get("_id");
+                stop.zhName = (String) stopNode.get("name");
+                Field field = TrainRoute.class.getField(k);
+                field.set(route, stop);
+            }
+
+            for (Map.Entry<String, String> entry : new HashMap<String, String>() {
+                {
+                    put("arr", "arrLoc");
+                    put("dep", "depLoc");
+                }
+            }.entrySet()) {
+                String kNode = entry.getKey();
+                String kRoute = entry.getValue();
+
+                tmp = node.get(kNode);
+                if (tmp == null || !(tmp instanceof DBObject))
+                    continue;
+                DBObject locNode = (DBObject) tmp;
+                SimpleRef loc = new SimpleRef();
+                loc.id = (ObjectId) locNode.get("_id");
+                loc.zhName = (String) locNode.get("name");
+                Field field = TrainRoute.class.getField(kRoute);
+                field.set(route, loc);
+            }
+
+            tmp = node.get("price");
+            if (tmp != null && tmp instanceof DBObject) {
+                DBObject priceNode = (DBObject) tmp;
+                Map<String, Double> price = new HashMap<>();
+                for (String k : priceNode.keySet()) {
+                    Object tmp2 = priceNode.get(k);
+                    if (tmp2 != null && tmp2 instanceof Number)
+                        price.put(k, ((Number) tmp2).doubleValue());
+                }
+                route.price = price;
+            }
+
+            for (String k : new String[]{"arrStop", "depStop"}) {
+                tmp = node.get(k);
+                if (tmp == null || !(tmp instanceof DBObject))
+                    continue;
+                DBObject stopNode = (DBObject) tmp;
+                SimpleRef stop = new SimpleRef();
+                stop.id = (ObjectId) stopNode.get("_id");
+                stop.zhName = (String) stopNode.get("name");
+                Field field = TrainRoute.class.getField(k);
+                field.set(route, stop);
+            }
+
+            for (String k : new String[]{"arrTime", "depTime"}) {
+                tmp = node.get(k);
+                if (tmp == null || !(tmp instanceof Date))
+                    continue;
+                Field field = TrainRoute.class.getField(k);
+                field.set(route, tmp);
+            }
+
+            tmp = node.get("details");
+            if (tmp != null && tmp instanceof BasicDBList) {
+                List<TrainEntry> details = new ArrayList<>();
+                for (Object tmp2 : (BasicDBList) tmp) {
+                    TrainEntry ret = procDetails((DBObject) tmp2, route);
+                    if (ret != null)
+                        details.add(ret);
+                }
+                if (!details.isEmpty())
+                    route.details = details;
+            }
+
+            ds.save(route);
+            System.out.println(String.format("%d: %s, %s", i, route.code, route.id.toString()));
+        }
+    }
+
+    /**
+     * 处理列车详情，得到一个TrainEntry
+     *
+     * @param detailsNodes
+     * @param route
+     */
+    private static TrainEntry procDetails(DBObject detailsNodes, TrainRoute route) throws NoSuchFieldException, IllegalAccessException {
+        TrainEntry entry = new TrainEntry();
+
+        entry.idx = (int) detailsNodes.get("idx");
+        entry.distance = (int) detailsNodes.get("distance");
+        SimpleRef stop = new SimpleRef();
+        stop.id = (ObjectId) detailsNodes.get("stopId");
+        stop.zhName = (String) detailsNodes.get("stopName");
+        entry.stop = stop;
+        SimpleRef loc = new SimpleRef();
+        loc.id = (ObjectId) detailsNodes.get("locId");
+        loc.zhName = (String) detailsNodes.get("locName");
+        entry.loc = loc;
+
+        Object tmp = detailsNodes.get("price");
+        if (tmp != null && tmp instanceof DBObject) {
+            DBObject priceNode = (DBObject) tmp;
+            Map<String, Double> price = new HashMap<>();
+            for (String k : priceNode.keySet()) {
+                Object tmp2 = priceNode.get(k);
+                if (tmp2 != null && tmp2 instanceof Number)
+                    price.put(k, ((Number) tmp2).doubleValue());
+            }
+            if (!price.isEmpty())
+                entry.price = price;
+        }
+
+        for (String k : new String[]{"arrTime", "depTime"}) {
+            tmp = detailsNodes.get(k);
+            if (tmp != null && tmp instanceof Date) {
+                Field field = TrainEntry.class.getField(k);
+                field.set(entry, tmp);
+            }
+        }
+
+        return entry;
     }
 
     private static void importTrainStation() throws TravelPiException {

@@ -9,6 +9,7 @@ import org.mongodb.morphia.annotations.Id;
 import play.data.validation.Constraints;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -54,7 +55,7 @@ public class TrainRoute extends TravelPiBaseItem{
 
     public String type;
 
-
+    public List<TrainEntry> details;
 
     @Override
     public JsonNode toJson() {
