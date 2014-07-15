@@ -42,8 +42,12 @@ public class MorphiaFactory {
     private static MorphiaFactory ourInstance;
 
     public synchronized static MorphiaFactory getInstance() throws TravelPiException {
+        return getInstance("localhost", 27017, false);
+    }
+
+    public synchronized static MorphiaFactory getInstance(String host, int port, boolean fromConfig) throws TravelPiException {
         if (ourInstance == null)
-            ourInstance = new MorphiaFactory();
+            ourInstance = new MorphiaFactory(host, port, fromConfig);
 
         return ourInstance;
     }
@@ -52,11 +56,8 @@ public class MorphiaFactory {
         return morphia;
     }
 
-    private MorphiaFactory() throws TravelPiException {
-        String host = "localhost";
-        int port = 28017;
-
-        try {
+    private MorphiaFactory(String host, int port, boolean fromConfig) throws TravelPiException {
+        if (fromConfig) {
             Configuration config = Configuration.root();
 
             Map mongo = (Map) config.getObject("mongodb");
@@ -64,9 +65,7 @@ public class MorphiaFactory {
                 host = mongo.get("host").toString();
                 port = Integer.parseInt(mongo.get("port").toString());
             }
-        }catch(NullPointerException ignored){
         }
-
         try {
             client = new MongoClient(host, port);
         } catch (UnknownHostException e) {

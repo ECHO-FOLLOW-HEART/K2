@@ -10,14 +10,14 @@ import models.morphia.misc.SimpleRef;
 import models.morphia.poi.Ratings;
 import models.morphia.poi.Restaurant;
 import models.morphia.poi.ViewSpot;
-import models.morphia.traffic.AirPrice;
-import models.morphia.traffic.AirRoute;
-import models.morphia.traffic.Airline;
-import models.morphia.traffic.Airport;
+import models.morphia.traffic.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 import utils.Utils;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -25,7 +25,7 @@ public class Main {
 
     public static void importVs() throws TravelPiException, NoSuchFieldException, IllegalAccessException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        DBCollection col = Utils.getMongoClient("localhost", 28017).getDB("poi").getCollection("view_spot");
+        DBCollection col = Utils.getMongoClient().getDB("poi").getCollection("view_spot");
 //        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThanEquals(new ObjectId("53b0545e10114e051426e4fc")).get());
         DBCursor cursor = col.find(QueryBuilder.start().get());
         System.out.println(String.format("TOTAL RECORDS: %d", cursor.count()));
@@ -161,12 +161,12 @@ public class Main {
 
     public static void importPoi() throws TravelPiException, NoSuchFieldException, IllegalAccessException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        DBCollection col = Utils.getMongoClient("localhost", 28017).getDB("poi").getCollection("restaurant");
-        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53b0d14510114e05e4497daf")).get());
-//        DBCursor cursor = col.find(QueryBuilder.start().get());
+        DBCollection col = Utils.getMongoClient().getDB("poi").getCollection("restaurant_old");
+//        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53b0d3dd10114e05e449b006")).get());
+        DBCursor cursor = col.find(QueryBuilder.start().get());
         System.out.println(String.format("TOTAL RECORDS: %d", cursor.count()));
 
-        int i = 94969;
+        int i = -1;
         while (cursor.hasNext()) {
             i++;
             Object tmp;
@@ -263,7 +263,7 @@ public class Main {
 
     public static void importAirline() throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
-        DBCollection col = Utils.getMongoClient("localhost", 28017).getDB("traffic").getCollection("airline");
+        DBCollection col = Utils.getMongoClient().getDB("traffic").getCollection("airline");
 //        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53b05a7e10114e05e4483b47")).get());
         DBCursor cursor = col.find(QueryBuilder.start().get());
         System.out.println(String.format("TOTAL RECORDS: %d", cursor.count()));
@@ -460,10 +460,124 @@ public class Main {
         try {
             importPoi();
 //            importAirline();
+//            importTrainStation();
 //            importAirport();
 //            importAirRoute();
-        } catch (TravelPiException | IllegalAccessException | NoSuchFieldException e) {
+        } catch (TravelPiException e) {
             e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void calcDelta(final String dbName, final String colName, MorphiaFactory.DBType dbType) throws TravelPiException {
+        DBCollection col = Utils.getMongoClient().getDB(dbName).getCollection(colName);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(dbType);
+
+        // 查询差异
+        DBCursor cursor = col.find(QueryBuilder.start().get(), BasicDBObjectBuilder.start("_id", 1).get());
+        Set<ObjectId> oldStationList = new HashSet<>();
+        for (Object tmp : cursor)
+            oldStationList.add((ObjectId) tmp);
+        Set<ObjectId> newStationList = new HashSet<>();
+        Query<TrainStation> query = ds.createQuery(TrainStation.class).retrievedFields(true, "_id");
+        for (TrainStation station : query)
+            newStationList.add(station.id);
+        // 旧的有，新的没有
+        final Set<ObjectId> delta1 = new HashSet<>();
+        delta1.addAll(oldStationList);
+        delta1.removeAll(newStationList);
+        // 新的有，旧的没有
+        final Set<ObjectId> delta2 = new HashSet<>();
+        delta2.addAll(newStationList);
+        delta2.removeAll(oldStationList);
+
+        HashMap<String, Set<ObjectId>> dtList = new HashMap<String, Set<ObjectId>>() {
+            {
+                put("delta1", delta1);
+                put("delta2", delta2);
+            }
+        };
+        for (String dt : dtList.keySet()) {
+            Set<ObjectId> s = dtList.get(dt);
+            String fileName = String.format("%s-%s-%s.txt", dbName, colName, dt);
+            FileWriter writer = null;
+            try {
+                writer = new FileWriter(fileName);
+                for (ObjectId id : s)
+                    writer.write(id.toString() + '\n');
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                if (writer != null)
+                    try {
+                        writer.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+            }
+        }
+    }
+
+    private static void importTrainStation() throws TravelPiException {
+        DBCollection col = Utils.getMongoClient().getDB("traffic").getCollection("train_station");
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        DBCursor cursor = col.find(QueryBuilder.start().get());
+//        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53abe38410114e5847e7043d")).get());
+        int i = -1;
+        while (cursor.hasNext()) {
+            i++;
+            Object tmp;
+            DBObject st = cursor.next();
+            TrainStation station = new TrainStation();
+            station.id = (ObjectId) st.get("_id");
+            station.zhName = (String) st.get("name");
+            station.enName = (String) st.get("enName");
+            station.url = (String) st.get("url");
+            station.desc = (String) st.get("desc");
+
+            tmp = st.get("tel");
+            if (tmp != null) {
+                Contact c = new Contact();
+                c.phoneList = Arrays.asList(tmp.toString());
+                station.contact = c;
+            }
+
+            tmp = st.get("py");
+            if (tmp != null && tmp instanceof BasicDBList && !((BasicDBList) tmp).isEmpty())
+                station.py = Arrays.asList(((BasicDBList) tmp).toArray(new String[]{""}));
+
+            Object alias = st.get("alias");
+            if (alias != null) {
+                station.alias = Arrays.asList(((BasicDBList) alias).toArray(new String[]{""}));
+            }
+            Object geo = st.get("geo");
+            if (geo != null) {
+                Address address = new models.morphia.geo.Address();
+                Double lat = (Double) ((BasicDBObject) geo).get("lat");
+                Double lng = (Double) ((BasicDBObject) geo).get("lng");
+                address.address = (String) ((BasicDBObject) geo).get("addr");
+                Coords coords = new models.morphia.geo.Coords();
+                coords.lat = lat;
+                coords.lng = lng;
+                address.coords = coords;
+
+                ObjectId locId = (ObjectId) ((DBObject) geo).get("locId");
+                String locName = (String) ((DBObject) geo).get("locName");
+                if (locId != null && locName != null) {
+                    SimpleRef ref = new SimpleRef();
+                    ref.id = locId;
+                    ref.zhName = locName;
+                    address.loc = ref;
+                } else
+                    System.out.println(String.format("Invalid station: %s", station.id.toString()));
+                station.addr = address;
+            }
+
+            ds.save(station);
+            System.out.println(String.format("%d: %s", i, station.id.toString()));
         }
     }
 }
