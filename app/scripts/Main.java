@@ -7,6 +7,9 @@ import models.morphia.geo.Address;
 import models.morphia.geo.Coords;
 import models.morphia.misc.Contact;
 import models.morphia.misc.SimpleRef;
+import models.morphia.plan.Plan;
+import models.morphia.plan.PlanDayEntry;
+import models.morphia.plan.PlanItem;
 import models.morphia.poi.Ratings;
 import models.morphia.poi.Restaurant;
 import models.morphia.poi.ViewSpot;
@@ -14,6 +17,9 @@ import models.morphia.traffic.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import utils.FPUtils;
+import utils.FilterDelegate;
+import utils.MapDelegate;
 import utils.Utils;
 
 import java.io.FileWriter;
@@ -463,7 +469,8 @@ public class Main {
 //            importTrainStation();
 //            importAirport();
 //            importAirRoute();
-            importTrainRoute();
+//            importTrainRoute();
+            importPlan();
         } catch (TravelPiException | IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }
@@ -637,6 +644,7 @@ public class Main {
         loc.zhName = (String) detailsNodes.get("locName");
         entry.loc = loc;
 
+
         Object tmp = detailsNodes.get("price");
         if (tmp != null && tmp instanceof DBObject) {
             DBObject priceNode = (DBObject) tmp;
@@ -659,6 +667,102 @@ public class Main {
         }
 
         return entry;
+    }
+
+    private static void importPlan() throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+        DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("template");
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        DBCursor cursor = col.find(QueryBuilder.start().get());
+//        DBCursor cursor = col.find(QueryBuilder.start("_id").greaterThan(new ObjectId("53abe38410114e5847e7043d")).get());
+        int i = -1;
+        while (cursor.hasNext()) {
+            i++;
+            Object tmp;
+            DBObject planNode = cursor.next();
+
+            Plan plan = new Plan();
+            plan.id = (ObjectId) planNode.get("_id");
+            tmp = planNode.get("loc");
+            if (tmp != null && tmp instanceof DBObject) {
+                SimpleRef ref = new SimpleRef();
+                ref.id = (ObjectId) ((DBObject) tmp).get("_id");
+                ref.zhName = (String) ((DBObject) tmp).get("name");
+                plan.target = ref;
+            }
+            Ratings r = new Ratings();
+            r.viewCnt = (Integer) planNode.get("viewCnt");
+            plan.ratings = r;
+
+            for (String k : new String[]{"tags", "imageList"}) {
+                tmp = planNode.get(k);
+                if (tmp != null && tmp instanceof BasicDBList) {
+                    List<String> ret = FPUtils.map((BasicDBList) tmp, new MapDelegate<Object, String>() {
+                        @Override
+                        public String map(Object obj) {
+                            return (obj != null ? obj.toString() : null);
+                        }
+                    });
+                    ret = FPUtils.filter(ret, new FilterDelegate<String>() {
+                        @Override
+                        public boolean filter(String item) {
+                            return (item != null);
+                        }
+                    });
+                    if (!ret.isEmpty())
+                        Plan.class.getField(k).set(plan, ret);
+                }
+            }
+
+            for (String k : new String[]{"title", "desc"}) {
+                tmp = planNode.get(k);
+                Plan.class.getField(k).set(plan, (String) tmp);
+            }
+
+            for (String k : new String[]{"planId", "days"}) {
+                tmp = planNode.get(k);
+                if (tmp != null && tmp instanceof Number)
+                    Plan.class.getField(k).set(plan, ((Number) tmp).intValue());
+            }
+
+            tmp = planNode.get("details");
+            if (tmp != null && tmp instanceof BasicDBList) {
+                List<PlanDayEntry> details = new ArrayList<>();
+                for (Object tmp2 : ((BasicDBList) tmp)) {
+                    if (tmp2 == null)
+                        continue;
+
+                    Object tmp3 = ((DBObject) tmp2).get("actv");
+                    if (tmp3 == null)
+                        continue;
+
+                    List<PlanItem> activities = new ArrayList<>();
+                    for (Object tmp4 : (BasicDBList) tmp3) {
+                        DBObject itemNode = (DBObject) tmp4;
+                        PlanItem planItem = new PlanItem();
+                        SimpleRef ref = new SimpleRef();
+                        ref.id = (ObjectId) itemNode.get("itemId");
+                        ref.zhName = (String) itemNode.get("itemName");
+                        planItem.item = ref;
+                        ref = new SimpleRef();
+                        ref.id = (ObjectId) itemNode.get("locId");
+                        ref.zhName = (String) itemNode.get("locName");
+                        planItem.loc = ref;
+                        planItem.idx = (Integer) itemNode.get("idx");
+                        activities.add(planItem);
+                    }
+                    if (!activities.isEmpty()) {
+                        PlanDayEntry entry = new PlanDayEntry();
+                        entry.actv = activities;
+                        details.add(entry);
+                    }
+                }
+                if (!details.isEmpty())
+                    plan.details = details;
+            }
+
+            ds.save(plan);
+            System.out.println(String.format("%d: %s", i, plan.id.toString()));
+        }
     }
 
     private static void importTrainStation() throws TravelPiException {

@@ -32,6 +32,7 @@ public class MorphiaFactory {
         GEO,
         POI,
         PLAN,
+        PLAN_UGC,
         USER,
         MISC,
         TRAFFIC
@@ -103,6 +104,9 @@ public class MorphiaFactory {
                 break;
             case PLAN:
                 ds = morphia.createDatastore(client, "plan");
+                break;
+            case PLAN_UGC:
+                ds = morphia.createDatastore(client, "plan_ugc");
                 break;
             case USER:
                 ds = morphia.createDatastore(client, "user");

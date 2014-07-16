@@ -7,7 +7,7 @@ import java.util.List;
  * Created by zephyre on 7/2/14.
  */
 public class FPUtils {
-    public static <FromType, ToType> List<ToType> map(ArrayList<FromType> list, MapDelegate<FromType, ToType> mapDelegate) {
+    public static <FromType, ToType> List<ToType> map(List<FromType> list, MapDelegate<FromType, ToType> mapDelegate) {
         List<ToType> retval = new ArrayList<>(list.size());
         for (FromType item : list)
             retval.add(mapDelegate.map(item));
