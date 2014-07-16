@@ -6,8 +6,11 @@ import com.mongodb.*;
 import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
+import models.morphia.poi.AbstractPOI;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -15,6 +18,7 @@ import utils.Utils;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -199,6 +203,9 @@ public class POICtrl extends Controller {
         if (colName == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+
+
         DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
 
         BasicDBObject query = new BasicDBObject();
@@ -298,7 +305,7 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result poiSearch(String poiType, String locId, String keyword, int page, int pageSize) {
+    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize) {
         if (locId.isEmpty())
             locId = null;
 
@@ -317,18 +324,25 @@ public class POICtrl extends Controller {
         if (type == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
-        List<JsonNode> results = new ArrayList<>();
         try {
-            BasicDBList poiList = PoiAPI.poiSearch(type, locId, keyword, true, null, false, page, pageSize);
-            for (Object tmp : poiList) {
-                DBObject poi = (DBObject) tmp;
-                ObjectNode node = PoiAPI.getPOIInfoJson(poi, 2);
-                results.add(node);
+            ObjectId locOid;
+            if (locId == null)
+                locOid = null;
+            else {
+                try {
+                    locOid = new ObjectId(locId);
+                } catch (IllegalArgumentException e) {
+                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s", locId));
+                }
             }
+            List<JsonNode> results = new ArrayList<>();
+            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, true, null, false, page, pageSize, keyword);
+            while (it.hasNext())
+                results.add(it.next().toJson());
+
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
-
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 }

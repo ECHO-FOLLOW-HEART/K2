@@ -1,48 +1,41 @@
 package models.morphia.poi;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import models.TravelPiBaseItem;
-import models.morphia.geo.Address;
-import models.morphia.misc.Contact;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Id;
-
-import java.util.List;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * 景点信息。
  *
  * @author Zephyre
  */
-public class ViewSpot extends TravelPiBaseItem {
-    @Id
-    public ObjectId id;
-
-    @Embedded
-    public Ratings ratings;
-
-    @Embedded
-    public Contact contact;
-
-    @Embedded
-    public Address addr;
-
-    public String name;
-
-    public String url;
-
-    public Double price;
-
-    public String priceDesc;
-
-    public String desc;
-
-    public List<String> imageList;
-
-    public List<String> tags;
-
-    public List<String> alias;
+public class ViewSpot extends AbstractPOI {
+//    @Id
+//    public ObjectId id;
+//
+//    @Embedded
+//    public Ratings ratings;
+//
+//    @Embedded
+//    public Contact contact;
+//
+//    @Embedded
+//    public Address addr;
+//
+//    public String name;
+//
+//    public String url;
+//
+//    public Double price;
+//
+//    public String priceDesc;
+//
+//    public String desc;
+//
+//    public List<String> imageList;
+//
+//    public List<String> tags;
+//
+//    public List<String> alias;
 
     public Boolean worldHeritage;
 
@@ -58,6 +51,12 @@ public class ViewSpot extends TravelPiBaseItem {
 
     @Override
     public JsonNode toJson() {
-        return null;
+        ObjectNode node = (ObjectNode) super.toJson();
+        if (rankingA != null)
+            node.put("rankingA", rankingA);
+        else
+            node.put("rankingA", "");
+        node.put("openTime", openTime != null ? openTime : "");
+        return node;
     }
 }

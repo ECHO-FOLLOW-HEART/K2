@@ -5,8 +5,15 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
+import models.morphia.poi.AbstractPOI;
+import models.morphia.poi.Hotel;
+import models.morphia.poi.Restaurant;
+import models.morphia.poi.ViewSpot;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 import play.libs.Json;
 import utils.Constants;
 import utils.Utils;
@@ -30,6 +37,51 @@ public class PoiAPI {
         ENTERTAINMENT
     }
 
+
+    /**
+     * POI搜索。
+     *
+     * @param poiType    POI类型。
+     * @param locId      POI所在地区（可以为NULL）。
+     * @param tag
+     * @param details    是否获取详情。
+     * @param sortField
+     * @param asc
+     * @param page
+     * @param pageSize
+     * @param searchWord 搜索关键词（可以为NULL）。       @return
+     */
+    public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, ObjectId locId, String tag, boolean details, String sortField, boolean asc, int page, int pageSize, String searchWord) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+
+        Class<? extends AbstractPOI> poiClass = null;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        if (locId != null)
+            query = query.field("addr.loc.id").equal(locId);
+        if (searchWord != null && !searchWord.isEmpty())
+            query = query.filter("name", Pattern.compile(searchWord));
+        if (tag != null && !tag.isEmpty())
+            query = query.field("tags").equal(tag);
+        query.order("-ratings.score").offset(page * pageSize).limit(pageSize);
+
+        return query.iterator();
+    }
+
+
     /**
      * POI搜索。
      *
@@ -43,8 +95,8 @@ public class PoiAPI {
      * @param pageSize
      * @return
      */
-    public static BasicDBList poiSearch(POIType poiType, String locId, String searchWord, boolean details,
-                                        String sortField, boolean asc, int page, int pageSize) throws TravelPiException {
+    public static BasicDBList poiSearchOld(POIType poiType, String locId, String searchWord, boolean details,
+                                           String sortField, boolean asc, int page, int pageSize) throws TravelPiException {
         String colName;
         switch (poiType) {
             case VIEW_SPOT:

@@ -1,4 +1,4 @@
-package models.morphia.geo;
+package models.morphia.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
@@ -6,25 +6,30 @@ import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 
 /**
- * 坐标类。
+ * POI的评论信息。
  *
  * @author Zephyre
  */
 @Embedded
-public class Coords {
-    public Double lat;
-    public Double lng;
-    public Double blat;
-    public Double blng;
+public class Ratings {
+    public Integer score;
+
+    public Integer viewCnt;
+
+    public Integer favorCnt;
+
+    public Integer dinningIdx;
+
+    public Integer shoppingIdx;
 
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
+
+        for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt"}) {
             try {
-                Object val = Coords.class.getField(k).get(this);
+                Object val = Ratings.class.getField(k).get(this);
                 builder.add(k, val != null ? val : "");
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
-                builder.add(k, "");
             }
         }
         return Json.toJson(builder.get());

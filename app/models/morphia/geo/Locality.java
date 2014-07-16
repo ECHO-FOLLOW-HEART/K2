@@ -5,9 +5,13 @@ import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import models.TravelPiBaseItem;
+import models.morphia.misc.Ratings;
 import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.*;
+import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Indexed;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
@@ -37,14 +41,8 @@ public class Locality extends TravelPiBaseItem {
     @Constraints.Required
     public int level;
 
-    @Version
-    public long ver;
-
-//    @Reference(lazy = true, ignoreMissing = true)
-//    public Country country;
-
-//    @Reference(lazy = true, ignoreMissing = true)
-//    public Locality parent;
+    @Embedded
+    public Ratings ratings;
 
     public String countryId;
 
@@ -109,6 +107,23 @@ public class Locality extends TravelPiBaseItem {
 
         if (level > 1) {
             builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
+
+            if (ratings != null) {
+                BasicDBObjectBuilder rBuilder = BasicDBObjectBuilder.start();
+                for (String k : new String[]{"dinningIdx", "shoppingIdx", "score", "favorCnt", "viewCnt"}) {
+                    Object tmp = null;
+                    try {
+                        tmp = Ratings.class.getField(k).get(ratings);
+                    } catch (IllegalAccessException | NoSuchFieldException ignored) {
+                    }
+                    if (tmp != null)
+                        rBuilder.add(k, tmp);
+                    else
+                        rBuilder.add(k, "");
+                }
+                builder.add("ratings", rBuilder.get());
+            } else
+                builder.add("ratings", new BasicDBObject());
 
             BasicDBList imageListNodes = new BasicDBList();
             if (imageList != null) {

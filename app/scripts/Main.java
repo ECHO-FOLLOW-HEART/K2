@@ -6,11 +6,11 @@ import models.MorphiaFactory;
 import models.morphia.geo.Address;
 import models.morphia.geo.Coords;
 import models.morphia.misc.Contact;
+import models.morphia.misc.Ratings;
 import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
-import models.morphia.poi.Ratings;
 import models.morphia.poi.Restaurant;
 import models.morphia.poi.ViewSpot;
 import models.morphia.traffic.*;
@@ -28,6 +28,94 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 public class Main {
+
+    public static void importLoc() throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("locality_old");
+        DBCursor cursor = col.find(QueryBuilder.start().get());
+
+        int i = -1;
+        while (cursor.hasNext()) {
+            i++;
+            DBObject loc = cursor.next();
+
+            Object tmp;
+
+            models.morphia.geo.Locality locality = new models.morphia.geo.Locality();
+
+            locality.id = (ObjectId) loc.get("_id");
+            locality.zhName = loc.get("zhName").toString();
+            locality.baiduId = (int) loc.get("baiduId");
+            tmp = loc.get("level");
+            locality.level = (Integer) tmp;
+
+            tmp = loc.get("ratings");
+            if (tmp != null && tmp instanceof DBObject) {
+                Object tmp2 = ((DBObject) tmp).get("score");
+                if (tmp2 != null && tmp2 instanceof Number) {
+                    Ratings r = new Ratings();
+                    r.score = ((Number) tmp2).intValue();
+                    locality.ratings = r;
+                }
+            }
+
+            tmp = loc.get("travelMonth");
+            if (tmp != null)
+                locality.travelMonth = Arrays.asList(((BasicDBList) tmp).toArray(new Integer[]{0}));
+            tmp = loc.get("alias");
+            if (tmp != null)
+                locality.alias = Arrays.asList(((BasicDBList) tmp).toArray(new String[]{""}));
+            tmp = loc.get("tags");
+            if (tmp != null)
+                locality.tags = Arrays.asList(((BasicDBList) tmp).toArray(new String[]{""}));
+            tmp = loc.get("imageList");
+            if (tmp != null)
+                locality.imageList = Arrays.asList(((BasicDBList) tmp).toArray(new String[]{""}));
+
+            Coords coords = new Coords();
+            for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
+                tmp = loc.get(k);
+                if (tmp != null && tmp instanceof Number)
+                    Coords.class.getField(k).set(coords, tmp);
+            }
+            locality.coords = coords;
+
+            tmp = loc.get("provCap");
+            locality.provCap = (!(tmp == null || !(tmp instanceof Boolean)));
+
+            tmp = loc.get("desc");
+            if (tmp != null)
+                locality.desc = tmp.toString();
+
+            tmp = loc.get("parent");
+            if (tmp != null && tmp instanceof DBObject) {
+                SimpleRef ref = new SimpleRef();
+                ref.id = (ObjectId) ((DBObject) tmp).get("_id");
+                ref.zhName = (String) ((DBObject) tmp).get("name");
+                locality.superAdm = ref;
+            }
+
+            tmp = loc.get("siblings");
+            if (tmp != null && tmp instanceof BasicDBList) {
+                List<SimpleRef> siblings = new ArrayList<>();
+                for (Object tmp2 : (BasicDBList) tmp) {
+                    DBObject sib = (DBObject) tmp2;
+                    SimpleRef ref = new SimpleRef();
+                    ref.id = (ObjectId) sib.get("_id");
+                    ref.zhName = (String) sib.get("name");
+                    siblings.add(ref);
+                }
+                if (!siblings.isEmpty())
+                    locality.sib = siblings;
+            }
+
+            locality.countryId = "CN";
+            locality.countryZhName = "中国";
+
+            ds.save(locality);
+            System.out.println(String.format("%d: %s", i, locality.id.toString()));
+        }
+    }
 
     public static void importVs() throws TravelPiException, NoSuchFieldException, IllegalAccessException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
@@ -470,7 +558,8 @@ public class Main {
 //            importAirport();
 //            importAirRoute();
 //            importTrainRoute();
-            importPlan();
+//            importPlan();
+            importLoc();
         } catch (TravelPiException | IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
         }

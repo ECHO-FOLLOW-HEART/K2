@@ -49,10 +49,12 @@ POST          /plans/ugc/:userId                                 controllers.Pla
 # POI
 # 根据目的地获得景点列表
 #GET           /poi/view-spots/search                             controllers.POICtrl.viewSpotList(locality: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
-GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+# 获得指定城市的景点
+#GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
 
 # 根据关键词搜索景点
-GET           /poi/view-spots/search                             controllers.POICtrl.poiSearch(poiType: String="vs", locId: String?="", keyword: String, page: Int?=0, pageSize: Int?=20)
+GET           /poi/view-spots/search                             controllers.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
 
 GET           /poi/hotels/localities/:locId                      controllers.POICtrl.hotelList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 GET           /poi/restaurants/localities/:locId                 controllers.POICtrl.restaurantList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)

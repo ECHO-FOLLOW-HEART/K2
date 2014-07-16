@@ -3,7 +3,7 @@ package models.morphia.plan;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.TravelPiBaseItem;
 import models.morphia.misc.SimpleRef;
-import models.morphia.poi.Ratings;
+import models.morphia.misc.Ratings;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Id;

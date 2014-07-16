@@ -10,6 +10,7 @@ import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.geo.Locality;
 import models.morphia.misc.MiscInfo;
 
 import org.bson.types.ObjectId;
@@ -164,8 +165,8 @@ public class MiscCtrl extends Controller {
         if (loc != 0) {
             List<JsonNode> retLocList = new ArrayList<>();
             // TODO 获得城市信息
-//            for (Object obj : LocalityAPI.explore(detailsFlag, page, pageSize))
-//
+            for (Locality locality : LocalityAPI.explore(detailsFlag, page, pageSize))
+                retLocList.add(locality.toJson(2));
 //                retLocList.add(LocalityAPI.getLocDetailsJson((DBObject) obj, 2));
             results.put("loc", Json.toJson(retLocList));
         }

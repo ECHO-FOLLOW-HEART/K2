@@ -1,6 +1,5 @@
 package core;
 
-import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -8,9 +7,9 @@ import models.morphia.geo.Locality;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
-import utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -92,24 +91,37 @@ public class LocalityAPI {
      * @param pageSize    页面大小。
      * @return
      */
-    public static BasicDBList explore(boolean showDetails, int page, int pageSize) throws TravelPiException {
-        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("locality");
+    public static List<Locality> explore(boolean showDetails, int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
-        BasicDBObjectBuilder facetBuilder = BasicDBObjectBuilder.start("zhName", 1).add("ratings.score", 1);
+        List<String> fields = new ArrayList<>();
+        Collections.addAll(fields, "zhName", "ratings");
         if (showDetails)
-            facetBuilder.add("imageList", 1).add("tags", 1).add("desc", 1);
+            Collections.addAll(fields, "imageList", "tags", "desc");
+        Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
+                .retrievedFields(true, fields.toArray(new String[]{""}))
+                .offset(page * pageSize).limit(pageSize).order("-ratings.score");
 
-        DBCursor cursor = col.find(QueryBuilder.start("level").is(2).get(),
-                facetBuilder.get()).skip(page * pageSize).limit(pageSize)
-                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get());
+        return query.asList();
 
-        BasicDBList results = new BasicDBList();
-        while (cursor.hasNext()) {
-            DBObject loc = cursor.next();
-            results.add(loc);
-        }
-
-        return results;
+//
+//        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("locality");
+//
+//        BasicDBObjectBuilder facetBuilder = BasicDBObjectBuilder.start("zhName", 1).add("ratings.score", 1);
+//        if (showDetails)
+//            facetBuilder.add("imageList", 1).add("tags", 1).add("desc", 1);
+//
+//        DBCursor cursor = col.find(QueryBuilder.start("level").is(2).get(),
+//                facetBuilder.get()).skip(page * pageSize).limit(pageSize)
+//                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get());
+//
+//        BasicDBList results = new BasicDBList();
+//        while (cursor.hasNext()) {
+//            DBObject loc = cursor.next();
+//            results.add(loc);
+//        }
+//
+//        return results;
     }
 
 
