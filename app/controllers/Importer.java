@@ -200,13 +200,13 @@ public class Importer extends Controller {
         Object tmp;
         tmp = ar.get("depAirport");
         if(tmp != null){
-        	Airport depAirport = airPortfromOldDb((ObjectId) ((BasicDBObject)tmp).get("_id"));
+        	Airport depAirport = airportfromOldDb((ObjectId) ((BasicDBObject)tmp).get("_id"));
         	airRoute.depAirport = depAirport;
         }
         
         tmp = ar.get("arrAirport");
         if(tmp != null){
-        	Airport arrAirport = airPortfromOldDb((ObjectId) ((BasicDBObject)tmp).get("_id"));
+        	Airport arrAirport = airportfromOldDb((ObjectId) ((BasicDBObject)tmp).get("_id"));
         	airRoute.arrAirport = arrAirport;
         }
         tmp = ar.get("dep");
@@ -236,7 +236,7 @@ public class Importer extends Controller {
         
         while (cursor.hasNext()) {
             DBObject loc = cursor.next();
-            Airport airPort = airPortfromOldDb((ObjectId) loc.get("_id"));
+            Airport airPort = airportfromOldDb((ObjectId) loc.get("_id"));
             if(airPort!=null){
             	ds.save(airPort);
             }
@@ -244,7 +244,7 @@ public class Importer extends Controller {
         return Results.ok();
     }
     
-    private static models.morphia.traffic.Airport airPortfromOldDb(ObjectId id) throws TravelPiException{
+    private static models.morphia.traffic.Airport airportfromOldDb(ObjectId id) throws TravelPiException{
     	DBCollection col = Utils.getMongoClient().getDB("traffic").getCollection("airport_old");
         DBObject ap = col.findOne(BasicDBObjectBuilder.start("_id", id).get());
         if (ap == null)
@@ -252,6 +252,7 @@ public class Importer extends Controller {
         Airport airport = new models.morphia.traffic.Airport();
         airport.id = (ObjectId) ap.get("_id");
         airport.zhName = (String) ap.get("name");
+        String enName = airport.enName;
         airport.enName = (String) ap.get("enName");
         airport.url = (String) ap.get("url");
         airport.desc = (String) ap.get("desc");
@@ -282,7 +283,37 @@ public class Importer extends Controller {
         }
 		return airport;
     }
-    
+
+    public static Result airlineImport(int start  , int count ) throws TravelPiException, IllegalAccessException, NoSuchFieldException {
+        DB db = Utils.getMongoClient().getDB("traffic");
+        DBCollection col = db.getCollection("airline_old");
+        DBCursor cursor = col.find(QueryBuilder.start().get(), BasicDBObjectBuilder.start("_id", 1).get());
+
+        MorphiaFactory factory = MorphiaFactory.getInstance();
+        Datastore ds = factory.getDatastore(DBType.TRAFFIC);
+
+        while (cursor.hasNext()) {
+            DBObject al = cursor.next();
+            Airline airline = airlinefromOldDb((ObjectId) al.get("_id"));
+            if(airline!=null){
+                ds.save(airline);
+            }
+        }
+        return Results.ok();
+    }
+
+    private static Airline airlinefromOldDb(ObjectId id) throws TravelPiException {
+        DBCollection col = Utils.getMongoClient().getDB("traffic").getCollection("airline_old");
+        DBObject al = col.findOne(BasicDBObjectBuilder.start("_id", id).get());
+        if (al == null)
+            return null;
+        Airline airline = new Airline();
+        airline.code = (String) al.get("code");
+        airline.name = (String) al.get("name");
+        airline.fullName = (String) al.get("fullName");
+        airline.shortName = (String) al.get("shortName");
+        return airline;
+    }
 
     public static Result test() {
         try {
