@@ -140,28 +140,27 @@ public class GeoCtrl extends Controller {
 
 
     /**
-     * 获得城市信息。
+     * 获得城市信息。同时查看相关的景点、酒店和餐厅。
      *
-     * @param id
-     * @return
+     * @param id    城市ID。
+     * @param relVs 是否查看相关景点
      */
-    public static Result getLocality(String id, int relatedVs, int hotel, int restaurant) {
+    public static Result getLocality(String id, int relVs, int relHotel, int relRestaurant) {
 
         try {
-//            ObjectNode result = LocalityAPI.getLocDetailsJson(LocalityAPI.locDetails(id), 3);
             ObjectNode result = (ObjectNode) LocalityAPI.locDetails(id, 3).toJson(3);
 
             int page = 0;
             int pageSize = 10;
-            if (relatedVs != 0) {
+            if (relVs != 0) {
                 BasicDBList retVsList = new BasicDBList();
                 for (Object tmp1 : PoiAPI.explore(true, PoiAPI.POIType.VIEW_SPOT, id, page, pageSize)) {
                     ObjectNode vs = PoiAPI.getPOIInfoJson((DBObject) tmp1, 1);
                     retVsList.add(vs);
                 }
-                result.put("relatedVs", Json.toJson(retVsList));
+                result.put("relVs", Json.toJson(retVsList));
             } else
-                result.put("relatedVs", Json.toJson(new ArrayList<>()));
+                result.put("relVs", Json.toJson(new ArrayList<>()));
 
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (TravelPiException e) {

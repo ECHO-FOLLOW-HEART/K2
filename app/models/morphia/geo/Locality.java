@@ -2,6 +2,7 @@ package models.morphia.geo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import models.TravelPiBaseItem;
 import models.morphia.misc.SimpleRef;
@@ -39,11 +40,11 @@ public class Locality extends TravelPiBaseItem {
     @Version
     public long ver;
 
-    @Reference(lazy = true, ignoreMissing = true)
-    public Country country;
+//    @Reference(lazy = true, ignoreMissing = true)
+//    public Country country;
 
-    @Reference(lazy = true, ignoreMissing = true)
-    public Locality parent;
+//    @Reference(lazy = true, ignoreMissing = true)
+//    public Locality parent;
 
     public String countryId;
 
@@ -101,10 +102,10 @@ public class Locality extends TravelPiBaseItem {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("level", level);
 
-//        if (parent != null)
-//            builder.add("parent", BasicDBObjectBuilder.start().add("_id", parent.id.toString()).add("name", zhName).get());
-//        else
-        builder.add("parent", null);
+        if (superAdm != null)
+            builder.add("parent", superAdm.toJson());
+        else
+            builder.add("parent", new BasicDBObject());
 
         if (level > 1) {
             builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");

@@ -189,38 +189,38 @@ public class Application extends Controller {
 
     @Transactional
     public static Result test() throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-
-        for (models.morphia.geo.Locality loc : ds.createQuery(models.morphia.geo.Locality.class)) {
-            boolean updated = false;
-            models.morphia.geo.Locality parent = loc.parent;
-            if (parent != null) {
-                SimpleRef ref = new SimpleRef();
-                ref.id = parent.id;
-                ref.enName = parent.enName;
-                ref.zhName = parent.zhName;
-                loc.superAdm = ref;
-                updated = true;
-            }
-            models.morphia.geo.Country country = loc.country;
-            if (country != null) {
-                loc.countryId = country.code;
-                loc.countryEnName = country.enName;
-                loc.countryZhName = country.zhName;
-                updated = true;
-            }
-            if (updated)
-                ds.save(loc);
-        }
-
-        // 处理siblings
-        for (int level:new int[]{2,3}) {
-            for (models.morphia.geo.Locality loc:
-                 ds.createQuery(models.morphia.geo.Locality.class).field("level").equal(level)) {
-
-//                for (sib: ds.createQuery(models.morphia.geo.Locality.class).field("superAdmin"))
-            }
-        }
+//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//
+//        for (models.morphia.geo.Locality loc : ds.createQuery(models.morphia.geo.Locality.class)) {
+//            boolean updated = false;
+//            models.morphia.geo.Locality parent = loc.parent;
+//            if (parent != null) {
+//                SimpleRef ref = new SimpleRef();
+//                ref.id = parent.id;
+//                ref.enName = parent.enName;
+//                ref.zhName = parent.zhName;
+//                loc.superAdm = ref;
+//                updated = true;
+//            }
+//            models.morphia.geo.Country country = loc.country;
+//            if (country != null) {
+//                loc.countryId = country.code;
+//                loc.countryEnName = country.enName;
+//                loc.countryZhName = country.zhName;
+//                updated = true;
+//            }
+//            if (updated)
+//                ds.save(loc);
+//        }
+//
+//        // 处理siblings
+//        for (int level:new int[]{2,3}) {
+//            for (models.morphia.geo.Locality loc:
+//                 ds.createQuery(models.morphia.geo.Locality.class).field("level").equal(level)) {
+//
+////                for (sib: ds.createQuery(models.morphia.geo.Locality.class).field("superAdmin"))
+//            }
+//        }
 
         return Results.ok();
     }
