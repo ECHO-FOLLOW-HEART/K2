@@ -2,8 +2,10 @@ package controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
+import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.morphia.traffic.AirRoute;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -27,32 +29,19 @@ public class TrafficCtrl extends Controller {
     /**
      * 按照航班号获得航班信息。
      *
-     * @param flightCode
+     * @param flightCode 航班号
      * @return
      */
-    public static Result getAirRouteByCode(String flightCode) throws UnknownHostException, TravelPiException {
-        if (flightCode == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
-
-        flightCode = flightCode.toUpperCase();
-        DBCollection col = Utils.getMongoClient().getDB("traffic").getCollection("air_route");
-        DBObject flight = col.findOne(QueryBuilder.start("code").is(flightCode).get());
-        if (flight == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid flight code: %s.", flightCode));
-
-        flight.put("_id", flight.get("_id").toString());
-        for (String k : new String[]{"arrAirport", "arr", "depAirport", "dep", "carrier"}) {
-            DBObject tmp = (DBObject) flight.get(k);
-            tmp.put("_id", tmp.get("_id").toString());
+    public static Result getAirRouteByCode(String flightCode) {
+        try {
+            AirRoute route = TrafficAPI.getAirRoute(flightCode);
+            if (route == null)
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid flight code: %s.",
+                        flightCode != null ? flightCode : "NULL"));
+            return Utils.createResponse(ErrorCode.NORMAL, route.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
-
-        final DateFormat fmt = new SimpleDateFormat("HH:mm");
-        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
-        fmt.setTimeZone(tz);
-        for (String k : new String[]{"depTime", "arrTime"})
-            flight.put(k, fmt.format((Date) flight.get(k)));
-
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(flight));
     }
 
     /**

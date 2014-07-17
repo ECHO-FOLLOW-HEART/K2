@@ -224,9 +224,9 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String locId, String poiId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result explorePlansOld(String locId, String poiId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
-        for (Object tmp : PlanAPI.explore(locId, poiId, sort, tags, page, pageSize, sortField)) {
+        for (Object tmp : PlanAPI.exploreOld(locId, poiId, sort, tags, page, pageSize, sortField)) {
             DBObject planNode = (DBObject) tmp;
             results.add(PlanAPI.getPlanJson(planNode));
         }

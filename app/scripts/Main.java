@@ -5,6 +5,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.geo.Address;
 import models.morphia.geo.Coords;
+import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.Contact;
 import models.morphia.misc.Ratings;
 import models.morphia.misc.SimpleRef;
@@ -173,7 +174,7 @@ public class Main {
             }
             tmp = poiDB.get("ratings");
             if (tmp != null && tmp instanceof DBObject) {
-                Ratings r = new Ratings();
+                CheckinRatings r = new CheckinRatings();
                 Object tmp2;
 
                 tmp2 = ((DBObject) tmp).get("level");
@@ -310,7 +311,7 @@ public class Main {
             if (tmp != null && tmp instanceof DBObject) {
                 Object tmp2 = ((DBObject) tmp).get("score");
                 if (tmp2 != null && tmp2 instanceof Number) {
-                    Ratings r = new Ratings();
+                    CheckinRatings r = new CheckinRatings();
                     r.score = ((Number) tmp2).intValue();
                     poi.ratings = r;
                 }
@@ -778,7 +779,7 @@ public class Main {
                 ref.zhName = (String) ((DBObject) tmp).get("name");
                 plan.target = ref;
             }
-            Ratings r = new Ratings();
+            CheckinRatings r = new CheckinRatings();
             r.viewCnt = (Integer) planNode.get("viewCnt");
             plan.ratings = r;
 

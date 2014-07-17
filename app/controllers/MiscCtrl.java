@@ -190,7 +190,7 @@ public class MiscCtrl extends Controller {
         for (PoiAPI.POIType poiType : poiKeyList) {
             // 发现POI
             List<JsonNode> retPoiList = new ArrayList<>();
-            for (Object obj : PoiAPI.explore(detailsFlag, poiType, null, page, pageSize))
+            for (Object obj : PoiAPI.exploreOld(detailsFlag, poiType, null, page, pageSize))
                 retPoiList.add(PoiAPI.getPOIInfoJson((DBObject) obj, 2));
             results.put(poiMap.get(poiType), Json.toJson(retPoiList));
         }

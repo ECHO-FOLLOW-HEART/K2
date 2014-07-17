@@ -4,9 +4,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
+import models.morphia.plan.Plan;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 import play.libs.Json;
 import utils.Utils;
+
+import java.util.Iterator;
 
 /**
  * 路线规划相关API。
@@ -27,7 +33,37 @@ public class PlanAPI {
      * @param sortField @return
      * @throws TravelPiException
      */
-    public static BasicDBList explore(String locId, String poiId, String sort, String tags, int page, int pageSize, String sortField) throws TravelPiException {
+    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tags, int page, int pageSize, String sortField) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Plan> query = ds.createQuery(Plan.class);
+
+        if (locId != null)
+            query.field("target.id").equal(locId);
+
+        if (poiId != null)
+            query.field("details.actv.item.id").equal(poiId);
+
+        if (tags != null)
+            query.field("tags").equal(tags);
+
+        query.order("-ratings.viewCnt").offset(page * pageSize).limit(pageSize);
+
+        return query.iterator();
+    }
+
+    /**
+     * 发现路线
+     *
+     * @param locId
+     * @param poiId
+     * @param sort
+     * @param tags
+     * @param page
+     * @param pageSize
+     * @param sortField @return
+     * @throws TravelPiException
+     */
+    public static BasicDBList exploreOld(String locId, String poiId, String sort, String tags, int page, int pageSize, String sortField) throws TravelPiException {
         DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
         DBCursor cursor;
 

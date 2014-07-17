@@ -9,6 +9,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -43,7 +44,7 @@ public class LocalityAPI {
      * @return
      * @throws TravelPiException
      */
-    public static Locality locDetailsByBaiduId(int baiduId) throws TravelPiException {
+    public static Locality locDetailsBaiduId(int baiduId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         return ds.createQuery(Locality.class).field("baiduId").equal(baiduId).get();
     }
@@ -60,10 +61,11 @@ public class LocalityAPI {
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
 
         List<String> fields = new ArrayList<>();
-//        fields.addAll(ArrayLists (new String[]{"name"}).)
-        query.retrievedFields(true, "zhName", "parent", "level");
+        fields.addAll(Arrays.asList("zhName", "superAdm", "level"));
         if (level > 1)
-            query.retrievedFields(true, "desc", "imageList", "tags", "coords");
+            fields.addAll(Arrays.asList("desc", "imageList", "tags", "coords"));
+
+        query.retrievedFields(true, fields.toArray(new String[]{""}));
         return query.get();
     }
 
@@ -76,11 +78,11 @@ public class LocalityAPI {
      * @param page     分页偏移量。
      * @param pageSize 页面大小。
      */
-    public static List<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
+    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Pattern pattern = Pattern.compile(prefix ? "^" + keyword : keyword);
         Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern);
-        return query.offset(page * pageSize).limit(pageSize).asList();
+        return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
     /**

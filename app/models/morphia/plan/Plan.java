@@ -2,6 +2,7 @@ package models.morphia.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import models.TravelPiBaseItem;
+import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.SimpleRef;
 import models.morphia.misc.Ratings;
 import org.bson.types.ObjectId;
@@ -36,7 +37,7 @@ public class Plan extends TravelPiBaseItem{
     public List<String> imageList;
 
     @Embedded
-    public Ratings ratings;
+    public CheckinRatings ratings;
 
     public List<PlanDayEntry> details;
 

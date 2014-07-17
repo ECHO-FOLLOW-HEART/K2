@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.TravelPiBaseItem;
 import models.morphia.geo.Address;
+import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.Contact;
-import models.morphia.misc.Ratings;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
@@ -27,7 +27,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem {
     public ObjectId id;
 
     @Embedded
-    public Ratings ratings;
+    public CheckinRatings ratings;
 
     @Embedded
     public Contact contact;
@@ -62,7 +62,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
         // level1
-        builder.add("id", id.toString());
+        builder.add("_id", id.toString());
         builder.add("ratings", (ratings != null ? ratings.toJson() : ""));
         builder.add("addr", (addr != null ? addr.toJson() : ""));
         builder.add("name", (name != null ? name : ""));

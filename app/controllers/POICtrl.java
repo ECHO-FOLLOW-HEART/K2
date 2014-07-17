@@ -407,7 +407,7 @@ public class POICtrl extends Controller {
      * @param uid     用户id。
      * @return
      */
-    public static Result poiCheckin(String poiType, int uid) {
+    public static Result poiCheckin(String poiType, String poiId, int uid) {
         return Utils.createResponse(ErrorCode.NORMAL, "");
     }
 }

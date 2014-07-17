@@ -19,6 +19,7 @@ import utils.Constants;
 import utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -208,7 +209,59 @@ public class PoiAPI {
      * @param pageSize
      * @return
      */
-    public static BasicDBList explore(boolean showDetails, POIType poiType, String locId, int page, int pageSize) throws TravelPiException {
+    public static Iterator<? extends AbstractPOI> explore(POIType poiType, String locId,
+                                                          int page, int pageSize) throws TravelPiException {
+        try {
+            return explore(poiType, new ObjectId(locId), page, pageSize);
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.",
+                    locId != null ? locId : "NULL"));
+        }
+    }
+
+
+    /**
+     * 发现POI。
+     *
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Iterator<? extends AbstractPOI> explore(POIType poiType, ObjectId locId,
+                                                          int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+
+        Class<? extends AbstractPOI> poiClass = null;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        if (locId != null)
+            query.field("addr.loc.id").equal(locId);
+
+        return query.offset(page * pageSize).limit(pageSize).iterator();
+    }
+
+
+    /**
+     * 发现POI。
+     *
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static BasicDBList exploreOld(boolean showDetails, POIType poiType, String locId, int page, int pageSize) throws TravelPiException {
         String colName;
         switch (poiType) {
             case VIEW_SPOT:

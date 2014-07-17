@@ -65,7 +65,9 @@ public class Locality extends TravelPiBaseItem {
 
     public boolean provCap;
 
-    public int baiduId;
+    public Integer baiduId;
+
+    public Integer qunarId;
 
     @Embedded
     public Coords coords;
@@ -76,17 +78,7 @@ public class Locality extends TravelPiBaseItem {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("level", level);
 
-//        if (parent != null)
-//            builder.add("parent", BasicDBObjectBuilder.start().add("_id", parent.id.toString()).add("name", zhName).get());
-//        else
         builder.add("parent", null);
-
-//        BasicDBList sibNodeList = new BasicDBList();
-//        if (siblings != null) {
-//            for (Locality sib : siblings)
-//                sibNodeList.add(BasicDBObjectBuilder.start().add("_id", sib.id.toString()).add("name", sib.zhName).get());
-//        }
-//        builder.add("siblings", sibNodeList);
 
         return Json.toJson(builder.get());
     }
@@ -96,7 +88,7 @@ public class Locality extends TravelPiBaseItem {
         return toJson(1);
     }
 
-    public JsonNode toJson(int level) {
+    public JsonNode toJson(int detailLevel) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("level", level);
 
@@ -105,7 +97,14 @@ public class Locality extends TravelPiBaseItem {
         else
             builder.add("parent", new BasicDBObject());
 
-        if (level > 1) {
+        if (coords != null) {
+            builder.add("blat", (coords.blat != null ? coords.blat : ""));
+            builder.add("blng", (coords.blng != null ? coords.blng : ""));
+            builder.add("lat", (coords.lat != null ? coords.lat : ""));
+            builder.add("lng", (coords.lng != null ? coords.lng : ""));
+        }
+
+        if (detailLevel > 1) {
             builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
 
             if (ratings != null) {
@@ -138,21 +137,7 @@ public class Locality extends TravelPiBaseItem {
                     tagsNodes.add(tag);
             }
             builder.add("tags", tagsNodes);
-
-            if (coords != null) {
-                builder.add("blat", (coords.blat != null ? coords.blat : ""));
-                builder.add("blng", (coords.blng != null ? coords.blng : ""));
-                builder.add("lat", (coords.lat != null ? coords.lat : ""));
-                builder.add("lng", (coords.lng != null ? coords.lng : ""));
-            }
         }
-
-//        BasicDBList sibNodeList = new BasicDBList();
-//        if (siblings != null) {
-//            for (Locality sib : siblings)
-//                sibNodeList.add(BasicDBObjectBuilder.start().add("_id", sib.id.toString()).add("name", sib.zhName).get());
-//        }
-//        builder.add("siblings", sibNodeList);
 
         return Json.toJson(builder.get());
     }

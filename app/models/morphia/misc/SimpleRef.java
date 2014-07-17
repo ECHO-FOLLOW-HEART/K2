@@ -18,6 +18,6 @@ public class SimpleRef {
     public String zhName;
 
     public JsonNode toJson() {
-        return Json.toJson(BasicDBObjectBuilder.start("id", id.toString()).add("name", (zhName != null ? zhName : "")).get());
+        return Json.toJson(BasicDBObjectBuilder.start("_id", id.toString()).add("name", (zhName != null ? zhName : "")).get());
     }
 }

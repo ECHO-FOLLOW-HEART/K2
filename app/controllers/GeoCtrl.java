@@ -2,20 +2,20 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.BasicDBList;
-import com.mongodb.DBObject;
 import core.LocalityAPI;
 import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.TravelPiBaseItem;
 import models.geos.Locality;
+import models.morphia.poi.AbstractPOI;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -89,53 +89,13 @@ public class GeoCtrl extends Controller {
      * @return
      */
     public static Result searchLocality(String searchWord, int prefix, int page, int pageSize) throws TravelPiException {
-        List<models.morphia.geo.Locality> localities = LocalityAPI.searchLocalities(searchWord, (prefix != 0), page, pageSize);
-
         List<JsonNode> results = new ArrayList<>();
-        for (models.morphia.geo.Locality loc : localities)
-            results.add(loc.toJson(1));
+        for (Iterator<models.morphia.geo.Locality> it =
+                     LocalityAPI.searchLocalities(searchWord, (prefix != 0), page, pageSize);
+             it.hasNext(); )
+            results.add(it.next().toJson(1));
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
-//
-//        if (searchWord == null || searchWord.trim().isEmpty())
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search word: %s.", searchWord));
-//
-//        MongoClient client = Utils.getMongoClient();
-//        DB db = client.getDB("geo");
-//        DBCollection col = db.getCollection("locality");
-//
-//        QueryBuilder qb = new QueryBuilder();
-//        qb.or(QueryBuilder.start("zhName").regex(Pattern.compile("^" + searchWord)).get(),
-//                QueryBuilder.start("alias").regex(Pattern.compile("^" + searchWord)).get());
-//
-//        BasicDBObjectBuilder fields = new BasicDBObjectBuilder();
-//        fields.add("zhName", 1).add("level", 1).add("baiduId", 1).add("distId", 1).add("lat", 1).add("lng", 1)
-//                .add("desc", 1).add("siblings", 1).add("parent", 1);
-//        DBCursor cursor = col.find(qb.get(), fields.get()).skip(page * pageSize).limit(pageSize);
-//
-//        List<JsonNode> results = new ArrayList<>();
-//        while (cursor.hasNext()) {
-//            DBObject loc = cursor.next();
-//            loc.put("_id", loc.get("_id").toString());
-//
-//            BasicDBList siblings;
-//            if ((siblings = (BasicDBList) loc.get("siblings")) != null) {
-//                for (Object sibling : siblings) {
-//                    DBObject sib = (DBObject) sibling;
-//                    sib.put("_id", sib.get("_id").toString());
-//                }
-//            }
-//            DBObject p;
-//            if ((p = (DBObject) loc.get("parent")) != null) {
-//                ObjectId pid = (ObjectId) p.get("_id");
-//                p.put("_id", pid.toString());
-//            }
-//            loc.put("_id", loc.get("_id").toString());
-//
-//            JsonNode jsonItem = Json.parse(loc.toString());
-//            results.add(jsonItem);
-//        }
-//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
 
@@ -146,22 +106,20 @@ public class GeoCtrl extends Controller {
      * @param relVs 是否查看相关景点
      */
     public static Result getLocality(String id, int relVs, int relHotel, int relRestaurant) {
-
         try {
             ObjectNode result = (ObjectNode) LocalityAPI.locDetails(id, 3).toJson(3);
 
             int page = 0;
             int pageSize = 10;
             if (relVs != 0) {
-                BasicDBList retVsList = new BasicDBList();
-                for (Object tmp1 : PoiAPI.explore(true, PoiAPI.POIType.VIEW_SPOT, id, page, pageSize)) {
-                    ObjectNode vs = PoiAPI.getPOIInfoJson((DBObject) tmp1, 1);
-                    retVsList.add(vs);
+                List<JsonNode> retVsNodes = new ArrayList<>();
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(PoiAPI.POIType.VIEW_SPOT, id, page, pageSize);
+                     it.hasNext(); ) {
+                    retVsNodes.add(it.next().toJson(2));
                 }
-                result.put("relVs", Json.toJson(retVsList));
+                result.put("relVs", Json.toJson(retVsNodes));
             } else
-                result.put("relVs", Json.toJson(new ArrayList<>()));
-
+                result.put("relVs", "");
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -169,10 +127,30 @@ public class GeoCtrl extends Controller {
     }
 
     public static Result lookupLocality(int baiduId) throws TravelPiException {
-        TravelPiBaseItem loc = LocalityAPI.locDetailsByBaiduId(baiduId);
+        TravelPiBaseItem loc = LocalityAPI.locDetailsBaiduId(baiduId);
         if (loc == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
         else
             return Utils.createResponse(ErrorCode.NORMAL, loc.toJson());
+    }
+
+    /**
+     * 通过百度ID得到城市信息。
+     *
+     * @param baiduId
+     * @return
+     */
+    public static Result getLocalityBaiduId(int baiduId) {
+        models.morphia.geo.Locality loc = null;
+        try {
+            loc = LocalityAPI.locDetailsBaiduId(baiduId);
+            if (loc == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
+            else
+                return Utils.createResponse(ErrorCode.NORMAL, loc.toJson(1));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
     }
 }
