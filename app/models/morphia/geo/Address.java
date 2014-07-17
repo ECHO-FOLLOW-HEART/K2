@@ -1,8 +1,8 @@
 package models.morphia.geo;
 
 
+import models.morphia.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Reference;
 
 /**
  * 地址。
@@ -13,8 +13,8 @@ import org.mongodb.morphia.annotations.Reference;
 public class Address {
     public String address;
 
-    @Reference
-    public Locality loc;
+    @Embedded
+    public SimpleRef loc;
 
     @Embedded
     public Coords coords;

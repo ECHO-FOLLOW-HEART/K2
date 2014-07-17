@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
 import models.geos.Continent;
 import models.geos.Country;
 import models.geos.Locality;
 import models.geos.SubContinent;
+import models.morphia.misc.SimpleRef;
 import models.tag.LocalityTag;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -23,10 +25,7 @@ import utils.Utils;
 
 import java.lang.reflect.Field;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Application extends Controller {
 
@@ -189,8 +188,41 @@ public class Application extends Controller {
     }
 
     @Transactional
-    public static Result test() {
-        return Results.TODO;
+    public static Result test() throws TravelPiException {
+//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//
+//        for (models.morphia.geo.Locality loc : ds.createQuery(models.morphia.geo.Locality.class)) {
+//            boolean updated = false;
+//            models.morphia.geo.Locality parent = loc.parent;
+//            if (parent != null) {
+//                SimpleRef ref = new SimpleRef();
+//                ref.id = parent.id;
+//                ref.enName = parent.enName;
+//                ref.zhName = parent.zhName;
+//                loc.superAdm = ref;
+//                updated = true;
+//            }
+//            models.morphia.geo.Country country = loc.country;
+//            if (country != null) {
+//                loc.countryId = country.code;
+//                loc.countryEnName = country.enName;
+//                loc.countryZhName = country.zhName;
+//                updated = true;
+//            }
+//            if (updated)
+//                ds.save(loc);
+//        }
+//
+//        // 处理siblings
+//        for (int level:new int[]{2,3}) {
+//            for (models.morphia.geo.Locality loc:
+//                 ds.createQuery(models.morphia.geo.Locality.class).field("level").equal(level)) {
+//
+////                for (sib: ds.createQuery(models.morphia.geo.Locality.class).field("superAdmin"))
+//            }
+//        }
+
+        return Results.ok();
     }
 
     @Transactional
@@ -315,33 +347,33 @@ public class Application extends Controller {
             }
         }
 
-        locality.country = ds.createQuery(models.morphia.geo.Country.class).field("_id").equal("CN").get();
-
-        tmp = loc.get("parent");
-        if (tmp != null) {
-            ObjectId pid = (ObjectId) ((DBObject) tmp).get("_id");
-            models.morphia.geo.Locality parent = ds.createQuery(models.morphia.geo.Locality.class).field("_id").equal(pid).get();
-            if (parent == null)
-                parent = locImport(pid);
-
-            locality.parent = parent;
-        }
-
-        tmp = loc.get("siblings");
-        if (tmp != null && tmp instanceof BasicDBList) {
-            List<models.morphia.geo.Locality> siblings = new ArrayList<>();
-            for (Object tmp1 : (BasicDBList) tmp) {
-                DBObject sibNode = (DBObject) tmp1;
-                ObjectId sid = (ObjectId) (sibNode.get("_id"));
-                models.morphia.geo.Locality sib = ds.createQuery(models.morphia.geo.Locality.class).field("_id").equal(sid).get();
-                if (sib == null)
-                    sib = locImport(sid);
-
-                if (sib != null)
-                    siblings.add(sib);
-            }
-            locality.siblings = siblings;
-        }
+//        locality.country = ds.createQuery(models.morphia.geo.Country.class).field("_id").equal("CN").get();
+//
+//        tmp = loc.get("parent");
+//        if (tmp != null) {
+//            ObjectId pid = (ObjectId) ((DBObject) tmp).get("_id");
+//            models.morphia.geo.Locality parent = ds.createQuery(models.morphia.geo.Locality.class).field("_id").equal(pid).get();
+//            if (parent == null)
+//                parent = locImport(pid);
+//
+//            locality.parent = parent;
+//        }
+//
+//        tmp = loc.get("siblings");
+//        if (tmp != null && tmp instanceof BasicDBList) {
+//            List<models.morphia.geo.Locality> siblings = new ArrayList<>();
+//            for (Object tmp1 : (BasicDBList) tmp) {
+//                DBObject sibNode = (DBObject) tmp1;
+//                ObjectId sid = (ObjectId) (sibNode.get("_id"));
+//                models.morphia.geo.Locality sib = ds.createQuery(models.morphia.geo.Locality.class).field("_id").equal(sid).get();
+//                if (sib == null)
+//                    sib = locImport(sid);
+//
+//                if (sib != null)
+//                    siblings.add(sib);
+//            }
+//            locality.siblings = siblings;
+//        }
 
         tmp = loc.get("provCap");
         locality.provCap = (!(tmp == null || !(tmp instanceof Boolean)));

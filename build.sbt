@@ -17,6 +17,8 @@ libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "latest.integration",
   "org.mongodb.morphia" % "morphia" % "latest.integration",
   "org.mongodb.morphia" % "morphia-validation" % "latest.integration",
+  "cglib" % "cglib-nodep" % "latest.integration",
+  "com.thoughtworks.proxytoys" % "proxytoys" % "latest.integration",
 //  "com.vxp" % "plan_2.10" % "1.0.1",
   filters
 )

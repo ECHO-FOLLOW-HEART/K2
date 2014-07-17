@@ -6,13 +6,17 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.TravelPiBaseItem;
 import models.morphia.geo.Locality;
 
+import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Reference;
 
 import play.data.validation.Constraints;
 import play.libs.Json;
+
+import java.util.Date;
 
 /**
  * 航线。
@@ -21,29 +25,59 @@ import play.libs.Json;
  */
 @Entity
 public class AirRoute extends TravelPiBaseItem{
-
     @Id
     public ObjectId id;
 
     @Constraints.Required
-    @Reference
-    public Airport depAirport;
+    @Embedded
+    public SimpleRef depAirport;
 
     @Constraints.Required
-    @Reference
-    public Airport arrAirport;
+    @Embedded
+    public SimpleRef arrAirport;
 
     @Constraints.Required
-    @Reference
-    public Locality depLoc;
+    @Embedded
+    public SimpleRef depLoc;
 
     @Constraints.Required
-    @Reference
-    public Locality arrLoc;
+    @Embedded
+    public SimpleRef arrLoc;
 
     public int distance;
 
+    @Constraints.Required
     public String flightCode;
+
+    @Embedded
+    public AirPrice price;
+
+    @Constraints.Required
+    public int timeCost;
+
+    @Constraints.Required
+    public Date depTime;
+
+    @Constraints.Required
+    public Date arrTime;
+
+    @Constraints.Required
+    @Embedded
+    public SimpleRef carrier;
+
+    public boolean selfChk;
+
+    public boolean meal;
+
+    public String jetName;
+
+    public String jetFullName;
+
+    public String depTerm;
+
+    public String arrTerm;
+
+    public boolean nonStop;
 
     @Override
     public JsonNode toJson() {

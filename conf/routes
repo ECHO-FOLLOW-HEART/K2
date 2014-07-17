@@ -29,7 +29,7 @@ GET           /import/tests                                      controllers.Imp
 
 # 基础地理信息查询
 # 查询城市详情
-GET           /geo/localities/search                             controllers.GeoCtrl.searchLocality(keyword: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /geo/localities/search                             controllers.GeoCtrl.searchLocality(keyword: String?="", prefix: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET           /geo/localities/:id                                controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 
 # 交通查询

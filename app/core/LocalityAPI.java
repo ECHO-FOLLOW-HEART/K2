@@ -12,6 +12,7 @@ import utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Locality相关的核心接口。
@@ -25,7 +26,7 @@ public class LocalityAPI {
      *
      * @param locId 城市ID。
      * @param level 查询级别。
-     * @return      如果没有找到，返回null。
+     * @return 如果没有找到，返回null。
      * @throws TravelPiException
      */
     public static Locality locDetails(String locId, int level) throws TravelPiException {
@@ -36,6 +37,13 @@ public class LocalityAPI {
         }
     }
 
+    /**
+     * 通过百度ID获得城市详情。
+     *
+     * @param baiduId
+     * @return
+     * @throws TravelPiException
+     */
     public static Locality locDetailsByBaiduId(int baiduId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         return ds.createQuery(Locality.class).field("baiduId").equal(baiduId).get();
@@ -45,7 +53,7 @@ public class LocalityAPI {
      * 获得城市详情。
      *
      * @param locId 城市ID。
-     * @return      如果没有找到，返回null。
+     * @return 如果没有找到，返回null。
      * @throws TravelPiException
      */
     public static Locality locDetails(ObjectId locId, int level) throws TravelPiException {
@@ -62,11 +70,26 @@ public class LocalityAPI {
 
 
     /**
+     * 通过关键词对城市进行搜索。
+     *
+     * @param keyword  搜索关键词。
+     * @param prefix   是否为前缀搜索？
+     * @param page     分页偏移量。
+     * @param pageSize 页面大小。
+     */
+    public static List<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Pattern pattern = Pattern.compile(prefix ? "^" + keyword : keyword);
+        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern);
+        return query.offset(page * pageSize).limit(pageSize).asList();
+    }
+
+    /**
      * 发现城市。
      *
-     * @param showDetails   是否显示详情。
-     * @param page          分页。
-     * @param pageSize      页面大小。
+     * @param showDetails 是否显示详情。
+     * @param page        分页。
+     * @param pageSize    页面大小。
      * @return
      */
     public static BasicDBList explore(boolean showDetails, int page, int pageSize) throws TravelPiException {
