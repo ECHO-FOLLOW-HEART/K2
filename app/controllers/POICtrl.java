@@ -8,6 +8,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.poi.AbstractPOI;
+import models.morphia.poi.ViewSpot;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -18,6 +19,7 @@ import utils.Utils;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,23 +37,38 @@ public class POICtrl extends Controller {
      * @param showDetails 获得更多的详情。
      * @param showRelated 获得相关景点。
      */
-    public static Result viewSpotInfo(String spotId, int showDetails, int showRelated) throws TravelPiException {
+    public static Result viewSpotInfo(String spotId, int showDetails, int showRelated, int pageSize) throws TravelPiException {
         boolean details = (showDetails != 0);
-        DBObject poiInfo = PoiAPI.getPOIInfo(spotId, PoiAPI.POIType.VIEW_SPOT, details);
-        ObjectNode results = PoiAPI.getPOIInfoJson(poiInfo, (details ? 3 : 2));
+        ViewSpot poiInfo = (ViewSpot) PoiAPI.getPOIInfo(spotId, PoiAPI.POIType.VIEW_SPOT, details);
+        ObjectNode results = (ObjectNode) poiInfo.toJson(details ? 3 : 2);
 
         if (showRelated != 0) {
             // 获得相关景点
-            List<JsonNode> related = new ArrayList<>();
-            int page = 0;
-            int pageSize = 10;
-            String locId = results.get("geo").get("locId").asText();
-            for (Object tmp : PoiAPI.explore(true, PoiAPI.POIType.VIEW_SPOT, locId, page, pageSize))
-                related.add(PoiAPI.getPOIInfoJson((DBObject) tmp, 2));
-            results.put("related", Json.toJson(related));
+            try {
+                List<JsonNode> vsList = new ArrayList<>();
+                final ObjectId locId = poiInfo.addr.loc.id;
+                final ObjectId vsId = poiInfo.id;
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(PoiAPI.POIType.VIEW_SPOT, locId,
+                        null, null, null, true, 0, pageSize, false,
+                        new HashMap<String, Object>() {
+                            {
+                                put("_id !=", vsId);
+                            }
+                        }); it.hasNext(); ) {
+                    ViewSpot vs = (ViewSpot) it.next();
+                    vsList.add(vs.toJson(1));
+                }
+                results.put("related", Json.toJson(vsList));
+            } catch (NullPointerException e) {
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+            } catch (TravelPiException e) {
+                throw new TravelPiException(e.errCode, e.getMessage());
+            }
         }
+//
+//        return Utils.createResponse(ErrorCode.NORMAL, results);
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
 
-        return Utils.createResponse(ErrorCode.NORMAL, results);
 
 //        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 //        builder.add("_id", poiInfo.get("_id").toString());
@@ -278,9 +295,9 @@ public class POICtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result relatedViewSpotList(String spotId, String tagFilter, String sortFilter, String sort, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result relatedViewSpotListOld(String spotId, String tagFilter, String sortFilter, String sort, int page, int pageSize) throws UnknownHostException, TravelPiException {
         DBCollection col = Utils.getMongoClient().getDB("poi").getCollection("view_spot");
-        String locId = null;
+        String locId;
         try {
             DBObject vs = col.findOne(QueryBuilder.start("_id").is(new ObjectId(spotId)).get(),
                     BasicDBObjectBuilder.start("geo.locality._id", 1).get());
@@ -292,6 +309,43 @@ public class POICtrl extends Controller {
         }
 
         return viewSpotList(locId, tagFilter, sortFilter, sort, page, pageSize);
+    }
+
+    /**
+     * 获得相关景点。
+     *
+     * @param spotId     景点ID。
+     * @param tag        相关景点的标签。
+     * @param sortFilter
+     * @param sort
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result relatedViewSpotList(String spotId, String tag, String sortFilter, String sort, int page, int pageSize) {
+        try {
+            ViewSpot poiInfo = (ViewSpot) PoiAPI.getPOIInfo(spotId, PoiAPI.POIType.VIEW_SPOT, false);
+            if (poiInfo == null)
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<>()));
+
+            List<JsonNode> vsList = new ArrayList<>();
+            final ObjectId locId = poiInfo.addr.loc.id;
+            for (Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(PoiAPI.POIType.VIEW_SPOT, locId,
+                    tag, null, null, true, page, pageSize, false,
+                    new HashMap<String, Object>() {
+                        {
+                            put("_id !=", locId);
+                        }
+                    }); it.hasNext(); ) {
+                ViewSpot vs = (ViewSpot) it.next();
+                vsList.add(vs.toJson(2));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(vsList));
+        } catch (NullPointerException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "");
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
     }
 
 
@@ -336,13 +390,24 @@ public class POICtrl extends Controller {
                 }
             }
             List<JsonNode> results = new ArrayList<>();
-            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, true, null, false, page, pageSize, keyword);
+            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, null, false, page, pageSize, true, null);
             while (it.hasNext())
-                results.add(it.next().toJson());
+                results.add(it.next().toJson(2));
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+    }
+
+    /**
+     * 对POI进行签到操作。
+     *
+     * @param poiType POI类型。
+     * @param uid     用户id。
+     * @return
+     */
+    public static Result poiCheckin(String poiType, int uid) {
+        return Utils.createResponse(ErrorCode.NORMAL, "");
     }
 }

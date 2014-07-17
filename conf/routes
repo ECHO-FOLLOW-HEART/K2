@@ -47,24 +47,23 @@ GET           /plans/templates/:planId                           controllers.Pla
 POST          /plans/ugc/:userId                                 controllers.PlanCtrl.saveUGCPlan(userId: String)
 
 # POI
-# 根据目的地获得景点列表
-#GET           /poi/view-spots/search                             controllers.POICtrl.viewSpotList(locality: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
-# 获得指定城市的景点
-#GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
-GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
-
-# 根据关键词搜索景点
+POST          /poi/view-spots/checkin                           controllers.POICtrl.poiCheckin(poiType: String="vs", uid: Int)
+# 搜索景点
 GET           /poi/view-spots/search                             controllers.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
+# 景点详情
+GET           /poi/view-spots/:spotId                            controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
+# 获得指定城市的景点
+GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
+# 获得相关景点
+GET           /poi/view-spots/:spotId/related                    controllers.POICtrl.relatedViewSpotList(spotId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
 GET           /poi/hotels/localities/:locId                      controllers.POICtrl.hotelList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 GET           /poi/restaurants/localities/:locId                 controllers.POICtrl.restaurantList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
-# 景点详情
-GET           /poi/view-spots/:spotId                            controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=1, showRelated: Int=0)
+
 # 获得景区概貌
-GET           /poi/view-spots/:spotId/profiles                   controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=0, showRelated: Int=1)
+GET           /poi/view-spots/:spotId/profiles                   controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=0, showRelated: Int=1, pageSize: Int?=10)
 # 餐厅详情
-# 获得相关景点
-GET           /poi/view-spots/:spotId/related                    controllers.POICtrl.relatedViewSpotList(spotId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+
 
 # 其它
 POST          /sys/feedback                                      controllers.MiscCtrl.postFeedback()
