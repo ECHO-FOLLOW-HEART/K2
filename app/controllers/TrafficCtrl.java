@@ -1,11 +1,13 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.traffic.AirRoute;
+import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -34,7 +36,7 @@ public class TrafficCtrl extends Controller {
      */
     public static Result getAirRouteByCode(String flightCode) {
         try {
-            AirRoute route = TrafficAPI.getAirRoute(flightCode);
+            AirRoute route = TrafficAPI.getAirRouteByCode(flightCode);
             if (route == null)
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid flight code: %s.",
                         flightCode != null ? flightCode : "NULL"));
@@ -56,7 +58,109 @@ public class TrafficCtrl extends Controller {
      * @return 航班列表
      */
     public static Result getAirRoutes(String depId, String arrId, String sortField, String sort,
-                                      String timeFilterType, int timeFilter, int page, int pageSize)
+                                         String timeFilterType, int timeFilter, int page, int pageSize)
+            throws TravelPiException {
+        TrafficAPI.SortField sf = TrafficAPI.SortField.PRICE;
+        switch (sortField) {
+            case "price":
+                sf = TrafficAPI.SortField.PRICE;
+                break;
+            case "dep":
+                sf = TrafficAPI.SortField.DEP_TIME;
+                break;
+            case "arr":
+                sf = TrafficAPI.SortField.ARR_TIME;
+                break;
+            case "timeCost":
+                sf = TrafficAPI.SortField.TIME_COST;
+                break;
+        }
+        int st = 1;
+        switch (sort) {
+            case "asc":
+                st = 1;
+                break;
+            case "desc":
+                st = -1;
+                break;
+        }
+
+        // 时间段过滤
+        List<Calendar> timeLimits = null;
+        switch (timeFilter) {
+            case 0:
+                break;
+            case 1:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 6, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
+                    add(cal);
+                }};
+                break;
+            case 2:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
+                    add(cal);
+                }};
+                break;
+            case 3:
+                timeLimits = new ArrayList<Calendar>() {{
+                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
+                    add(cal);
+                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
+                    cal.set(1980, Calendar.JANUARY, 1, 23, 59);
+                    add(cal);
+                }};
+                break;
+        }
+        List<Calendar> depLimits = null;
+        List<Calendar> arrLimits = null;
+        if (timeFilterType.equals("dep"))
+            depLimits = timeLimits;
+        else if (timeFilterType.equals("arr"))
+            arrLimits = timeLimits;
+
+        try {
+            ObjectId depOid = new ObjectId(depId);
+            ObjectId arrOid = new ObjectId(arrId);
+
+            List<JsonNode> results = new ArrayList<>();
+            for (Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(depOid, arrOid, null, depLimits, arrLimits,
+                    null, sf, st, page, pageSize);
+                 it.hasNext(); ) {
+                results.add(it.next().toJson());
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid IDs. Dep: %s, arr: %s.",
+                    (depId != null ? depId : "NULL"), (arrId != null ? arrId : "NULL")));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+    }
+
+    /**
+     * 获得航班信息
+     *
+     * @param depId      出发地id
+     * @param arrId      到达地id
+     * @param sort       排序方式
+     * @param timeFilter 出发时间过滤
+     * @param page       分页偏移量
+     * @param pageSize   页面大小
+     * @return 航班列表
+     */
+    public static Result getAirRoutesOld(String depId, String arrId, String sortField, String sort,
+                                         String timeFilterType, int timeFilter, int page, int pageSize)
             throws TravelPiException {
         Traffic.SortField sf = null;
         switch (sortField) {

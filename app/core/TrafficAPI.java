@@ -6,7 +6,6 @@ import models.MorphiaFactory;
 import models.morphia.traffic.AirRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 
 import java.util.*;
@@ -32,7 +31,7 @@ public class TrafficAPI {
      * @return 航班信息。如果没有找到，返回null。
      * @throws TravelPiException
      */
-    public static AirRoute getAirRoute(String flightCode) throws TravelPiException {
+    public static AirRoute getAirRouteByCode(String flightCode) throws TravelPiException {
         if (flightCode == null || flightCode.isEmpty())
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
 
@@ -58,12 +57,9 @@ public class TrafficAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<AirRoute> query = ds.createQuery(AirRoute.class);
-        CriteriaContainerImpl q1 = query.criteria("depAirport").equal(depId);
-        CriteriaContainerImpl q2 = query.criteria("depLoc").equal(depId);
-        CriteriaContainerImpl q3 = query.criteria("arrAirport").equal(arrId);
-        CriteriaContainerImpl q4 = query.criteria("arrLoc").equal(arrId);
 
-        query.and(q1.or(q2), q3.or(q4));
+        query.or(query.criteria("depAirport.id").equal(depId), query.criteria("depLoc.id").equal(depId));
+        query.or(query.criteria("arrAirport.id").equal(arrId), query.criteria("arrLoc.id").equal(arrId));
 
         // 时间节点过滤
         for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {
@@ -107,8 +103,24 @@ public class TrafficAPI {
                     query.criteria("price.price").lessThanOrEq(upper));
         }
 
+        // 排序
+        String stKey = null;
+        switch (sortField) {
+            case PRICE:
+                stKey = "price.price";
+                break;
+            case TIME_COST:
+                stKey = "timeCost";
+                break;
+            case DEP_TIME:
+                stKey = "depTime";
+                break;
+            case ARR_TIME:
+                stKey = "arrTime";
+                break;
+        }
+        query.order(String.format("%s%s", sortType > 0 ? "" : "-", stKey));
         query.offset(page * pageSize).limit(pageSize);
-
         return query.iterator();
 
 
