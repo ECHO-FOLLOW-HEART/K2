@@ -34,7 +34,8 @@ public class Address {
         builder.add("locName", (locName != null ? locName : ""));
 
         for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
-            builder.add(k, "");
+            //edit by PC_Chen
+//            builder.add(k, "");
             if (coords != null) {
                 Object val = null;
                 try {

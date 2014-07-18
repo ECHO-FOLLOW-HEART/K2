@@ -50,9 +50,9 @@ public class TrainStation extends TravelPiBaseItem {
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("url", url).add("alias", alias);
-        if (contact!=null && contact.phoneList!=null && !contact.phoneList.isEmpty()){
+        if (contact != null && contact.phoneList != null && !contact.phoneList.isEmpty()) {
             BasicDBList phoneList = new BasicDBList();
-            for (String val:contact.phoneList)
+            for (String val : contact.phoneList)
                 phoneList.add(val);
             builder.add("tel", phoneList);
         }
@@ -68,15 +68,21 @@ public class TrainStation extends TravelPiBaseItem {
         if (addr != null) {
             BasicDBObjectBuilder addressBuilder = BasicDBObjectBuilder.start();
             addressBuilder.add("addr", (addr.address != null ? addr.address : ""));
-            if(addr.loc != null){
+            if (addr.loc != null) {
                 addressBuilder.add("loc", BasicDBObjectBuilder.start().add("_id", addr.loc.id).add("name", addr.loc.zhName));
             }
-            if(addr.coords != null){
+            if (addr.coords != null) {
                 BasicDBObjectBuilder coordsBuilder = BasicDBObjectBuilder.start();
-                coordsBuilder.add("blat", (addr.coords.blat != null ? addr.coords.blat : ""));
-                coordsBuilder.add("blng", (addr.coords.blng != null ? addr.coords.blng : ""));
-                coordsBuilder.add("lat", (addr.coords.lat != null ? addr.coords.lat : ""));
-                coordsBuilder.add("lng", (addr.coords.lng != null ? addr.coords.lng : ""));
+                //PC_Chen
+                if (addr.coords.blat != null) coordsBuilder.add("blat", addr.coords.blat);
+                if (addr.coords.blng != null) coordsBuilder.add("blng", addr.coords.blng);
+                if (addr.coords.lat != null) coordsBuilder.add("lat", addr.coords.lat);
+                if (addr.coords.lng != null) coordsBuilder.add("lng", addr.coords.lng);
+//                coordsBuilder.add("blat", (addr.coords.blat != null ? addr.coords.blat : ""));
+//                coordsBuilder.add("blng", (addr.coords.blng != null ? addr.coords.blng : ""));
+//                coordsBuilder.add("lat", (addr.coords.lat != null ? addr.coords.lat : ""));
+//                coordsBuilder.add("lng", (addr.coords.lng != null ? addr.coords.lng : ""));
+
                 addressBuilder.add("coords", coordsBuilder.get());
             }
             builder.add("addr", addressBuilder);

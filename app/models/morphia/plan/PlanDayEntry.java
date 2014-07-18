@@ -45,7 +45,8 @@ public class PlanDayEntry extends TravelPiBaseItem {
         if (!actvList.isEmpty())
             builder.add("actv", Json.toJson(actvList));
         else
-            builder.add("actv", "");
+        //PC_Chen:
+            builder.add("actv", Json.toJson(new ArrayList<>()));
 
         return Json.toJson(builder.get());
     }

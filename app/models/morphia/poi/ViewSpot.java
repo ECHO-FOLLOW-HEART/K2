@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import play.libs.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -86,8 +87,9 @@ public class ViewSpot extends AbstractPOI {
         if (level > 2) {
             if (rankingA != null)
                 node.put("rankingA", rankingA);
-            else
-                node.put("rankingA", "");
+            //PC_Chen:
+//            else
+//                node.put("rankingA", "");
 
             node.put("openTime", openTime != null ? openTime : "");
 
@@ -96,7 +98,11 @@ public class ViewSpot extends AbstractPOI {
                 Object val = null;
                 try {
                     val = ViewSpot.class.getField(k).get(this);
-                    builder.add(k, val != null ? val : "");
+                    //PC_Chen , travelMonth is a list
+                    if(k.equals("travelMonth")){
+                        builder.add(k, val != null ? val : new ArrayList<>());
+                    }else
+                        builder.add(k, val != null ? val : "");
                 } catch (IllegalAccessException | NoSuchFieldException ignored) {
                 }
             }

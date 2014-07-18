@@ -9,7 +9,7 @@ GET           /                                                  controllers.App
 GET           /assets/*file                                      controllers.Assets.at(path="/public", file)
 
 ####### 测试接口
-
+GET           /chen/test                                         controllers.TestController.test()
 GET           /test                                              controllers.Application.test()
 GET           /test/feed-data                                    controllers.Application.feedData()
 GET           /test/feed-tag                                     controllers.Application.feedTag()

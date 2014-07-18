@@ -5,6 +5,8 @@ import com.mongodb.BasicDBObjectBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 
+import java.util.ArrayList;
+
 /**
  * 机票的价格信息。
  *
@@ -22,15 +24,19 @@ public class AirPrice {
 
     public String provider;
 
-    public JsonNode toJson(){
+    public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        for (String k:new String[]{"discount","price","tax","surcharge","provider"}){
-            Object val=null;
-            try{
-                val=AirPrice.class.getField(k).get(this);
+        for (String k : new String[]{"discount", "price", "tax", "surcharge", "provider"}) {
+            Object val = null;
+            try {
+                val = AirPrice.class.getField(k).get(this);
             } catch (NoSuchFieldException | IllegalAccessException ignored) {
             }
-            builder.add(k,val!=null?val:"");
+            //PC_Chen
+            if (k.equals("provider")) {
+                builder.add(k, val != null ? val : new ArrayList<>());
+            } else if(val != null)
+                builder.add(k, val);
         }
         return Json.toJson(builder.get());
     }

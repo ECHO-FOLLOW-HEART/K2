@@ -63,8 +63,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem {
 
         // level1
         builder.add("_id", id.toString());
-        builder.add("ratings", (ratings != null ? ratings.toJson() : ""));
-        builder.add("addr", (addr != null ? addr.toJson() : ""));
+        builder.add("ratings", (ratings != null ? ratings.toJson() : new HashMap<>()));
+        builder.add("addr", (addr != null ? addr.toJson() : new HashMap<>()));
         builder.add("name", (name != null ? name : ""));
 
         // level2
@@ -99,7 +99,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem {
                         isNull = ((Collection) val).isEmpty();
                     builder.add(k, (isNull ? "" : val));
                 }
-                builder.add("contact", (contact != null ? contact.toJson() : ""));
+                builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
                 builder.add("desc", (desc != null ? desc : ""));
             }
         }

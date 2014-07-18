@@ -29,9 +29,11 @@ public class Ratings {
             try {
                 Object val = Ratings.class.getField(k).get(this);
                 if (k.equals("viewCnt") || k.equals("favorCnt") || k.equals("score"))
-                    builder.add(k, val != null ? val : 0);
-                else
-                    builder.add(k, val != null ? val : "");
+                    //PC_Chen
+                    if (val != null) builder.add(k, val);
+//                    builder.add(k, val != null ? val : 0);
+//                else
+//                    builder.add(k, val != null ? val : "");
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
             }
         }

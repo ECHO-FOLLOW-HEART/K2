@@ -10,6 +10,7 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
+import scala.collection.immutable.HashMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,16 +66,24 @@ public class Plan extends TravelPiBaseItem {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
         builder.add("target", target.toJson());
-        for (String k : new String[]{"tags", "title", "days", "desc", "imageList"}) {
-            Object val = null;
-            try {
-                val = Plan.class.getField(k).get(this);
-            } catch (IllegalAccessException | NoSuchFieldException ignored) {
-            }
-            builder.add(k, val != null ? val : "");
+        //PC_Chen:
+//        for (String k : new String[]{"tags", "title", "days", "desc", "imageList"}) {
+//            Object val = null;
+//            try {
+//                val = Plan.class.getField(k).get(this);
+//            } catch (IllegalAccessException | NoSuchFieldException ignored) {
+//            }
+//            builder.add(k, val != null ? val : "");
+//        }
+        builder.add("tags", !tags.isEmpty() ? Json.toJson(tags) : new ArrayList<>());
+        builder.add("title", !title.isEmpty() ? title : "");
+        if (days != null){
+            builder.add("days", days);
         }
-        builder.add("ratings", ratings != null ? ratings.toJson() : "");
+        builder.add("desc", !desc.isEmpty() ? desc : "");
+        builder.add("ratings", ratings != null ? ratings.toJson() : new HashMap<>());
         builder.add("budget", 2000);
+        builder.add("imageList", !imageList.isEmpty() ? Json.toJson(imageList) : new ArrayList<>());
 
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();
