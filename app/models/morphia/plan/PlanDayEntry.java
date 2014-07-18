@@ -29,7 +29,7 @@ public class PlanDayEntry extends TravelPiBaseItem {
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         if (date != null) {
-            final DateFormat fmt = new SimpleDateFormat();
+            final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
             TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
             fmt.setTimeZone(tz);
             builder.add("date", fmt.format(date));

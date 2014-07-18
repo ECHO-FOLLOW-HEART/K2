@@ -122,9 +122,9 @@ public class MiscCtrl extends Controller {
                     hotelList.add(it.next().toJson(1));
             }
             if (!hotelList.isEmpty())
-                ret.put("vs", Json.toJson(hotelList));
+                ret.put("hotel", Json.toJson(hotelList));
             else
-                ret.put("vs", Json.toJson(new ArrayList<>()));
+                ret.put("hotel", Json.toJson(new ArrayList<>()));
 
             List<JsonNode> dinningList = new ArrayList<>();
             if (restaurant != 0) {
@@ -212,7 +212,7 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, int page, int pageSize) throws TravelPiException {
         boolean detailsFlag = (details != 0);
         ObjectNode results = Json.newObject();
 
@@ -245,8 +245,9 @@ public class MiscCtrl extends Controller {
         for (PoiAPI.POIType poiType : poiKeyList) {
             // 发现POI
             List<JsonNode> retPoiList = new ArrayList<>();
-            for (Object obj : PoiAPI.exploreOld(detailsFlag, poiType, null, page, pageSize))
-                retPoiList.add(PoiAPI.getPOIInfoJson((DBObject) obj, 2));
+            for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize);
+                 it.hasNext(); )
+                retPoiList.add(it.next().toJson(2));
             results.put(poiMap.get(poiType), Json.toJson(retPoiList));
         }
 

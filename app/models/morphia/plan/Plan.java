@@ -10,9 +10,9 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
-import scala.collection.immutable.HashMap;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -45,7 +45,7 @@ public class Plan extends TravelPiBaseItem {
 
     public Integer totalCost;
 
-    public Integer budget;
+    public List<Integer> budget;
 
     /**
      * 注意事项
@@ -56,6 +56,28 @@ public class Plan extends TravelPiBaseItem {
     public CheckinRatings ratings;
 
     public List<PlanDayEntry> details;
+
+    /**
+     * 重新排序
+     */
+    public void reorder() {
+        if (details == null)
+            return;
+
+        return;
+    }
+
+    /**
+     * 添加一项活动，按照时间顺序插入
+     *
+     * @param item
+     */
+    public void insertActivity(PlanItem item) {
+        if (details == null || item.ts == null)
+            return;
+
+
+    }
 
     @Override
     public JsonNode toJson() {
@@ -75,15 +97,14 @@ public class Plan extends TravelPiBaseItem {
 //            }
 //            builder.add(k, val != null ? val : "");
 //        }
-        builder.add("tags", !tags.isEmpty() ? Json.toJson(tags) : new ArrayList<>());
-        builder.add("title", !title.isEmpty() ? title : "");
-        if (days != null){
+        builder.add("tags", (tags != null && !tags.isEmpty()) ? Json.toJson(tags) : new ArrayList<>());
+        builder.add("title", (title != null && !title.isEmpty()) ? title : "");
+        if (days != null)
             builder.add("days", days);
-        }
-        builder.add("desc", !desc.isEmpty() ? desc : "");
-        builder.add("ratings", ratings != null ? ratings.toJson() : new HashMap<>());
-        builder.add("budget", 2000);
-        builder.add("imageList", !imageList.isEmpty() ? Json.toJson(imageList) : new ArrayList<>());
+        builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
+        builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
+        builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
+        builder.add("budget", Arrays.asList(2000, 3000));
 
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();

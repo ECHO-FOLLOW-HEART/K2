@@ -5,12 +5,17 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
+import models.morphia.plan.PlanItem;
+import models.morphia.traffic.AirRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import utils.Traffic;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * 路线规划相关API。
@@ -129,6 +134,8 @@ public class PlanAPI {
         Plan plan = getPlan(planId, false);
         plan.id = new ObjectId();
 
+        // TODO 景点需要照片、描述等内容。
+
         if (backLoc == null)
             backLoc = fromLoc;
 
@@ -147,6 +154,46 @@ public class PlanAPI {
             idx++;
         }
 
+        // 加入大交通
+        addTelomere(plan, fromLoc, backLoc);
+
         return plan;
+    }
+
+    private static void addTelomere(Plan plan, ObjectId fromLoc, ObjectId backLoc) throws TravelPiException {
+        List<PlanDayEntry> details = plan.details;
+        if (details==null||details.isEmpty())
+            return;
+        PlanDayEntry dayEntry = details.get(0);
+        if(dayEntry==null || dayEntry.actv==null||dayEntry.actv.isEmpty())
+            return;
+        // 取得第一项活动
+        PlanItem actv = dayEntry.actv.get(0);
+        if (dayEntry.date==null)
+            return;
+        Calendar cal1=Calendar.getInstance();
+        Calendar cal2=Calendar.getInstance();
+        cal1.setTime(dayEntry.date);
+        // 允许的日期从前一天17:00到第二天12:00
+        cal1.add(Calendar.DAY_OF_YEAR,-1);
+        cal1.set(Calendar.HOUR_OF_DAY, 17);
+        cal1.set(Calendar.MINUTE, 0);
+        cal1.set(Calendar.SECOND,0);
+        cal1.set(Calendar.MILLISECOND,0);
+        cal2.setTimeInMillis(cal1.getTimeInMillis());
+        cal2.add(Calendar.DAY_OF_YEAR,1);
+        cal2.set(Calendar.HOUR_OF_DAY, 12);
+        List<Calendar> timeLimits=new ArrayList<>();
+        timeLimits.add(cal1);
+        timeLimits.add(cal2);
+
+        ObjectId destination = actv.loc.id;
+        Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(fromLoc, destination, null, null, null, timeLimits,
+                TrafficAPI.SortField.PRICE, -1, 0, 1);
+        if (!it.hasNext())
+            return;
+
+        AirRoute route = it.next();
+//        PlanItem dep = route.
     }
 }

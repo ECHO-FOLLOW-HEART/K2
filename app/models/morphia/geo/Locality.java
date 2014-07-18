@@ -1,7 +1,6 @@
 package models.morphia.geo;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import models.TravelPiBaseItem;
@@ -15,6 +14,7 @@ import org.mongodb.morphia.annotations.Indexed;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -98,52 +98,22 @@ public class Locality extends TravelPiBaseItem {
             builder.add("parent", new BasicDBObject());
 
         if (coords != null) {
-            //PC_Chen:
-//            builder.add("blat", (coords.blat != null ? coords.blat : ""));
-//            builder.add("blng", (coords.blng != null ? coords.blng : ""));
-//            builder.add("lat", (coords.lat != null ? coords.lat : ""));
-//            builder.add("lng", (coords.lng != null ? coords.lng : ""));
             if (coords.blat != null) builder.add("blat", coords.blat);
             if (coords.blng != null) builder.add("blng", coords.blng);
             if (coords.lat != null) builder.add("lat", coords.lat);
             if (coords.lng != null) builder.add("lng", coords.lng);
-
         }
 
         if (detailLevel > 1) {
             builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
 
-            if (ratings != null) {
-                BasicDBObjectBuilder rBuilder = BasicDBObjectBuilder.start();
-                for (String k : new String[]{"dinningIdx", "shoppingIdx", "score", "favorCnt", "viewCnt"}) {
-                    Object tmp = null;
-                    try {
-                        tmp = Ratings.class.getField(k).get(ratings);
-                    } catch (IllegalAccessException | NoSuchFieldException ignored) {
-                    }
-                    if (tmp != null)
-                        rBuilder.add(k, tmp);
-                    //PC_Chen:
-//                    else
-//                        rBuilder.add(k, "");
-                }
-                builder.add("ratings", rBuilder.get());
-            } else
+            if (ratings != null)
+                builder.add("ratings", ratings.toJson());
+            else
                 builder.add("ratings", new BasicDBObject());
 
-            BasicDBList imageListNodes = new BasicDBList();
-            if (imageList != null) {
-                for (String url : imageList)
-                    imageListNodes.add(url);
-            }
-            builder.add("imageList", imageListNodes);
-
-            BasicDBList tagsNodes = new BasicDBList();
-            if (tags != null) {
-                for (String tag : tags)
-                    tagsNodes.add(tag);
-            }
-            builder.add("tags", tagsNodes);
+            builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? imageList : new ArrayList<>());
+            builder.add("tags", (tags != null && !tags.isEmpty()) ? tags : new ArrayList<>());
         }
 
         return Json.toJson(builder.get());

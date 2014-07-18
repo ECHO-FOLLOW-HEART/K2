@@ -22,21 +22,30 @@ public class Ratings {
 
     public Integer shoppingIdx;
 
+    public Double ranking;
+
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
-        for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt"}) {
+        // TODO hardcode here
+        if (ranking == null)
+            ranking = 0.8;
+        if (viewCnt == null)
+            viewCnt = 0;
+        if (favorCnt == null)
+            favorCnt = 0;
+
+        for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt", "ranking"}) {
+            Object val = null;
             try {
-                Object val = Ratings.class.getField(k).get(this);
-                if (k.equals("viewCnt") || k.equals("favorCnt") || k.equals("score"))
-                    //PC_Chen
-                    if (val != null) builder.add(k, val);
-//                    builder.add(k, val != null ? val : 0);
-//                else
-//                    builder.add(k, val != null ? val : "");
+                val = Ratings.class.getField(k).get(this);
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
             }
+            if (val != null)
+                builder.add(k, val);
         }
+
+
         return Json.toJson(builder.get());
     }
 }

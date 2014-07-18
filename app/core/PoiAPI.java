@@ -55,7 +55,7 @@ public class PoiAPI {
         if (poiClass == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         return ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word))
                 .retrievedFields(true, "name").limit(pageSize).iterator();
     }

@@ -48,7 +48,7 @@ public class PlanItem extends TravelPiBaseItem {
         builder.add("type", type != null ? type : "");
         builder.add("subType", subType != null ? subType : "");
         if (ts != null) {
-            final DateFormat fmt = new SimpleDateFormat();
+            final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
             TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
             fmt.setTimeZone(tz);
             builder.add("ts", fmt.format(ts));

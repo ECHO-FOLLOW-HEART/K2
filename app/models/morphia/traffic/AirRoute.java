@@ -23,7 +23,7 @@ import java.util.TimeZone;
  * @author Zephyre
  */
 @Entity
-public class AirRoute extends TravelPiBaseItem {
+public class AirRoute extends TravelPiBaseItem implements AbstractRoute {
     @Id
     public ObjectId id;
 
@@ -92,13 +92,13 @@ public class AirRoute extends TravelPiBaseItem {
             builder.add(k, val != null ? val.toJson() : new HashMap<>());
         }
         //basic data type fields
-        for (String k : new String[]{"distance", "timeCost", "selfChk", "meal", "nonStop"}){//, "jetName", "jetFullName", "depTerm", "arrTerm"}) {
+        for (String k : new String[]{"distance", "timeCost", "selfChk", "meal", "nonStop"}) {//, "jetName", "jetFullName", "depTerm", "arrTerm"}) {
             Object val = null;
             try {
                 val = AirRoute.class.getField(k).get(this);
             } catch (NoSuchFieldException | IllegalAccessException ignored) {
             }
-            if(val!=null)
+            if (val != null)
                 builder.add(k, val);
         }
         //String fields

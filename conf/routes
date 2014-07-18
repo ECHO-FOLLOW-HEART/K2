@@ -8,11 +8,11 @@ GET           /                                                  controllers.App
 # Map static resources from the /public folder to the /assets URL path
 GET           /assets/*file                                      controllers.Assets.at(path="/public", file)
 
-####### 测试接口
-GET           /chen/test                                         controllers.TestController.test()
-GET           /test                                              controllers.Application.test()
-GET           /test/feed-data                                    controllers.Application.feedData()
-GET           /test/feed-tag                                     controllers.Application.feedTag()
+######## 测试接口
+#GET           /chen/test                                         controllers.TestController.test()
+#GET           /test                                              controllers.Application.test()
+#GET           /test/feed-data                                    controllers.Application.feedData()
+#GET           /test/feed-tag                                     controllers.Application.feedTag()
 
 ## 数据导入
 #GET           /import/geo                                        controllers.Application.geoImport(start: Int?=0, count: Int?=50)
@@ -35,7 +35,6 @@ GET           /geo/localities/:id                                controllers.Geo
 # 百度ID转换
 GET           /geo/localities/baiduId/:baiduId                   controllers.GeoCtrl.getLocalityBaiduId(baiduId: Integer)
 
-
 # 交通查询
 GET           /itineraries/air-routes                            controllers.TrafficCtrl.getAirRoutes(dep: String, arr: String, sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET           /itineraries/air-routes/:flightCode                controllers.TrafficCtrl.getAirRouteByCode(flightCode: String)
@@ -50,8 +49,11 @@ GET           /explore/plans                                     controllers.Pla
 GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
 # 保存路线
 POST          /plans/ugc/:userId                                 controllers.PlanCtrl.saveUGCPlan(userId: String)
+# 优化路线
+POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan(userId: String)
 
 # POI
+# 景点签到
 POST          /poi/view-spots/:spotId/checkin                    controllers.POICtrl.poiCheckin(poiType: String="vs", spotId: String, uid: Int)
 # 搜索景点
 GET           /poi/view-spots/search                             controllers.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
@@ -61,6 +63,10 @@ GET           /poi/view-spots/:spotId                            controllers.POI
 GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
 # 获得相关景点
 GET           /poi/view-spots/:spotId/related                    controllers.POICtrl.relatedViewSpotList(spotId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
+# 搜索酒店
+GET           /poi/hotels/search                                 controllers.POICtrl.poiSearch(poiType: String="hotel", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
+## 酒店详情
+#GET           /poi/hotels/:spotId                            controllers.POICtrl.viewSpotInfo(spotId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
 
 GET           /poi/hotels/localities/:locId                      controllers.POICtrl.hotelList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 GET           /poi/restaurants/localities/:locId                 controllers.POICtrl.restaurantList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)

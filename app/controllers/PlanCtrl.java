@@ -1,8 +1,9 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.*;
+import com.mongodb.DBCollection;
+import com.mongodb.DBObject;
+import com.mongodb.QueryBuilder;
 import core.PlanAPI;
 import core.PlanAPIOld;
 import exception.ErrorCode;
@@ -201,39 +202,40 @@ public class PlanCtrl extends Controller {
      * @return
      */
     public static Result saveUGCPlan(String userId) throws UnknownHostException, TravelPiException {
-        ObjectNode plan = (ObjectNode) request().body().asJson();
-        DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
-
-        BasicDBObject ugcPlan = new BasicDBObject((java.util.Map) plan);
-
-        String planId;
-        ObjectId planOid, userOid;
-        try {
-            userOid = new ObjectId(userId);
-            DBCollection userCol = Utils.getMongoClient().getDB("user").getCollection("user_info");
-            DBObject user = userCol.findOne(QueryBuilder.start("_id").is(userOid).get(), BasicDBObjectBuilder.start().get());
-            if (user == null)
-                throw new NullPointerException();
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user ID: %s.", userId));
-        }
-
-        if (plan.has("_id")) {
-            planId = plan.get("_id").asText();
-            try {
-                planOid = new ObjectId(planId);
-                DBCollection planCol = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
-                DBObject planItem = planCol.findOne(QueryBuilder.start("_id").is(planOid).get(), BasicDBObjectBuilder.start().get());
-                if (planItem == null)
-                    throw new NullPointerException();
-            } catch (IllegalArgumentException | NullPointerException e) {
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s", planId));
-            }
-        } else
-            planOid = ObjectId.get();
-
-
-        return play.mvc.Results.TODO;
+//        ObjectNode plan = (ObjectNode) request().body().asJson();
+//        DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
+//
+//        BasicDBObject ugcPlan = new BasicDBObject((java.util.Map) plan);
+//
+//        String planId;
+//        ObjectId planOid, userOid;
+//        try {
+//            userOid = new ObjectId(userId);
+//            DBCollection userCol = Utils.getMongoClient().getDB("user").getCollection("user_info");
+//            DBObject user = userCol.findOne(QueryBuilder.start("_id").is(userOid).get(), BasicDBObjectBuilder.start().get());
+//            if (user == null)
+//                throw new NullPointerException();
+//        } catch (IllegalArgumentException | NullPointerException e) {
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user ID: %s.", userId));
+//        }
+//
+//        if (plan.has("_id")) {
+//            planId = plan.get("_id").asText();
+//            try {
+//                planOid = new ObjectId(planId);
+//                DBCollection planCol = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
+//                DBObject planItem = planCol.findOne(QueryBuilder.start("_id").is(planOid).get(), BasicDBObjectBuilder.start().get());
+//                if (planItem == null)
+//                    throw new NullPointerException();
+//            } catch (IllegalArgumentException | NullPointerException e) {
+//                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s", planId));
+//            }
+//        } else
+//            planOid = ObjectId.get();
+//
+//
+//        return play.mvc.Results.TODO;
+        return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
 
@@ -279,5 +281,13 @@ public class PlanCtrl extends Controller {
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+    }
+
+    public static Result optimizePlan(String userId) {
+        JsonNode plan = request().body().asJson();
+
+
+
+        return Utils.createResponse(ErrorCode.NORMAL, plan);
     }
 }

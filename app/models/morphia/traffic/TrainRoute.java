@@ -17,7 +17,7 @@ import java.util.Map;
  *
  * @author Zephyre
  */
-public class TrainRoute extends TravelPiBaseItem{
+public class TrainRoute extends TravelPiBaseItem implements AbstractRoute {
     @Id
     public ObjectId id;
 

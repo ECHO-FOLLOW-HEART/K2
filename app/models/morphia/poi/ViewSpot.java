@@ -6,6 +6,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import play.libs.Json;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -99,9 +100,10 @@ public class ViewSpot extends AbstractPOI {
                 try {
                     val = ViewSpot.class.getField(k).get(this);
                     //PC_Chen , travelMonth is a list
-                    if(k.equals("travelMonth")){
-                        builder.add(k, val != null ? val : new ArrayList<>());
-                    }else
+                    if (k.equals("travelMonth")) {
+                        Collection monthList = (Collection) val;
+                        builder.add(k, (monthList != null && !monthList.isEmpty()) ? monthList : new ArrayList<>());
+                    } else
                         builder.add(k, val != null ? val : "");
                 } catch (IllegalAccessException | NoSuchFieldException ignored) {
                 }
