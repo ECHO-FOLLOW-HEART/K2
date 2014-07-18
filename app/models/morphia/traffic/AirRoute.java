@@ -14,6 +14,7 @@ import play.libs.Json;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.TimeZone;
 
 /**
@@ -87,10 +88,21 @@ public class AirRoute extends TravelPiBaseItem {
                 val = (SimpleRef) AirRoute.class.getField(k).get(this);
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
             }
-            builder.add(k, val != null ? val.toJson() : "");
+            //PC_Chen:return {} instead of ""
+            builder.add(k, val != null ? val.toJson() : new HashMap<>());
         }
-
-        for (String k : new String[]{"distance", "timeCost", "selfChk", "meal", "nonStop", "jetName", "jetFullName", "depTerm", "arrTerm"}) {
+        //basic data type fields
+        for (String k : new String[]{"distance", "timeCost", "selfChk", "meal", "nonStop"}){//, "jetName", "jetFullName", "depTerm", "arrTerm"}) {
+            Object val = null;
+            try {
+                val = AirRoute.class.getField(k).get(this);
+            } catch (NoSuchFieldException | IllegalAccessException ignored) {
+            }
+            if(val!=null)
+                builder.add(k, val);
+        }
+        //String fields
+        for (String k : new String[]{"jetName", "jetFullName", "depTerm", "arrTerm"}) {
             Object val = null;
             try {
                 val = AirRoute.class.getField(k).get(this);
@@ -110,7 +122,7 @@ public class AirRoute extends TravelPiBaseItem {
             }
             builder.add(k, val != null ? fmt.format(val) : "");
         }
-        builder.add("price", price != null ? price.toJson() : "");
+        builder.add("price", price != null ? price.toJson() : new HashMap<>());
 
         // TODO 需要添加dayLag
 

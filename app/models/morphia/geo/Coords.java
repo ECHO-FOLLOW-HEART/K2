@@ -22,9 +22,13 @@ public class Coords {
         for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
             try {
                 Object val = Coords.class.getField(k).get(this);
-                builder.add(k, val != null ? val : "");
+                //edit by PC_Chen
+                if (val != null)
+                    builder.add(k, val);
+//                    builder.add(k, val != null ? val : "");
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
-                builder.add(k, "");
+                //PC_Chen:
+//                builder.add(k, "");
             }
         }
         return Json.toJson(builder.get());

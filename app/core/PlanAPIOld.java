@@ -27,7 +27,11 @@ public class PlanAPIOld {
 
         for (String k : new String[]{"days", "viewCnt"}) {
             tmp = item.get(k);
-            builder.add(k, (tmp == null || !(tmp instanceof Integer)) ? "" : (int) tmp);
+            //edit by PC_Chen
+//            builder.add(k, (tmp == null || !(tmp instanceof Integer)) ? "" : (int) tmp);
+            if (tmp != null && (tmp instanceof Integer)) {
+                builder.add(k,  tmp);
+            }
         }
 
         tmp = item.get("desc");

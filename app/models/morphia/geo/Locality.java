@@ -98,10 +98,16 @@ public class Locality extends TravelPiBaseItem {
             builder.add("parent", new BasicDBObject());
 
         if (coords != null) {
-            builder.add("blat", (coords.blat != null ? coords.blat : ""));
-            builder.add("blng", (coords.blng != null ? coords.blng : ""));
-            builder.add("lat", (coords.lat != null ? coords.lat : ""));
-            builder.add("lng", (coords.lng != null ? coords.lng : ""));
+            //PC_Chen:
+//            builder.add("blat", (coords.blat != null ? coords.blat : ""));
+//            builder.add("blng", (coords.blng != null ? coords.blng : ""));
+//            builder.add("lat", (coords.lat != null ? coords.lat : ""));
+//            builder.add("lng", (coords.lng != null ? coords.lng : ""));
+            if (coords.blat != null) builder.add("blat", coords.blat);
+            if (coords.blng != null) builder.add("blng", coords.blng);
+            if (coords.lat != null) builder.add("lat", coords.lat);
+            if (coords.lng != null) builder.add("lng", coords.lng);
+
         }
 
         if (detailLevel > 1) {
@@ -117,8 +123,9 @@ public class Locality extends TravelPiBaseItem {
                     }
                     if (tmp != null)
                         rBuilder.add(k, tmp);
-                    else
-                        rBuilder.add(k, "");
+                    //PC_Chen:
+//                    else
+//                        rBuilder.add(k, "");
                 }
                 builder.add("ratings", rBuilder.get());
             } else

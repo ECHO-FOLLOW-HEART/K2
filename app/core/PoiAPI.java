@@ -367,8 +367,9 @@ public class PoiAPI {
                 tmp = geoNode.get(k);
                 if (tmp != null && (tmp instanceof Double))
                     geoBuilder.add(k, tmp);
-                else
-                    geoBuilder.add(k, "");
+                //edit by PC_Chen
+//                else
+//                    geoBuilder.add(k, "");
             }
         }
         retVs.put("geo", geoBuilder.get());
@@ -392,10 +393,15 @@ public class PoiAPI {
 
             if (level >= 3) {
                 tmp = node.get("price");
-                retVs.put("cost", ((tmp == null || !(tmp instanceof Double)) ? "" : (double) tmp));
+                //edit by PC_Chen
+//                retVs.put("cost", ((tmp == null || !(tmp instanceof Double)) ? "" : (double) tmp));
+                if(tmp != null || (tmp instanceof Double)){
+                    retVs.put("cost", (Double) tmp);
+                }
                 tmp = node.get("priceDesc");
                 retVs.put("costDesc", (tmp == null ? "" : tmp.toString()));
-                retVs.put("timeCost", "");
+                //edit by PC_Chen
+//                retVs.put("timeCost", "");
             }
         }
 
