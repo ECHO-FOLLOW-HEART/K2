@@ -1,14 +1,17 @@
 package models.morphia.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.BasicDBObjectBuilder;
 import models.TravelPiBaseItem;
 import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.SimpleRef;
-import models.morphia.misc.Ratings;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import play.libs.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -16,7 +19,8 @@ import java.util.List;
  *
  * @author Zephyre
  */
-public class Plan extends TravelPiBaseItem{
+@Entity
+public class Plan extends TravelPiBaseItem {
 
     @Id
     public ObjectId id;
@@ -36,6 +40,15 @@ public class Plan extends TravelPiBaseItem{
 
     public List<String> imageList;
 
+    public List<Integer> travelMonth;
+
+    public Integer totalCost;
+
+    /**
+     * 注意事项
+     */
+    public String tips;
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -43,6 +56,27 @@ public class Plan extends TravelPiBaseItem{
 
     @Override
     public JsonNode toJson() {
-        return null;
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        builder.add("_id", id.toString());
+        builder.add("target", target.toJson());
+        for (String k : new String[]{"tags", "title", "days", "desc", "imageList"}) {
+            Object val = null;
+            try {
+                val = Plan.class.getField(k).get(this);
+            } catch (IllegalAccessException | NoSuchFieldException ignored) {
+            }
+            builder.add(k, val != null ? val : "");
+        }
+        builder.add("ratings", ratings != null ? ratings.toJson() : "");
+
+        List<JsonNode> detailsNodes = new ArrayList<>();
+        if (details != null) {
+            for (PlanDayEntry entry : details) {
+                detailsNodes.add(entry.toJson());
+            }
+        }
+        builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
+
+        return Json.toJson(builder.get());
     }
 }
