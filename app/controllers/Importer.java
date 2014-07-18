@@ -100,6 +100,7 @@ public class Importer extends Controller {
         tmp = loc.get("level");
         locality.level = (Integer) tmp;
 
+
         tmp = loc.get("travelMonth");
         if (tmp != null)
             locality.travelMonth = Arrays.asList(((BasicDBList) tmp).toArray(new Integer[]{0}));

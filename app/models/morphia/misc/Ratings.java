@@ -5,31 +5,36 @@ import com.mongodb.BasicDBObjectBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * 联系信息。
+ * POI的评论信息。
  *
  * @author Zephyre
  */
 @Embedded
-public class Contact {
-    public List<String> phoneList;
-    public String fax;
-    public String email;
+public class Ratings {
+    public Integer score;
+
+    public Integer viewCnt;
+
+    public Integer favorCnt;
+
+    public Integer dinningIdx;
+
+    public Integer shoppingIdx;
 
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
-        for (String k : new String[]{"fax", "email"}) {
+        for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt"}) {
             try {
                 Object val = Ratings.class.getField(k).get(this);
-                builder.add(k, val);
+                if (k.equals("viewCnt") || k.equals("favorCnt"))
+                    builder.add(k, val != null ? val : 0);
+                else
+                    builder.add(k, val != null ? val : "");
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
             }
         }
-        builder.add("phoneList", (phoneList != null ? phoneList : new ArrayList<>()));
         return Json.toJson(builder.get());
     }
 }

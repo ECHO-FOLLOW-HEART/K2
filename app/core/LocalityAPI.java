@@ -1,6 +1,5 @@
 package core;
 
-import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -8,9 +7,10 @@ import models.morphia.geo.Locality;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
-import utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -44,7 +44,7 @@ public class LocalityAPI {
      * @return
      * @throws TravelPiException
      */
-    public static Locality locDetailsByBaiduId(int baiduId) throws TravelPiException {
+    public static Locality locDetailsBaiduId(int baiduId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         return ds.createQuery(Locality.class).field("baiduId").equal(baiduId).get();
     }
@@ -61,10 +61,11 @@ public class LocalityAPI {
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
 
         List<String> fields = new ArrayList<>();
-//        fields.addAll(ArrayLists (new String[]{"name"}).)
-        query.retrievedFields(true, "zhName", "parent", "level");
+        fields.addAll(Arrays.asList("zhName", "superAdm", "level"));
         if (level > 1)
-            query.retrievedFields(true, "desc", "imageList", "tags", "coords");
+            fields.addAll(Arrays.asList("desc", "imageList", "tags", "coords"));
+
+        query.retrievedFields(true, fields.toArray(new String[]{""}));
         return query.get();
     }
 
@@ -77,11 +78,11 @@ public class LocalityAPI {
      * @param page     分页偏移量。
      * @param pageSize 页面大小。
      */
-    public static List<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
+    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Pattern pattern = Pattern.compile(prefix ? "^" + keyword : keyword);
         Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern);
-        return query.offset(page * pageSize).limit(pageSize).asList();
+        return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
     /**
@@ -92,24 +93,37 @@ public class LocalityAPI {
      * @param pageSize    页面大小。
      * @return
      */
-    public static BasicDBList explore(boolean showDetails, int page, int pageSize) throws TravelPiException {
-        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("locality");
+    public static List<Locality> explore(boolean showDetails, int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
-        BasicDBObjectBuilder facetBuilder = BasicDBObjectBuilder.start("zhName", 1).add("ratings.score", 1);
+        List<String> fields = new ArrayList<>();
+        Collections.addAll(fields, "zhName", "ratings");
         if (showDetails)
-            facetBuilder.add("imageList", 1).add("tags", 1).add("desc", 1);
+            Collections.addAll(fields, "imageList", "tags", "desc");
+        Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
+                .retrievedFields(true, fields.toArray(new String[]{""}))
+                .offset(page * pageSize).limit(pageSize).order("-ratings.score");
 
-        DBCursor cursor = col.find(QueryBuilder.start("level").is(2).get(),
-                facetBuilder.get()).skip(page * pageSize).limit(pageSize)
-                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get());
+        return query.asList();
 
-        BasicDBList results = new BasicDBList();
-        while (cursor.hasNext()) {
-            DBObject loc = cursor.next();
-            results.add(loc);
-        }
-
-        return results;
+//
+//        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("locality");
+//
+//        BasicDBObjectBuilder facetBuilder = BasicDBObjectBuilder.start("zhName", 1).add("ratings.score", 1);
+//        if (showDetails)
+//            facetBuilder.add("imageList", 1).add("tags", 1).add("desc", 1);
+//
+//        DBCursor cursor = col.find(QueryBuilder.start("level").is(2).get(),
+//                facetBuilder.get()).skip(page * pageSize).limit(pageSize)
+//                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get());
+//
+//        BasicDBList results = new BasicDBList();
+//        while (cursor.hasNext()) {
+//            DBObject loc = cursor.next();
+//            results.add(loc);
+//        }
+//
+//        return results;
     }
 
 

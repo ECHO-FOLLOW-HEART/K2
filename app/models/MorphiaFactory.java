@@ -76,12 +76,12 @@ public class MorphiaFactory {
         morphia = new Morphia();
         new ValidationExtension(morphia);
 
-        morphia.map(MiscInfo.class);
-        morphia.map(Locality.class);
-        morphia.map(Country.class);
-        morphia.map(Restaurant.class);
-        morphia.map(Hotel.class);
-        morphia.map(ViewSpot.class);
+//        morphia.map(MiscInfo.class);
+//        morphia.map(Locality.class);
+//        morphia.map(Country.class);
+//        morphia.map(Restaurant.class);
+//        morphia.map(Hotel.class);
+//        morphia.map(ViewSpot.class);
 
 
 //        morphia.mapPackage("models.morphia", true);

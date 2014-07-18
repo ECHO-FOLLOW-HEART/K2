@@ -5,14 +5,23 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
+import models.morphia.poi.AbstractPOI;
+import models.morphia.poi.Hotel;
+import models.morphia.poi.Restaurant;
+import models.morphia.poi.ViewSpot;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 import play.libs.Json;
 import utils.Constants;
 import utils.Utils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
@@ -30,6 +39,60 @@ public class PoiAPI {
         ENTERTAINMENT
     }
 
+
+    /**
+     * POI搜索。
+     *
+     * @param poiType    POI类型。
+     * @param locId      POI所在地区（可以为NULL）。
+     * @param tag
+     * @param searchWord 搜索关键词（可以为NULL）。       @return
+     * @param sortField
+     * @param asc
+     * @param page
+     * @param pageSize
+     * @param details    是否获取详情。
+     * @param extra      其它过滤方式。参见Morphia filter的介绍。
+     */
+    public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, ObjectId locId, String tag,
+                                                                      String searchWord, String sortField, boolean asc, int page, int pageSize, boolean details, Map<String, Object> extra)
+            throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+
+        Class<? extends AbstractPOI> poiClass = null;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        if (locId != null)
+            query = query.field("addr.loc.id").equal(locId);
+        if (searchWord != null && !searchWord.isEmpty())
+            query = query.filter("name", Pattern.compile(searchWord));
+        if (tag != null && !tag.isEmpty())
+            query = query.field("tags").equal(tag);
+        if (!details)
+            query.retrievedFields(true, AbstractPOI.retrievedFields.get(2).toArray(new String[]{""}));
+        if (extra != null) {
+            for (Map.Entry<String, Object> entry : extra.entrySet())
+                query = query.filter(entry.getKey(), entry.getValue());
+        }
+        query.order("-ratings.score").offset(page * pageSize).limit(pageSize);
+
+        return query.iterator();
+    }
+
+
     /**
      * POI搜索。
      *
@@ -43,8 +106,8 @@ public class PoiAPI {
      * @param pageSize
      * @return
      */
-    public static BasicDBList poiSearch(POIType poiType, String locId, String searchWord, boolean details,
-                                        String sortField, boolean asc, int page, int pageSize) throws TravelPiException {
+    public static BasicDBList poiSearchOld(POIType poiType, String locId, String searchWord, boolean details,
+                                           String sortField, boolean asc, int page, int pageSize) throws TravelPiException {
         String colName;
         switch (poiType) {
             case VIEW_SPOT:
@@ -97,43 +160,46 @@ public class PoiAPI {
     /**
      * 获得POI信息。
      *
-     * @param poiId
-     * @param poiType
-     * @param showDetails 是否返回详情。
-     * @return
+     * @see core.PoiAPI#getPOIInfo(org.bson.types.ObjectId, core.PoiAPI.POIType, boolean)
      */
-    public static DBObject getPOIInfo(String poiId, POIType poiType, boolean showDetails) throws TravelPiException {
-        String colName;
+    public static AbstractPOI getPOIInfo(String poiId, POIType poiType, boolean showDetails) throws TravelPiException {
+        ObjectId id;
+        try {
+            id = new ObjectId(poiId);
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid POI ID: %s.",
+                    poiId != null ? poiId : "NULL"));
+        }
+        return getPOIInfo(id, poiType, showDetails);
+    }
+
+
+    /**
+     * 获得POI信息。
+     *
+     * @param poiId       POI的id。
+     * @param poiType     POI的类型。包括：view_spot: 景点；hotel: 酒店；restaurant: 餐厅。
+     * @param showDetails 是否返回详情。
+     * @return POI详情。如果没有找到，返回null。
+     */
+    public static AbstractPOI getPOIInfo(ObjectId poiId, POIType poiType, boolean showDetails) throws TravelPiException {
+        Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case VIEW_SPOT:
-                colName = "view_spot";
+                poiClass = ViewSpot.class;
                 break;
             case HOTEL:
-                colName = "hotel";
+                poiClass = Hotel.class;
                 break;
             case RESTAURANT:
-                colName = "restaurant";
+                poiClass = Restaurant.class;
                 break;
             default:
-                throw new TravelPiException(ErrorCode.UNSUPPORTED_OP, "Unsupported POI type.");
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         }
 
-        DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
-        try {
-            DBObject query = QueryBuilder.start("_id").is(new ObjectId(poiId)).get();
-            DBObject poi;
-            if (showDetails)
-                poi = col.findOne(query);
-            else
-                poi = col.findOne(query, BasicDBObjectBuilder.start()
-                        .add("name", 1).add("imageList", 1).add("tags", 1).add("desc", 1)
-                        .add("geo", 1).get());
-            if (poi == null)
-                throw new NullPointerException();
-            return poi;
-        } catch (IllegalArgumentException | NullPointerException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", poiId));
-        }
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        return ds.createQuery(poiClass).field("_id").equal(poiId).get();
     }
 
     /**
@@ -143,7 +209,59 @@ public class PoiAPI {
      * @param pageSize
      * @return
      */
-    public static BasicDBList explore(boolean showDetails, POIType poiType, String locId, int page, int pageSize) throws TravelPiException {
+    public static Iterator<? extends AbstractPOI> explore(POIType poiType, String locId,
+                                                          int page, int pageSize) throws TravelPiException {
+        try {
+            return explore(poiType, new ObjectId(locId), page, pageSize);
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.",
+                    locId != null ? locId : "NULL"));
+        }
+    }
+
+
+    /**
+     * 发现POI。
+     *
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Iterator<? extends AbstractPOI> explore(POIType poiType, ObjectId locId,
+                                                          int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+
+        Class<? extends AbstractPOI> poiClass = null;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        if (locId != null)
+            query.field("addr.loc.id").equal(locId);
+
+        return query.offset(page * pageSize).limit(pageSize).iterator();
+    }
+
+
+    /**
+     * 发现POI。
+     *
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static BasicDBList exploreOld(boolean showDetails, POIType poiType, String locId, int page, int pageSize) throws TravelPiException {
         String colName;
         switch (poiType) {
             case VIEW_SPOT:

@@ -2,21 +2,19 @@ package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
-
 import models.TravelPiBaseItem;
-import models.morphia.geo.Locality;
-
 import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Reference;
-
 import play.data.validation.Constraints;
 import play.libs.Json;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * 航线。
@@ -24,7 +22,7 @@ import java.util.Date;
  * @author Zephyre
  */
 @Entity
-public class AirRoute extends TravelPiBaseItem{
+public class AirRoute extends TravelPiBaseItem {
     @Id
     public ObjectId id;
 
@@ -44,7 +42,7 @@ public class AirRoute extends TravelPiBaseItem{
     @Embedded
     public SimpleRef arrLoc;
 
-    public int distance;
+    public Integer distance;
 
     @Constraints.Required
     public String flightCode;
@@ -53,7 +51,7 @@ public class AirRoute extends TravelPiBaseItem{
     public AirPrice price;
 
     @Constraints.Required
-    public int timeCost;
+    public Integer timeCost;
 
     @Constraints.Required
     public Date depTime;
@@ -65,9 +63,9 @@ public class AirRoute extends TravelPiBaseItem{
     @Embedded
     public SimpleRef carrier;
 
-    public boolean selfChk;
+    public Boolean selfChk;
 
-    public boolean meal;
+    public Boolean meal;
 
     public String jetName;
 
@@ -77,31 +75,45 @@ public class AirRoute extends TravelPiBaseItem{
 
     public String arrTerm;
 
-    public boolean nonStop;
+    public Boolean nonStop;
 
     @Override
     public JsonNode toJson() {
-    	BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("_id", id).add("distance", distance).add("flightCode", flightCode);
-    	if(depAirport != null){
-    		builder.add("depAirport", 
-    				BasicDBObjectBuilder.start().add("_id",depAirport.id)
-    				.add("name", depAirport.zhName));
-    	}
-    	if(arrAirport != null){
-    		builder.add("arrAirport", 
-    				BasicDBObjectBuilder.start().add("_id",arrAirport.id)
-    				.add("name", arrAirport.zhName));
-    	}
-    	if(depLoc != null){
-    		builder.add("depLoc", 
-    				BasicDBObjectBuilder.start().add("_id",depLoc.id)
-    				.add("name", depLoc.zhName));
-    	}
-    	if(arrLoc != null){
-    		builder.add("arrLoc", 
-    				BasicDBObjectBuilder.start().add("_id",arrLoc.id)
-    				.add("name", arrLoc.zhName));
-    	}
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("_id", id.toString()).add("code", flightCode);
+
+        for (String k : new String[]{"depAirport", "arrAirport", "depLoc", "arrLoc", "carrier"}) {
+            SimpleRef val = null;
+            try {
+                val = (SimpleRef) AirRoute.class.getField(k).get(this);
+            } catch (IllegalAccessException | NoSuchFieldException ignored) {
+            }
+            builder.add(k, val != null ? val.toJson() : "");
+        }
+
+        for (String k : new String[]{"distance", "timeCost", "selfChk", "meal", "nonStop", "jetName", "jetFullName", "depTerm", "arrTerm"}) {
+            Object val = null;
+            try {
+                val = AirRoute.class.getField(k).get(this);
+            } catch (NoSuchFieldException | IllegalAccessException ignored) {
+            }
+            builder.add(k, val != null ? val : "");
+        }
+
+        final DateFormat fmt = new SimpleDateFormat("HH:mm");
+        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
+        fmt.setTimeZone(tz);
+        for (String k : new String[]{"depTime", "arrTime"}) {
+            Date val = null;
+            try {
+                val = (Date) AirRoute.class.getField(k).get(this);
+            } catch (NoSuchFieldException | IllegalAccessException ignored) {
+            }
+            builder.add(k, val != null ? fmt.format(val) : "");
+        }
+        builder.add("price", price != null ? price.toJson() : "");
+
+        // TODO 需要添加dayLag
+
         return Json.toJson(builder.get());
     }
 }
