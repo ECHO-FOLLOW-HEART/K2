@@ -119,7 +119,9 @@ public class GeoCtrl extends Controller {
                 }
                 result.put("relVs", Json.toJson(retVsNodes));
             } else
-                result.put("relVs", "");
+            //edit by PC_Chen : return a empty list instead
+//                result.put("relVs", "");
+                result.put("relVs", Json.toJson(new ArrayList<JsonNode>()));
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
