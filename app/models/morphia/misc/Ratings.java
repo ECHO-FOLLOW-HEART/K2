@@ -28,7 +28,7 @@ public class Ratings {
         for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt"}) {
             try {
                 Object val = Ratings.class.getField(k).get(this);
-                if (k.equals("viewCnt") || k.equals("favorCnt"))
+                if (k.equals("viewCnt") || k.equals("favorCnt") || k.equals("score"))
                     builder.add(k, val != null ? val : 0);
                 else
                     builder.add(k, val != null ? val : "");

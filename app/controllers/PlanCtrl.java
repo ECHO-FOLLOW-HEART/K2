@@ -4,8 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import core.PlanAPI;
+import core.PlanAPIOld;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.morphia.plan.Plan;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -16,6 +18,7 @@ import utils.Utils;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Iterator;
 import java.util.List;
 
 
@@ -25,6 +28,7 @@ import java.util.List;
  * @author Zephyre
  */
 public class PlanCtrl extends Controller {
+
 
     /**
      * 查询路线的详细信息。
@@ -36,7 +40,26 @@ public class PlanCtrl extends Controller {
      */
     public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int traffic, int hotel) {
         try {
-            DBObject plan = PlanAPI.getPlan(planId);
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DAY_OF_YEAR, 3);
+            Plan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
+            return Utils.createResponse(ErrorCode.NORMAL, plan.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 查询路线的详细信息。
+     *
+     * @param planId    路线id
+     * @param fromLocId 从哪个城市出发
+     * @return
+     * @throws UnknownHostException
+     */
+    public static Result getPlanFromTemplatesOld(String planId, String fromLocId, String backLocId, int traffic, int hotel) {
+        try {
+            DBObject plan = PlanAPIOld.getPlanOld(planId);
 
             DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
             DBObject fromLoc, backLoc;
@@ -65,7 +88,7 @@ public class PlanCtrl extends Controller {
             DBObject ret1 = Planner.generateUgcPlan(plan, fromLocId, backLocId, calBase);
 
             return Utils.createResponse(ErrorCode.NORMAL, Utils.bsonToJson(ret1));
-        }catch(TravelPiException e){
+        } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
@@ -213,6 +236,28 @@ public class PlanCtrl extends Controller {
         return play.mvc.Results.TODO;
     }
 
+
+    /**
+     * 路线发现机制
+     *
+     * @param locId
+     * @param sortField
+     * @param sort
+     * @param tag
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result explorePlans(String locId, String poiId, String sortField, String sort, String tag, int page, int pageSize) throws UnknownHostException, TravelPiException {
+        List<JsonNode> results = new ArrayList<>();
+        for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, page, pageSize, sortField);
+             it.hasNext(); )
+            results.add(it.next().toJson());
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+    }
+
+
     /**
      * 路线发现机制
      *
@@ -226,9 +271,9 @@ public class PlanCtrl extends Controller {
      */
     public static Result explorePlansOld(String locId, String poiId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
-        for (Object tmp : PlanAPI.exploreOld(locId, poiId, sort, tags, page, pageSize, sortField)) {
+        for (Object tmp : PlanAPIOld.exploreOld(locId, poiId, sort, tags, page, pageSize, sortField)) {
             DBObject planNode = (DBObject) tmp;
-            results.add(PlanAPI.getPlanJson(planNode));
+            results.add(PlanAPIOld.getPlanJsonOld(planNode));
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
