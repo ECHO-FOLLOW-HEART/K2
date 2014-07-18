@@ -8,10 +8,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -67,6 +64,21 @@ public class LocalityAPI {
 
         query.retrievedFields(true, fields.toArray(new String[]{""}));
         return query.get();
+    }
+
+
+    /**
+     * 取得城市联想列表。
+     *
+     * @param searchWord
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    public static Iterator<Locality> getSuggestion(String searchWord, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        return ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^"+searchWord))
+                .retrievedFields(true, "zhName", "level", "superAdm").limit(pageSize).iterator();
     }
 
 

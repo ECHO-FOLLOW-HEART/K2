@@ -44,6 +44,8 @@ public class Plan extends TravelPiBaseItem {
 
     public Integer totalCost;
 
+    public Integer budget;
+
     /**
      * 注意事项
      */
@@ -56,6 +58,10 @@ public class Plan extends TravelPiBaseItem {
 
     @Override
     public JsonNode toJson() {
+        return toJson(true);
+    }
+
+    public JsonNode toJson(boolean showDetails) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
         builder.add("target", target.toJson());
@@ -68,14 +74,17 @@ public class Plan extends TravelPiBaseItem {
             builder.add(k, val != null ? val : "");
         }
         builder.add("ratings", ratings != null ? ratings.toJson() : "");
+        builder.add("budget", 2000);
 
-        List<JsonNode> detailsNodes = new ArrayList<>();
-        if (details != null) {
-            for (PlanDayEntry entry : details) {
-                detailsNodes.add(entry.toJson());
+        if (showDetails) {
+            List<JsonNode> detailsNodes = new ArrayList<>();
+            if (details != null) {
+                for (PlanDayEntry entry : details) {
+                    detailsNodes.add(entry.toJson());
+                }
             }
+            builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
         }
-        builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
 
         return Json.toJson(builder.get());
     }

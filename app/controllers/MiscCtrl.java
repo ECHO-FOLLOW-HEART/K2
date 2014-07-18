@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import com.mongodb.util.JSON;
-
 import core.LocalityAPI;
 import core.PoiAPI;
 import exception.ErrorCode;
@@ -12,20 +11,16 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.geo.Locality;
 import models.morphia.misc.MiscInfo;
-
+import models.morphia.poi.AbstractPOI;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
-
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -94,21 +89,81 @@ public class MiscCtrl extends Controller {
      * @param word
      * @param pageSize
      * @return
+     */
+    public static Result getSuggestions(String word, int loc, int vs, int hotel, int restaurant, int pageSize) {
+        ObjectNode ret = Json.newObject();
+
+        try {
+            List<JsonNode> locList = new ArrayList<>();
+            if (loc != 0) {
+                for (Iterator<Locality> it = LocalityAPI.getSuggestion(word, pageSize); it.hasNext(); )
+                    locList.add(it.next().toJson(1));
+            }
+            if (!locList.isEmpty())
+                ret.put("loc", Json.toJson(locList));
+            else
+                ret.put("loc", Json.toJson(new ArrayList<>()));
+
+            List<JsonNode> vsList = new ArrayList<>();
+            if (vs != 0) {
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, pageSize);
+                     it.hasNext(); )
+                    vsList.add(it.next().toJson(1));
+            }
+            if (!vsList.isEmpty())
+                ret.put("vs", Json.toJson(vsList));
+            else
+                ret.put("vs", Json.toJson(new ArrayList<>()));
+
+            List<JsonNode> hotelList = new ArrayList<>();
+            if (hotel != 0) {
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, pageSize);
+                     it.hasNext(); )
+                    hotelList.add(it.next().toJson(1));
+            }
+            if (!hotelList.isEmpty())
+                ret.put("vs", Json.toJson(hotelList));
+            else
+                ret.put("vs", Json.toJson(new ArrayList<>()));
+
+            List<JsonNode> dinningList = new ArrayList<>();
+            if (restaurant != 0) {
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, pageSize);
+                     it.hasNext(); )
+                    dinningList.add(it.next().toJson(1));
+            }
+            if (!dinningList.isEmpty())
+                ret.put("restaurant", Json.toJson(dinningList));
+            else
+                ret.put("restaurant", Json.toJson(new ArrayList<>()));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(ret));
+    }
+
+    /**
+     * 根据搜索词获得提示
+     *
+     * @param word
+     * @param pageSize
+     * @return
      * @throws UnknownHostException
      */
-    public static Result getSuggestions(String word, int loc, int vs, int hotel, int restaurant, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result getSuggestionsOld(String word, int loc, int vs, int hotel, int restaurant, int pageSize) throws UnknownHostException, TravelPiException {
         ObjectNode ret = Json.newObject();
         if (loc != 0) {
-            DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gt", 1).get()).get();
+            DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gte", 1).get()).get();
             List<JsonNode> locSug = getSpecSug(word, pageSize, "zhName", "geo", "locality", extra);
             ret.put("loc", Json.toJson(locSug));
         }
         if (vs != 0)
-            ret.put("vs", Json.toJson(PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, 0, pageSize)));
+            ret.put("vs", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.VIEW_SPOT, word, 0, pageSize)));
         if (hotel != 0)
-            ret.put("hotel", Json.toJson(PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, 0, pageSize)));
+            ret.put("hotel", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.HOTEL, word, 0, pageSize)));
         if (restaurant != 0)
-            ret.put("restaurant", Json.toJson(PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, 0, pageSize)));
+            ret.put("restaurant", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.RESTAURANT, word, 0, pageSize)));
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
@@ -201,8 +256,8 @@ public class MiscCtrl extends Controller {
     /**
      * 获得App首页的图像。
      *
-     * @param width     指定宽度
-     * @param height    指定高度
+     * @param width  指定宽度
+     * @param height 指定高度
      * @return
      */
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
@@ -218,7 +273,7 @@ public class MiscCtrl extends Controller {
 
             // TODO 加入分辨率和格式的适配
             // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width,height,quality,format,interlace);
+            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
             node.put("image", url);
 
             return Utils.createResponse(ErrorCode.NORMAL, node);

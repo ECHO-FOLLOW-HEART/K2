@@ -31,6 +31,35 @@ import java.util.regex.Pattern;
  */
 public class PoiAPI {
 
+    /**
+     * 获得POI联想列表。
+     *
+     * @param poiType
+     * @param word
+     * @param pageSize
+     * @return
+     */
+    public static Iterator<? extends AbstractPOI> getSuggestions(POIType poiType, String word, int pageSize) throws TravelPiException {
+        Class<? extends AbstractPOI> poiClass = null;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        return ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word))
+                .retrievedFields(true, "name").limit(pageSize).iterator();
+    }
+
     public enum POIType {
         VIEW_SPOT,
         HOTEL,
@@ -308,7 +337,7 @@ public class PoiAPI {
     }
 
 
-    public static List<JsonNode> getSuggestions(POIType poiType, String word, int page, int pageSize) throws TravelPiException {
+    public static List<JsonNode> getSuggestionsOld(POIType poiType, String word, int page, int pageSize) throws TravelPiException {
         String colName;
         switch (poiType) {
             case VIEW_SPOT:

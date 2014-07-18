@@ -252,7 +252,9 @@ public class PlanCtrl extends Controller {
         List<JsonNode> results = new ArrayList<>();
         for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, page, pageSize, sortField);
              it.hasNext(); )
-            results.add(it.next().toJson());
+            results.add(it.next().toJson(false));
+
+        // TODO 预算，以及这里不需要details字段
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
