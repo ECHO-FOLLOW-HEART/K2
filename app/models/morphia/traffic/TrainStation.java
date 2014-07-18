@@ -12,6 +12,7 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,20 +51,15 @@ public class TrainStation extends TravelPiBaseItem {
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("url", url).add("alias", alias);
-        if (contact != null && contact.phoneList != null && !contact.phoneList.isEmpty()) {
-            BasicDBList phoneList = new BasicDBList();
+
+        BasicDBList phoneList = new BasicDBList();
+        if (contact != null && contact.phoneList != null) {
             for (String val : contact.phoneList)
                 phoneList.add(val);
-            builder.add("tel", phoneList);
         }
+        builder.add("tel", !phoneList.isEmpty() ? phoneList : new ArrayList<>());
 
-        if (alias != null) {
-            BasicDBList aliasListNodes = new BasicDBList();
-            for (String a : alias) {
-                aliasListNodes.add(a);
-            }
-            builder.add("alias", aliasListNodes);
-        }
+        builder.add("alias", (alias != null && !alias.isEmpty()) ? alias : new ArrayList<>());
 
         if (addr != null) {
             BasicDBObjectBuilder addressBuilder = BasicDBObjectBuilder.start();

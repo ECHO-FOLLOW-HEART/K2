@@ -222,7 +222,6 @@ public class MiscCtrl extends Controller {
             // TODO 获得城市信息
             for (Locality locality : LocalityAPI.explore(detailsFlag, page, pageSize))
                 retLocList.add(locality.toJson(2));
-//                retLocList.add(LocalityAPI.getLocDetailsJson((DBObject) obj, 2));
             results.put("loc", Json.toJson(retLocList));
         }
 

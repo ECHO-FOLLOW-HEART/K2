@@ -25,11 +25,11 @@ public class Contact {
         for (String k : new String[]{"fax", "email"}) {
             try {
                 Object val = Ratings.class.getField(k).get(this);
-                builder.add(k, val);
+                builder.add(k, val != null ? val : "");
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
             }
         }
-        builder.add("phoneList", (phoneList != null ? phoneList : new ArrayList<>()));
+        builder.add("phoneList", (phoneList != null && !phoneList.isEmpty()) ? phoneList : new ArrayList<>());
         return Json.toJson(builder.get());
     }
 }

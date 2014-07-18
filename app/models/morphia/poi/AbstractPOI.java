@@ -81,7 +81,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem {
                 boolean isNull = (val == null);
                 if (val != null && val instanceof Collection)
                     isNull = ((Collection) val).isEmpty();
-                builder.add(k, (isNull ? "" : val));
+                builder.add(k, (isNull ? new ArrayList<>() : val));
             }
             builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
 
@@ -98,7 +98,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem {
                     boolean isNull = (val == null);
                     if (val != null && val instanceof Collection)
                         isNull = ((Collection) val).isEmpty();
-                    builder.add(k, (isNull ? "" : val));
+                    builder.add(k, (isNull ? new ArrayList<>() : val));
                 }
                 builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
                 builder.add("desc", (desc != null ? desc : ""));
