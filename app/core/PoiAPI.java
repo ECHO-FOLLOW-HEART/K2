@@ -18,6 +18,7 @@ import play.libs.Json;
 import utils.Constants;
 import utils.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -84,7 +85,8 @@ public class PoiAPI {
      * @param extra      其它过滤方式。参见Morphia filter的介绍。
      */
     public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, ObjectId locId, String tag,
-                                                                      String searchWord, String sortField, boolean asc, int page, int pageSize, boolean details, Map<String, Object> extra)
+                                                                      String searchWord, String sortField, boolean asc,
+                                                                      int page, int pageSize, boolean details, Map<String, Object> extra)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
 
@@ -110,8 +112,16 @@ public class PoiAPI {
             query = query.filter("name", Pattern.compile(searchWord));
         if (tag != null && !tag.isEmpty())
             query = query.field("tags").equal(tag);
-        if (!details)
-            query.retrievedFields(true, AbstractPOI.retrievedFields.get(2).toArray(new String[]{""}));
+
+        int detailLvl = details ? 3 : 2;
+        try {
+            List fieldList = (List) poiClass.getMethod("getRetrievedFields", int.class).invoke(poiClass, detailLvl);
+            query.retrievedFields(true, (String[]) fieldList.toArray(new String[]{""}));
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException ignored) {
+            return null;
+        }
+//        if (!details)
+//            query.retrievedFields(true, AbstractPOI.getRetrievedFields(2).toArray(new String[]{""}));
         if (extra != null) {
             for (Map.Entry<String, Object> entry : extra.entrySet())
                 query = query.filter(entry.getKey(), entry.getValue());
@@ -424,7 +434,7 @@ public class PoiAPI {
                 tmp = node.get("price");
                 //edit by PC_Chen
 //                retVs.put("cost", ((tmp == null || !(tmp instanceof Double)) ? "" : (double) tmp));
-                if(tmp != null || (tmp instanceof Double)){
+                if (tmp != null || (tmp instanceof Double)) {
                     retVs.put("cost", (Double) tmp);
                 }
                 tmp = node.get("priceDesc");

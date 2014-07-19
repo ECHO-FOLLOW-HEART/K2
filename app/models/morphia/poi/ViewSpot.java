@@ -6,6 +6,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import play.libs.Json;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -74,11 +75,13 @@ public class ViewSpot extends AbstractPOI {
      */
     public Double timeCost;
 
-
-    @Override
-    public JsonNode toJson() {
-        return toJson(3);
+    public static List<String> getRetrievedFields(int level) {
+        List<String> fieldList = AbstractPOI.getRetrievedFields(level);
+        if (level>2)
+            fieldList.addAll(Arrays.asList("rankingA", "openTime", "timeCost"));
+        return fieldList;
     }
+
 
     @Override
     public JsonNode toJson(int level) {
@@ -88,15 +91,12 @@ public class ViewSpot extends AbstractPOI {
         if (level > 2) {
             if (rankingA != null)
                 node.put("rankingA", rankingA);
-            //PC_Chen:
-//            else
-//                node.put("rankingA", "");
 
             node.put("openTime", openTime != null ? openTime : "");
 
             BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
             for (String k : new String[]{"travelMonth", "trafficInfo", "guide", "kengdie"}) {
-                Object val = null;
+                Object val;
                 try {
                     val = ViewSpot.class.getField(k).get(this);
                     //PC_Chen , travelMonth is a list

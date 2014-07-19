@@ -31,15 +31,35 @@ import java.util.List;
 public class POICtrl extends Controller {
 
     /**
-     * 获得景点的详细信息。
+     * 获得POI的详细信息。
      *
-     * @param spotId      景点ID。
+     * @param poiDesc POI的类型说明:
+     *                vs: 景点
+     *                hotel: 酒店
+     *                restaurant: 餐饮
+     * @param spotId      POI的ID。
      * @param showDetails 获得更多的详情。
-     * @param showRelated 获得相关景点。
+     * @param showRelated 获得相关POI信息。
      */
-    public static Result viewSpotInfo(String spotId, int showDetails, int showRelated, int pageSize) throws TravelPiException {
+    public static Result viewSpotInfo(String poiDesc, String spotId, int showDetails, int showRelated, int pageSize) throws TravelPiException {
+
+        PoiAPI.POIType poiType = null;
+        switch (poiDesc) {
+            case "vs":
+                poiType = PoiAPI.POIType.VIEW_SPOT;
+                break;
+            case "hotel":
+                poiType = PoiAPI.POIType.HOTEL;
+                break;
+            case "restaurant":
+                poiType = PoiAPI.POIType.RESTAURANT;
+                break;
+        }
+        if (poiType == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
+
         boolean details = (showDetails != 0);
-        ViewSpot poiInfo = (ViewSpot) PoiAPI.getPOIInfo(spotId, PoiAPI.POIType.VIEW_SPOT, details);
+        AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
         ObjectNode results = (ObjectNode) poiInfo.toJson(details ? 3 : 2);
 
         if (showRelated != 0) {
@@ -48,14 +68,14 @@ public class POICtrl extends Controller {
                 List<JsonNode> vsList = new ArrayList<>();
                 final ObjectId locId = poiInfo.addr.loc.id;
                 final ObjectId vsId = poiInfo.id;
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(PoiAPI.POIType.VIEW_SPOT, locId,
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(poiType, locId,
                         null, null, null, true, 0, pageSize, false,
                         new HashMap<String, Object>() {
                             {
                                 put("_id !=", vsId);
                             }
                         }); it.hasNext(); ) {
-                    ViewSpot vs = (ViewSpot) it.next();
+                    AbstractPOI vs = it.next();
                     vsList.add(vs.toJson(1));
                 }
                 results.put("related", Json.toJson(vsList));
@@ -65,116 +85,7 @@ public class POICtrl extends Controller {
                 throw new TravelPiException(e.errCode, e.getMessage());
             }
         }
-//
-//        return Utils.createResponse(ErrorCode.NORMAL, results);
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
-
-
-//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-//        builder.add("_id", poiInfo.get("_id").toString());
-//        builder.add("name", poiInfo.get("name").toString());
-//
-//        Object tmp;
-//        tmp = poiInfo.get("desc");
-//        if (detailsFlag)
-//            builder.add("desc", (tmp == null ? "" : tmp.toString()));
-//        else
-//            builder.add("desc", (tmp == null ? "" : StringUtils.abbreviate(tmp.toString(), 64)));
-//
-//        for (String k : new String[]{"tags", "imageList"}) {
-//            tmp = poiInfo.get(k);
-//            if (tmp == null || !(tmp instanceof BasicDBList))
-//                tmp = new BasicDBList();
-//            BasicDBList valList = new BasicDBList();
-//            for (Object tmp1 : (BasicDBList) tmp)
-//                valList.add(tmp1.toString());
-//            builder.add(k, valList);
-//        }
-//
-//        if (detailsFlag) {
-//            for (String k : new String[]{"voteCnt", "favorCnt"}) {
-//                tmp = poiInfo.get(k);
-//                if (tmp == null || !(tmp instanceof Integer))
-//                    builder.add(k, "");
-//                else
-//                    builder.add(k, tmp);
-//            }
-//
-////            tmp = poiInfo.get("ratings");
-////            if (tmp == null || !(tmp instanceof DBObject))
-////                tmp = new BasicDBObject();
-////            DBObject ratings = (DBObject) tmp;
-////            DBObject retRatings = new BasicDBObject();
-////            tmp = ratings.get("voteCnt");
-////            retRatings.put("voteCnt", ((tmp == null || !(tmp instanceof Integer)) ? "" : (int) tmp));
-////            builder.add("ratings", retRatings);
-//
-//            tmp = poiInfo.get("price");
-//            builder.add("cost", ((tmp == null || !(tmp instanceof Double)) ? "" : (double) tmp));
-//            tmp = poiInfo.get("priceDesc");
-//            builder.add("costDesc", (tmp == null ? "" : tmp.toString()));
-//
-//            tmp = poiInfo.get("geo");
-//            if (tmp == null || !(tmp instanceof DBObject))
-//                tmp = new BasicDBObject();
-//            DBObject geo = (DBObject) tmp;
-//            DBObject retGeo = new BasicDBObject();
-//            for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
-//                tmp = geo.get(k);
-//                if (tmp != null && (tmp instanceof Double))
-//                    retGeo.put(k, tmp);
-//                else
-//                    retGeo.put(k, "");
-//            }
-//            for (String k : new String[]{"locId", "locName"}) {
-//                tmp = geo.get(k);
-//                retGeo.put(k, (tmp == null ? "" : tmp.toString()));
-//            }
-//
-//            builder.add("geo", retGeo);
-//        }
-//
-//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
-
-
-//        ObjectNode result = Json.newObject();
-//        result.put("_id", poiInfo.get("_id").toString());
-//        poiInfo.put("name", poiInfo.get("name").toString());
-//
-//        if (showDetails != 0) {
-//            DBObject ratings = (DBObject) poiInfo.get("ratings");
-//            if (ratings == null)
-//                ratings = new BasicDBObject();
-//            ObjectNode ratingsJ = Json.newObject();
-//            for (String k : new String[]{"foodIndex", "shoppingIndex", "score"}) {
-//                Object tmp = ratings.get(k);
-//                if (tmp == null)
-//                    ratingsJ.put(k, "");
-//                else
-//                    ratingsJ.put(k, Json.toJson(tmp));
-//            }
-//            result.put("ratings", ratingsJ);
-//        }
-
-        // 获得关联信息
-        // 返回该城市中的景点
-//        if (showRelated != 0) {
-//            try {
-//                ObjectId locId = (ObjectId) ((DBObject) poiInfo.get("geo")).get("locId");
-//                int page = 0;
-//                int pageSize = 10;
-//                BasicDBList spotList = POI.exploreViewSpots(true, locId.toString(), page, pageSize);
-//
-//                if (spotList != null && !spotList.isEmpty())
-//                    poiInfo.put("related", spotList);
-//            } catch (NullPointerException ignored) {
-//            }
-//        }
-
-//        ObjectNode node = (ObjectNode) Utils.bsonToJson(poiInfo);
-//        node.put("api", result);
-
-//        return Utils.createResponse(ErrorCode.NORMAL, node);
     }
 
 

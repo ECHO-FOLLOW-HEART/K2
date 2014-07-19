@@ -19,8 +19,4 @@ import java.util.List;
  */
 @Entity
 public class Restaurant extends AbstractPOI {
-    @Override
-    public JsonNode toJson() {
-        return null;
-    }
 }

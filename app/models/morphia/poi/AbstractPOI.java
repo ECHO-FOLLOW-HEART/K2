@@ -52,12 +52,18 @@ public abstract class AbstractPOI extends TravelPiBaseItem {
 
     public List<String> alias;
 
-    public static Map<Integer, List<String>> retrievedFields = new HashMap<Integer, List<String>>() {
-        {
-            put(1, Arrays.asList("name", "addr", "ratings"));
-            put(2, Arrays.asList("name", "addr", "ratings", "desc", "imageList", "tags"));
+    public static List<String> getRetrievedFields(int level) {
+        switch (level) {
+            case 1:
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
+            case 2:
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "tags"));
+            case 3:
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "tags", "contact", "url",
+                        "price", "priceDesc", "alias"));
         }
-    };
+        return new ArrayList<>();
+    }
 
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
