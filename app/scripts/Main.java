@@ -463,7 +463,7 @@ public class Main {
             tmp = ar.get("distance");
             if (tmp != null)
                 airRoute.distance = ((Number) tmp).intValue();
-            airRoute.flightCode = (String) ar.get("code");
+            airRoute.code = (String) ar.get("code");
             tmp = ar.get("timeCost");
             if (tmp != null)
                 airRoute.timeCost = ((Number) tmp).intValue();

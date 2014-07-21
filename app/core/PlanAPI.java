@@ -163,6 +163,7 @@ public class PlanAPI {
         List<PlanDayEntry> details = plan.details;
         if (details==null||details.isEmpty())
             return;
+        // 正式旅行的第一天
         PlanDayEntry dayEntry = details.get(0);
         if(dayEntry==null || dayEntry.actv==null||dayEntry.actv.isEmpty())
             return;
@@ -170,6 +171,9 @@ public class PlanAPI {
         PlanItem actv = dayEntry.actv.get(0);
         if (dayEntry.date==null)
             return;
+        ObjectId destination = actv.loc.id;
+
+        // 大交通筛选
         Calendar cal1=Calendar.getInstance();
         Calendar cal2=Calendar.getInstance();
         cal1.setTime(dayEntry.date);
@@ -186,13 +190,15 @@ public class PlanAPI {
         timeLimits.add(cal1);
         timeLimits.add(cal2);
 
-        ObjectId destination = actv.loc.id;
-        Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(fromLoc, destination, null, null, null, timeLimits, TrafficAPI.SortField.PRICE, -1, 0, 1, null
+
+        Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(fromLoc, destination, null, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1
         );
         if (!it.hasNext())
             return;
-
         AirRoute route = it.next();
+        Calendar depTime = Calendar.getInstance();
+        depTime.setTime(route.depTime);
+//        if (depTime.)
 //        PlanItem dep = route.
     }
 }

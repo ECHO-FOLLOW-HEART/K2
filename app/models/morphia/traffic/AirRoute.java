@@ -2,21 +2,20 @@ package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
-import models.TravelPiBaseItem;
 import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Property;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.TimeZone;
+import java.util.Map;
 
 /**
  * 航线。
@@ -24,42 +23,42 @@ import java.util.TimeZone;
  * @author Zephyre
  */
 @Entity
-public class AirRoute extends TravelPiBaseItem implements AbstractRoute {
-    @Id
-    public ObjectId id;
-
-    @Constraints.Required
-    @Embedded
-    public SimpleRef depAirport;
-
-    @Constraints.Required
-    @Embedded
-    public SimpleRef arrAirport;
-
-    @Constraints.Required
-    @Embedded
-    public SimpleRef depLoc;
-
-    @Constraints.Required
-    @Embedded
-    public SimpleRef arrLoc;
-
-    public Integer distance;
-
-    @Constraints.Required
-    public String flightCode;
+public class AirRoute extends AbstractRoute {
+//    @Id
+//    public ObjectId id;
+//
+//    @Constraints.Required
+//    @Embedded
+//    public SimpleRef depStop;
+//
+//    @Constraints.Required
+//    @Embedded
+//    public SimpleRef arrStop;
+//
+//    @Constraints.Required
+//    public String code;
+//
+//    @Constraints.Required
+//    @Embedded
+//    public SimpleRef depLoc;
+//
+//    @Constraints.Required
+//    @Embedded
+//    public SimpleRef arrLoc;
+//
+//    public Integer distance;
+//
+//    @Constraints.Required
+//    public Integer timeCost;
+//
+//    @Constraints.Required
+//    public Date depTime;
+//
+//    @Constraints.Required
+//    public Date arrTime;
 
     @Embedded
     public AirPrice price;
-
-    @Constraints.Required
-    public Integer timeCost;
-
-    @Constraints.Required
-    public Date depTime;
-
-    @Constraints.Required
-    public Date arrTime;
 
     @Constraints.Required
     @Embedded
@@ -81,16 +80,26 @@ public class AirRoute extends TravelPiBaseItem implements AbstractRoute {
 
     @Override
     public JsonNode toJson() {
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("_id", id.toString()).add("code", flightCode);
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("_id", id.toString()).add("code", code);
 
-        for (String k : new String[]{"depAirport", "arrAirport", "depLoc", "arrLoc", "carrier"}) {
+        for (Map.Entry<String,String> entry: new HashMap<String,String>(){
+            {
+                put("depStop", "depAirport");
+                put("arrStop", "arrAirport");
+                put("depLoc", "depLoc");
+                put("arrLoc", "arrLoc");
+                put("carrier", "carrier");
+            }
+        }.entrySet()){
+            String k = entry.getKey();
+            String v = entry.getValue();
             SimpleRef val = null;
             try {
                 val = (SimpleRef) AirRoute.class.getField(k).get(this);
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
             }
             //PC_Chen:return {} instead of ""
-            builder.add(k, val != null ? val.toJson() : new HashMap<>());
+            builder.add(v, val != null ? val.toJson() : new HashMap<>());
         }
         //basic data type fields
         for (String k : new String[]{"distance", "timeCost", "selfChk", "meal", "nonStop"}) {//, "jetName", "jetFullName", "depTerm", "arrTerm"}) {

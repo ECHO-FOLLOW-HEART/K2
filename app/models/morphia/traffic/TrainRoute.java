@@ -5,6 +5,7 @@ import models.TravelPiBaseItem;
 import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import play.data.validation.Constraints;
 
@@ -17,7 +18,8 @@ import java.util.Map;
  *
  * @author Zephyre
  */
-public class TrainRoute extends TravelPiBaseItem implements AbstractRoute {
+@Entity
+public class TrainRoute extends AbstractRoute {
     @Id
     public ObjectId id;
 

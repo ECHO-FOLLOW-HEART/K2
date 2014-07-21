@@ -1,5 +1,8 @@
 package models;
 
+import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Id;
+
 /**
  * TravelPi基础数据基类。
  *
@@ -7,5 +10,6 @@ package models;
  */
 public abstract class TravelPiBaseItem
         implements ITravelPiFormatter {
-
+    @Id
+    public ObjectId id;
 }

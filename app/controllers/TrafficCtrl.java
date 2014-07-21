@@ -7,6 +7,7 @@ import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.traffic.AirRoute;
+import models.morphia.traffic.RouteIterator;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -130,30 +131,31 @@ public class TrafficCtrl extends Controller {
         Calendar upper = Calendar.getInstance();
         List<Calendar> timeLimits = null;
         switch (timeFilter) {
-            case 0:
-                break;
             case 1:
                 lower.set(Calendar.HOUR_OF_DAY, 6);
-                upper.set(Calendar.HOUR_OF_DAY,12);
+                upper.set(Calendar.HOUR_OF_DAY, 12);
                 break;
             case 2:
                 lower.set(Calendar.HOUR_OF_DAY, 6);
-                upper.set(Calendar.HOUR_OF_DAY,12);
+                upper.set(Calendar.HOUR_OF_DAY, 12);
                 break;
             case 3:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 23, 59);
-                    add(cal);
-                }};
+                lower.set(Calendar.HOUR_OF_DAY, 12);
+                upper.set(Calendar.HOUR_OF_DAY, 18);
                 break;
+            case 4:
+                lower.set(Calendar.HOUR_OF_DAY, 18);
+                upper.set(Calendar.HOUR_OF_DAY, 23);
+                upper.set(Calendar.MINUTE, 59);
+                upper.set(Calendar.SECOND, 59);
+                upper.set(Calendar.MILLISECOND, 0);
+                break;
+            default:
+                lower = null;
+                upper = null;
         }
-
-        timeLimits = new ArrayList<>(Arrays.asList(lower, upper));
-
+        if (lower != null && upper != null)
+            timeLimits = Arrays.asList(lower, upper);
         List<Calendar> depLimits = null;
         List<Calendar> arrLimits = null;
         if (timeFilterType.equals("dep"))
@@ -166,9 +168,8 @@ public class TrafficCtrl extends Controller {
             ObjectId arrOid = new ObjectId(arrId);
 
             List<JsonNode> results = new ArrayList<>();
-            for (Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(depOid, arrOid, null, depLimits, arrLimits, null, sf, sort, page, pageSize, null
-            );
-                 it.hasNext(); ) {
+            for (RouteIterator it = TrafficAPI.searchAirRoutes(depOid, arrOid, cal, depLimits, arrLimits, null, null,
+                    sf, sort, page, pageSize); it.hasNext(); ) {
                 results.add(it.next().toJson());
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
