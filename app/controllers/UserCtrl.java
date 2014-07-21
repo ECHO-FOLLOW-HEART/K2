@@ -1,5 +1,6 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
@@ -50,7 +51,7 @@ public class UserCtrl extends Controller {
 
             return Utils.createResponse(ErrorCode.NORMAL,
                     Json.toJson(builder.get()));
-        } catch (IllegalArgumentException|TravelPiException e) {
+        } catch (IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
     }
@@ -93,7 +94,7 @@ public class UserCtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
-        } catch (IllegalArgumentException|TravelPiException e) {
+        } catch (IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
     }
@@ -167,5 +168,19 @@ public class UserCtrl extends Controller {
             col.save(user);
         }
         return getUserProfileById(user.get("_id").toString());
+    }
+
+    public static Result login() {
+        JsonNode req = request().body().asJson();
+        String provider = req.get("provider").asText();
+        String userId = req.get("user_id").asText();
+
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        builder.add("uid", "1");
+        builder.add("nickName", "dummy");
+        builder.add("avatarImage", "");
+        builder.add("gender", "male");
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
     }
 }
