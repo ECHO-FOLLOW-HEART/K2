@@ -11,14 +11,12 @@ public class RouteIterator implements Iterator {
 
     private Iterator<? extends AbstractRoute> innerIter;
 
-    private RouteIterator() {
-
+    private RouteIterator(Iterator<? extends AbstractRoute> it) {
+        innerIter = it;
     }
 
     public static RouteIterator getInstance(Iterator<? extends AbstractRoute> it) {
-        RouteIterator ret = new RouteIterator();
-        ret.innerIter = it;
-        return ret;
+        return new RouteIterator(it);
     }
 
     @Override

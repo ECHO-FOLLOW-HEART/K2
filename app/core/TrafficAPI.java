@@ -31,13 +31,30 @@ public class TrafficAPI {
      * @return 航班信息。如果没有找到，返回null。
      * @throws TravelPiException
      */
-    public static AirRoute getAirRouteByCode(String flightCode) throws TravelPiException {
+    public static AirRoute getAirRouteByCode(String flightCode, Calendar cal) throws TravelPiException {
         if (flightCode == null || flightCode.isEmpty())
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
 
         flightCode = flightCode.toUpperCase();
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
-        return ds.createQuery(AirRoute.class).field("flightCode").equal(flightCode).get();
+        Query<AirRoute> query = ds.createQuery(AirRoute.class);
+        query.field("flightCode").equal(flightCode);
+        AirRoute route = query.get();
+        Calendar depTime = Calendar.getInstance();
+        depTime.setTime(route.depTime);
+        Calendar arrTime = Calendar.getInstance();
+        arrTime.setTime(route.arrTime);
+        long dt = arrTime.getTimeInMillis() - depTime.getTimeInMillis();
+
+        depTime.set(Calendar.YEAR, cal.get(Calendar.YEAR));
+        depTime.set(Calendar.MONTH, cal.get(Calendar.MONTH));
+        depTime.set(Calendar.DAY_OF_MONTH, cal.get(Calendar.DAY_OF_MONTH));
+        arrTime.setTimeInMillis(depTime.getTimeInMillis() + dt);
+
+        route.depTime = new Date(depTime.getTimeInMillis());
+        route.arrTime = new Date(arrTime.getTimeInMillis());
+
+        return route;
     }
 
     /**
@@ -45,15 +62,13 @@ public class TrafficAPI {
      *
      * @param depId
      * @param arrId
-     * @param priceLimits
+     * @param cal
      * @param depTimeLimit
      * @param arrTimeLimit
+     * @param priceLimits
      * @throws TravelPiException
      */
-    public static Iterator<AirRoute> searchAirRoutes(ObjectId depId, ObjectId arrId, final List<Double> priceLimits,
-                                                     final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit,
-                                                     final List<Calendar> epTimeLimit, final SortField sortField,
-                                                     int sortType, int page, int pageSize) throws TravelPiException {
+    public static Iterator<AirRoute> searchAirRoutes(ObjectId depId, ObjectId arrId, Calendar cal, final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimit, final SortField sortField, int sortType, int page, int pageSize, final List<Double> priceLimits) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<AirRoute> query = ds.createQuery(AirRoute.class);

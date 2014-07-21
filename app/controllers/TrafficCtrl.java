@@ -17,8 +17,11 @@ import utils.Utils;
 
 import java.net.UnknownHostException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -32,11 +35,35 @@ public class TrafficCtrl extends Controller {
      * 按照航班号获得航班信息。
      *
      * @param flightCode 航班号
+     * @param ts         出发日期。格式为"yyyy-MM-dd"。如果为null，或""，自动采用下一天作为出发时间。
      * @return
      */
-    public static Result getAirRouteByCode(String flightCode) {
+    public static Result getAirRouteByCode(String flightCode, String ts) {
+        Calendar cal = null;
+
+        if (ts != null && !ts.isEmpty()) {
+            Matcher matcher = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}").matcher(ts);
+            if (matcher.find()) {
+                ts = matcher.group();
+                SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    Date date = fmt.parse(ts);
+                    cal = Calendar.getInstance();
+                    cal.setTime(date);
+                } catch (ParseException ignored) {
+                }
+            }
+
+        }
+
+        if (cal == null) {
+            // 默认：一天以后
+            cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis() + 24 * 3600 * 1000);
+        }
+
         try {
-            AirRoute route = TrafficAPI.getAirRouteByCode(flightCode);
+            AirRoute route = TrafficAPI.getAirRouteByCode(flightCode, cal);
             if (route == null)
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid flight code: %s.",
                         flightCode != null ? flightCode : "NULL"));
@@ -46,20 +73,42 @@ public class TrafficCtrl extends Controller {
         }
     }
 
+
     /**
-     * 获得航班信息
+     * 获得航班信息。
      *
-     * @param depId      出发地id
-     * @param arrId      到达地id
-     * @param sort       排序方式
-     * @param timeFilter 出发时间过滤
-     * @param page       分页偏移量
-     * @param pageSize   页面大小
+     * @param depId      出发地id（机场、城市均可）。
+     * @param arrId      到达地id（机场、城市均可）。
+     * @param ts         出发时间。
+     * @param sort       排序方式。
+     * @param timeFilter 出发时间过滤。dep：按照出发时间过滤；arr：按照到达时间过滤。
+     * @param page       分页偏移量。
+     * @param pageSize   页面大小。
      * @return 航班列表
      */
-    public static Result getAirRoutes(String depId, String arrId, String sortField, String sort,
-                                         String timeFilterType, int timeFilter, int page, int pageSize)
+    public static Result searchAirRoutes(String depId, String arrId, String ts, String sortField, int sort, String timeFilterType, int timeFilter, int page, int pageSize)
             throws TravelPiException {
+        Calendar cal = null;
+        if (ts != null && !ts.isEmpty()) {
+            Matcher matcher = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}").matcher(ts);
+            if (matcher.find()) {
+                ts = matcher.group();
+                SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    Date date = fmt.parse(ts);
+                    cal = Calendar.getInstance();
+                    cal.setTime(date);
+                } catch (ParseException ignored) {
+                }
+            }
+
+        }
+        if (cal == null) {
+            // 默认：一天以后
+            cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis() + 24 * 3600 * 1000);
+        }
+
         TrafficAPI.SortField sf = TrafficAPI.SortField.PRICE;
         switch (sortField) {
             case "price":
@@ -75,40 +124,21 @@ public class TrafficCtrl extends Controller {
                 sf = TrafficAPI.SortField.TIME_COST;
                 break;
         }
-        int st = 1;
-        switch (sort) {
-            case "asc":
-                st = 1;
-                break;
-            case "desc":
-                st = -1;
-                break;
-        }
 
         // 时间段过滤
+        Calendar lower = Calendar.getInstance();
+        Calendar upper = Calendar.getInstance();
         List<Calendar> timeLimits = null;
         switch (timeFilter) {
             case 0:
                 break;
             case 1:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 6, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
-                    add(cal);
-                }};
+                lower.set(Calendar.HOUR_OF_DAY, 6);
+                upper.set(Calendar.HOUR_OF_DAY,12);
                 break;
             case 2:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
-                    add(cal);
-                }};
+                lower.set(Calendar.HOUR_OF_DAY, 6);
+                upper.set(Calendar.HOUR_OF_DAY,12);
                 break;
             case 3:
                 timeLimits = new ArrayList<Calendar>() {{
@@ -121,6 +151,9 @@ public class TrafficCtrl extends Controller {
                 }};
                 break;
         }
+
+        timeLimits = new ArrayList<>(Arrays.asList(lower, upper));
+
         List<Calendar> depLimits = null;
         List<Calendar> arrLimits = null;
         if (timeFilterType.equals("dep"))
@@ -133,8 +166,8 @@ public class TrafficCtrl extends Controller {
             ObjectId arrOid = new ObjectId(arrId);
 
             List<JsonNode> results = new ArrayList<>();
-            for (Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(depOid, arrOid, null, depLimits, arrLimits,
-                    null, sf, st, page, pageSize);
+            for (Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(depOid, arrOid, null, depLimits, arrLimits, null, sf, sort, page, pageSize, null
+            );
                  it.hasNext(); ) {
                 results.add(it.next().toJson());
             }
@@ -146,107 +179,6 @@ public class TrafficCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-    }
-
-    /**
-     * 获得航班信息
-     *
-     * @param depId      出发地id
-     * @param arrId      到达地id
-     * @param sort       排序方式
-     * @param timeFilter 出发时间过滤
-     * @param page       分页偏移量
-     * @param pageSize   页面大小
-     * @return 航班列表
-     */
-    public static Result getAirRoutesOld(String depId, String arrId, String sortField, String sort,
-                                         String timeFilterType, int timeFilter, int page, int pageSize)
-            throws TravelPiException {
-        Traffic.SortField sf = null;
-        switch (sortField) {
-            case "price":
-                sf = Traffic.SortField.PRICE;
-                break;
-            case "dep":
-                sf = Traffic.SortField.DEP_TIME;
-                break;
-            case "arr":
-                sf = Traffic.SortField.ARR_TIME;
-                break;
-            case "timeCost":
-                sf = Traffic.SortField.TIME_COST;
-                break;
-        }
-        Traffic.SortType st = null;
-        switch (sort) {
-            case "asc":
-                st = Traffic.SortType.ASC;
-                break;
-            case "desc":
-                st = Traffic.SortType.DESC;
-                break;
-        }
-
-        // 时间段过滤
-        List<Calendar> timeLimits = null;
-        switch (timeFilter) {
-            case 0:
-                break;
-            case 1:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 6, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
-                    add(cal);
-                }};
-                break;
-            case 2:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
-                    add(cal);
-                }};
-                break;
-            case 3:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 23, 59);
-                    add(cal);
-                }};
-                break;
-        }
-        List<Calendar> depLimits = null;
-        List<Calendar> arrLimits = null;
-        if (timeFilterType.equals("dep"))
-            depLimits = timeLimits;
-        else if (timeFilterType.equals("arr"))
-            arrLimits = timeLimits;
-
-        BasicDBList routeList = Traffic.searchAirRoutes(depId, arrId, null, depLimits, arrLimits, null, sf, st, page, pageSize);
-        for (Object tmp : routeList) {
-            DBObject flight = (DBObject) tmp;
-            flight.put("_id", flight.get("_id").toString());
-            for (String k : new String[]{"arrAirport", "arr", "depAirport", "dep", "carrier"}) {
-                DBObject tmpNode = (DBObject) flight.get(k);
-                tmpNode.put("_id", tmpNode.get("_id").toString());
-            }
-
-            final DateFormat fmt = new SimpleDateFormat("HH:mm");
-            TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
-            fmt.setTimeZone(tz);
-            for (String k : new String[]{"depTime", "arrTime"})
-                flight.put(k, fmt.format((Date) flight.get(k)));
-        }
-
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(routeList));
     }
 
     /**

@@ -13,6 +13,7 @@ import play.libs.Json;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
@@ -111,9 +112,7 @@ public class AirRoute extends TravelPiBaseItem implements AbstractRoute {
             builder.add(k, val != null ? val : "");
         }
 
-        final DateFormat fmt = new SimpleDateFormat("HH:mm");
-        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
-        fmt.setTimeZone(tz);
+        final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         for (String k : new String[]{"depTime", "arrTime"}) {
             Date val = null;
             try {

@@ -10,7 +10,6 @@ import models.morphia.traffic.AirRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
-import utils.Traffic;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -188,8 +187,8 @@ public class PlanAPI {
         timeLimits.add(cal2);
 
         ObjectId destination = actv.loc.id;
-        Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(fromLoc, destination, null, null, null, timeLimits,
-                TrafficAPI.SortField.PRICE, -1, 0, 1);
+        Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(fromLoc, destination, null, null, null, timeLimits, TrafficAPI.SortField.PRICE, -1, 0, 1, null
+        );
         if (!it.hasNext())
             return;
 
