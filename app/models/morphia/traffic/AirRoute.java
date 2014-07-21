@@ -2,6 +2,7 @@ package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;

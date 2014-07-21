@@ -2,6 +2,7 @@ package models.morphia.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 
@@ -14,11 +15,12 @@ import java.util.List;
  * @author Zephyre
  */
 @Embedded
-public class Contact {
+public class Contact implements ITravelPiFormatter {
     public List<String> phoneList;
     public String fax;
     public String email;
 
+    @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 

@@ -1,5 +1,6 @@
 package models.morphia.traffic;
 
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
@@ -15,7 +16,7 @@ import java.util.Date;
  *
  * @author Zephyre
  */
-public abstract class AbstractRoute extends TravelPiBaseItem {
+public abstract class AbstractRoute extends TravelPiBaseItem implements ITravelPiFormatter {
     @Constraints.Required
     @Embedded
     public SimpleRef depStop;

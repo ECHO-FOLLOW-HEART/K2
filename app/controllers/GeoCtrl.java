@@ -129,7 +129,7 @@ public class GeoCtrl extends Controller {
     }
 
     public static Result lookupLocality(int baiduId) throws TravelPiException {
-        TravelPiBaseItem loc = LocalityAPI.locDetailsBaiduId(baiduId);
+        models.morphia.geo.Locality loc = LocalityAPI.locDetailsBaiduId(baiduId);
         if (loc == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
         else

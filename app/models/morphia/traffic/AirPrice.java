@@ -2,6 +2,7 @@ package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 
@@ -13,7 +14,7 @@ import java.util.ArrayList;
  * @author Zephyre
  */
 @Embedded
-public class AirPrice {
+public class AirPrice implements ITravelPiFormatter {
     public Double discount;
 
     public Double price;
@@ -24,6 +25,7 @@ public class AirPrice {
 
     public String provider;
 
+    @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         for (String k : new String[]{"discount", "price", "tax", "surcharge", "provider"}) {

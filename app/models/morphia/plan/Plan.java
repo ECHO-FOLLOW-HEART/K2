@@ -2,6 +2,7 @@ package models.morphia.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.SimpleRef;
@@ -21,7 +22,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class Plan extends TravelPiBaseItem {
+public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;

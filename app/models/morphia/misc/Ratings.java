@@ -2,6 +2,7 @@ package models.morphia.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 
@@ -11,7 +12,7 @@ import play.libs.Json;
  * @author Zephyre
  */
 @Embedded
-public class Ratings {
+public class Ratings implements ITravelPiFormatter {
     public Integer score;
 
     public Integer viewCnt;
@@ -24,6 +25,7 @@ public class Ratings {
 
     public Double ranking;
 
+    @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 

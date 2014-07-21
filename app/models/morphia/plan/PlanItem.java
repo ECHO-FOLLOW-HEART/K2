@@ -2,7 +2,9 @@ package models.morphia.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
+import models.morphia.geo.Address;
 import models.morphia.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
@@ -18,12 +20,15 @@ import java.util.TimeZone;
  * @author Zephyre
  */
 @Embedded
-public class PlanItem extends TravelPiBaseItem {
+public class PlanItem implements ITravelPiFormatter {
     @Embedded
     public SimpleRef item;
 
     @Embedded
     public SimpleRef loc;
+
+//    @Embedded
+//    public Address addr;
 
     public Integer idx;
 

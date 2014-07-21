@@ -8,8 +8,7 @@ import org.mongodb.morphia.annotations.Id;
  *
  * @author Zephyre
  */
-public abstract class TravelPiBaseItem
-        implements ITravelPiFormatter {
+public abstract class TravelPiBaseItem {
     @Id
     public ObjectId id;
 }

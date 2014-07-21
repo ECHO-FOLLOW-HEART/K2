@@ -3,6 +3,7 @@ package models.morphia.geo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.morphia.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
@@ -13,7 +14,7 @@ import play.libs.Json;
  * @author Zephyre
  */
 @Embedded
-public class Address {
+public class Address implements ITravelPiFormatter {
     public String address;
 
     @Embedded

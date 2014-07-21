@@ -2,6 +2,7 @@ package models.morphia.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import models.ITravelPiFormatter;
 import models.morphia.misc.Ratings;
 import org.mongodb.morphia.annotations.Embedded;
 
@@ -11,9 +12,10 @@ import org.mongodb.morphia.annotations.Embedded;
  * @author Zephyre
  */
 @Embedded
-public class CheckinRatings extends Ratings {
+public class CheckinRatings extends Ratings implements ITravelPiFormatter {
     public Integer checkinCnt;
 
+    @Override
     public JsonNode toJson() {
         ObjectNode node = (ObjectNode) super.toJson();
         node.put("checkinCnt", (checkinCnt != null && checkinCnt > 0) ? checkinCnt : 0);

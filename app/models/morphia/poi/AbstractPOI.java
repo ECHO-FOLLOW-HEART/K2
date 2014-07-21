@@ -3,6 +3,7 @@ package models.morphia.poi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.geo.Address;
 import models.morphia.misc.CheckinRatings;
@@ -23,9 +24,9 @@ import java.util.*;
  * @author Zephyre
  *         Created by zephyre on 7/16/14.
  */
-public abstract class AbstractPOI extends TravelPiBaseItem {
-    @Id
-    public ObjectId id;
+public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
+//    @Id
+//    public ObjectId id;
 
     @Embedded
     public CheckinRatings ratings;

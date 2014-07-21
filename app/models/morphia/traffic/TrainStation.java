@@ -3,6 +3,7 @@ package models.morphia.traffic;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.geo.Address;
 import models.morphia.misc.Contact;
@@ -21,7 +22,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class TrainStation extends TravelPiBaseItem {
+public class TrainStation extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;

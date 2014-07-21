@@ -2,6 +2,7 @@ package models.morphia.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
@@ -19,7 +20,7 @@ import java.util.TimeZone;
  * @author Zephyre
  */
 @Embedded
-public class PlanDayEntry extends TravelPiBaseItem {
+public class PlanDayEntry implements ITravelPiFormatter {
     public Date date;
 
     @Embedded

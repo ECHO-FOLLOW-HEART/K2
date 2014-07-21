@@ -1,5 +1,7 @@
 package models.morphia.misc;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 
 /**
@@ -8,7 +10,13 @@ import org.mongodb.morphia.annotations.Embedded;
  * @author Zephyre
  */
 @Embedded
-public class Description {
+public class Description implements ITravelPiFormatter {
     public String desc;
     public String details;
+
+
+    @Override
+    public JsonNode toJson() {
+        return null;
+    }
 }

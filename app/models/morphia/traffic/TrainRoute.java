@@ -1,6 +1,7 @@
 package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;

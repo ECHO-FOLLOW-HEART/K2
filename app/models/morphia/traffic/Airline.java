@@ -3,6 +3,7 @@ package models.morphia.traffic;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 
 import models.morphia.misc.Contact;
@@ -20,7 +21,7 @@ import play.libs.Json;
  * @author Zephyre
  */
 @Entity
-public class Airline extends TravelPiBaseItem{
+public class Airline extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;

@@ -2,6 +2,7 @@ package models.morphia.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -14,7 +15,7 @@ import play.libs.Json;
  * @author Zephyre
  */
 @Entity
-public class MiscInfo extends TravelPiBaseItem{
+public class MiscInfo extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;

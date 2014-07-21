@@ -3,6 +3,7 @@ package models.morphia.geo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.Ratings;
 import models.morphia.misc.SimpleRef;
@@ -23,7 +24,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class Locality extends TravelPiBaseItem {
+public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     @Id
     public ObjectId id;
 

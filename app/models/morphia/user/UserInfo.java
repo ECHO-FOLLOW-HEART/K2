@@ -1,6 +1,7 @@
 package models.morphia.user;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -13,7 +14,7 @@ import play.data.validation.Constraints;
  * @author Zephyre
  */
 @Entity
-public class UserInfo extends TravelPiBaseItem{
+public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;

@@ -6,15 +6,13 @@ import models.MorphiaFactory;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
-import models.morphia.traffic.AirRoute;
+import models.morphia.traffic.AbstractRoute;
+import models.morphia.traffic.RouteIterator;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * 路线规划相关API。
@@ -161,43 +159,54 @@ public class PlanAPI {
 
     private static void addTelomere(Plan plan, ObjectId fromLoc, ObjectId backLoc) throws TravelPiException {
         List<PlanDayEntry> details = plan.details;
-        if (details==null||details.isEmpty())
+        if (details == null || details.isEmpty())
             return;
         // 正式旅行的第一天
         PlanDayEntry dayEntry = details.get(0);
-        if(dayEntry==null || dayEntry.actv==null||dayEntry.actv.isEmpty())
+        if (dayEntry == null || dayEntry.actv == null || dayEntry.actv.isEmpty())
             return;
         // 取得第一项活动
         PlanItem actv = dayEntry.actv.get(0);
-        if (dayEntry.date==null)
+        if (dayEntry.date == null)
             return;
         ObjectId destination = actv.loc.id;
 
         // 大交通筛选
-        Calendar cal1=Calendar.getInstance();
-        Calendar cal2=Calendar.getInstance();
-        cal1.setTime(dayEntry.date);
+        Calendar calLower = Calendar.getInstance();
+        Calendar calUpper = Calendar.getInstance();
+        calLower.setTime(dayEntry.date);
         // 允许的日期从前一天17:00到第二天12:00
-        cal1.add(Calendar.DAY_OF_YEAR,-1);
-        cal1.set(Calendar.HOUR_OF_DAY, 17);
-        cal1.set(Calendar.MINUTE, 0);
-        cal1.set(Calendar.SECOND,0);
-        cal1.set(Calendar.MILLISECOND,0);
-        cal2.setTimeInMillis(cal1.getTimeInMillis());
-        cal2.add(Calendar.DAY_OF_YEAR,1);
-        cal2.set(Calendar.HOUR_OF_DAY, 12);
-        List<Calendar> timeLimits=new ArrayList<>();
-        timeLimits.add(cal1);
-        timeLimits.add(cal2);
+        calLower.add(Calendar.DAY_OF_YEAR, -1);
+        calLower.set(Calendar.HOUR_OF_DAY, 17);
+        calLower.set(Calendar.MINUTE, 0);
+        calLower.set(Calendar.SECOND, 0);
+        calLower.set(Calendar.MILLISECOND, 0);
+        calUpper.setTimeInMillis(calLower.getTimeInMillis());
+        calUpper.add(Calendar.DAY_OF_YEAR, 1);
+        calUpper.set(Calendar.HOUR_OF_DAY, 12);
+        List<Calendar> timeLimits = Arrays.asList(calLower, calUpper);
 
-
-        Iterator<AirRoute> it = TrafficAPI.searchAirRoutes(fromLoc, destination, null, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1
+        RouteIterator it = TrafficAPI.searchAirRoutes(fromLoc, destination, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1
         );
         if (!it.hasNext())
             return;
-        AirRoute route = it.next();
+
+        AbstractRoute route = it.next();
         Calendar depTime = Calendar.getInstance();
         depTime.setTime(route.depTime);
+        Calendar firstDay = Calendar.getInstance();
+        firstDay.setTime(dayEntry.date);
+
+        // 构造出发、到达和交通信息三个item
+        // 出发
+        PlanItem depItem = new PlanItem();
+
+
+
+        // 交通出发时间，是否和游玩时间是同一天？
+        if (depTime.get(Calendar.DAY_OF_YEAR) == firstDay.get(Calendar.DAY_OF_YEAR)){
+
+        }
 //        if (depTime.)
 //        PlanItem dep = route.
     }

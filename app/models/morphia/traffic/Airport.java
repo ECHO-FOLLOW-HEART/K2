@@ -2,6 +2,7 @@ package models.morphia.traffic;
 
 import java.util.List;
 
+import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.geo.Address;
 import models.morphia.misc.Contact;
@@ -23,7 +24,7 @@ import com.mongodb.BasicDBObjectBuilder;
  * @author Zephyre
  */
 @Entity
-public class Airport extends TravelPiBaseItem {
+public class Airport extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;
