@@ -3,6 +3,8 @@ package models.morphia.plan;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+import core.PoiAPI;
+import exception.TravelPiException;
 import models.ITravelPiFormatter;
 import models.morphia.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
@@ -59,6 +61,14 @@ public class PlanItem implements ITravelPiFormatter {
             builder.add("ts", fmt.format(ts));
         } else
             builder.add("ts", "");
+
+        if (type!=null && type.equals("vs")){
+            // 将景点详情嵌入
+            try {
+                builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.VIEW_SPOT, true).toJson(2));
+            } catch (TravelPiException ignored) {
+            }
+        }
 
         return Json.toJson(builder.get());
     }

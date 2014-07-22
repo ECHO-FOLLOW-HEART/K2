@@ -1,15 +1,24 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
+import com.vxp.core.*;
 import core.PlanAPI;
 import core.PlanAPIOld;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
+import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
+import models.morphia.plan.PlanDayEntry;
+import models.morphia.plan.PlanItem;
+import models.morphia.poi.ViewSpot;
+import models.morphia.traffic.Airport;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -17,10 +26,7 @@ import utils.Planner;
 import utils.Utils;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -46,21 +52,39 @@ public class PlanCtrl extends Controller {
             Plan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
             JsonNode planJson = plan.toJson();
 
+            boolean isDep = true;
             // 补全相应信息
             JsonNode details = planJson.get("details");
             if (details != null) {
-                for (Iterator<JsonNode> it= details.iterator();it.hasNext();){
-                    JsonNode dayNode = it.next();
-                    if (dayNode==null)
+                for (JsonNode dayNode : details) {
+                    if (dayNode == null)
                         continue;
                     JsonNode actv = dayNode.get("actv");
-                    if (actv==null)
+                    if (actv == null)
                         continue;
-                    for (Iterator<JsonNode> itActv = actv.iterator();itActv.hasNext();){
-                        JsonNode item = itActv.next();
-                        if ("traffic".equals(item.get("type").asText())){
-                            if ("trainStation".equals(item.get("subType").asText())){
+                    for (JsonNode item : actv) {
+                        ObjectNode conItem = (ObjectNode) item;
+                        if ("traffic".equals(item.get("type").asText())) {
+                            if (isDep) {
+                                conItem.put("stopType", "dep");
+                                isDep = false;
+                            } else
+                                conItem.put("stopType", "arr");
 
+                            if ("airport".equals(item.get("subType").asText())) {
+                                Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+                                Airport airport = ds.createQuery(Airport.class).field("_id")
+                                        .equal(new ObjectId(item.get("itemId").asText())).get();
+                                if (airport != null) {
+                                    if (airport.addr.coords.lat != null)
+                                        conItem.put("lat", airport.addr.coords.lat);
+                                    if (airport.addr.coords.lng != null)
+                                        conItem.put("lng", airport.addr.coords.lng);
+                                    if (airport.addr.coords.blat != null)
+                                        conItem.put("blat", airport.addr.coords.blat);
+                                    if (airport.addr.coords.blng != null)
+                                        conItem.put("blat", airport.addr.coords.blng);
+                                }
                             }
                         }
                     }
@@ -307,8 +331,127 @@ public class PlanCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
-    public static Result optimizePlan(String userId, int keepOrder) {
+
+    /**
+     * 客户端调用optimizer的时候，上传的是精简后的JSON格式的poi list。需要将其转换为PlanItem列表的形式，并按照天数进行分页。
+     *
+     * @param rawPlan
+     * @return
+     */
+    private static List<PlanDayEntry> raw2plan(JsonNode rawPlan) {
+        for (Iterator<JsonNode> itr = rawPlan.get("details").elements(); itr.hasNext(); ) {
+            int x = 0;
+
+        }
+        return null;
+    }
+
+    public static Result optimizePlan(int keepOrder) {
         JsonNode plan = request().body().asJson();
+
+        JsonNode details = plan.get("details");
+        if (details == null || !details.isArray() || details.size() == 0)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid plan details.");
+
+        Datastore dsPOI = null;
+        Datastore dsTraffic = null;
+        Datastore dsLoc = null;
+        try {
+            dsPOI = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+            dsTraffic = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+            dsLoc = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        } catch (TravelPiException ignored) {
+            return Utils.createResponse(ErrorCode.DATABASE_ERROR, "Database error.");
+        }
+
+        Map<Integer, Poi> planPois = new HashMap<>();
+        Map<Integer, PlanItem> planItems = new HashMap<>();
+
+        int i = -1;
+        double lat = 40;
+        double lng = 116;
+        for (Iterator<JsonNode> it = details.iterator(); it.hasNext(); ) {
+            i++;
+
+            JsonNode node = it.next();
+            String type = node.get("type").asText();
+            JsonNode tmp = node.get("subType");
+            String subType = tmp != null ? tmp.asText() : null;
+
+            PlanItem item = new PlanItem();
+            Poi poi = null;
+            if (type.equals("vs")) {
+                ViewSpot vs = dsPOI.createQuery(ViewSpot.class).field("_id").equal(new ObjectId(node.get("itemId").asText())).get();
+                if (vs == null)
+                    continue;
+                SimpleRef ref = new SimpleRef();
+                ref.id = vs.id;
+                ref.zhName = vs.name;
+                item.item = ref;
+                item.loc = vs.addr.loc;
+                item.type = type;
+                poi = new Poi(i + 1, 0, new Point(vs.addr.coords.lng, vs.addr.coords.lat), 240, 4 * 60, 20 * 60);
+            } else if (type.equals("traffic")) {
+                if (subType.equals("trainStation")) {
+
+                }
+            }
+
+            if (poi != null) {
+                planItems.put(i, item);
+                planPois.put(i, poi);
+            }
+        }
+
+        List<Poi> pois1 = new ArrayList<>();
+//        pois1.add(new Poi(1, 4, new Point(116.342323434, 39.9061892795), 0,
+//                480, 1200));
+        pois1.add(new Poi(2, 0, new Point(116.337649281, 40.4505339258), 240,
+                480, 1200));
+        pois1.add(new Poi(3, 0, new Point(116.391272091, 39.9293099936), 240,
+                480, 1200));
+//        pois1.add(new Poi(4, 1, new Point(116.391223123, 39.9254654555), 0, 0,
+//                0));
+
+        Map<Integer, List<Poi>> allPois = new HashMap<>();
+
+        List<Poi> poiList = new ArrayList<>(planPois.values());
+//        allPois.put(1, new ArrayList<Poi>());
+        allPois.put(2, poiList.subList(0, 2));
+        allPois.put(3, poiList.subList(2, 5));
+//        allPois.put(4, poiList.subList(3, poiList.size()));
+//        allPois.put(1, new ArrayList<>(pois1));
+        PlanEngine engine = EngineFactory.createPlanEngine(allPois);
+        engine.run();
+        Choice best = engine.getBest();
+
+        scala.collection.Iterator<OptimizedPoi> opItr = best.plan().iterator();
+        List<OptimizedPoi> optimized = new ArrayList<>();
+        while (opItr.hasNext())
+            optimized.add(opItr.next());
+
+
+//        List<Poi> pois1 = new ArrayList<>();
+//        pois1.add(new Poi(1, 4, new Point(116.342323434, 39.9061892795), 0,
+//                480, 1200));
+//        pois1.add(new Poi(2, 0, new Point(116.337649281, 40.4505339258), 240,
+//                480, 1200));
+//        pois1.add(new Poi(3, 0, new Point(116.391272091, 39.9293099936), 240,
+//                480, 1200));
+//        pois1.add(new Poi(4, 1, new Point(116.391223123, 39.9254654555), 0, 0,
+//                0));
+//        List<Poi> pois2 = new ArrayList<>();
+//        pois2.add(new Poi(5, 0, new Point(116.749835074, 40.6454209626), 240,
+//                480, 1200));
+//        pois2.add(new Poi(6, 4, new Point(116.403794312, 40.9061892795), 0,
+//                480, 1200));
+//        Map<Integer, List<Poi>> allPois = new HashMap<>();
+//        allPois.put(1, pois1);
+////        allPois.put(2, pois2);
+//        PlanEngine engine = EngineFactory.createPlanEngine(allPois);
+//        engine.run();
+//        Choice best = engine.getBest();
+////        assertEquals(2, best.plan().length());
 
         return Utils.createResponse(ErrorCode.NORMAL, plan);
     }
