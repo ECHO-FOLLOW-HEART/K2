@@ -3,11 +3,14 @@ package core;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
 import models.morphia.traffic.AbstractRoute;
+import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.RouteIterator;
+import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -143,7 +146,7 @@ public class PlanAPI {
         int idx = 0;
         for (PlanDayEntry dayEntry : plan.details) {
             Calendar cal = Calendar.getInstance(firstDate.getTimeZone());
-            cal.setTimeInMillis(0);
+            cal.set(0, Calendar.JANUARY, 0, 0, 0, 0);
             for (int field : new int[]{Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH})
                 cal.set(field, firstDate.get(field));
             cal.add(Calendar.DAY_OF_YEAR, idx);
@@ -152,44 +155,122 @@ public class PlanAPI {
         }
 
         // 加入大交通
-        addTelomere(plan, fromLoc, backLoc);
+        addTelomere(true, plan, fromLoc);
+        addTelomere(false, plan, backLoc);
 
         return plan;
     }
 
-    private static void addTelomere(Plan plan, ObjectId fromLoc, ObjectId backLoc) throws TravelPiException {
+    /**
+     * 将交通信息插入到路线规划中。
+     *
+     * @param epDep 出发地。
+     * @param plan
+     * @param item
+     * @return
+     */
+    private static Plan addTrafficItem(boolean epDep, Plan plan, PlanItem item) {
+        if (plan.details == null)
+            plan.details = new ArrayList<>();
+
+        PlanDayEntry dayEntry = null;
+        Calendar itemDate = Calendar.getInstance();
+        itemDate.setTime(item.ts);
+
+        if (!plan.details.isEmpty()) {
+            int epIdx = (epDep ? 0 : plan.details.size() - 1);
+            dayEntry = plan.details.get(epIdx);
+            Calendar epDate = Calendar.getInstance();
+            epDate.setTime(dayEntry.date);
+
+            if (epDate.get(Calendar.DAY_OF_YEAR) != itemDate.get(Calendar.DAY_OF_YEAR))
+                dayEntry = null;
+        }
+
+        if (dayEntry == null) {
+            dayEntry = new PlanDayEntry();
+            Calendar tmpDate = Calendar.getInstance();
+            tmpDate.setTimeInMillis(itemDate.getTimeInMillis());
+            tmpDate.set(Calendar.HOUR_OF_DAY, 0);
+            tmpDate.set(Calendar.MINUTE, 0);
+            tmpDate.set(Calendar.SECOND, 0);
+            tmpDate.set(Calendar.MILLISECOND, 0);
+            dayEntry.date = tmpDate.getTime();
+            dayEntry.actv = new ArrayList<>();
+
+            if (epDep)
+                plan.details.add(0, dayEntry);
+            else
+                plan.details.add(dayEntry);
+        }
+
+        if (epDep)
+            dayEntry.actv.add(0, item);
+        else
+            dayEntry.actv.add(item);
+
+        return plan;
+    }
+
+    private static Plan addTelomere(boolean epDep, Plan plan, ObjectId remoteLoc) throws TravelPiException {
         List<PlanDayEntry> details = plan.details;
         if (details == null || details.isEmpty())
-            return;
-        // 正式旅行的第一天
-        PlanDayEntry dayEntry = details.get(0);
+            return plan;
+
+        int epIdx = (epDep ? 0 : plan.details.size() - 1);
+        // 正式旅行的第一天或最后一天
+        PlanDayEntry dayEntry = details.get(epIdx);
         if (dayEntry == null || dayEntry.actv == null || dayEntry.actv.isEmpty())
-            return;
+            return plan;
         // 取得第一项活动
         PlanItem actv = dayEntry.actv.get(0);
         if (dayEntry.date == null)
-            return;
-        ObjectId destination = actv.loc.id;
+            return plan;
+        ObjectId travelLoc = actv.loc.id;
 
         // 大交通筛选
-        Calendar calLower = Calendar.getInstance();
-        Calendar calUpper = Calendar.getInstance();
-        calLower.setTime(dayEntry.date);
-        // 允许的日期从前一天17:00到第二天12:00
-        calLower.add(Calendar.DAY_OF_YEAR, -1);
-        calLower.set(Calendar.HOUR_OF_DAY, 17);
-        calLower.set(Calendar.MINUTE, 0);
-        calLower.set(Calendar.SECOND, 0);
-        calLower.set(Calendar.MILLISECOND, 0);
-        calUpper.setTimeInMillis(calLower.getTimeInMillis());
-        calUpper.add(Calendar.DAY_OF_YEAR, 1);
-        calUpper.set(Calendar.HOUR_OF_DAY, 12);
-        List<Calendar> timeLimits = Arrays.asList(calLower, calUpper);
+        List<Calendar> timeLimits;
+        Calendar calLower, calUpper;
 
-        RouteIterator it = TrafficAPI.searchAirRoutes(fromLoc, destination, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1
-        );
+        if (epDep) {
+            calLower = Calendar.getInstance();
+            calLower.setTime(dayEntry.date);
+            // 允许的日期从前一天17:00到第二天12:00
+            calLower.add(Calendar.DAY_OF_YEAR, -1);
+            calLower.set(Calendar.HOUR_OF_DAY, 17);
+            calLower.set(Calendar.MINUTE, 0);
+            calLower.set(Calendar.SECOND, 0);
+            calLower.set(Calendar.MILLISECOND, 0);
+            calUpper = Calendar.getInstance();
+            calUpper.setTime(dayEntry.date);
+            calUpper.set(Calendar.HOUR_OF_DAY, 12);
+            calUpper.set(Calendar.MINUTE, 0);
+            calUpper.set(Calendar.SECOND, 0);
+            calUpper.set(Calendar.MILLISECOND, 0);
+        } else {
+            calLower = Calendar.getInstance();
+            calLower.setTime(dayEntry.date);
+            // 允许的日期从前一天12:00到第二天12:00
+            calLower.set(Calendar.HOUR_OF_DAY, 12);
+            calLower.set(Calendar.MINUTE, 0);
+            calLower.set(Calendar.SECOND, 0);
+            calLower.set(Calendar.MILLISECOND, 0);
+            calUpper = Calendar.getInstance();
+            calUpper.setTime(dayEntry.date);
+            calUpper.add(Calendar.DAY_OF_YEAR, 1);
+            calUpper.set(Calendar.HOUR_OF_DAY, 12);
+            calUpper.set(Calendar.MINUTE, 0);
+            calUpper.set(Calendar.SECOND, 0);
+            calUpper.set(Calendar.MILLISECOND, 0);
+        }
+        timeLimits = Arrays.asList(calLower, calUpper);
+
+        RouteIterator it = (epDep ?
+                TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
+                :
+                TrafficAPI.searchAirRoutes(travelLoc, remoteLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1));
         if (!it.hasNext())
-            return;
+            return plan;
 
         AbstractRoute route = it.next();
         Calendar depTime = Calendar.getInstance();
@@ -198,16 +279,61 @@ public class PlanAPI {
         firstDay.setTime(dayEntry.date);
 
         // 构造出发、到达和交通信息三个item
-        // 出发
+
+        String subType;
+        if (route instanceof AirRoute)
+            subType = "airport";
+        else if (route instanceof TrainRoute)
+            subType = "trainStation";
+        else
+            subType = "";
+
         PlanItem depItem = new PlanItem();
+        depItem.item = route.depStop;
+        depItem.loc = route.depLoc;
+        depItem.ts = route.depTime;
+        depItem.type = "traffic";
+        depItem.subType = subType;
 
+        PlanItem arrItem = new PlanItem();
+        arrItem.item = route.arrStop;
+        arrItem.loc = route.arrLoc;
+        arrItem.ts = route.arrTime;
+        arrItem.type = "traffic";
+        arrItem.subType = subType;
 
+        PlanItem trafficInfo = new PlanItem();
+        SimpleRef ref = new SimpleRef();
+        ref.id = route.id;
+        ref.zhName = route.code;
+        trafficInfo.item = ref;
+        trafficInfo.ts = route.depTime;
+        trafficInfo.extra = route;
+        trafficInfo.type = "traffic";
+        if (route instanceof AirRoute)
+            trafficInfo.subType = "airRoute";
+        else if (route instanceof TrainRoute)
+            trafficInfo.subType = "trainRoute";
+        else
+            trafficInfo.subType = "";
 
-        // 交通出发时间，是否和游玩时间是同一天？
-        if (depTime.get(Calendar.DAY_OF_YEAR) == firstDay.get(Calendar.DAY_OF_YEAR)){
+        if (route instanceof AirRoute)
+            depItem.subType = "airport";
+        else if (route instanceof TrainRoute)
+            depItem.subType = "trainStation";
+        else
+            depItem.subType = "";
 
+        if (epDep) {
+            addTrafficItem(true, plan, arrItem);
+            addTrafficItem(true, plan, trafficInfo);
+            addTrafficItem(true, plan, depItem);
+        } else {
+            addTrafficItem(false, plan, depItem);
+            addTrafficItem(false, plan, trafficInfo);
+            addTrafficItem(false, plan, arrItem);
         }
-//        if (depTime.)
-//        PlanItem dep = route.
+
+        return plan;
     }
 }

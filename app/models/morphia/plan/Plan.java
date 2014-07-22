@@ -89,15 +89,6 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
         builder.add("target", target.toJson());
-        //PC_Chen:
-//        for (String k : new String[]{"tags", "title", "days", "desc", "imageList"}) {
-//            Object val = null;
-//            try {
-//                val = Plan.class.getField(k).get(this);
-//            } catch (IllegalAccessException | NoSuchFieldException ignored) {
-//            }
-//            builder.add(k, val != null ? val : "");
-//        }
         builder.add("tags", (tags != null && !tags.isEmpty()) ? Json.toJson(tags) : new ArrayList<>());
         builder.add("title", (title != null && !title.isEmpty()) ? title : "");
         if (days != null)

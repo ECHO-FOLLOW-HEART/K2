@@ -8,10 +8,9 @@ import models.TravelPiBaseItem;
 import models.morphia.geo.Address;
 import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.Contact;
+import models.morphia.misc.Description;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
-import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
 import utils.Constants;
 
@@ -46,6 +45,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public String priceDesc;
 
     public String desc;
+
+    @Embedded
+    public Description description;
+
+    public String trafficInfo;
 
     public List<String> imageList;
 
@@ -94,19 +98,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
             // level3
             if (level > 2) {
-                for (String k : new String[]{"url", "price", "priceDesc", "alias"}) {
-                    Field field;
-                    Object val = null;
-                    try {
-                        field = AbstractPOI.class.getField(k);
-                        val = field.get(this);
-                    } catch (NoSuchFieldException | IllegalAccessException ignored) {
-                    }
-                    boolean isNull = (val == null);
-                    if (val != null && val instanceof Collection)
-                        isNull = ((Collection) val).isEmpty();
-                    builder.add(k, (isNull ? new ArrayList<>() : val));
-                }
+                builder.add("url", url != null ? url : "");
+                builder.add("priceDesc", priceDesc != null ? priceDesc : "");
+                builder.add("alias", alias != null ? alias : new ArrayList<>());
+                if (price != null)
+                    builder.add("price", price);
+
                 builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
                 builder.add("desc", (desc != null ? desc : ""));
             }

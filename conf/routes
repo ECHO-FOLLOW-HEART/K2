@@ -50,14 +50,14 @@ GET           /plans/templates/:planId                           controllers.Pla
 # 保存路线
 POST          /plans/ugc/:userId                                 controllers.PlanCtrl.saveUGCPlan(userId: String)
 # 优化路线
-POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan(userId: String)
+POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan(keepOrder: Int ?= 0)
 
 # POI
 
 # 景点
 
 # 景点签到
-POST          /poi/view-spots/:spotId/checkin                    controllers.POICtrl.poiCheckin(poiType: String="vs", spotId: String, uid: Int)
+POST          /poi/view-spots/:spotId/checkin                    controllers.POICtrl.poiCheckin(poiType: String="vs", spotId: String)
 # 搜索景点
 GET           /poi/view-spots/search                             controllers.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
 # 景点详情（显示详情，但不显示相关景点）

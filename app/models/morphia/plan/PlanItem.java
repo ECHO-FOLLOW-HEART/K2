@@ -2,11 +2,11 @@ package models.morphia.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
-import models.morphia.geo.Address;
 import models.morphia.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 import java.text.DateFormat;
@@ -27,9 +27,6 @@ public class PlanItem implements ITravelPiFormatter {
     @Embedded
     public SimpleRef loc;
 
-//    @Embedded
-//    public Address addr;
-
     public Integer idx;
 
     public String type;
@@ -37,6 +34,9 @@ public class PlanItem implements ITravelPiFormatter {
     public String subType;
 
     public Date ts;
+
+    @Transient
+    public Object extra;
 
     @Override
     public JsonNode toJson() {

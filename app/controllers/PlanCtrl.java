@@ -4,12 +4,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
+import com.vxp.core.*;
 import core.PlanAPI;
 import core.PlanAPIOld;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
+import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
+import models.morphia.plan.PlanItem;
+import models.morphia.poi.ViewSpot;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -17,10 +23,7 @@ import utils.Planner;
 import utils.Utils;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 
 /**
@@ -44,7 +47,31 @@ public class PlanCtrl extends Controller {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
             Plan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
-            return Utils.createResponse(ErrorCode.NORMAL, plan.toJson());
+            JsonNode planJson = plan.toJson();
+
+            // 补全相应信息
+            JsonNode details = planJson.get("details");
+            if (details != null) {
+                for (Iterator<JsonNode> it = details.iterator(); it.hasNext(); ) {
+                    JsonNode dayNode = it.next();
+                    if (dayNode == null)
+                        continue;
+                    JsonNode actv = dayNode.get("actv");
+                    if (actv == null)
+                        continue;
+                    for (Iterator<JsonNode> itActv = actv.iterator(); itActv.hasNext(); ) {
+                        JsonNode item = itActv.next();
+                        if ("traffic".equals(item.get("type").asText())) {
+                            if ("trainStation".equals(item.get("subType").asText())) {
+
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            return Utils.createResponse(ErrorCode.NORMAL, planJson);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -283,10 +310,87 @@ public class PlanCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
-    public static Result optimizePlan(String userId) {
+    public static Result optimizePlan(int keepOrder) {
         JsonNode plan = request().body().asJson();
 
+        JsonNode details = plan.get("details");
+        if (details == null || !details.isArray() || details.size() == 0)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid plan details.");
 
+        Datastore dsPOI = null;
+        Datastore dsTraffic = null;
+        Datastore dsLoc = null;
+        try {
+            dsPOI = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+            dsTraffic = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+            dsLoc = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        } catch (TravelPiException ignored) {
+            return Utils.createResponse(ErrorCode.DATABASE_ERROR, "Database error.");
+        }
+
+        Map<Integer, Poi> planPois = new HashMap<>();
+        Map<Integer, PlanItem> planItems = new HashMap<>();
+
+        int i = -1;
+        for (Iterator<JsonNode> it = details.iterator(); it.hasNext(); ) {
+            i++;
+
+            JsonNode node = it.next();
+            String type = node.get("type").asText();
+            JsonNode tmp = node.get("subType");
+            String subType = tmp != null ? tmp.asText() : null;
+
+            PlanItem item = new PlanItem();
+            Poi poi = null;
+            if (type.equals("vs")) {
+                ViewSpot vs = dsPOI.createQuery(ViewSpot.class).field("_id").equal(new ObjectId(node.get("itemId").asText())).get();
+                if (vs == null)
+                    continue;
+                SimpleRef ref = new SimpleRef();
+                ref.id = vs.id;
+                ref.zhName = vs.name;
+                item.item = ref;
+                item.loc = vs.addr.loc;
+                item.type = type;
+                poi = new Poi(i, 0, new Point(vs.addr.coords.lng, vs.addr.coords.lat), 1, 8 * 60, 21 * 60);
+            } else if (type.equals("traffic")) {
+                if (subType.equals("trainStation")) {
+
+                }
+            }
+
+            planItems.put(i, item);
+            planPois.put(i, poi);
+        }
+
+        Map<Integer, List<Poi>> allPois = new HashMap<>();
+        allPois.put(1, new ArrayList<>(planPois.values()));
+        PlanEngine engine = EngineFactory.createPlanEngine(allPois);
+        engine.run();
+        Choice best = engine.getBest();
+
+
+//        List<Poi> pois1 = new ArrayList<>();
+//        pois1.add(new Poi(1, 4, new Point(116.342323434, 39.9061892795), 0,
+//                480, 1200));
+//        pois1.add(new Poi(2, 0, new Point(116.337649281, 40.4505339258), 240,
+//                480, 1200));
+//        pois1.add(new Poi(3, 0, new Point(116.391272091, 39.9293099936), 240,
+//                480, 1200));
+//        pois1.add(new Poi(4, 1, new Point(116.391223123, 39.9254654555), 0, 0,
+//                0));
+//        List<Poi> pois2 = new ArrayList<>();
+//        pois2.add(new Poi(5, 0, new Point(116.749835074, 40.6454209626), 240,
+//                480, 1200));
+//        pois2.add(new Poi(6, 4, new Point(116.403794312, 40.9061892795), 0,
+//                480, 1200));
+//        Map<Integer, List<Poi>> allPois = new HashMap<>();
+//        allPois.put(1, pois1);
+//        allPois.put(2, pois2);
+//        PlanEngine engine = EngineFactory.createPlanEngine(allPois);
+//        engine.run();
+//        Choice best = engine.getBest();
+////        assertEquals(2, best.plan().length());
 
         return Utils.createResponse(ErrorCode.NORMAL, plan);
     }

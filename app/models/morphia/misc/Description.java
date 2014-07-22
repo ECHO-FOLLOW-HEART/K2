@@ -13,6 +13,7 @@ import org.mongodb.morphia.annotations.Embedded;
 public class Description implements ITravelPiFormatter {
     public String desc;
     public String details;
+    public String tips;
 
 
     @Override
