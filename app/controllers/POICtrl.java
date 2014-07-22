@@ -315,10 +315,9 @@ public class POICtrl extends Controller {
      * 对POI进行签到操作。
      *
      * @param poiType POI类型。
-     * @param uid     用户id。
      * @return
      */
-    public static Result poiCheckin(String poiType, String poiId, int uid) {
-        return Utils.createResponse(ErrorCode.NORMAL, "");
+    public static Result poiCheckin(String poiType, String poiId) {
+        return Utils.createResponse(ErrorCode.NORMAL, "SUCCESS");
     }
 }

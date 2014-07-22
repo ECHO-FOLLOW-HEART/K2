@@ -44,7 +44,31 @@ public class PlanCtrl extends Controller {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
             Plan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
-            return Utils.createResponse(ErrorCode.NORMAL, plan.toJson());
+            JsonNode planJson = plan.toJson();
+
+            // 补全相应信息
+            JsonNode details = planJson.get("details");
+            if (details != null) {
+                for (Iterator<JsonNode> it= details.iterator();it.hasNext();){
+                    JsonNode dayNode = it.next();
+                    if (dayNode==null)
+                        continue;
+                    JsonNode actv = dayNode.get("actv");
+                    if (actv==null)
+                        continue;
+                    for (Iterator<JsonNode> itActv = actv.iterator();itActv.hasNext();){
+                        JsonNode item = itActv.next();
+                        if ("traffic".equals(item.get("type").asText())){
+                            if ("trainStation".equals(item.get("subType").asText())){
+
+                            }
+                        }
+                    }
+                }
+
+            }
+
+            return Utils.createResponse(ErrorCode.NORMAL, planJson);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -283,10 +307,8 @@ public class PlanCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
-    public static Result optimizePlan(String userId) {
+    public static Result optimizePlan(String userId, int keepOrder) {
         JsonNode plan = request().body().asJson();
-
-
 
         return Utils.createResponse(ErrorCode.NORMAL, plan);
     }

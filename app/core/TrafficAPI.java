@@ -63,12 +63,12 @@ public class TrafficAPI {
      *
      * @param depId
      * @param arrId        @throws TravelPiException
-     * @param cal
+     * @param baseCal
      * @param depTimeLimit
      * @param arrTimeLimit
      * @param priceLimits
      */
-    public static RouteIterator searchAirRoutes(ObjectId depId, ObjectId arrId, Calendar cal, final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimit, final List<Double> priceLimits, final SortField sortField, int sortType, int page, int pageSize) throws TravelPiException {
+    public static RouteIterator searchAirRoutes(ObjectId depId, ObjectId arrId, Calendar baseCal, final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField, int sortType, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<AirRoute> query = ds.createQuery(AirRoute.class);
@@ -84,26 +84,27 @@ public class TrafficAPI {
             }
         }.entrySet()) {
             String k = entry.getKey();
-            List<Calendar> timeLimit = entry.getValue();
+            List<Calendar> timeLimits = entry.getValue();
 
-            if (timeLimit != null && timeLimit.size() == 2) {
-                Calendar lower = timeLimit.get(0);
-                Calendar upper = timeLimit.get(1);
+            if (timeLimits != null && timeLimits.size() == 2) {
+                Calendar lower = Calendar.getInstance();
+                lower.setTimeInMillis(timeLimits.get(0).getTimeInMillis());
+                Calendar upper = Calendar.getInstance();
+                upper.setTimeInMillis(timeLimits.get(1).getTimeInMillis());
                 long elapse = upper.getTimeInMillis() - lower.getTimeInMillis();
-
                 lower.set(1980, Calendar.JANUARY, 1);
                 upper.setTimeInMillis(lower.getTimeInMillis() + elapse);
-
                 query.and(query.criteria(k).greaterThanOrEq(lower.getTime()), query.criteria(k).lessThanOrEq(upper.getTime()));
             }
         }
 
         // 时间节点过滤
-        if (epTimeLimit != null && epTimeLimit.size() == 2) {
-            Calendar lower = epTimeLimit.get(0);
-            Calendar upper = epTimeLimit.get(1);
+        if (epTimeLimits != null && epTimeLimits.size() == 2) {
+            Calendar lower = Calendar.getInstance();
+            lower.setTimeInMillis(epTimeLimits.get(0).getTimeInMillis());
+            Calendar upper = Calendar.getInstance();
+            upper.setTimeInMillis(epTimeLimits.get(1).getTimeInMillis());
             long elapse = upper.getTimeInMillis() - lower.getTimeInMillis();
-
             lower.set(1980, Calendar.JANUARY, 1);
             upper.setTimeInMillis(lower.getTimeInMillis() + elapse);
             query.and(query.criteria("depTime").greaterThanOrEq(lower.getTime()),
@@ -137,7 +138,13 @@ public class TrafficAPI {
         query.order(String.format("%s%s", sortType > 0 ? "" : "-", stKey));
         query.offset(page * pageSize).limit(pageSize);
         Iterator<AirRoute> it = query.iterator();
-        return RouteIterator.getInstance(it, cal.getTime());
+
+        Calendar cal;
+        if (epTimeLimits != null && epTimeLimits.size() == 2)
+            cal = epTimeLimits.get(0);
+        else
+            cal = baseCal;
+        return RouteIterator.getInstance(it, (cal != null ? cal.getTime() : null));
 
 
 //        MongoClient client;
