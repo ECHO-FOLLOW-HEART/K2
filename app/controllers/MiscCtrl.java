@@ -32,6 +32,8 @@ public class MiscCtrl extends Controller {
     public static Result postFeedback() throws UnknownHostException, TravelPiException {
         JsonNode feedback = request().body().asJson();
         ObjectId uid = null;
+
+        int x=0;
         try {
             uid = new ObjectId(feedback.get("uid").asText());
             DBCollection col = Utils.getMongoClient().getDB("user").getCollection("user_info");
