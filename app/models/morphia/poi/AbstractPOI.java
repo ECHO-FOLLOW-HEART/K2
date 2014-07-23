@@ -95,14 +95,14 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 builder.add(k, (isNull ? new ArrayList<>() : val));
             }
             builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
+            if (price != null)
+                builder.add("price", price);
 
             // level3
             if (level > 2) {
                 builder.add("url", url != null ? url : "");
                 builder.add("priceDesc", priceDesc != null ? priceDesc : "");
                 builder.add("alias", alias != null ? alias : new ArrayList<>());
-                if (price != null)
-                    builder.add("price", price);
 
                 builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
                 builder.add("desc", (desc != null ? desc : ""));
