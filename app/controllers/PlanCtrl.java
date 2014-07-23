@@ -601,13 +601,16 @@ public class PlanCtrl extends Controller {
      */
     public static Result optimizePlan(int keepOrder) {
         JsonNode rawPlan = request().body().asJson();
-
-        JsonNode details = rawPlan.get("details");
-        if (details == null || details.size() == 0)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid plan details.");
-
         ObjectNode ret = Json.newObject();
-
+        JsonNode details = rawPlan.get("details");
+        if (details == null || details.size() == 0) {
+            ret.put("ref", rawPlan);
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ret);
+        }
+//                    String.format("Invalid plan details. Size: %d: \n\n%s", details.size(), details.toString()));
+//
+//
+//
         List<PlanDayEntry> dayEntryList;
         try {
             dayEntryList = raw2plan(details);
