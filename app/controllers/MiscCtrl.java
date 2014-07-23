@@ -152,6 +152,7 @@ public class MiscCtrl extends Controller {
      * @throws UnknownHostException
      */
     public static Result getSuggestionsOld(String word, int loc, int vs, int hotel, int restaurant, int pageSize) throws UnknownHostException, TravelPiException {
+        int y=0;
         ObjectNode ret = Json.newObject();
         if (loc != 0) {
             DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gte", 1).get()).get();
