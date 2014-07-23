@@ -1,19 +1,23 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
 import com.vxp.core.*;
 import core.PlanAPI;
 import core.PlanAPIOld;
+import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
+import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
 import models.morphia.poi.ViewSpot;
+import models.morphia.traffic.Airport;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.libs.Json;
@@ -52,23 +56,93 @@ public class PlanCtrl extends Controller {
             // 补全相应信息
             JsonNode details = planJson.get("details");
             if (details != null) {
-                for (Iterator<JsonNode> it = details.iterator(); it.hasNext(); ) {
-                    JsonNode dayNode = it.next();
+                boolean isDep = true;
+                ObjectNode depItem = null;
+                ObjectNode arrItem = null;
+                ObjectNode trafficRoute = null;
+
+                for (JsonNode dayNode : details) {
                     if (dayNode == null)
                         continue;
                     JsonNode actv = dayNode.get("actv");
                     if (actv == null)
                         continue;
-                    for (Iterator<JsonNode> itActv = actv.iterator(); itActv.hasNext(); ) {
-                        JsonNode item = itActv.next();
-                        if ("traffic".equals(item.get("type").asText())) {
-                            if ("trainStation".equals(item.get("subType").asText())) {
 
+                    for (JsonNode item : actv) {
+                        ObjectNode conItem = (ObjectNode) item;
+                        if ("traffic".equals(item.get("type").asText())) {
+                            String subType = item.get("subType").asText();
+
+                            if (subType.equals("trainRoute") || subType.equals("airRoute"))
+                                trafficRoute = conItem;
+                            else {
+                                if (isDep) {
+                                    conItem.put("stopType", "dep");
+                                    isDep = false;
+                                    depItem = conItem;
+                                } else {
+                                    conItem.put("stopType", "arr");
+                                    arrItem = conItem;
+
+                                    // 补全交通路线信息
+                                    if (trafficRoute != null) {
+                                        trafficRoute.put("depStop", depItem.get("itemId").asText());
+                                        trafficRoute.put("depLoc", depItem.get("locId").asText());
+                                        trafficRoute.put("depTime", depItem.get("ts").asText());
+                                        trafficRoute.put("arrStop", arrItem.get("itemId").asText());
+                                        trafficRoute.put("arrLoc", arrItem.get("locId").asText());
+                                        trafficRoute.put("arrTime", arrItem.get("ts").asText());
+                                    }
+
+                                    isDep = true;
+                                    depItem = null;
+                                    arrItem = null;
+                                    trafficRoute = null;
+                                }
+
+                                if ("airport".equals(item.get("subType").asText())) {
+                                    Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+                                    Airport airport = ds.createQuery(Airport.class).field("_id")
+                                            .equal(new ObjectId(item.get("itemId").asText())).get();
+                                    if (airport != null) {
+                                        if (airport.addr.coords.lat != null)
+                                            conItem.put("lat", airport.addr.coords.lat);
+                                        if (airport.addr.coords.lng != null)
+                                            conItem.put("lng", airport.addr.coords.lng);
+                                        if (airport.addr.coords.blat != null)
+                                            conItem.put("blat", airport.addr.coords.blat);
+                                        if (airport.addr.coords.blng != null)
+                                            conItem.put("blat", airport.addr.coords.blng);
+                                    }
+                                }
                             }
+                        } else {
+                            String type = item.get("type").asText();
+                            if (type != null && (type.equals("vs") || type.equals("hotel") || type.equals("restaurant"))) {
+                                // 将POI详情嵌入
+                                try {
+                                    PoiAPI.POIType poiType = null;
+                                    switch (type) {
+                                        case "vs":
+                                            poiType = PoiAPI.POIType.VIEW_SPOT;
+                                            break;
+                                        case "hotel":
+                                            poiType = PoiAPI.POIType.HOTEL;
+                                            break;
+                                        case "restaurant":
+                                            poiType = PoiAPI.POIType.RESTAURANT;
+                                            break;
+                                    }
+                                    if (poiType != null)
+                                        conItem.put("details", PoiAPI.getPOIInfo(conItem.get("itemId").asText(),
+                                                poiType, true).toJson(2));
+                                } catch (TravelPiException ignored) {
+                                }
+                            }
+
                         }
                     }
                 }
-
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, planJson);
@@ -310,6 +384,21 @@ public class PlanCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
+
+    /**
+     * 客户端调用optimizer的时候，上传的是精简后的JSON格式的poi list。需要将其转换为PlanItem列表的形式，并按照天数进行分页。
+     *
+     * @param rawPlan
+     * @return
+     */
+    private static List<PlanDayEntry> raw2plan(JsonNode rawPlan) {
+        for (Iterator<JsonNode> itr = rawPlan.get("details").elements(); itr.hasNext(); ) {
+            int x = 0;
+
+        }
+        return null;
+    }
+
     public static Result optimizePlan(int keepOrder) {
         JsonNode plan = request().body().asJson();
 
@@ -332,6 +421,8 @@ public class PlanCtrl extends Controller {
         Map<Integer, PlanItem> planItems = new HashMap<>();
 
         int i = -1;
+        double lat = 40;
+        double lng = 116;
         for (Iterator<JsonNode> it = details.iterator(); it.hasNext(); ) {
             i++;
 
@@ -352,22 +443,45 @@ public class PlanCtrl extends Controller {
                 item.item = ref;
                 item.loc = vs.addr.loc;
                 item.type = type;
-                poi = new Poi(i, 0, new Point(vs.addr.coords.lng, vs.addr.coords.lat), 1, 8 * 60, 21 * 60);
+                poi = new Poi(i + 1, 0, new Point(vs.addr.coords.lng, vs.addr.coords.lat), 240, 4 * 60, 20 * 60);
             } else if (type.equals("traffic")) {
                 if (subType.equals("trainStation")) {
 
                 }
             }
 
-            planItems.put(i, item);
-            planPois.put(i, poi);
+            if (poi != null) {
+                planItems.put(i, item);
+                planPois.put(i, poi);
+            }
         }
 
+        List<Poi> pois1 = new ArrayList<>();
+//        pois1.add(new Poi(1, 4, new Point(116.342323434, 39.9061892795), 0,
+//                480, 1200));
+        pois1.add(new Poi(2, 0, new Point(116.337649281, 40.4505339258), 240,
+                480, 1200));
+        pois1.add(new Poi(3, 0, new Point(116.391272091, 39.9293099936), 240,
+                480, 1200));
+//        pois1.add(new Poi(4, 1, new Point(116.391223123, 39.9254654555), 0, 0,
+//                0));
+
         Map<Integer, List<Poi>> allPois = new HashMap<>();
-        allPois.put(1, new ArrayList<>(planPois.values()));
+
+        List<Poi> poiList = new ArrayList<>(planPois.values());
+//        allPois.put(1, new ArrayList<Poi>());
+        allPois.put(2, poiList.subList(0, 2));
+        allPois.put(3, poiList.subList(2, 5));
+//        allPois.put(4, poiList.subList(3, poiList.size()));
+//        allPois.put(1, new ArrayList<>(pois1));
         PlanEngine engine = EngineFactory.createPlanEngine(allPois);
         engine.run();
         Choice best = engine.getBest();
+
+        scala.collection.Iterator<OptimizedPoi> opItr = best.plan().iterator();
+        List<OptimizedPoi> optimized = new ArrayList<>();
+        while (opItr.hasNext())
+            optimized.add(opItr.next());
 
 
 //        List<Poi> pois1 = new ArrayList<>();
@@ -386,7 +500,7 @@ public class PlanCtrl extends Controller {
 //                480, 1200));
 //        Map<Integer, List<Poi>> allPois = new HashMap<>();
 //        allPois.put(1, pois1);
-//        allPois.put(2, pois2);
+////        allPois.put(2, pois2);
 //        PlanEngine engine = EngineFactory.createPlanEngine(allPois);
 //        engine.run();
 //        Choice best = engine.getBest();

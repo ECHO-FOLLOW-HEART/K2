@@ -7,6 +7,8 @@ import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
+import models.morphia.poi.AbstractPOI;
+import models.morphia.poi.Hotel;
 import models.morphia.traffic.AbstractRoute;
 import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.RouteIterator;
@@ -158,6 +160,62 @@ public class PlanAPI {
         addTelomere(true, plan, fromLoc);
         addTelomere(false, plan, backLoc);
 
+        // 加入酒店
+        addHotels(plan);
+
+        return plan;
+    }
+
+
+    /**
+     * 给路线规划添加酒店。
+     *
+     * @param plan
+     * @return
+     */
+    private static Plan addHotels(Plan plan) {
+        int cnt = plan.details.size();
+        for (int i = 0; i < cnt - 1; i++) {
+            PlanDayEntry dayEntry = plan.details.get(i);
+            // 查找activities中是否已经存在酒店
+            boolean hasHotel = false;
+            for (PlanItem item : dayEntry.actv) {
+                if (item.type.equals("type")) {
+                    hasHotel = true;
+                    break;
+                }
+            }
+            if (hasHotel)
+                continue;
+
+            // 需要添加酒店
+            PlanItem lastItem = dayEntry.actv.get(dayEntry.actv.size() - 1);
+            try {
+                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastItem.loc.id, 0, 5);
+                if (itr.hasNext()) {
+                    Hotel hotel = (Hotel) itr.next();
+                    PlanItem hotelItem = new PlanItem();
+                    SimpleRef ref = new SimpleRef();
+                    ref.id = hotel.id;
+                    ref.zhName = hotel.name;
+                    hotelItem.item = ref;
+
+                    hotelItem.loc = hotel.addr.loc;
+                    hotelItem.type = "hotel";
+
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(dayEntry.date);
+                    cal.set(Calendar.HOUR_OF_DAY, 20);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                    cal.set(Calendar.MILLISECOND, 0);
+                    hotelItem.ts = cal.getTime();
+
+                    dayEntry.actv.add(hotelItem);
+                }
+            } catch (TravelPiException ignored) {
+            }
+        }
         return plan;
     }
 
