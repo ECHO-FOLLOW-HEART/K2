@@ -1,6 +1,5 @@
 package models.morphia.traffic;
 
-import java.lang.reflect.Field;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -32,24 +31,23 @@ public class RouteIterator implements Iterator {
     @Override
     public AbstractRoute next() {
         AbstractRoute route = innerIter.next();
-        for (String k : new String[]{"depTime", "arrTime"}) {
-            try {
-                Field field = AbstractRoute.class.getField(k);
-                Date time = (Date) field.get(route);
-                if (time == null)
-                    continue;
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(time);
-                Calendar baseCal = Calendar.getInstance();
-                baseCal.setTime(baseDate);
 
-                cal.set(Calendar.YEAR, baseCal.get(Calendar.YEAR));
-                cal.set(Calendar.MONTH, baseCal.get(Calendar.MONTH));
-                cal.set(Calendar.DAY_OF_YEAR, baseCal.get(Calendar.DAY_OF_YEAR));
-                field.set(route, cal.getTime());
-            } catch (IllegalAccessException | NoSuchFieldException ignored) {
-            }
-        }
+        Calendar baseCal = Calendar.getInstance();
+        baseCal.setTime(baseDate);
+
+        Calendar depCal = Calendar.getInstance();
+        depCal.setTime(route.depTime);
+        Calendar arrCal = Calendar.getInstance();
+        arrCal.setTime(route.arrTime);
+        long dt = arrCal.getTimeInMillis() - depCal.getTimeInMillis();
+
+        for (int k : new int[]{Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH})
+            depCal.set(k, baseCal.get(k));
+        arrCal.setTimeInMillis(depCal.getTimeInMillis() + dt);
+
+        route.depTime = depCal.getTime();
+        route.arrTime = arrCal.getTime();
+
         return route;
     }
 
