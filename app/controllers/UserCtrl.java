@@ -2,8 +2,10 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.*;
+import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -170,17 +172,39 @@ public class UserCtrl extends Controller {
         return getUserProfileById(user.get("_id").toString());
     }
 
-    public static Result login() {
+    /**
+     * 第三方登录
+     *
+     * @return
+     */
+    public static Result oauthLogin() {
         JsonNode req = request().body().asJson();
         String provider = req.get("provider").asText();
-        String userId = req.get("user_id").asText();
+        String oauthId = req.get("oauthId").asText();
 
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("uid", "1");
-        builder.add("nickName", "dummy");
-        builder.add("avatarImage", "");
-        builder.add("gender", "male");
+        for (String k : new String[]{"nickName", "avatar", "token", "udid"}) {
+            try {
+                builder.add(k, req.get(k).asText());
+            } catch (NullPointerException ignored) {
+            }
+        }
 
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
+        try {
+            // TODO 如果已经存在，则更新相应信息，比如todo
+            UserInfo user = UserAPI.regByOAuth(provider, oauthId, builder.get());
+            return Utils.createResponse(ErrorCode.NORMAL, user.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static Result udidLogin(String udid) {
+        try {
+            UserInfo user = UserAPI.regByUdid(udid);
+            return Utils.createResponse(ErrorCode.NORMAL, user.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
     }
 }
