@@ -26,6 +26,7 @@ import org.mongodb.morphia.Datastore;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.FPUtils;
 import utils.Planner;
 import utils.Utils;
 
@@ -74,7 +75,7 @@ public class PlanCtrl extends Controller {
         if (details != null) {
             boolean isDep = true;
             ObjectNode depItem = null;
-            ObjectNode arrItem = null;
+            ObjectNode arrItem;
             ObjectNode trafficRoute = null;
 
             for (JsonNode dayNode : details) {
@@ -114,7 +115,6 @@ public class PlanCtrl extends Controller {
 
                                 isDep = true;
                                 depItem = null;
-                                arrItem = null;
                                 trafficRoute = null;
                             }
 

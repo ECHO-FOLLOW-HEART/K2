@@ -36,8 +36,8 @@ GET           /geo/localities/:id                                controllers.Geo
 GET           /geo/localities/baiduId/:baiduId                   controllers.GeoCtrl.getLocalityBaiduId(baiduId: Integer)
 
 # 交通查询                                                        #                         searchAirRoutes(String depId, String arrId, String ts, String sortField, int sort, String timeFilterType, int timeFilter, int page, int pageSize)
-GET           /itineraries/air-routes                            controllers.TrafficCtrl.searchAirRoutes(dep: String, arr: String, date: String?="", sortField: String?="price", sort: Int?= -1, timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
-GET           /itineraries/air-routes/:flightCode                controllers.TrafficCtrl.getAirRouteByCode(flightCode: String, date: String?="")
+GET           /itineraries/air-routes                            controllers.TrafficCtrl.searchAirRoutes(dep: String, arr: String, depTime: String?="", sortField: String?="price", sort: String?="desc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
+GET           /itineraries/air-routes/:flightCode                controllers.TrafficCtrl.getAirRouteByCode(flightCode: String, depTime: String?="")
 GET           /itineraries/train-station                         controllers.TrafficCtrl.searchTrainStationByLoc(loc: String)
 GET           /itineraries/train-routes                          controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String, sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String)
@@ -105,8 +105,8 @@ GET           /explore                                           controllers.Mis
 # 用户
 
 # 用户登录
-POST          /users/login                                       controllers.UserCtrl.login()
-GET           /users/udid/:udid                                  controllers.UserCtrl.getUserByUDID(udid: String)
+POST          /users/oauth-login                                 controllers.UserCtrl.oauthLogin()
+GET           /users/udid/:udid                                  controllers.UserCtrl.udidLogin(udid: String)
 GET           /users/:userId                                     controllers.UserCtrl.getUserProfileById(userId: String)
 GET           /users/nick-names/:userName                        controllers.UserCtrl.getUserProfileByName(userName: String)
 GET           /users/:userId/favors/view-spots                   controllers.UserCtrl.getUserFavoredVS(userId: String, page: Int?=0, pageSize: Int?=20)

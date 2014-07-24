@@ -174,13 +174,19 @@ public class PlanAPI {
      * @return
      */
     private static Plan addHotels(Plan plan) {
+        if (plan.details == null)
+            return plan;
+
         int cnt = plan.details.size();
         for (int i = 0; i < cnt - 1; i++) {
             PlanDayEntry dayEntry = plan.details.get(i);
+            if (dayEntry == null || dayEntry.actv == null || dayEntry.actv.isEmpty())
+                continue;
+
             // 查找activities中是否已经存在酒店
             boolean hasHotel = false;
             for (PlanItem item : dayEntry.actv) {
-                if (item.type.equals("type")) {
+                if (item.type != null && item.type.equals("hotel")) {
                     hasHotel = true;
                     break;
                 }
@@ -188,10 +194,14 @@ public class PlanAPI {
             if (hasHotel)
                 continue;
 
-            // 需要添加酒店
             PlanItem lastItem = dayEntry.actv.get(dayEntry.actv.size() - 1);
+            // 如果最后一条记录为trainRoute活着airRoute，说明游客还在路上，不需要添加酒店。
+            if (lastItem.type != null && (lastItem.type.equals("trainRoute") || lastItem.type.equals("airRoute")))
+                continue;
+
+            // 需要添加酒店
             try {
-                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastItem.loc.id, 0, 5);
+                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastItem.loc.id, 0, 1);
                 if (itr.hasNext()) {
                     Hotel hotel = (Hotel) itr.next();
                     PlanItem hotelItem = new PlanItem();
@@ -269,6 +279,24 @@ public class PlanAPI {
 
         return plan;
     }
+
+
+    /**
+     * 扫描一遍，确保plan中每个item的时间戳都是正确的。
+     *
+     * @param plan
+     * @return
+     */
+    private static Plan reorder(Plan plan){
+        List<PlanDayEntry> details = plan.details;
+        if (details==null||details.isEmpty())
+            return plan;
+
+
+
+        return plan;
+    }
+
 
     private static Plan addTelomere(boolean epDep, Plan plan, ObjectId remoteLoc) throws TravelPiException {
         List<PlanDayEntry> details = plan.details;

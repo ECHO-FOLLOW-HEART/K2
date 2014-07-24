@@ -12,11 +12,15 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
+import play.Configuration;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Locality
@@ -84,6 +88,49 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         return Json.toJson(builder.get());
     }
 
+    /**
+     * 去掉末尾的省市县等名字。
+     *
+     * @param name
+     * @return
+     */
+    public String stripLocName(String name) {
+        Pattern pattern=Pattern.compile("自治[区县]");
+        Matcher m = pattern.matcher(name);
+        int start=-1;
+        int end = -1;
+        if (m.find()){
+            start = m.start();
+            end=m.end();
+        }
+        int idx = start;
+
+        if (idx!= -1) {
+            // 尝试找出是什么族
+            Configuration config = Configuration.root();
+            String minorities = null;
+            Map md = (Map) config.getObject("metadata");
+            if (md != null)
+                minorities = md.get("minorities").toString();
+
+            int endIdx = idx + 1;
+            idx--;
+            while (idx > 0 && minorities != null) {
+                Matcher matcher = Pattern.compile(name.substring(idx, endIdx)).matcher(minorities);
+                if (matcher.find()) {
+                    name = name.substring(0, idx);
+                    break;
+                }
+                idx--;
+            }
+        }
+
+        pattern = Pattern.compile("(市|县|省|直辖市|自治县|自治区)$");
+        name = pattern.matcher(name).replaceAll("");
+
+        return name;
+    }
+
     @Override
     public JsonNode toJson() {
         return toJson(1);
@@ -91,11 +138,12 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public JsonNode toJson(int detailLevel) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("name", zhName).add("level", level);
+        builder.add("_id", id.toString()).add("name", stripLocName(zhName)).add("level", level);
 
-        if (superAdm != null)
+        if (superAdm != null) {
+            superAdm.zhName = stripLocName(superAdm.zhName);
             builder.add("parent", superAdm.toJson());
-        else
+        } else
             builder.add("parent", new BasicDBObject());
 
         if (coords != null) {

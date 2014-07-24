@@ -81,14 +81,18 @@ public class TrafficCtrl extends Controller {
      * @param depId      出发地id（机场、城市均可）。
      * @param arrId      到达地id（机场、城市均可）。
      * @param ts         出发时间。
-     * @param sort       排序方式。
+     * @param sortType       排序方式。
      * @param timeFilter 出发时间过滤。dep：按照出发时间过滤；arr：按照到达时间过滤。
      * @param page       分页偏移量。
      * @param pageSize   页面大小。
      * @return 航班列表
      */
-    public static Result searchAirRoutes(String depId, String arrId, String ts, String sortField, int sort, String timeFilterType, int timeFilter, int page, int pageSize)
+    public static Result searchAirRoutes(String depId, String arrId, String ts, String sortField, String sortType, String timeFilterType, int timeFilter, int page, int pageSize)
             throws TravelPiException {
+        int sort = -1;
+        if (sortType != null && sortType.equals("asc"))
+            sort = 1;
+
         Calendar cal = null;
         if (ts != null && !ts.isEmpty()) {
             Matcher matcher = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}").matcher(ts);
