@@ -26,7 +26,6 @@ import org.mongodb.morphia.Datastore;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.FPUtils;
 import utils.Planner;
 import utils.Utils;
 
@@ -34,8 +33,6 @@ import java.net.UnknownHostException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 /**
@@ -404,7 +401,7 @@ public class PlanCtrl extends Controller {
      * @param item
      * @return
      */
-    private static PlanItem PoiMapper(JsonNode item) throws TravelPiException {
+    private static PlanItem poiMapper(JsonNode item) throws TravelPiException {
         String itemId = item.get("itemId").asText();
         String type = item.get("type").asText();
 //        String st = item.get("st").asText();
@@ -447,15 +444,7 @@ public class PlanCtrl extends Controller {
      */
     private static PlanItem trafficMapper(JsonNode item) throws TravelPiException {
         String itemId = item.get("itemId").asText();
-//        String type = item.get("type").asText();
-//        String st = item.get("st").asText();
         String subType = item.get("subType").asText();
-
-//        "type" : "traffic",
-//                "ts" : "2014-07-28 22:10:00+0800",
-//                "itemId" : "53aaa96b10114e41c5c8d0f3",
-//                "st" : "2014-07-28 22:10:00+0800",
-//                "subType" : "airport"
 
         PlanItem planItem = null;
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
@@ -528,95 +517,220 @@ public class PlanCtrl extends Controller {
 
 
     /**
-     * 客户端调用optimizer的时候，上传的是精简后的JSON格式的poi list。需要将其转换为PlanItem列表的形式，并按照天数进行分页。
+     * 将item追加到plan尾部。如有必要，会自动创建相应的PlanDayEntry对象。
      *
-     * @param rawPlan
+     * @param plan
+     * @param item
+     * @param itemCal
      * @return
      */
-    private static List<PlanDayEntry> raw2plan(JsonNode rawPlan) throws TravelPiException {
-        List<PlanDayEntry> dayEntryList = new ArrayList<>();
-        Calendar curCal = Calendar.getInstance();
-        curCal.setTimeInMillis(0);
-        PlanDayEntry dayEntry = null;
+    private static List<PlanDayEntry> appendPlanItem(List<PlanDayEntry> plan, PlanItem item, Calendar itemCal) {
+        if (plan == null)
+            plan = new ArrayList<>();
 
-        // 整理原始输入，并排序
-        List<JsonNode> rawDetails = new ArrayList<>();
-        for (Iterator<JsonNode> itr = rawPlan.elements(); itr.hasNext(); )
-            rawDetails.add(itr.next());
-        Collections.sort(rawDetails, new Comparator<JsonNode>() {
-            @Override
-            public int compare(JsonNode o1, JsonNode o2) {
-                SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd hh:mm:ssZ");
-                try {
-                    Date d1 = fmt.parse(o1.get("st").asText());
-                    Date d2 = fmt.parse(o2.get("st").asText());
-                    if (d1.before(d2))
-                        return -1;
-                    else if (d1.after(d2))
-                        return 1;
-                } catch (ParseException ignored) {
-                }
-                return 0;
-            }
-        });
-
-        for (JsonNode item : rawDetails) {
-            String itemId = item.get("itemId").asText();
-            String type = item.get("type").asText();
-            String st = item.get("st").asText();
-
-            // 是否需要新一天的行程
-            Matcher m = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}").matcher(st);
-            SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
-            Date sortDate = null;
-            if (m.find())
-                try {
-                    sortDate = fmt.parse(m.group());
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            if (sortDate == null)
-                continue;
-            if (dayEntry == null || dayEntry.date.getDate() != sortDate.getDate()) {
-                dayEntry = new PlanDayEntry();
-                dayEntry.date = sortDate;
-                dayEntry.actv = new ArrayList<>();
-                dayEntryList.add(dayEntry);
-            }
-
-            if (type.equals("traffic"))
-                dayEntry.actv.add(trafficMapper(item));
-            else if (type.equals("vs") || type.equals("hotel"))
-                dayEntry.actv.add(PoiMapper(item));
+        if (itemCal == null) {
+            itemCal = Calendar.getInstance();
+            itemCal.setTime(item.ts);
         }
-        return dayEntryList;
+
+        if (plan.isEmpty())
+            plan.add(new PlanDayEntry(itemCal));
+
+        PlanDayEntry dayEntry;
+        Calendar curCal;
+        while (true) {
+            dayEntry = plan.get(plan.size() - 1);
+            curCal = Calendar.getInstance();
+            curCal.setTime(dayEntry.date);
+
+            if (curCal.get(Calendar.DAY_OF_YEAR) == itemCal.get(Calendar.DAY_OF_YEAR))
+                break;
+            if (curCal.after(itemCal))
+                // 避免死循环。通常，itemCal一定会位于curCal之后。
+                return plan;
+
+            // 新生成一个PlanDayEntry
+            curCal.add(Calendar.DAY_OF_YEAR, 1);
+            dayEntry = new PlanDayEntry(curCal);
+            plan.add(dayEntry);
+        }
+
+        // 此时的dayEntry，就是item应该插入的地方。
+        dayEntry.actv.add(item);
+
+        return plan;
+    }
+
+
+    /**
+     * 客户端调用optimizer的时候，上传的是精简后的JSON格式的poi list。需要将其转换为PlanItem列表的形式，并按照天数进行分页。
+     *
+     * @param rawDetails
+     * @return
+     */
+    private static List<PlanDayEntry> raw2plan(JsonNode rawDetails, JsonNode trafficInfo,
+                                               Calendar startCal, Calendar endCal) throws TravelPiException {
+        // 获得两端大交通的信息
+        List<PlanItem> awayTraffic = new ArrayList<>();
+        List<PlanItem> backTraffic = new ArrayList<>();
+        boolean isAway = true;
+        boolean arrived = true;
+        Date lastTs = null;
+        for (JsonNode item : rawDetails) {
+            String type = item.get("type").asText();
+            if (!type.equals("traffic"))
+                continue;
+
+            String subType = item.get("subType").asText();
+            PlanItem trafficItem = trafficMapper(item);
+            if (trafficItem.ts == null)
+                trafficItem.ts = lastTs;
+            else
+                lastTs = trafficItem.ts;
+
+            (isAway ? awayTraffic : backTraffic).add(trafficItem);
+
+            if (subType.equals("airport") || subType.equals("trainStation")) {
+                arrived = !arrived;
+                if (arrived)
+                    isAway = !isAway;
+            }
+        }
+
+        // 需要考虑两端的大交通的时间是否需要shift
+        if (!awayTraffic.isEmpty()) {
+            Calendar depCal = Calendar.getInstance();
+            depCal.setTime(awayTraffic.get(0).ts);
+            Calendar arrCal = Calendar.getInstance();
+            arrCal.setTime(awayTraffic.get(2).ts);
+
+
+            // 如果到达时间过晚，晚于critCal，则需要调整
+            Calendar critCal = Calendar.getInstance();
+            critCal.setTimeInMillis(startCal.getTimeInMillis());
+            critCal.set(Calendar.HOUR_OF_DAY, 13);
+            critCal.set(Calendar.MINUTE, 0);
+            critCal.set(Calendar.SECOND, 0);
+            critCal.set(Calendar.MILLISECOND, 0);
+
+            boolean modified = false;
+            while (arrCal.after(critCal)) {
+                depCal.add(Calendar.DAY_OF_YEAR, -1);
+                arrCal.add(Calendar.DAY_OF_YEAR, -1);
+                modified = true;
+            }
+            // arrCal也不能太早。如果太早，需要向后移动
+            int dt = (int) ((critCal.getTimeInMillis() - arrCal.getTimeInMillis()) / (1000l * 3600 * 24));
+            if (dt > 0) {
+                depCal.add(Calendar.DAY_OF_YEAR, dt);
+                arrCal.add(Calendar.DAY_OF_YEAR, dt);
+                modified = true;
+            }
+
+            if (modified) {
+                awayTraffic.get(0).ts = depCal.getTime();
+                awayTraffic.get(1).ts = depCal.getTime();
+                awayTraffic.get(2).ts = arrCal.getTime();
+            }
+        }
+        if (!backTraffic.isEmpty()) {
+            Calendar depCal = Calendar.getInstance();
+            depCal.setTime(backTraffic.get(0).ts);
+            Calendar arrCal = Calendar.getInstance();
+            arrCal.setTime(backTraffic.get(2).ts);
+
+            // 如果出发时间过早，早于critCal，则需要调整
+            Calendar critCal = Calendar.getInstance();
+            critCal.setTimeInMillis(endCal.getTimeInMillis());
+            critCal.set(Calendar.HOUR_OF_DAY, 12);
+            critCal.set(Calendar.MINUTE, 0);
+            critCal.set(Calendar.SECOND, 0);
+            critCal.set(Calendar.MILLISECOND, 0);
+
+            boolean modified = false;
+            while (depCal.before(critCal)) {
+                depCal.add(Calendar.DAY_OF_YEAR, 1);
+                arrCal.add(Calendar.DAY_OF_YEAR, 1);
+                modified = true;
+            }
+            // depCal也不能太晚。如果太晚，需要向前移动。
+            int dt = (int) ((arrCal.getTimeInMillis() - critCal.getTimeInMillis()) / (1000l * 3600 * 24));
+            if (dt > 0) {
+                depCal.add(Calendar.DAY_OF_YEAR, -dt);
+                arrCal.add(Calendar.DAY_OF_YEAR, -dt);
+                modified = true;
+            }
+            if (modified) {
+                backTraffic.get(0).ts = depCal.getTime();
+                backTraffic.get(1).ts = depCal.getTime();
+                backTraffic.get(2).ts = arrCal.getTime();
+            }
+        }
+
+        List<PlanDayEntry> entryList = null;
+        for (PlanItem item : awayTraffic) entryList = appendPlanItem(entryList, item, null);
+
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+        for (JsonNode item : rawDetails) {
+            String type = item.get("type").asText();
+            try {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(fmt.parse(item.get("st").asText()));
+                if (type.equals("vs") || type.equals("hotel"))
+                    entryList = appendPlanItem(entryList, poiMapper(item), cal);
+            } catch (ParseException ignored) {
+            }
+        }
+
+        for (PlanItem item : backTraffic) entryList = appendPlanItem(entryList, item, null);
+
+        return entryList;
     }
 
 
     /**
      * 对路线进行优化。
      *
-     * @param keepOrder
      * @return
      */
-    public static Result optimizePlan(int keepOrder) {
+    public static Result optimizePlan() {
         JsonNode rawPlan = request().body().asJson();
 
-        JsonNode details = rawPlan.get("details");
-        if (details == null || details.size() == 0)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid plan details.");
+        // 优化级别。
+        int optLevel = 1;
+        JsonNode tmp = rawPlan.get("optLevel");
+        if (tmp != null)
+            optLevel = tmp.asInt(1);
 
-        ObjectNode ret = Json.newObject();
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+
+        JsonNode details, trafficInfo;
+        Date startDate, endDate;
+        try {
+            details = rawPlan.get("details");
+            trafficInfo = rawPlan.get("traffic");
+            startDate = fmt.parse(rawPlan.get("startDate").asText());
+            endDate = fmt.parse(rawPlan.get("endDate").asText());
+        } catch (ParseException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid plan.");
+        }
+
+        Calendar startCal = Calendar.getInstance();
+        startCal.setTime(startDate);
+        Calendar endCal = Calendar.getInstance();
+        endCal.setTime(endDate);
 
         List<PlanDayEntry> dayEntryList;
         try {
-            dayEntryList = raw2plan(details);
+            dayEntryList = raw2plan(details, trafficInfo, startCal, endCal);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+        PlanAPI.addHotels(dayEntryList);
+
         List<JsonNode> retDetails = new ArrayList<>();
-        for (PlanDayEntry dayEntry : dayEntryList)
-            retDetails.add(dayEntry.toJson());
+        for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
+        ObjectNode ret = Json.newObject();
         ret.put("details", Json.toJson(retDetails));
         ret.put("budget", Json.toJson(Arrays.asList(2000, 3000)));
 
@@ -627,107 +741,5 @@ public class PlanCtrl extends Controller {
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, ret);
-
-//        Datastore dsPOI = null;
-//        Datastore dsTraffic = null;
-//        Datastore dsLoc = null;
-//        try {
-//            dsPOI = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-//            dsTraffic = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
-//            dsLoc = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-//        } catch (TravelPiException ignored) {
-//            return Utils.createResponse(ErrorCode.DATABASE_ERROR, "Database error.");
-//        }
-//
-//        Map<Integer, Poi> planPois = new HashMap<>();
-//        Map<Integer, PlanItem> planItems = new HashMap<>();
-//
-//        int i = -1;
-//        double lat = 40;
-//        double lng = 116;
-//        for (Iterator<JsonNode> it = details.iterator(); it.hasNext(); ) {
-//            i++;
-//
-//            JsonNode node = it.next();
-//            String type = node.get("type").asText();
-//            JsonNode tmp = node.get("subType");
-//            String subType = tmp != null ? tmp.asText() : null;
-//
-//            PlanItem item = new PlanItem();
-//            Poi poi = null;
-//            if (type.equals("vs")) {
-//                ViewSpot vs = dsPOI.createQuery(ViewSpot.class).field("_id").equal(new ObjectId(node.get("itemId").asText())).get();
-//                if (vs == null)
-//                    continue;
-//                SimpleRef ref = new SimpleRef();
-//                ref.id = vs.id;
-//                ref.zhName = vs.name;
-//                item.item = ref;
-//                item.loc = vs.addr.loc;
-//                item.type = type;
-//                poi = new Poi(i + 1, 0, new Point(vs.addr.coords.lng, vs.addr.coords.lat), 240, 4 * 60, 20 * 60);
-//            } else if (type.equals("traffic")) {
-//                if (subType.equals("trainStation")) {
-//
-//                }
-//            }
-//
-//            if (poi != null) {
-//                planItems.put(i, item);
-//                planPois.put(i, poi);
-//            }
-//        }
-//
-//        List<Poi> pois1 = new ArrayList<>();
-////        pois1.add(new Poi(1, 4, new Point(116.342323434, 39.9061892795), 0,
-////                480, 1200));
-//        pois1.add(new Poi(2, 0, new Point(116.337649281, 40.4505339258), 240,
-//                480, 1200));
-//        pois1.add(new Poi(3, 0, new Point(116.391272091, 39.9293099936), 240,
-//                480, 1200));
-////        pois1.add(new Poi(4, 1, new Point(116.391223123, 39.9254654555), 0, 0,
-////                0));
-//
-//        Map<Integer, List<Poi>> allPois = new HashMap<>();
-//
-//        List<Poi> poiList = new ArrayList<>(planPois.values());
-////        allPois.put(1, new ArrayList<Poi>());
-//        allPois.put(2, poiList.subList(0, 2));
-//        allPois.put(3, poiList.subList(2, 5));
-////        allPois.put(4, poiList.subList(3, poiList.size()));
-////        allPois.put(1, new ArrayList<>(pois1));
-//        PlanEngine engine = EngineFactory.createPlanEngine(allPois);
-//        engine.run();
-//        Choice best = engine.getBest();
-//
-//        scala.collection.Iterator<OptimizedPoi> opItr = best.plan().iterator();
-//        List<OptimizedPoi> optimized = new ArrayList<>();
-//        while (opItr.hasNext())
-//            optimized.add(opItr.next());
-//
-//
-////        List<Poi> pois1 = new ArrayList<>();
-////        pois1.add(new Poi(1, 4, new Point(116.342323434, 39.9061892795), 0,
-////                480, 1200));
-////        pois1.add(new Poi(2, 0, new Point(116.337649281, 40.4505339258), 240,
-////                480, 1200));
-////        pois1.add(new Poi(3, 0, new Point(116.391272091, 39.9293099936), 240,
-////                480, 1200));
-////        pois1.add(new Poi(4, 1, new Point(116.391223123, 39.9254654555), 0, 0,
-////                0));
-////        List<Poi> pois2 = new ArrayList<>();
-////        pois2.add(new Poi(5, 0, new Point(116.749835074, 40.6454209626), 240,
-////                480, 1200));
-////        pois2.add(new Poi(6, 4, new Point(116.403794312, 40.9061892795), 0,
-////                480, 1200));
-////        Map<Integer, List<Poi>> allPois = new HashMap<>();
-////        allPois.put(1, pois1);
-//////        allPois.put(2, pois2);
-////        PlanEngine engine = EngineFactory.createPlanEngine(allPois);
-////        engine.run();
-////        Choice best = engine.getBest();
-//////        assertEquals(2, best.plan().length());
-
-//        return Utils.createResponse(ErrorCode.NORMAL, rawPlan);
     }
 }

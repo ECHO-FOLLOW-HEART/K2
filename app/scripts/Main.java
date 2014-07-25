@@ -841,8 +841,7 @@ public class Main {
                         activities.add(planItem);
                     }
                     if (!activities.isEmpty()) {
-                        PlanDayEntry entry = new PlanDayEntry();
-                        entry.actv = activities;
+                        PlanDayEntry entry = new PlanDayEntry(Calendar.getInstance(), activities);
                         details.add(entry);
                     }
                 }

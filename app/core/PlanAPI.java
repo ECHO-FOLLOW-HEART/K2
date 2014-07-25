@@ -161,7 +161,7 @@ public class PlanAPI {
         addTelomere(false, plan, backLoc);
 
         // 加入酒店
-        addHotels(plan);
+        addHotels(plan.details);
 
         return plan;
     }
@@ -170,16 +170,16 @@ public class PlanAPI {
     /**
      * 给路线规划添加酒店。
      *
-     * @param plan
+     * @param entryList
      * @return
      */
-    private static Plan addHotels(Plan plan) {
-        if (plan.details == null)
-            return plan;
+    public static void addHotels(List<PlanDayEntry> entryList) {
+        if (entryList == null)
+            return;
 
-        int cnt = plan.details.size();
+        int cnt = entryList.size();
         for (int i = 0; i < cnt - 1; i++) {
-            PlanDayEntry dayEntry = plan.details.get(i);
+            PlanDayEntry dayEntry = entryList.get(i);
             if (dayEntry == null || dayEntry.actv == null || dayEntry.actv.isEmpty())
                 continue;
 
@@ -196,7 +196,7 @@ public class PlanAPI {
 
             PlanItem lastItem = dayEntry.actv.get(dayEntry.actv.size() - 1);
             // 如果最后一条记录为trainRoute活着airRoute，说明游客还在路上，不需要添加酒店。
-            if (lastItem.type != null && (lastItem.type.equals("trainRoute") || lastItem.type.equals("airRoute")))
+            if (lastItem.subType != null && (lastItem.subType.equals("trainRoute") || lastItem.subType.equals("airRoute")))
                 continue;
 
             // 需要添加酒店
@@ -213,20 +213,20 @@ public class PlanAPI {
                     hotelItem.loc = hotel.addr.loc;
                     hotelItem.type = "hotel";
 
-                    Calendar cal = Calendar.getInstance();
-                    cal.setTime(dayEntry.date);
-                    cal.set(Calendar.HOUR_OF_DAY, 20);
-                    cal.set(Calendar.MINUTE, 0);
-                    cal.set(Calendar.SECOND, 0);
-                    cal.set(Calendar.MILLISECOND, 0);
-                    hotelItem.ts = cal.getTime();
+//                    Calendar cal = Calendar.getInstance();
+//                    cal.setTime(dayEntry.date);
+//                    cal.set(Calendar.HOUR_OF_DAY, 20);
+//                    cal.set(Calendar.MINUTE, 0);
+//                    cal.set(Calendar.SECOND, 0);
+//                    cal.set(Calendar.MILLISECOND, 0);
+//                    hotelItem.ts = cal.getTime();
 
                     dayEntry.actv.add(hotelItem);
                 }
             } catch (TravelPiException ignored) {
             }
         }
-        return plan;
+        return;
     }
 
     /**
@@ -256,15 +256,14 @@ public class PlanAPI {
         }
 
         if (dayEntry == null) {
-            dayEntry = new PlanDayEntry();
+
             Calendar tmpDate = Calendar.getInstance();
             tmpDate.setTimeInMillis(itemDate.getTimeInMillis());
             tmpDate.set(Calendar.HOUR_OF_DAY, 0);
             tmpDate.set(Calendar.MINUTE, 0);
             tmpDate.set(Calendar.SECOND, 0);
             tmpDate.set(Calendar.MILLISECOND, 0);
-            dayEntry.date = tmpDate.getTime();
-            dayEntry.actv = new ArrayList<>();
+            dayEntry = new PlanDayEntry(tmpDate);
 
             if (epDep)
                 plan.details.add(0, dayEntry);
@@ -287,11 +286,10 @@ public class PlanAPI {
      * @param plan
      * @return
      */
-    private static Plan reorder(Plan plan){
+    private static Plan reorder(Plan plan) {
         List<PlanDayEntry> details = plan.details;
-        if (details==null||details.isEmpty())
+        if (details == null || details.isEmpty())
             return plan;
-
 
 
         return plan;

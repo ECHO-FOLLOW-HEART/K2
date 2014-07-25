@@ -50,7 +50,7 @@ GET           /plans/templates/:planId                           controllers.Pla
 # 保存路线
 POST          /plans/ugc/:userId                                 controllers.PlanCtrl.saveUGCPlan(userId: String)
 # 优化路线
-POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan(keepOrder: Int ?= 0)
+POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan()
 
 # POI
 
