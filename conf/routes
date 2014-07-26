@@ -48,7 +48,7 @@ GET           /explore/plans                                     controllers.Pla
 # 路线查询
 GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
 # 保存路线
-POST          /plans/ugc/:userId                                 controllers.PlanCtrl.saveUGCPlan(userId: String)
+POST          /plans/ugc                                         controllers.PlanCtrl.saveUGCPlan()
 # 优化路线
 POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan()
 

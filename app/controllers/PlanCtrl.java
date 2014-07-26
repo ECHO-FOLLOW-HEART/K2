@@ -308,42 +308,10 @@ public class PlanCtrl extends Controller {
     /**
      * 保存用户的路线
      *
-     * @param userId
      * @return
      */
-    public static Result saveUGCPlan(String userId) throws UnknownHostException, TravelPiException {
-//        ObjectNode plan = (ObjectNode) request().body().asJson();
-//        DBCollection col = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
-//
-//        BasicDBObject ugcPlan = new BasicDBObject((java.util.Map) plan);
-//
-//        String planId;
-//        ObjectId planOid, userOid;
-//        try {
-//            userOid = new ObjectId(userId);
-//            DBCollection userCol = Utils.getMongoClient().getDB("user").getCollection("user_info");
-//            DBObject user = userCol.findOne(QueryBuilder.start("_id").is(userOid).get(), BasicDBObjectBuilder.start().get());
-//            if (user == null)
-//                throw new NullPointerException();
-//        } catch (IllegalArgumentException | NullPointerException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user ID: %s.", userId));
-//        }
-//
-//        if (plan.has("_id")) {
-//            planId = plan.get("_id").asText();
-//            try {
-//                planOid = new ObjectId(planId);
-//                DBCollection planCol = Utils.getMongoClient().getDB("plan").getCollection("plan_info");
-//                DBObject planItem = planCol.findOne(QueryBuilder.start("_id").is(planOid).get(), BasicDBObjectBuilder.start().get());
-//                if (planItem == null)
-//                    throw new NullPointerException();
-//            } catch (IllegalArgumentException | NullPointerException e) {
-//                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s", planId));
-//            }
-//        } else
-//            planOid = ObjectId.get();
-//
-//
+    public static Result saveUGCPlan() {
+        JsonNode data = request().body().asJson();
 //        return play.mvc.Results.TODO;
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
