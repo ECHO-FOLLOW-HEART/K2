@@ -27,6 +27,11 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     @Id
     public ObjectId id;
 
+    /**
+     * 表明该UGC路线是基于哪一条模板。
+     */
+    public ObjectId templateId;
+
     @Embedded
     public SimpleRef target;
 
@@ -58,28 +63,6 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public List<PlanDayEntry> details;
 
-    /**
-     * 重新排序
-     */
-    public void reorder() {
-        if (details == null)
-            return;
-
-        return;
-    }
-
-    /**
-     * 添加一项活动，按照时间顺序插入
-     *
-     * @param item
-     */
-    public void insertActivity(PlanItem item) {
-        if (details == null || item.ts == null)
-            return;
-
-
-    }
-
     @Override
     public JsonNode toJson() {
         return toJson(true);
@@ -88,6 +71,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public JsonNode toJson(boolean showDetails) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
+        builder.add("templateId", (templateId != null ? templateId.toString() : ""));
         builder.add("target", target.toJson());
         builder.add("tags", (tags != null && !tags.isEmpty()) ? Json.toJson(tags) : new ArrayList<>());
         builder.add("title", (title != null && !title.isEmpty()) ? title : "");

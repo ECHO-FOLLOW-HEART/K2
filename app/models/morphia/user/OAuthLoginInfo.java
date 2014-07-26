@@ -8,7 +8,7 @@ import play.data.validation.Constraints;
  * Created by zephyre on 7/24/14.
  */
 @Embedded
-public class OAuthInfo {
+public class OAuthLoginInfo {
     @Constraints.Required
     public String provider;
 

@@ -135,6 +135,7 @@ public class PlanAPI {
     public static Plan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate) throws TravelPiException {
         Plan plan = getPlan(planId, false);
         plan.id = new ObjectId();
+        plan.templateId = planId;
 
         // TODO 景点需要照片、描述等内容。
 
