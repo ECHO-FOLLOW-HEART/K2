@@ -59,7 +59,6 @@ public class PlanCtrl extends Controller {
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-
             return Utils.createResponse(ErrorCode.NORMAL, planJson);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -393,7 +392,6 @@ public class PlanCtrl extends Controller {
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
-
 
     /**
      * POI映射类

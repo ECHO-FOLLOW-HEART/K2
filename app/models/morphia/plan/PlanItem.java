@@ -61,6 +61,14 @@ public class PlanItem implements ITravelPiFormatter {
         } else
             builder.add("ts", "");
 
+        if (type!=null && type.equals("vs")){
+            // 将景点详情嵌入
+            try {
+                builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.VIEW_SPOT, true).toJson(2));
+            } catch (TravelPiException ignored) {
+            }
+        }
+
         return Json.toJson(builder.get());
     }
 }

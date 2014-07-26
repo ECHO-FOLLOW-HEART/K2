@@ -279,7 +279,6 @@ public class PlanAPI {
         return plan;
     }
 
-
     /**
      * 扫描一遍，确保plan中每个item的时间戳都是正确的。
      *
@@ -290,7 +289,6 @@ public class PlanAPI {
         List<PlanDayEntry> details = plan.details;
         if (details == null || details.isEmpty())
             return plan;
-
 
         return plan;
     }
