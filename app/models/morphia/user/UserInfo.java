@@ -35,7 +35,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 第三方OAuth登录信息
      */
-    public List<OAuthLoginInfo> oauthList;
+    public List<OAuthInfo> oauthList;
 
     /**
      * 唯一设备号。

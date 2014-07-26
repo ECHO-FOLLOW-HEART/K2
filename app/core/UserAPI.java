@@ -5,7 +5,7 @@ import com.mongodb.DBObject;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.user.OAuthLoginInfo;
+import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -119,7 +119,7 @@ public class UserAPI {
         user.udid = udid;
         user.oauthList = new ArrayList<>();
 
-        OAuthLoginInfo oauthInfo = new OAuthLoginInfo();
+        OAuthInfo oauthInfo = new OAuthInfo();
         oauthInfo.provider = provider;
         oauthInfo.oauthId = oauthId;
         oauthInfo.nickName = nickName;
