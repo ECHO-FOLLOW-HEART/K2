@@ -40,7 +40,8 @@ GET           /itineraries/air-routes                            controllers.Tra
 GET           /itineraries/air-routes/:flightCode                controllers.TrafficCtrl.getAirRouteByCode(flightCode: String, depTime: String?="")
 GET           /itineraries/train-station                         controllers.TrafficCtrl.searchTrainStationByLoc(loc: String)
 GET           /itineraries/train-routes                          controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String, sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
-GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String)
+GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String, depTime: String?="")
+#GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCodeOld(trainCode: String)
 
 # 路线相关接口
 # 发现路线

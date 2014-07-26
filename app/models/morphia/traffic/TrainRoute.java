@@ -1,6 +1,7 @@
 package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.SimpleRef;
@@ -21,47 +22,23 @@ import java.util.Map;
  */
 @Entity
 public class TrainRoute extends AbstractRoute {
-    @Id
-    public ObjectId id;
-
-    @Constraints.Required
-    @Embedded
-    public SimpleRef depStop;
-
-    @Constraints.Required
-    @Embedded
-    public SimpleRef arrStop;
-
-    @Constraints.Required
-    @Embedded
-    public SimpleRef depLoc;
-
-    @Constraints.Required
-    @Embedded
-    public SimpleRef arrLoc;
-
-    public int distance;
-
-    @Constraints.Required
-    public String code;
-
     public Map<String, Double> price;
 
-    @Constraints.Required
-    public int timeCost;
-
-    @Constraints.Required
-    public Date depTime;
-
-    @Constraints.Required
-    public Date arrTime;
-
+    /**
+     * 列车车次的类型。包括但不限于：
+     * T：特快
+     * D：动车
+     * G：高铁
+     */
     public String type;
 
     public List<TrainEntry> details;
 
     @Override
     public JsonNode toJson() {
-        return null;
+        ObjectNode ret = (ObjectNode) super.toJson();
+
+
+        return ret;
     }
 }

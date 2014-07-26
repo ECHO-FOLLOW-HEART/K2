@@ -8,6 +8,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.RouteIterator;
+import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -81,7 +82,7 @@ public class TrafficCtrl extends Controller {
      * @param depId      出发地id（机场、城市均可）。
      * @param arrId      到达地id（机场、城市均可）。
      * @param ts         出发时间。
-     * @param sortType       排序方式。
+     * @param sortType   排序方式。
      * @param timeFilter 出发时间过滤。dep：按照出发时间过滤；arr：按照到达时间过滤。
      * @param page       分页偏移量。
      * @param pageSize   页面大小。
@@ -307,7 +308,46 @@ public class TrafficCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getTrainRouteByCode(String trainCode) throws UnknownHostException, TravelPiException {
+    public static Result getTrainRouteByCode(String trainCode, String ts) {
+        Calendar cal = null;
+        if (ts != null && !ts.isEmpty()) {
+            Matcher matcher = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}").matcher(ts);
+            if (matcher.find()) {
+                ts = matcher.group();
+                SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    Date date = fmt.parse(ts);
+                    cal = Calendar.getInstance();
+                    cal.setTime(date);
+                } catch (ParseException ignored) {
+                }
+            }
+        }
+
+        if (cal == null) {
+            // 默认：一天以后
+            cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis() + 24 * 3600 * 1000);
+        }
+
+        try {
+            TrainRoute route = TrafficAPI.getTrainRouteByCode(trainCode, cal);
+            if (route == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid train code: %s.", trainCode));
+            return Utils.createResponse(ErrorCode.NORMAL, route.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 按照车次获得火车信息。
+     *
+     * @param trainCode
+     * @return
+     * @throws UnknownHostException
+     */
+    public static Result getTrainRouteByCodeOld(String trainCode) throws UnknownHostException, TravelPiException {
         trainCode = trainCode.toUpperCase();
         MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
