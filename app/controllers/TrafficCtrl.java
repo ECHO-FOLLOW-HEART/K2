@@ -305,7 +305,6 @@ public class TrafficCtrl extends Controller {
      *
      * @param trainCode
      * @return
-     * @throws UnknownHostException
      */
     public static Result getTrainRouteByCode(String trainCode) throws UnknownHostException, TravelPiException {
         trainCode = trainCode.toUpperCase();

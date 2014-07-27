@@ -1,24 +1,22 @@
 package models.morphia.geo;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import misc.GlobalInfo;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.Ratings;
 import models.morphia.misc.SimpleRef;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
-import play.Configuration;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,9 +27,6 @@ import java.util.regex.Pattern;
  */
 @Entity
 public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
-    @Id
-    public ObjectId id;
-
     @Indexed()
     public String zhName;
 
@@ -95,37 +90,37 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
      * @return
      */
     public String stripLocName(String name) {
-        Pattern pattern=Pattern.compile("自治[区县]");
-        Matcher m = pattern.matcher(name);
-        int start=-1;
-        int end = -1;
-        if (m.find()){
-            start = m.start();
-            end=m.end();
-        }
-        int idx = start;
+        Pattern pattern = Pattern.compile("(族|自治)");
 
-        if (idx!= -1) {
-            // 尝试找出是什么族
-            Configuration config = Configuration.root();
-            String minorities = null;
-            Map md = (Map) config.getObject("metadata");
-            if (md != null)
-                minorities = md.get("minorities").toString();
+        while (true) {
+            boolean stripped = false;
+            Matcher m = pattern.matcher(name);
+            int start = -1;
+            if (m.find())
+                start = m.start();
+            int idx = start;
+            int endIdx = start;
 
-            int endIdx = idx + 1;
-            idx--;
-            while (idx > 0 && minorities != null) {
-                Matcher matcher = Pattern.compile(name.substring(idx, endIdx)).matcher(minorities);
-                if (matcher.find()) {
-                    name = name.substring(0, idx);
-                    break;
-                }
+            if (idx != -1) {
+                // 尝试找出是什么族
+                String minorities = (String) GlobalInfo.metadata.get("minoritiesDesc");
                 idx--;
+                while (idx > 0) {
+                    Matcher matcher = Pattern.compile(name.substring(idx, endIdx)).matcher(minorities);
+                    if (matcher.find()) {
+                        name = name.substring(0, idx);
+                        stripped = true;
+                        break;
+                    }
+                    idx--;
+                }
             }
+
+            if (!stripped)
+                break;
         }
 
-        pattern = Pattern.compile("(市|县|省|直辖市|自治县|自治区)$");
+        pattern = Pattern.compile("(市|县|省|直辖市|自治县|自治区|地区)$");
         name = pattern.matcher(name).replaceAll("");
 
         return name;
@@ -138,11 +133,14 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public JsonNode toJson(int detailLevel) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("name", stripLocName(zhName)).add("level", level);
+        builder.add("_id", id.toString()).add("name", stripLocName(zhName)).add("level", level).add("fullName", zhName);
 
         if (superAdm != null) {
-            superAdm.zhName = stripLocName(superAdm.zhName);
-            builder.add("parent", superAdm.toJson());
+            String fullName = superAdm.zhName;
+            superAdm.zhName = stripLocName(fullName);
+            ObjectNode node = (ObjectNode) superAdm.toJson();
+            node.put("fullName", fullName);
+            builder.add("parent", node);
         } else
             builder.add("parent", new BasicDBObject());
 

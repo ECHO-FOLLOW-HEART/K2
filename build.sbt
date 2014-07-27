@@ -24,3 +24,4 @@ libraryDependencies ++= Seq(
 )
 
 //externalPom(Def.setting(baseDirectory.value / "morphia-validation.xml"))
+javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
