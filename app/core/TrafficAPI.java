@@ -23,7 +23,7 @@ public class TrafficAPI {
      * 排序的字段。
      */
     public enum SortField {
-        PRICE, DEP_TIME, ARR_TIME, TIME_COST
+        PRICE, DEP_TIME, ARR_TIME, TIME_COST,CODE
     }
 
     /**
@@ -120,6 +120,7 @@ public class TrafficAPI {
                     query.criteria("price.price").lessThanOrEq(upper));
         }
 
+
         // 排序
         String stKey = null;
         switch (sortField) {
@@ -180,5 +181,102 @@ public class TrafficAPI {
         route.arrTime = arrTime.getTime();
 
         return route;
+    }
+
+    /**
+     * 搜索火车信息。
+     *
+     * @param depId
+     * @param arrId        @throws TravelPiException
+     * @param baseCal
+     * @param depTimeLimit
+     * @param arrTimeLimit
+     * @param priceLimits
+     */
+    public static RouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId, Calendar baseCal, final List<Calendar> depTimeLimit,
+                  final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField,
+                  int sortType, int page, int pageSize) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Query<TrainRoute> query = ds.createQuery(TrainRoute.class);
+
+        query.or(query.criteria("depStop.id").equal(depId), query.criteria("depLoc.id").equal(depId));
+        query.or(query.criteria("arrStop.id").equal(arrId), query.criteria("arrLoc.id").equal(arrId));
+
+
+        // 时间节点过滤
+        for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {
+            {
+                put("depTime", depTimeLimit);
+                put("arrTime", arrTimeLimit);
+            }
+        }.entrySet()) {
+            String k = entry.getKey();
+            List<Calendar> timeLimits = entry.getValue();
+
+            if (timeLimits != null && timeLimits.size() == 2) {
+                Calendar lower = Calendar.getInstance();
+                lower.setTimeInMillis(timeLimits.get(0).getTimeInMillis());
+                Calendar upper = Calendar.getInstance();
+                upper.setTimeInMillis(timeLimits.get(1).getTimeInMillis());
+                long elapse = upper.getTimeInMillis() - lower.getTimeInMillis();
+                lower.set(1980, Calendar.JANUARY, 1);
+                upper.setTimeInMillis(lower.getTimeInMillis() + elapse);
+                query.and(query.criteria(k).greaterThanOrEq(lower.getTime()), query.criteria(k).lessThanOrEq(upper.getTime()));
+            }
+        }
+
+        // 时间节点过滤
+        if (epTimeLimits != null && epTimeLimits.size() == 2) {
+            Calendar lower = Calendar.getInstance();
+            lower.setTimeInMillis(epTimeLimits.get(0).getTimeInMillis());
+            Calendar upper = Calendar.getInstance();
+            upper.setTimeInMillis(epTimeLimits.get(1).getTimeInMillis());
+            long elapse = upper.getTimeInMillis() - lower.getTimeInMillis();
+            lower.set(1980, Calendar.JANUARY, 1);
+            upper.setTimeInMillis(lower.getTimeInMillis() + elapse);
+            query.and(query.criteria("depTime").greaterThanOrEq(lower.getTime()),
+                    query.criteria("arrTime").lessThanOrEq(upper.getTime()));
+        }
+
+        // 价格过滤
+        if (priceLimits != null && priceLimits.size() == 2) {
+            Double lower = priceLimits.get(0);
+            Double upper = priceLimits.get(1);
+            query.and(query.criteria("price.price").greaterThanOrEq(lower),
+                    query.criteria("price.price").lessThanOrEq(upper));
+        }
+
+
+        // 排序
+        String stKey = null;
+        switch (sortField) {
+            case CODE:
+                stKey = "code";
+                break;
+            case PRICE:
+                stKey = "price.price";
+                break;
+            case TIME_COST:
+                stKey = "timeCost";
+                break;
+            case DEP_TIME:
+                stKey = "depTime";
+                break;
+            case ARR_TIME:
+                stKey = "arrTime";
+                break;
+        }
+        query.order(String.format("%s%s", sortType > 0 ? "" : "-", stKey));
+        query.offset(page * pageSize).limit(pageSize);
+        Iterator<TrainRoute> it = query.iterator();
+
+        Calendar cal;
+        if (epTimeLimits != null && epTimeLimits.size() == 2)
+            cal = epTimeLimits.get(0);
+        else
+            cal = baseCal;
+        return RouteIterator.getInstance(it, (cal != null ? cal.getTime() : null));
+
     }
 }
