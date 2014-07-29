@@ -16,3 +16,4 @@ dist
 *.log
 doc
 conf/mongodb.conf
+*.jar

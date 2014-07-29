@@ -8,6 +8,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.RouteIterator;
+import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -81,7 +82,7 @@ public class TrafficCtrl extends Controller {
      * @param depId      出发地id（机场、城市均可）。
      * @param arrId      到达地id（机场、城市均可）。
      * @param ts         出发时间。
-     * @param sortType       排序方式。
+     * @param sortType   排序方式。
      * @param timeFilter 出发时间过滤。dep：按照出发时间过滤；arr：按照到达时间过滤。
      * @param page       分页偏移量。
      * @param pageSize   页面大小。
@@ -197,70 +198,80 @@ public class TrafficCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getTrainRoutes(String departure, String arrival, String sortField, String sort,
+    public static Result getTrainRoutes(String depId, String arrId, String sortField, String sortType,
                                         String timeFilterType, int timeFilter, int page, int pageSize)
             throws UnknownHostException, TravelPiException {
-        Traffic.SortField sf = null;
+        int sort = -1;
+        if (sortType != null && sortType.equals("asc"))
+            sort = 1;
+        String ts = "";
+        Calendar cal = null;
+        if (ts != null && !ts.isEmpty()) {
+            Matcher matcher = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}").matcher(ts);
+            if (matcher.find()) {
+                ts = matcher.group();
+                SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    Date date = fmt.parse(ts);
+                    cal = Calendar.getInstance();
+                    cal.setTime(date);
+                } catch (ParseException ignored) {
+                }
+            }
+
+        }
+        if (cal == null) {
+            // 默认：一天以后
+            cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis() + 24 * 3600 * 1000);
+        }
+
+        TrafficAPI.SortField sf = TrafficAPI.SortField.PRICE;
         switch (sortField) {
             case "price":
-                sf = Traffic.SortField.PRICE;
+                sf = TrafficAPI.SortField.PRICE;
                 break;
             case "dep":
-                sf = Traffic.SortField.DEP_TIME;
+                sf = TrafficAPI.SortField.DEP_TIME;
                 break;
             case "arr":
-                sf = Traffic.SortField.ARR_TIME;
+                sf = TrafficAPI.SortField.ARR_TIME;
                 break;
             case "timeCost":
-                sf = Traffic.SortField.TIME_COST;
-                break;
-        }
-        Traffic.SortType st = null;
-        switch (sort) {
-            case "asc":
-                st = Traffic.SortType.ASC;
-                break;
-            case "desc":
-                st = Traffic.SortType.DESC;
+                sf = TrafficAPI.SortField.TIME_COST;
                 break;
         }
 
         // 时间段过滤
+        Calendar lower = Calendar.getInstance();
+        Calendar upper = Calendar.getInstance();
         List<Calendar> timeLimits = null;
         switch (timeFilter) {
-            case 0:
-                break;
             case 1:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 6, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
-                    add(cal);
-                }};
+                lower.set(Calendar.HOUR_OF_DAY, 6);
+                upper.set(Calendar.HOUR_OF_DAY, 12);
                 break;
             case 2:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 12, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
-                    add(cal);
-                }};
+                lower.set(Calendar.HOUR_OF_DAY, 6);
+                upper.set(Calendar.HOUR_OF_DAY, 12);
                 break;
             case 3:
-                timeLimits = new ArrayList<Calendar>() {{
-                    Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 18, 0);
-                    add(cal);
-                    cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Shanghai"));
-                    cal.set(1980, Calendar.JANUARY, 1, 23, 59);
-                    add(cal);
-                }};
+                lower.set(Calendar.HOUR_OF_DAY, 12);
+                upper.set(Calendar.HOUR_OF_DAY, 18);
                 break;
+            case 4:
+                lower.set(Calendar.HOUR_OF_DAY, 18);
+                upper.set(Calendar.HOUR_OF_DAY, 23);
+                upper.set(Calendar.MINUTE, 59);
+                upper.set(Calendar.SECOND, 59);
+                upper.set(Calendar.MILLISECOND, 0);
+                break;
+            default:
+                lower = null;
+                upper = null;
         }
+        if (lower != null && upper != null)
+            timeLimits = Arrays.asList(lower, upper);
         List<Calendar> depLimits = null;
         List<Calendar> arrLimits = null;
         if (timeFilterType.equals("dep"))
@@ -268,36 +279,62 @@ public class TrafficCtrl extends Controller {
         else if (timeFilterType.equals("arr"))
             arrLimits = timeLimits;
 
-        BasicDBList routeList = Traffic.searchTrainRoute(departure, arrival, null, depLimits, arrLimits, null, null, sf, st);
+        try {
+            ObjectId depOid = new ObjectId(depId);
+            ObjectId arrOid = new ObjectId(arrId);
 
-        List<Object> ret;
-        int fromIdx = page * pageSize;
-        if (fromIdx >= routeList.size())
-            ret = new ArrayList<>();
-        else {
-            int toIdx = fromIdx + pageSize;
-            if (toIdx > routeList.size())
-                toIdx = routeList.size();
-            ret = routeList.subList(fromIdx, toIdx);
+            List<JsonNode> results = new ArrayList<>();
+            for (RouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid, cal, depLimits, arrLimits, null, null,
+                    sf, sort, page, pageSize); it.hasNext(); ) {
+                results.add(it.next().toJson());
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid IDs. Dep: %s, arr: %s.",
+                    (depId != null ? depId : "NULL"), (arrId != null ? arrId : "NULL")));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        final DateFormat fmt = new SimpleDateFormat("HH:mm");
-        TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
-        fmt.setTimeZone(tz);
-        for (Object obj : ret) {
-            DBObject route = (DBObject) obj;
-            route.put("_id", route.get("_id").toString());
-            for (String k1 : new String[]{"arr", "dep"}) {
-                DBObject stop = (DBObject) route.get(k1);
-                for (String k2 : new String[]{"locId", "stopId"}) {
-                    stop.put(k2, stop.get(k2).toString());
+    }
+
+    /**
+     * 按照车次获得火车信息。
+     *
+     * @param trainCode
+     * @return
+     * @throws UnknownHostException
+     */
+    public static Result getTrainRouteByCode(String trainCode, String ts) {
+        Calendar cal = null;
+        if (ts != null && !ts.isEmpty()) {
+            Matcher matcher = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}").matcher(ts);
+            if (matcher.find()) {
+                ts = matcher.group();
+                SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
+                try {
+                    Date date = fmt.parse(ts);
+                    cal = Calendar.getInstance();
+                    cal.setTime(date);
+                } catch (ParseException ignored) {
                 }
             }
-            route.put("depTime", fmt.format(route.get("depTime")));
-            route.put("arrTime", fmt.format(route.get("arrTime")));
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(ret));
+        if (cal == null) {
+            // 默认：一天以后
+            cal = Calendar.getInstance();
+            cal.setTimeInMillis(System.currentTimeMillis() + 24 * 3600 * 1000);
+        }
+
+        try {
+            TrainRoute route = TrafficAPI.getTrainRouteByCode(trainCode, cal);
+            if (route == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid train code: %s.", trainCode));
+            return Utils.createResponse(ErrorCode.NORMAL, route.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
     }
 
     /**
@@ -306,7 +343,7 @@ public class TrafficCtrl extends Controller {
      * @param trainCode
      * @return
      */
-    public static Result getTrainRouteByCode(String trainCode) throws UnknownHostException, TravelPiException {
+    public static Result getTrainRouteByCodeOld(String trainCode) throws UnknownHostException, TravelPiException {
         trainCode = trainCode.toUpperCase();
         MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
