@@ -193,12 +193,16 @@ public class TrafficAPI {
      * @param arrTimeLimit
      * @param priceLimits
      */
-    public static RouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId, Calendar baseCal, final List<Calendar> depTimeLimit,
+    public static RouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId,String trainType, Calendar baseCal, final List<Calendar> depTimeLimit,
                   final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField,
                   int sortType, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<TrainRoute> query = ds.createQuery(TrainRoute.class);
+
+        if(!trainType.equals("")){
+            query.field("type").equal(trainType);
+        }
 
         query.or(query.criteria("depStop.id").equal(depId), query.criteria("depLoc.id").equal(depId));
         query.or(query.criteria("arrStop.id").equal(arrId), query.criteria("arrLoc.id").equal(arrId));

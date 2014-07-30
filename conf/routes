@@ -39,7 +39,7 @@ GET           /geo/localities/baiduId/:baiduId                   controllers.Geo
 GET           /itineraries/air-routes                            controllers.TrafficCtrl.searchAirRoutes(dep: String, arr: String, depTime: String?="", sortField: String?="price", sort: String?="desc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET           /itineraries/air-routes/:flightCode                controllers.TrafficCtrl.getAirRouteByCode(flightCode: String, depTime: String?="")
 GET           /itineraries/train-station                         controllers.TrafficCtrl.searchTrainStationByLoc(loc: String)
-GET           /itineraries/train-routes                          controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String,depTime: String?="", sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
+GET           /itineraries/train-routes                          controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String,depTime: String?="", trainType: String?="", sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String, depTime: String?="")
 #GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCodeOld(trainCode: String)
 
