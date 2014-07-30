@@ -134,6 +134,9 @@ public class PlanAPI {
      */
     public static Plan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate) throws TravelPiException {
         Plan plan = getPlan(planId, false);
+        if (plan == null)
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId.toString()));
+
         plan.id = new ObjectId();
         plan.templateId = planId;
 
