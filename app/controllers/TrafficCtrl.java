@@ -198,7 +198,7 @@ public class TrafficCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getTrainRoutes(String depId, String arrId,String ts,String sortField, String sortType,
+    public static Result getTrainRoutes(String depId, String arrId,String ts,String trainType,String sortField, String sortType,
                                         String timeFilterType, int timeFilter, int page, int pageSize)
             throws UnknownHostException, TravelPiException {
         int sort = -1;
@@ -287,7 +287,7 @@ public class TrafficCtrl extends Controller {
             ObjectId arrOid = new ObjectId(arrId);
 
             List<JsonNode> results = new ArrayList<>();
-            for (RouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid, cal, depLimits, arrLimits, null, null,
+            for (RouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid,trainType, cal, depLimits, arrLimits, null, null,
                     sf, sort, page, pageSize); it.hasNext(); ) {
                 results.add(it.next().toJson());
             }
