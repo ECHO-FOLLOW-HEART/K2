@@ -91,7 +91,7 @@ public class PoiAPI {
      */
     public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, ObjectId locId, String tag,
                                                                       String searchWord, final SortField sortField, boolean asc,
-                                                                      int page, int pageSize, boolean details, Map<String, Object> extra)
+                                                                      int page, int pageSize, boolean details, Map<String, Object> extra,String hotelType)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
 
@@ -117,6 +117,8 @@ public class PoiAPI {
             query = query.filter("name", Pattern.compile(searchWord));
         if (tag != null && !tag.isEmpty())
             query = query.field("tags").equal(tag);
+        if (hotelType != null && !hotelType.isEmpty())
+            query = query.field("type").equal(hotelType);
 
         int detailLvl = details ? 3 : 2;
         try {

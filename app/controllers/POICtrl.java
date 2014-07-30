@@ -74,7 +74,7 @@ public class POICtrl extends Controller {
                             {
                                 put("_id !=", vsId);
                             }
-                        }); it.hasNext(); ) {
+                        },null); it.hasNext(); ) {
                     AbstractPOI vs = it.next();
                     vsList.add(vs.toJson(1));
                 }
@@ -247,7 +247,7 @@ public class POICtrl extends Controller {
                         {
                             put("_id !=", locId);
                         }
-                    }); it.hasNext(); ) {
+                    },null); it.hasNext(); ) {
                 ViewSpot vs = (ViewSpot) it.next();
                 vsList.add(vs.toJson(2));
             }
@@ -270,7 +270,7 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize,String sortField, String sortType) {
+    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize,String sortField, String sortType,String hotelType) {
         if (locId.isEmpty())
             locId = null;
 
@@ -316,7 +316,7 @@ public class POICtrl extends Controller {
                 }
             }
             List<JsonNode> results = new ArrayList<>();
-            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null);
+            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null,hotelType);
             while (it.hasNext())
                 results.add(it.next().toJson(2));
 
