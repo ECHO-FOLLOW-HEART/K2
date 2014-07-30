@@ -33,6 +33,12 @@ import java.util.regex.Pattern;
 public class PoiAPI {
 
     /**
+     * 排序的字段。
+     */
+    public enum SortField {
+        SCORE,PRICE
+    }
+    /**
      * 获得POI联想列表。
      *
      * @param poiType
@@ -84,7 +90,7 @@ public class PoiAPI {
      * @param extra      其它过滤方式。参见Morphia filter的介绍。
      */
     public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, ObjectId locId, String tag,
-                                                                      String searchWord, String sortField, boolean asc,
+                                                                      String searchWord, final SortField sortField, boolean asc,
                                                                       int page, int pageSize, boolean details, Map<String, Object> extra)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
@@ -125,7 +131,18 @@ public class PoiAPI {
             for (Map.Entry<String, Object> entry : extra.entrySet())
                 query = query.filter(entry.getKey(), entry.getValue());
         }
-        query.order("-ratings.score").offset(page * pageSize).limit(pageSize);
+        // 排序
+        String stKey = null;
+        switch (sortField) {
+            case PRICE:
+                stKey = "price";
+                break;
+            case SCORE:
+                stKey = "ratings.score";
+                break;
+        }
+        query.order(String.format("%s%s", asc ? "" : "-", stKey));
+       // query.order("-ratings.score").offset(page * pageSize).limit(pageSize);
 
         return query.iterator();
     }

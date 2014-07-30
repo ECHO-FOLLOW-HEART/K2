@@ -68,6 +68,9 @@ public class ViewSpot extends AbstractPOI {
      */
     public Integer rankingA;
 
+    /**
+     * 开放时间
+     */
     public String openTime;
 
     /**
