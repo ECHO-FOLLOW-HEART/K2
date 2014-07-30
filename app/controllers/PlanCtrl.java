@@ -556,7 +556,7 @@ public class PlanCtrl extends Controller {
 //                planItem.ts = trainRoute.depTime;
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
-                } catch (ParseException ignored) {
+                } catch (ParseException | NullPointerException ignored) {
                 }
                 break;
         }
