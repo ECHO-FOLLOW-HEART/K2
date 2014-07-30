@@ -51,6 +51,8 @@ public class PlanAPI {
         if (tag != null && !tag.isEmpty())
             query.field("tags").equal(tag);
 
+        query.field("desc").notEqual("");
+
         query.order("-ratings.viewCnt").offset(page * pageSize).limit(pageSize);
 
         return query.iterator();
