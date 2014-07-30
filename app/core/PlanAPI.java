@@ -184,9 +184,10 @@ public class PlanAPI {
             return;
 
         int cnt = entryList.size();
+        SimpleRef lastLoc = null;
         for (int i = 0; i < cnt - 1; i++) {
             PlanDayEntry dayEntry = entryList.get(i);
-            if (dayEntry == null || dayEntry.actv == null || dayEntry.actv.isEmpty())
+            if (dayEntry == null || dayEntry.actv == null)
                 continue;
 
             // 查找activities中是否已经存在酒店
@@ -200,14 +201,19 @@ public class PlanAPI {
             if (hasHotel)
                 continue;
 
-            PlanItem lastItem = dayEntry.actv.get(dayEntry.actv.size() - 1);
-            // 如果最后一条记录为trainRoute活着airRoute，说明游客还在路上，不需要添加酒店。
-            if (lastItem.subType != null && (lastItem.subType.equals("trainRoute") || lastItem.subType.equals("airRoute")))
+            if (!dayEntry.actv.isEmpty()) {
+                PlanItem lastItem = dayEntry.actv.get(dayEntry.actv.size() - 1);
+                // 如果最后一条记录为trainRoute活着airRoute，说明游客还在路上，不需要添加酒店。
+                if (lastItem.subType != null && (lastItem.subType.equals("trainRoute") || lastItem.subType.equals("airRoute")))
+                    continue;
+                lastLoc = lastItem.loc;
+            }
+            if (lastLoc == null)
                 continue;
 
             // 需要添加酒店
             try {
-                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastItem.loc.id, 0, 1);
+                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastLoc.id, 0, 1);
                 if (itr.hasNext()) {
                     Hotel hotel = (Hotel) itr.next();
                     PlanItem hotelItem = new PlanItem();

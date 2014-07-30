@@ -780,7 +780,7 @@ public class PlanCtrl extends Controller {
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
         ret.put("details", Json.toJson(retDetails));
-        ret.put("budget", Json.toJson(Arrays.asList(2000, 3000)));
+//        ret.put("budget", Json.toJson(Arrays.asList(2000, 3000)));
 
         try {
             fullfill(ret);
