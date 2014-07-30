@@ -75,7 +75,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
         // level1
         builder.add("_id", id.toString());
-        builder.add("ratings", (ratings != null ? ratings.toJson() : new BasicDBObject()));
+        if (ratings == null)
+            ratings = new CheckinRatings();
+        builder.add("ratings", ratings.toJson());
         builder.add("name", (name != null ? name : ""));
 
         // level2
@@ -96,7 +98,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
             if (price != null)
                 builder.add("price", price);
-                builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
+            builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
 
             // level3
             if (level > 2) {

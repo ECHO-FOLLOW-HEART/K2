@@ -6,8 +6,6 @@ import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 
-import java.util.Random;
-
 /**
  * POI的评论信息。
  *
@@ -35,9 +33,9 @@ public class Ratings implements ITravelPiFormatter {
 //        if (ranking == null)
 //            ranking = 0.8;
         if (viewCnt == null)
-            viewCnt = (new Random()).nextInt(324);
+            viewCnt = (score != null ? score % 500 : 23);// (new Random()).nextInt(324);
         if (favorCnt == null)
-            favorCnt = (new Random()).nextInt(324);
+            favorCnt = (score != null ? score * 9 % 439 : 87);//(new Random()).nextInt(324);
 
         for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt", "ranking"}) {
             Object val = null;
@@ -48,6 +46,12 @@ public class Ratings implements ITravelPiFormatter {
             if (val != null)
                 builder.add(k, val);
         }
+
+        // TODO 保证ranking>0.3
+        if (ranking == null)
+            ranking = 0.0;
+        ranking = ranking * 0.7 + 0.3;
+        builder.add("ranking", ranking);
 
 
         return Json.toJson(builder.get());
