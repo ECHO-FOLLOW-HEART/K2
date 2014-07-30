@@ -270,7 +270,7 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize) {
+    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize,String sortField, String sortType) {
         if (locId.isEmpty())
             locId = null;
 
@@ -289,6 +289,21 @@ public class POICtrl extends Controller {
         if (type == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
+        //处理排序
+        boolean sort = false;
+        if (sortType != null && sortType.equals("asc"))
+            sort = true;
+
+        PoiAPI.SortField sf = PoiAPI.SortField.PRICE;
+        switch (sortField) {
+            case "price":
+                sf = PoiAPI.SortField.PRICE;
+                break;
+            case "score":
+                sf = PoiAPI.SortField.SCORE;
+                break;
+        }
+
         try {
             ObjectId locOid;
             if (locId == null)
@@ -301,7 +316,7 @@ public class POICtrl extends Controller {
                 }
             }
             List<JsonNode> results = new ArrayList<>();
-            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, null, false, page, pageSize, true, null);
+            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null);
             while (it.hasNext())
                 results.add(it.next().toJson(2));
 

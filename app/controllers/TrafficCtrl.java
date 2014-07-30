@@ -198,13 +198,13 @@ public class TrafficCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getTrainRoutes(String depId, String arrId, String sortField, String sortType,
+    public static Result getTrainRoutes(String depId, String arrId,String ts,String sortField, String sortType,
                                         String timeFilterType, int timeFilter, int page, int pageSize)
             throws UnknownHostException, TravelPiException {
         int sort = -1;
         if (sortType != null && sortType.equals("asc"))
             sort = 1;
-        String ts = "";
+
         Calendar cal = null;
         if (ts != null && !ts.isEmpty()) {
             Matcher matcher = Pattern.compile("^\\d{4}-\\d{2}-\\d{2}").matcher(ts);
@@ -228,6 +228,9 @@ public class TrafficCtrl extends Controller {
 
         TrafficAPI.SortField sf = TrafficAPI.SortField.PRICE;
         switch (sortField) {
+            case "code":
+                sf = TrafficAPI.SortField.CODE;
+                break;
             case "price":
                 sf = TrafficAPI.SortField.PRICE;
                 break;
