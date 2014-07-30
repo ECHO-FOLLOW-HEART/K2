@@ -8,6 +8,7 @@ import com.mongodb.QueryBuilder;
 import core.PlanAPI;
 import core.PlanAPIOld;
 import core.PoiAPI;
+import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -15,7 +16,9 @@ import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
+import models.morphia.poi.AbstractPOI;
 import models.morphia.poi.Hotel;
+import models.morphia.poi.Restaurant;
 import models.morphia.poi.ViewSpot;
 import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.Airport;
@@ -56,13 +59,90 @@ public class PlanCtrl extends Controller {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
             Plan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
+            buildBudget(plan);
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
+
 
             return Utils.createResponse(ErrorCode.NORMAL, planJson);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+    }
+
+    /**
+     * 计算预算数据。
+     *
+     * @param plan
+     * @return
+     */
+    private static Plan buildBudget(Plan plan) {
+        List<Integer> budget = Arrays.asList(0, 0);
+//        if (budget == null || budget.isEmpty())
+
+        // 扫描plan，获得价格信息
+        List<PlanDayEntry> details = plan.details;
+        if (details == null || details.isEmpty())
+            return plan;
+        for (PlanDayEntry dayEntry : details) {
+            List<PlanItem> actv = dayEntry.actv;
+            if (actv == null || actv.isEmpty())
+                continue;
+
+            for (PlanItem item : actv) {
+                if (item.type.equals("traffic")) {
+                    if (item.subType.equals("airRoute")) {
+                        Calendar cal = Calendar.getInstance();
+                        cal.setTime(dayEntry.date);
+                        try {
+                            AirRoute airRoute = TrafficAPI.getAirRouteByCode(item.item.zhName, cal);
+                            double price = (airRoute.price.price != null ? airRoute.price.price : 0);
+                            double surcharge = (airRoute.price.surcharge != null ? airRoute.price.surcharge : 0);
+                            double tax = (airRoute.price.tax != null ? airRoute.price.tax : 0);
+                            double cost = price + surcharge + tax;
+                            budget.set(0, (int) (cost + budget.get(0)));
+                            budget.set(1, (int) (cost + budget.get(1)));
+                        } catch (TravelPiException ignored) {
+                        }
+                    }
+
+                } else if (Arrays.asList("vs", "hotel", "restaurant").contains(item.type)) {
+                    Class<? extends AbstractPOI> poiClass = null;
+                    switch (item.type) {
+                        case "vs":
+                            poiClass = ViewSpot.class;
+                            break;
+                        case "hotel":
+                            poiClass = Hotel.class;
+                            break;
+                        case "restaurant":
+                            poiClass = Restaurant.class;
+                            break;
+                    }
+                    if (poiClass != null) {
+                        try {
+                            // TODO 需要改成通过调用PoiAPI来获得相应的价格数据。
+                            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+                            AbstractPOI ret = ds.createQuery(poiClass).field("_id").equal(item.item.id).get();
+                            if (ret == null)
+                                continue;
+
+                            if (ret.price == null || ret.price <= 0) {
+                                budget.set(0, 50 + budget.get(0));
+                                budget.set(1, 120 + budget.get(1));
+                            } else {
+                                budget.set(0, (int) (ret.price + budget.get(0)));
+                                budget.set(1, (int) (ret.price + budget.get(1)));
+                            }
+                        } catch (TravelPiException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+
+
+        return null;
     }
 
     private static void fullfill(JsonNode planJson) throws TravelPiException {

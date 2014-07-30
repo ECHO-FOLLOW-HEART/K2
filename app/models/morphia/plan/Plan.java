@@ -13,7 +13,6 @@ import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -80,7 +79,11 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
         builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
-        builder.add("budget", Arrays.asList(2000, 3000));
+        if (budget != null && !budget.isEmpty())
+            builder.add("budget", budget);
+        else
+            builder.add("budget", new ArrayList<>());
+//        builder.add("budget", Arrays.asList(2000, 3000));
 
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();
