@@ -33,7 +33,7 @@ public class MiscCtrl extends Controller {
         JsonNode feedback = request().body().asJson();
         ObjectId uid = null;
 
-        int x=0;
+        int x = 0;
         try {
             uid = new ObjectId(feedback.get("uid").asText());
             DBCollection col = Utils.getMongoClient().getDB("user").getCollection("user_info");
@@ -98,8 +98,19 @@ public class MiscCtrl extends Controller {
         try {
             List<JsonNode> locList = new ArrayList<>();
             if (loc != 0) {
-                for (Iterator<Locality> it = LocalityAPI.getSuggestion(word, pageSize); it.hasNext(); )
-                    locList.add(it.next().toJson(1));
+                for (Iterator<Locality> it = LocalityAPI.getSuggestion(word, pageSize); it.hasNext(); ) {
+                    // 如果locality为北京、上海、天津、重庆这四个直辖市，则忽略level=1的省级行政区
+                    Locality item = it.next();
+                    switch (item.zhName) {
+                        case "北京市":
+                        case "上海市":
+                        case "重庆市":
+                        case "天津市":
+                            if (item.level == 1)
+                                continue;
+                    }
+                    locList.add(item.toJson(1));
+                }
             }
             if (!locList.isEmpty())
                 ret.put("loc", Json.toJson(locList));
@@ -154,7 +165,7 @@ public class MiscCtrl extends Controller {
      * @throws UnknownHostException
      */
     public static Result getSuggestionsOld(String word, int loc, int vs, int hotel, int restaurant, int pageSize) throws UnknownHostException, TravelPiException {
-        int y=0;
+        int y = 0;
         ObjectNode ret = Json.newObject();
         if (loc != 0) {
             DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gte", 1).get()).get();
