@@ -33,14 +33,13 @@ public class Address implements ITravelPiFormatter {
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
-
         String locId = null, locName = null;
         if (loc != null) {
             locId = (loc.id != null ? loc.id.toString() : null);
             locName = (loc.zhName != null ? loc.zhName : null);
         }
         builder.add("locId", (locId != null ? locId : ""));
-        builder.add("locName", (locName != null ? locName : ""));
+        builder.add("locName", (locName != null ? Locality.stripLocName(locName) : ""));
 
         if (level > 1) {
             builder.add("addr", (address != null ? address : ""));
