@@ -141,8 +141,7 @@ public class PoiAPI {
                 stKey = "ratings.score";
                 break;
         }
-        query.order(String.format("%s%s", asc ? "" : "-", stKey));
-       // query.order("-ratings.score").offset(page * pageSize).limit(pageSize);
+        query.order(String.format("%s%s", asc ? "" : "-", stKey)).offset(page * pageSize).limit(pageSize);
 
         return query.iterator();
     }
