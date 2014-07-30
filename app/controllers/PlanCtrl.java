@@ -141,8 +141,10 @@ public class PlanCtrl extends Controller {
             }
         }
 
-
-        return null;
+        budget.set(0, budget.get(0) / 100 * 100);
+        budget.set(1, budget.get(1) / 100 * 100);
+        plan.budget = budget;
+        return plan;
     }
 
     private static void fullfill(JsonNode planJson) throws TravelPiException {
