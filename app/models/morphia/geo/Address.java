@@ -23,28 +23,50 @@ public class Address implements ITravelPiFormatter {
     @Embedded
     public Coords coords;
 
-    public JsonNode toJson() {
+
+    /**
+     * 序列化到JSON格式。
+     *
+     * @param level 序列化级别：1：只有loc信息；2：loc和address信息；3：完整信息。
+     * @return
+     */
+    public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("addr", (address != null ? address : ""));
+
         String locId = null, locName = null;
         if (loc != null) {
             locId = (loc.id != null ? loc.id.toString() : null);
             locName = (loc.zhName != null ? loc.zhName : null);
         }
         builder.add("locId", (locId != null ? locId : ""));
-        builder.add("locName", (locName != null ? locName : ""));
+        builder.add("locName", (locName != null ? Locality.stripLocName(locName) : ""));
 
-        for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
-            if (coords != null) {
-                Object val = null;
-                try {
-                    val = Coords.class.getField(k).get(coords);
-                } catch (IllegalAccessException | NoSuchFieldException ignored) {
+        if (level > 1) {
+            builder.add("addr", (address != null ? address : ""));
+
+            if (level > 2) {
+                for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
+                    if (coords != null) {
+                        Object val = null;
+                        try {
+                            val = Coords.class.getField(k).get(coords);
+                        } catch (IllegalAccessException | NoSuchFieldException ignored) {
+                        }
+                        if (val != null)
+                            builder.add(k, val);
+                    }
                 }
-                if (val != null)
-                    builder.add(k, val);
             }
         }
         return Json.toJson(builder.get());
+    }
+
+    /**
+     * 默认序列化级别：1级。
+     *
+     * @return
+     */
+    public JsonNode toJson() {
+        return toJson(1);
     }
 }

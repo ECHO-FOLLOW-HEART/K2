@@ -89,7 +89,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
      * @param name
      * @return
      */
-    public String stripLocName(String name) {
+    public static String stripLocName(String name) {
         Pattern pattern = Pattern.compile("(族|自治)");
 
         while (true) {

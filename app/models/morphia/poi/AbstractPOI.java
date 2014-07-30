@@ -76,7 +76,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         // level1
         builder.add("_id", id.toString());
         builder.add("ratings", (ratings != null ? ratings.toJson() : new BasicDBObject()));
-        builder.add("addr", (addr != null ? addr.toJson() : new BasicDBObject()));
         builder.add("name", (name != null ? name : ""));
 
         // level2
@@ -108,6 +107,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 builder.add("desc", (desc != null ? desc : ""));
             }
         }
+
+        if (level == 1)
+            builder.add("addr", (addr != null ? addr.toJson(1) : new BasicDBObject()));
+        else if (level > 1)
+            builder.add("addr", (addr != null ? addr.toJson(3) : new BasicDBObject()));
+
         return Json.toJson(builder.get());
     }
 

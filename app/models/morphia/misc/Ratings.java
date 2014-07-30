@@ -30,8 +30,8 @@ public class Ratings implements ITravelPiFormatter {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
         // TODO hardcode here
-        if (ranking == null)
-            ranking = 0.8;
+//        if (ranking == null)
+//            ranking = 0.8;
         if (viewCnt == null)
             viewCnt = 0;
         if (favorCnt == null)
