@@ -25,39 +25,6 @@ import java.util.Map;
  */
 @Entity
 public class AirRoute extends AbstractRoute {
-//    @Id
-//    public ObjectId id;
-//
-//    @Constraints.Required
-//    @Embedded
-//    public SimpleRef depStop;
-//
-//    @Constraints.Required
-//    @Embedded
-//    public SimpleRef arrStop;
-//
-//    @Constraints.Required
-//    public String code;
-//
-//    @Constraints.Required
-//    @Embedded
-//    public SimpleRef depLoc;
-//
-//    @Constraints.Required
-//    @Embedded
-//    public SimpleRef arrLoc;
-//
-//    public Integer distance;
-//
-//    @Constraints.Required
-//    public Integer timeCost;
-//
-//    @Constraints.Required
-//    public Date depTime;
-//
-//    @Constraints.Required
-//    public Date arrTime;
-
     @Embedded
     public AirPrice price;
 
@@ -87,8 +54,6 @@ public class AirRoute extends AbstractRoute {
             {
                 put("depStop", "depAirport");
                 put("arrStop", "arrAirport");
-                put("depLoc", "depLoc");
-                put("arrLoc", "arrLoc");
                 put("carrier", "carrier");
             }
         }.entrySet()){

@@ -39,8 +39,9 @@ GET           /geo/localities/baiduId/:baiduId                   controllers.Geo
 GET           /itineraries/air-routes                            controllers.TrafficCtrl.searchAirRoutes(dep: String, arr: String, depTime: String?="", sortField: String?="price", sort: String?="desc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET           /itineraries/air-routes/:flightCode                controllers.TrafficCtrl.getAirRouteByCode(flightCode: String, depTime: String?="")
 GET           /itineraries/train-station                         controllers.TrafficCtrl.searchTrainStationByLoc(loc: String)
-GET           /itineraries/train-routes                          controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String, sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
-GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String)
+GET           /itineraries/train-routes                          controllers.TrafficCtrl.getTrainRoutes(dep: String, arr: String,depTime: String?="", trainType: String?="", sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
+GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String, depTime: String?="")
+#GET           /itineraries/train-routes/:trainCode               controllers.TrafficCtrl.getTrainRouteByCodeOld(trainCode: String)
 
 # 路线相关接口
 # 发现路线
@@ -59,20 +60,20 @@ POST          /plans/optimizers                                  controllers.Pla
 # 景点签到
 POST          /poi/view-spots/:spotId/checkin                    controllers.POICtrl.poiCheckin(poiType: String="vs", spotId: String)
 # 搜索景点
-GET           /poi/view-spots/search                             controllers.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /poi/view-spots/search                             controllers.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc")
 # 景点详情（显示详情，但不显示相关景点）
 GET           /poi/view-spots/:spotId                            controllers.POICtrl.viewSpotInfo(poiDesc: String="vs", spotId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
 # 获得景区概貌
 GET           /poi/view-spots/:spotId/profiles                   controllers.POICtrl.viewSpotInfo(poiDesc: String="vs", spotId: String, showDetails: Int=0, showRelated: Int=1, pageSize: Int?=10)
 # 获得指定城市的景点
-GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc")
 # 获得相关景点
 GET           /poi/view-spots/:spotId/related                    controllers.POICtrl.relatedViewSpotList(spotId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
 # 酒店
 
 # 搜索酒店
-GET           /poi/hotels/search                                 controllers.POICtrl.poiSearch(poiType: String="hotel", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /poi/hotels/search                                 controllers.POICtrl.poiSearch(poiType: String="hotel", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc")
 # 酒店详情
 GET           /poi/hotels/:spotId                                controllers.POICtrl.viewSpotInfo(poiDesc: String="hotel", spotId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
 # 酒店概貌
@@ -81,7 +82,7 @@ GET           /poi/hotels/:spotId/profiles                       controllers.POI
 # 餐厅
 
 # 搜索酒店
-GET           /poi/restaurants/search                            controllers.POICtrl.poiSearch(poiType: String="restaurants", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /poi/restaurants/search                            controllers.POICtrl.poiSearch(poiType: String="restaurants", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc")
 # 酒店详情
 GET           /poi/restaurants/:spotId                           controllers.POICtrl.viewSpotInfo(poiDesc: String="restaurants", spotId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
 # 酒店概貌
