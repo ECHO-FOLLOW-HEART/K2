@@ -8,6 +8,7 @@ import models.morphia.traffic.RouteIterator;
 import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 
 import java.util.*;
@@ -69,7 +70,10 @@ public class TrafficAPI {
      * @param arrTimeLimit
      * @param priceLimits
      */
-    public static RouteIterator searchAirRoutes(ObjectId depId, ObjectId arrId, Calendar baseCal, final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField, int sortType, int page, int pageSize) throws TravelPiException {
+    public static RouteIterator searchAirRoutes(ObjectId depId, ObjectId arrId, Calendar baseCal, final List<Calendar> depTimeLimit,
+
+ final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits,
+ final SortField sortField, int sortType, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<AirRoute> query = ds.createQuery(AirRoute.class);
@@ -200,8 +204,17 @@ public class TrafficAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<TrainRoute> query = ds.createQuery(TrainRoute.class);
 
-        if(!trainType.equals("")){
-            query.field("type").equal(trainType);
+        // 解析列车型号类型查询，例如：DGC
+        if(!trainType.equals("")) {
+            int tempSize = trainType.length();
+            List<CriteriaContainerImpl> tempTriteria = new ArrayList<CriteriaContainerImpl>(tempSize);
+            CriteriaContainerImpl[] arr = new CriteriaContainerImpl[tempSize];
+            String tempstr = "";
+            for (int i = 0; i < tempSize; i++) {
+                tempstr = String.valueOf(trainType.charAt(i));
+                arr[i] = query.criteria("type").equal(tempstr);
+            }
+            query.or(arr);
         }
 
         query.or(query.criteria("depStop.id").equal(depId), query.criteria("depLoc.id").equal(depId));

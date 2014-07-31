@@ -88,7 +88,8 @@ public class TrafficCtrl extends Controller {
      * @param pageSize   页面大小。
      * @return 航班列表
      */
-    public static Result searchAirRoutes(String depId, String arrId, String ts, String sortField, String sortType, String timeFilterType, int timeFilter, int page, int pageSize)
+    public static Result searchAirRoutes(String depId, String arrId, String ts, String sortField, String sortType,
+                                         String timeFilterType, int timeFilter, int page, int pageSize)
             throws TravelPiException {
         int sort = -1;
         if (sortType != null && sortType.equals("asc"))
@@ -136,24 +137,31 @@ public class TrafficCtrl extends Controller {
         Calendar upper = Calendar.getInstance();
         List<Calendar> timeLimits = null;
         switch (timeFilter) {
+            //全天
             case 1:
-                lower.set(Calendar.HOUR_OF_DAY, 6);
-                upper.set(Calendar.HOUR_OF_DAY, 12);
+                lower.set(Calendar.HOUR_OF_DAY, 0);
+                upper.set(Calendar.HOUR_OF_DAY, 23);
+                upper.set(Calendar.MINUTE, 59);
+                upper.set(Calendar.SECOND, 59);
+                upper.set(Calendar.MILLISECOND, 0);
                 break;
+            //6:00-12:00
             case 2:
                 lower.set(Calendar.HOUR_OF_DAY, 6);
                 upper.set(Calendar.HOUR_OF_DAY, 12);
                 break;
+            //12:00-18:00
             case 3:
                 lower.set(Calendar.HOUR_OF_DAY, 12);
                 upper.set(Calendar.HOUR_OF_DAY, 18);
                 break;
+            //18:00-6:00
             case 4:
                 lower.set(Calendar.HOUR_OF_DAY, 18);
                 upper.set(Calendar.HOUR_OF_DAY, 23);
                 upper.set(Calendar.MINUTE, 59);
                 upper.set(Calendar.SECOND, 59);
-                upper.set(Calendar.MILLISECOND, 0);
+                upper.set(Calendar.MILLISECOND, 6);
                 break;
             default:
                 lower = null;
@@ -250,24 +258,31 @@ public class TrafficCtrl extends Controller {
         Calendar upper = Calendar.getInstance();
         List<Calendar> timeLimits = null;
         switch (timeFilter) {
+            //全天
             case 1:
-                lower.set(Calendar.HOUR_OF_DAY, 6);
-                upper.set(Calendar.HOUR_OF_DAY, 12);
+                lower.set(Calendar.HOUR_OF_DAY, 0);
+                upper.set(Calendar.HOUR_OF_DAY, 23);
+                upper.set(Calendar.MINUTE, 59);
+                upper.set(Calendar.SECOND, 59);
+                upper.set(Calendar.MILLISECOND, 0);
                 break;
+            //6:00-12:00
             case 2:
                 lower.set(Calendar.HOUR_OF_DAY, 6);
                 upper.set(Calendar.HOUR_OF_DAY, 12);
                 break;
+            //12:00-18:00
             case 3:
                 lower.set(Calendar.HOUR_OF_DAY, 12);
                 upper.set(Calendar.HOUR_OF_DAY, 18);
                 break;
+            //18:00-6:00
             case 4:
                 lower.set(Calendar.HOUR_OF_DAY, 18);
                 upper.set(Calendar.HOUR_OF_DAY, 23);
                 upper.set(Calendar.MINUTE, 59);
                 upper.set(Calendar.SECOND, 59);
-                upper.set(Calendar.MILLISECOND, 0);
+                upper.set(Calendar.MILLISECOND, 6);
                 break;
             default:
                 lower = null;
