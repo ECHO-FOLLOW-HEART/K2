@@ -36,8 +36,9 @@ public class PoiAPI {
      * 排序的字段。
      */
     public enum SortField {
-        SCORE,PRICE
+        SCORE, PRICE
     }
+
     /**
      * 获得POI联想列表。
      *
@@ -91,7 +92,7 @@ public class PoiAPI {
      */
     public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, ObjectId locId, String tag,
                                                                       String searchWord, final SortField sortField, boolean asc,
-                                                                      int page, int pageSize, boolean details, Map<String, Object> extra,String hotelType)
+                                                                      int page, int pageSize, boolean details, Map<String, Object> extra, String hotelType)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
 
@@ -135,15 +136,19 @@ public class PoiAPI {
         }
         // 排序
         String stKey = null;
-        switch (sortField) {
-            case PRICE:
-                stKey = "price";
-                break;
-            case SCORE:
-                stKey = "ratings.score";
-                break;
+        if (sortField != null) {
+            switch (sortField) {
+                case PRICE:
+                    stKey = "price";
+                    break;
+                case SCORE:
+                    stKey = "ratings.score";
+                    break;
+            }
         }
-        query.order(String.format("%s%s", asc ? "" : "-", stKey)).offset(page * pageSize).limit(pageSize);
+        if (stKey != null)
+            query.order(String.format("%s%s", asc ? "" : "-", stKey));
+        query.offset(page * pageSize).limit(pageSize);
 
         return query.iterator();
     }
