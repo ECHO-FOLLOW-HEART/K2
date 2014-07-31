@@ -776,6 +776,9 @@ public class PlanCtrl extends Controller {
         }
         PlanAPI.addHotels(dayEntryList);
 
+        if (optLevel == 2)
+            PlanAPI.pseudoOptimize(dayEntryList);
+
         List<JsonNode> retDetails = new ArrayList<>();
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
