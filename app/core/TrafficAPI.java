@@ -6,6 +6,7 @@ import models.MorphiaFactory;
 import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.RouteIterator;
 import models.morphia.traffic.TrainRoute;
+import models.morphia.traffic.TrainRouteIterator;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -197,12 +198,13 @@ public class TrafficAPI {
      * @param arrTimeLimit
      * @param priceLimits
      */
-    public static RouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId,String trainType, Calendar baseCal, final List<Calendar> depTimeLimit,
+    public static TrainRouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId,String trainType, Calendar baseCal, final List<Calendar> depTimeLimit,
                   final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField,
                   int sortType, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<TrainRoute> query = ds.createQuery(TrainRoute.class);
+
 
         // 解析列车型号类型查询，例如：DGC
         if(!trainType.equals("")) {
@@ -217,9 +219,11 @@ public class TrafficAPI {
             query.or(arr);
         }
 
-        query.or(query.criteria("depStop.id").equal(depId), query.criteria("depLoc.id").equal(depId));
-        query.or(query.criteria("arrStop.id").equal(arrId), query.criteria("arrLoc.id").equal(arrId));
-
+        //query.or(query.criteria("depStop.id").equal(depId), query.criteria("depLoc.id").equal(depId));
+        //query.or(query.criteria("arrStop.id").equal(arrId), query.criteria("arrLoc.id").equal(arrId));
+        //火车按车站查询，要把途经的车次也查出来
+        //query.or(query.criteria("details.stop.id").equal(depId), query.criteria("details.loc.id").equal(depId));
+        //query.or(query.criteria("details.stop.id").equal(arrId), query.criteria("details.loc.id").equal(arrId));
 
         // 时间节点过滤
         for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {
@@ -264,7 +268,6 @@ public class TrafficAPI {
                     query.criteria("price.price").lessThanOrEq(upper));
         }
 
-
         // 排序
         String stKey = null;
         switch (sortField) {
@@ -293,7 +296,6 @@ public class TrafficAPI {
             cal = epTimeLimits.get(0);
         else
             cal = baseCal;
-        return RouteIterator.getInstance(it, (cal != null ? cal.getTime() : null));
-
+        return TrainRouteIterator.getInstance(it, (cal != null ? cal.getTime() : null),depId.toString(),arrId.toString());
     }
 }

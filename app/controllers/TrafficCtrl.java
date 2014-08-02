@@ -9,6 +9,7 @@ import exception.TravelPiException;
 import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.RouteIterator;
 import models.morphia.traffic.TrainRoute;
+import models.morphia.traffic.TrainRouteIterator;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -198,10 +199,10 @@ public class TrafficCtrl extends Controller {
     /**
      * 查看火车信息
      *
-     * @param departure
-     * @param arrival
+     * @param depId
+     * @param arrId
      * @param sortField
-     * @param sort
+     * @param sortType
      * @param page
      * @param pageSize
      * @return
@@ -302,9 +303,16 @@ public class TrafficCtrl extends Controller {
             ObjectId arrOid = new ObjectId(arrId);
 
             List<JsonNode> results = new ArrayList<>();
-            for (RouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid,trainType, cal, depLimits, arrLimits, null, null,
+            TrainRoute tempTrain = null;
+            for (TrainRouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid,trainType, cal, depLimits, arrLimits, null, null,
                     sf, sort, page, pageSize); it.hasNext(); ) {
-                results.add(it.next().toJson());
+                    tempTrain =(TrainRoute)it.next();
+                    if(!tempTrain.type.equals("EmptyFlag")){
+                    results.add(tempTrain.toJson());
+                }
+
+
+
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
         } catch (IllegalArgumentException e) {

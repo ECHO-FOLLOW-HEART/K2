@@ -65,16 +65,32 @@ public class TrainRoute extends AbstractRoute {
         }
 
         final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
-        for (String k : new String[]{"depTime", "arrTime"}) {
-            Date val = null;
-            try {
-                val = (Date) AirRoute.class.getField(k).get(this);
-            } catch (NoSuchFieldException | IllegalAccessException ignored) {
-            }
-            builder.add(k, val != null ? fmt.format(val) : "");
+//        for (String k : new String[]{"depTime", "arrTime"}) {
+//            Date val = null;
+//            try {
+//                val = (Date) AirRoute.class.getField(k).get(this);
+//            } catch (NoSuchFieldException | IllegalAccessException ignored) {
+//            }
+//            builder.add(k, val != null ? fmt.format(val) : "");
+//        }
+
+        try {
+        Date depDate = (Date) AirRoute.class.getField("depTime").get(this);
+        String dbSepDate = fmt.format(depDate);
+        builder.add("depTime", depDate != null ? dbSepDate : "");
+
+        Date arrDate = (Date) AirRoute.class.getField("arrTime").get(this);
+        String dbArrDate = fmt.format(arrDate);
+        builder.add("arrTime", depDate != null ? dbArrDate : "");
+
+        // 花费时间：不取DB中的timeCost字段，而是计算得出:分钟数
+        int days=(int)(arrDate.getTime()-depDate.getTime())/(60*1000);
+            builder.add("timeCost", days);
+        } catch (NoSuchFieldException | IllegalAccessException ignored) {
         }
 
-        super.addColumn(builder,TrainRoute.class,"timeCost","totalDist","distance","type");
+
+        super.addColumn(builder,TrainRoute.class,"totalDist","distance","type");
 
         // 价格列表
         BasicDBObjectBuilder priceBuilder = BasicDBObjectBuilder.start();
