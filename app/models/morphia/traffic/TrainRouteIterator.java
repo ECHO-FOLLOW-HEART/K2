@@ -84,25 +84,33 @@ public class TrainRouteIterator  implements Iterator {
         List<TrainEntry> detailsList = route.details;
         boolean hasDepId = false;
         boolean hasArrId = false;
+        boolean directionFlag = false;
         String stopId = null;
         String locId = null;
+        int depIndex = 0;
+        int arrIndex = 0;
         if(null != detailsList && detailsList.size()!= 0){
             for(TrainEntry temp: detailsList){
                 stopId = String.valueOf(temp.stop.id);
                 locId =  String.valueOf(temp.loc.id);
                 if(filterDepId.equals(stopId)||filterDepId.equals(locId)){
+                    depIndex = temp.idx;
                     hasDepId = true;
                 }
                 if(filteraArrId.equals(stopId)||filteraArrId.equals(locId)){
+                    arrIndex = temp.idx;
                     hasArrId = true;
                 }
-                if(hasDepId&&hasArrId){
+                if(depIndex<arrIndex){
+                    directionFlag = true;
+                }
+                if(hasDepId&&hasArrId&&directionFlag){
                     break;
                 }
             }
         }
 
-        return hasDepId&&hasArrId;
+        return hasDepId&&hasArrId&&directionFlag;
         // return true;
 
     }
