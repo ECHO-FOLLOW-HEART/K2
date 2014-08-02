@@ -556,7 +556,7 @@ public class PlanCtrl extends Controller {
 //                planItem.ts = trainRoute.depTime;
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
-                } catch (ParseException ignored) {
+                } catch (ParseException | NullPointerException ignored) {
                 }
                 break;
         }
@@ -775,6 +775,9 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
         PlanAPI.addHotels(dayEntryList);
+
+        if (optLevel == 2)
+            PlanAPI.pseudoOptimize(dayEntryList);
 
         List<JsonNode> retDetails = new ArrayList<>();
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());

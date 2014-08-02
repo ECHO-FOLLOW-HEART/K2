@@ -173,6 +173,100 @@ public class PlanAPI {
     }
 
 
+    public static void pseudoOptimize(List<PlanDayEntry> entryList) {
+        if (entryList.size() <= 2)
+            return;
+
+        // 第一天如果有大交通，则景点不宜太多
+        PlanDayEntry entry = entryList.get(1);
+        boolean trafficTail = false;
+        for (PlanItem item : entry.actv) {
+            if (item.type.equals("traffic")) {
+                trafficTail = true;
+                break;
+            }
+        }
+
+        if (trafficTail && entry.actv.size() > 2) {
+
+            // 取出最后一个景点
+            for (int i = entry.actv.size() - 1; i >= 0; i--) {
+                PlanItem item = entry.actv.get(i);
+                if (item.type.equals("vs")) {
+                    entry.actv.remove(i);
+                    entryList.get(2).actv.add(0, item);
+                    break;
+                }
+            }
+        }
+
+        int iterCnt = 0;
+        boolean modified = true;
+        while (iterCnt < 10 && modified) {
+            iterCnt++;
+            modified = false;
+
+            // 取出景点安排最多的一天。如果比其前后两天多，则昀一下
+            int[] vsCnt = new int[entryList.size()];
+            for (int i = 0; i < entryList.size(); i++)
+                vsCnt[i] = entryList.get(i).actv.size();
+
+            int idxMax = -1;
+            int max = 0;
+            for (int i = 0; i < vsCnt.length; i++) {
+                if (vsCnt[i] > max) {
+                    idxMax = i;
+                    max = vsCnt[i];
+                }
+            }
+
+            if (idxMax >= 0) {
+                // 是否比旁边的景点多2？
+                boolean shift = false;
+                int from = 0;
+                int to = 0;
+                if (idxMax == 0) {
+                    if (vsCnt[0] - vsCnt[1] > 2) {
+                        shift = true;
+                        from = 0;
+                        to = 1;
+                    }
+                } else if (idxMax == vsCnt.length - 1) {
+                    if (vsCnt[vsCnt.length - 1] - vsCnt[vsCnt.length - 2] > 2) {
+                        shift = true;
+                        from = vsCnt.length - 1;
+                        to = vsCnt.length - 2;
+                    }
+                } else if (vsCnt[idxMax] - vsCnt[idxMax - 1] > 2) {
+                    shift = true;
+                    from = idxMax;
+                    to = idxMax - 1;
+                } else if (vsCnt[idxMax] - vsCnt[idxMax + 1] > 2) {
+                    shift = true;
+                    from = idxMax;
+                    to = idxMax + 1;
+                }
+                if (shift) {
+                    modified = true;
+                    // 取出最后一个景点
+                    PlanDayEntry entryFrom = entryList.get(from);
+                    PlanDayEntry entryTo = entryList.get(to);
+
+                    for (int i = entryFrom.actv.size() - 1; i >= 0; i--) {
+                        PlanItem item = entryFrom.actv.get(i);
+                        if (item.type.equals("vs")) {
+                            entryFrom.actv.remove(i);
+                            entryTo.actv.add(0, item);
+                            break;
+                        }
+                    }
+
+                }
+            }
+        }
+    }
+
+
     /**
      * 给路线规划添加酒店。
      *
