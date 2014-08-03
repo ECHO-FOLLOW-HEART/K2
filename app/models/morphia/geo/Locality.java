@@ -69,6 +69,8 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public Integer qunarId;
 
+    public Integer areaCode;
+
     @Embedded
     public Coords coords;
 
