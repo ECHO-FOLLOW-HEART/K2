@@ -46,6 +46,8 @@ public class TrainRouteIterator  implements Iterator {
     public AbstractRoute next() {
 
         TrainRoute route = innerIter.next();
+
+
         while(!findNextValid( route)){
             if(hasNext() ){
                 route = innerIter.next();

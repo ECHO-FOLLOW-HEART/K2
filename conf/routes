@@ -116,3 +116,4 @@ DELETE        /users/:userId/favors/view-spots/:vsId             controllers.Use
 
 # 其它接口 RESTful
 GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="webp", interlace: Int?=1)
+GET           /batch/planBudge                                   controllers.Bache.getPlanBudget(dep: String?="", arr: String?="" )

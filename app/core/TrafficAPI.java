@@ -207,7 +207,7 @@ public class TrafficAPI {
 
 
         // 解析列车型号类型查询，例如：DGC
-        if(!trainType.equals("")) {
+        if(!trainType.trim().equals("")) {
             int tempSize = trainType.length();
             List<CriteriaContainerImpl> tempTriteria = new ArrayList<CriteriaContainerImpl>(tempSize);
             CriteriaContainerImpl[] arr = new CriteriaContainerImpl[tempSize];
@@ -218,12 +218,6 @@ public class TrafficAPI {
             }
             query.or(arr);
         }
-
-        //query.or(query.criteria("depStop.id").equal(depId), query.criteria("depLoc.id").equal(depId));
-        //query.or(query.criteria("arrStop.id").equal(arrId), query.criteria("arrLoc.id").equal(arrId));
-        //火车按车站查询，要把途经的车次也查出来
-        //query.or(query.criteria("details.stop.id").equal(depId), query.criteria("details.loc.id").equal(depId));
-        //query.or(query.criteria("details.stop.id").equal(arrId), query.criteria("details.loc.id").equal(arrId));
 
         // 时间节点过滤
         for (Map.Entry<String, List<Calendar>> entry : new HashMap<String, List<Calendar>>() {
