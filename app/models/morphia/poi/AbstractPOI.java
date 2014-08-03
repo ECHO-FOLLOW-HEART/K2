@@ -24,9 +24,6 @@ import java.util.*;
  *         Created by zephyre on 7/16/14.
  */
 public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
-//    @Id
-//    public ObjectId id;
-
     @Embedded
     public CheckinRatings ratings;
 

@@ -43,7 +43,7 @@ public class PlanAPI {
         Query<Plan> query = ds.createQuery(Plan.class);
 
         if (locId != null)
-            query.field("target.id").equal(locId);
+            query.field("targets.id").equal(locId);
 
         if (poiId != null)
             query.field("details.actv.item.id").equal(poiId);
