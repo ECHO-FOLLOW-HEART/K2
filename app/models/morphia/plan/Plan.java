@@ -12,6 +12,7 @@ import org.mongodb.morphia.annotations.Entity;
 import play.libs.Json;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -46,6 +47,12 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public Integer totalCost;
 
     public List<Integer> budget;
+
+    public Integer stayBudget;
+
+    public Integer trafficBudget;
+
+    public Integer viewBudget;
 
     /**
      * 人工标记的路线优先级
@@ -87,11 +94,18 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
         builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
-        if (budget != null && !budget.isEmpty())
-            builder.add("budget", budget);
-        else
-            builder.add("budget", new ArrayList<>());
+
 //        builder.add("budget", Arrays.asList(2000, 3000));
+
+        Integer tempStayBudget = stayBudget==null?0:stayBudget;
+        Integer tempTrafficBudget = trafficBudget==null?0:stayBudget;
+        Integer tempViewBudget = viewBudget==null?0:stayBudget;
+            builder.add("stayBudget", tempStayBudget);
+            builder.add("trafficBudget", tempTrafficBudget);
+            builder.add("viewBudget", tempViewBudget);
+        Integer total = tempStayBudget + tempTrafficBudget +tempViewBudget;
+
+            builder.add("budget", Arrays.asList(total));
 
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();
@@ -101,6 +115,8 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
                 }
             }
             builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
+
+
         }
 
         return Json.toJson(builder.get());

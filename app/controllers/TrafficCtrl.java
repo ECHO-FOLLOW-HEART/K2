@@ -310,9 +310,6 @@ public class TrafficCtrl extends Controller {
                     if(!tempTrain.type.equals("EmptyFlag")){
                     results.add(tempTrain.toJson());
                 }
-
-
-
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
         } catch (IllegalArgumentException e) {
