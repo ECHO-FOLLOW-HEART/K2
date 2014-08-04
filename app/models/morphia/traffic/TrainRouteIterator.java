@@ -112,8 +112,8 @@ public class TrainRouteIterator  implements Iterator {
             }
         }
 
-        return hasDepId&&hasArrId&&directionFlag;
-        // return true;
+        //return hasDepId&&hasArrId&&directionFlag;
+        return true;
 
     }
 

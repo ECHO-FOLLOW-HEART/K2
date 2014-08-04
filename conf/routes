@@ -45,7 +45,7 @@ GET           /itineraries/train-routes/:trainCode               controllers.Tra
 
 # 路线相关接口
 # 发现路线
-GET           /explore/plans                                     controllers.PlanCtrl.explorePlans(loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /explore/plans                                     controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", page: Int?=0, pageSize: Int?=20)
 # 路线查询
 GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
 # 保存路线

@@ -43,8 +43,7 @@ public class Bache extends Controller {
      * @return
      */
     public static Result getPlanBudget(String depId,String arrId){
-        int trafficBudget = getTrafficBudget(depId, arrId);
-        //int trafficBudget = 0;
+        int trafficBudget = 0;
 
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
@@ -95,8 +94,8 @@ public class Bache extends Controller {
                 }
                 ops = ds.createUpdateOperations(Plan.class);
                 ops.set("viewBudget",totalPrice);
-                ops.set("stayBudget",days*STAY_DEFAULT_PRICE);
-                ops.set("trafficBudget",trafficBudget);
+                //ops.set("stayBudget",days*STAY_DEFAULT_PRICE);
+                //ops.set("trafficBudget",trafficBudget);
                 ds.update(query, ops, true);
             }
 
@@ -124,10 +123,10 @@ public class Bache extends Controller {
             int kmMount = 0;
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
             Query<Locality> query = ds.createQuery(Locality.class);
-            if(null!=depLoc && null!= arrLoc){
+            Query<Locality> query1 = ds.createQuery(Locality.class);
                 depLoc = query.field("_id").equal(depOid).get();
-                arrLoc = query.field("_id").equal(arrOid).get();
-
+                arrLoc = query1.field("_id").equal(arrOid).get();
+            if(null!=depLoc && null!= arrLoc){
             kmMount =  Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
             }
 

@@ -1,5 +1,6 @@
 package core;
 
+import controllers.Bache;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -169,8 +170,12 @@ public class PlanAPI {
         // 加入酒店
         addHotels(plan.details);
 
+
+
         return plan;
     }
+
+
 
 
     public static void pseudoOptimize(List<PlanDayEntry> entryList) {

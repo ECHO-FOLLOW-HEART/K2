@@ -410,18 +410,35 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String locId, String poiId, String sortField, String sort, String tag, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result explorePlans(String fromLoc,String locId, String poiId, String sortField, String sort, String tag, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
+
+        int trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
+
         for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, page, pageSize, sortField);
-             it.hasNext(); )
-            results.add(it.next().toJson(false));
+             it.hasNext(); ) {
+            //加入交通预算,住宿预算
+            if (null != fromLoc && !fromLoc.trim().equals("")) {
+                results.add(addTrafficBudget(it, fromLoc,trafficBudget));
+            } else {
+                results.add(it.next().toJson(false));
+            }
+        }
+
 
         // TODO 预算，以及这里不需要details字段
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
+    private static JsonNode addTrafficBudget(Iterator<Plan> it,String fromLoc,int trafficBudg){
+        Plan plan = it.next();
+        String arrId = (plan.target.id).toString();
 
+        plan.trafficBudget = trafficBudg;
+        plan.stayBudget = plan.days*200;
+        return plan.toJson(false);
+    }
     /**
      * 路线发现机制
      *

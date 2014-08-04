@@ -90,8 +90,8 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
 //        builder.add("budget", Arrays.asList(2000, 3000));
 
         Integer tempStayBudget = stayBudget==null?0:stayBudget;
-        Integer tempTrafficBudget = trafficBudget==null?0:stayBudget;
-        Integer tempViewBudget = viewBudget==null?0:stayBudget;
+        Integer tempTrafficBudget = trafficBudget==null?0:trafficBudget;
+        Integer tempViewBudget = viewBudget==null?0:viewBudget;
             builder.add("stayBudget", tempStayBudget);
             builder.add("trafficBudget", tempTrafficBudget);
             builder.add("viewBudget", tempViewBudget);
