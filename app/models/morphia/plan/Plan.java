@@ -97,17 +97,17 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
 
 //        builder.add("budget", Arrays.asList(2000, 3000));
 
-        Integer tempStayBudget = stayBudget==null?0:stayBudget;
-        Integer tempTrafficBudget = trafficBudget==null?0:trafficBudget;
-        Integer tempViewBudget = viewBudget==null?0:viewBudget;
-            builder.add("stayBudget", tempStayBudget);
-            builder.add("trafficBudget", tempTrafficBudget);
-            builder.add("viewBudget", tempViewBudget);
-        Integer total = tempStayBudget + tempTrafficBudget +tempViewBudget;
-        Integer addTotal = Integer.valueOf(total*2);
-        total = Math.round(total/100)*100;
-        addTotal = Math.round(addTotal/80 )*100;
-            builder.add("budget", Arrays.asList(total,addTotal));
+        Integer tempStayBudget = stayBudget == null ? 0 : stayBudget;
+        Integer tempTrafficBudget = trafficBudget == null ? 0 : trafficBudget;
+        Integer tempViewBudget = viewBudget == null ? 0 : viewBudget;
+        builder.add("stayBudget", tempStayBudget);
+        builder.add("trafficBudget", tempTrafficBudget);
+        builder.add("viewBudget", tempViewBudget);
+        Integer total = tempStayBudget + tempTrafficBudget + tempViewBudget;
+        Integer addTotal = total * 2;
+        total = (int) (Math.round(total / 100.0) * 100);
+        addTotal = (int) (Math.round(addTotal / 80.0) * 100);
+        builder.add("budget", Arrays.asList(total, addTotal));
 
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();
