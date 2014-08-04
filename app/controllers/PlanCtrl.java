@@ -433,7 +433,9 @@ public class PlanCtrl extends Controller {
 
     private static JsonNode addTrafficBudget(Iterator<Plan> it,String fromLoc,int trafficBudg){
         Plan plan = it.next();
-        String arrId = (plan.target.id).toString();
+        List<SimpleRef> targets = plan.targets;
+        SimpleRef arrSimpleRef = targets.get(0);
+        String arrId = (arrSimpleRef.id).toString();
 
         plan.trafficBudget = trafficBudg;
         plan.stayBudget = plan.days*200;
