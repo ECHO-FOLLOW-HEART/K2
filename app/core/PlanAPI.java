@@ -54,7 +54,7 @@ public class PlanAPI {
 
         query.field("desc").notEqual("");
 
-        query.order("-ratings.viewCnt").offset(page * pageSize).limit(pageSize);
+        query.order("manualPriority").offset(page * pageSize).limit(pageSize);
 
         return query.iterator();
     }
