@@ -9,7 +9,6 @@ import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
 
 import java.util.ArrayList;
@@ -23,17 +22,13 @@ import java.util.List;
  */
 @Entity
 public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
-
-    @Id
-    public ObjectId id;
-
     /**
      * 表明该UGC路线是基于哪一条模板。
      */
     public ObjectId templateId;
 
     @Embedded
-    public SimpleRef target;
+    public List<SimpleRef> targets;
 
     public List<String> tags;
 
@@ -60,6 +55,11 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public Integer viewBudget;
 
     /**
+     * 人工标记的路线优先级
+     */
+    public Integer manualPriority;
+
+    /**
      * 注意事项
      */
     public String tips;
@@ -78,7 +78,15 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
         builder.add("templateId", (templateId != null ? templateId.toString() : ""));
-        builder.add("target", target.toJson());
+
+        List<JsonNode> targetList = new ArrayList<>();
+        for (SimpleRef t : targets)
+            targetList.add(t.toJson());
+
+        if (targetList.size() > 0) {
+            builder.add("target", targetList.get(0));
+            builder.add("targets", Json.toJson(targetList));
+        }
         builder.add("tags", (tags != null && !tags.isEmpty()) ? Json.toJson(tags) : new ArrayList<>());
         builder.add("title", (title != null && !title.isEmpty()) ? title : "");
         if (days != null)

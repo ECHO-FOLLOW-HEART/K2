@@ -16,34 +16,6 @@ import java.util.List;
  * @author Zephyre
  */
 public class ViewSpot extends AbstractPOI {
-//    @Id
-//    public ObjectId id;
-//
-//    @Embedded
-//    public Ratings ratings;
-//
-//    @Embedded
-//    public Contact contact;
-//
-//    @Embedded
-//    public Address addr;
-//
-//    public String name;
-//
-//    public String url;
-//
-//    public Double price;
-//
-//    public String priceDesc;
-//
-//    public String desc;
-//
-//    public List<String> imageList;
-//
-//    public List<String> tags;
-//
-//    public List<String> alias;
-
     public Boolean worldHeritage;
 
     public Integer spotId;
