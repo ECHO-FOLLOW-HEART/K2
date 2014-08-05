@@ -92,7 +92,7 @@ public class PoiAPI {
      */
     public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, ObjectId locId, String tag,
                                                                       String searchWord, final SortField sortField, boolean asc,
-                                                                      int page, int pageSize, boolean details, Map<String, Object> extra, String hotelType)
+                                                                      int page, int pageSize, boolean details, Map<String, Object> extra, int hotelType)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
 
@@ -119,7 +119,7 @@ public class PoiAPI {
         if (tag != null && !tag.isEmpty())
             query = query.field("tags").equal(tag);
         //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店
-        if (hotelType != null && !hotelType.isEmpty())
+        if (hotelType!= 0)
             query = query.field("type").equal(hotelType);
 
         int detailLvl = details ? 3 : 2;

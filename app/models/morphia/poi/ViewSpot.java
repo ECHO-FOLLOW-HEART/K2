@@ -67,6 +67,11 @@ public class ViewSpot extends AbstractPOI {
             if (rankingA != null)
                 node.put("rankingA", rankingA);
 
+            // TODO
+            // 临时处理
+            if(openTime == null||openTime.equals("None")){
+                openTime = "全天";
+            }
             node.put("openTime", openTime != null ? openTime : "");
 
             BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

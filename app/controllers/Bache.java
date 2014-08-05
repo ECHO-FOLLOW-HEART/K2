@@ -129,7 +129,7 @@ public class Bache extends Controller {
             kmMount =  Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
             }
 
-            trafficBudget = kmMount / trafficRatio;
+            trafficBudget = kmMount*2 / trafficRatio;
 
         } catch (TravelPiException e) {
         }

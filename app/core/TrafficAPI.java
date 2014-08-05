@@ -254,6 +254,7 @@ public class TrafficAPI {
             }
         }
 
+        if(null!=depTimeLimit){
         Calendar lower = Calendar.getInstance();
         lower.setTimeInMillis(depTimeLimit.get(0).getTimeInMillis());
         Calendar upper = Calendar.getInstance();
@@ -276,6 +277,7 @@ public class TrafficAPI {
                     itTime.remove();
                 }
             }
+        }
         }
         // 排序
         String stKey = null;

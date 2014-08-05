@@ -59,6 +59,22 @@ public class PlanCtrl extends Controller {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
             Plan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
+
+            //TODO
+            //添加住宿预算，交通预算
+            int trafficBudgetT = 0;
+            if(null!= plan.targets&&plan.targets.size()>0){
+                trafficBudgetT = Bache.getTrafficBudget(fromLocId, plan.targets.get(0).id.toString());
+            }else{
+                trafficBudgetT = 200;
+            }
+            List<SimpleRef> targets = plan.targets;
+            SimpleRef arrSimpleRef = targets.get(0);
+            String arrId = (arrSimpleRef.id).toString();
+            plan.trafficBudget = Integer.valueOf(trafficBudgetT);
+            plan.stayBudget = plan.days*300;
+
+
             buildBudget(plan);
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
@@ -144,6 +160,7 @@ public class PlanCtrl extends Controller {
         budget.set(0, budget.get(0) / 100 * 100);
         budget.set(1, budget.get(1) / 100 * 100);
         plan.budget = budget;
+
         return plan;
     }
 
@@ -200,7 +217,7 @@ public class PlanCtrl extends Controller {
                                 Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
                                 Airport airport = ds.createQuery(Airport.class).field("_id")
                                         .equal(new ObjectId(item.get("itemId").asText())).get();
-                                if (airport != null) {
+                                if (airport != null&&airport.addr!= null&&airport.addr.coords!=null) {
                                     if (airport.addr.coords.lat != null)
                                         conItem.put("lat", airport.addr.coords.lat);
                                     if (airport.addr.coords.lng != null)
@@ -438,7 +455,7 @@ public class PlanCtrl extends Controller {
         String arrId = (arrSimpleRef.id).toString();
 
         plan.trafficBudget = trafficBudg;
-        plan.stayBudget = plan.days*200;
+        plan.stayBudget = plan.days*300;
         return plan.toJson(false);
     }
     /**

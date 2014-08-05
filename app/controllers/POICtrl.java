@@ -74,7 +74,7 @@ public class POICtrl extends Controller {
                             {
                                 put("_id !=", vsId);
                             }
-                        },null); it.hasNext(); ) {
+                        },0); it.hasNext(); ) {
                     AbstractPOI vs = it.next();
                     vsList.add(vs.toJson(1));
                 }
@@ -247,7 +247,7 @@ public class POICtrl extends Controller {
                         {
                             put("_id !=", locId);
                         }
-                    },null); it.hasNext(); ) {
+                    },0); it.hasNext(); ) {
                 ViewSpot vs = (ViewSpot) it.next();
                 vsList.add(vs.toJson(2));
             }
@@ -270,9 +270,18 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize,String sortField, String sortType,String hotelType) {
+    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize,String sortField, String sortType,String hotelTypeStr) {
         if (locId.isEmpty())
             locId = null;
+        int hotelType = 0;
+        if(!hotelTypeStr.equals("")){
+            try {
+                hotelType = Integer.parseInt(hotelTypeStr);
+            } catch (ClassCastException e) {
+                hotelType = 0;
+            }
+
+        }
 
         PoiAPI.POIType type = null;
         switch (poiType) {

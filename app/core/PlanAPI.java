@@ -454,12 +454,21 @@ public class PlanAPI {
         }
         timeLimits = Arrays.asList(calLower, calUpper);
 
+
         RouteIterator it = (epDep ?
                 TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
                 :
                 TrafficAPI.searchAirRoutes(travelLoc, remoteLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1));
-        if (!it.hasNext())
+        if (!it.hasNext()){
+            it =  (epDep ?
+                    TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc,"", calLower, null, null, null, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
+                    :
+                    TrafficAPI.searchTrainRoutes(travelLoc, remoteLoc,"", calLower, null, null, null, null, TrafficAPI.SortField.ARR_TIME, 1, 0, 1));
+        }
+        if(!it.hasNext()){
+
             return plan;
+        }
 
         AbstractRoute route = it.next();
         Calendar depTime = Calendar.getInstance();
