@@ -272,7 +272,7 @@ public class TrafficAPI {
             if(null!= dateDepTime){
                 isRightTime = dateDepTime.getTime()>lower.getTimeInMillis()&&
                         dateDepTime.getTime()<upper.getTimeInMillis();
-                if(isRightTime){
+                if(!isRightTime){
                     itTime.remove();
                 }
             }
