@@ -94,24 +94,24 @@ public class TrainRoute extends AbstractRoute {
 
         // 价格列表
         BasicDBObjectBuilder priceBuilder = BasicDBObjectBuilder.start();
-        for (Map.Entry<String,Double> entry:price.entrySet()){
+        if(null!= price){
+            for (Map.Entry<String,Double> entry:price.entrySet()){
             String k = entry.getKey();
             Double v = entry.getValue();
 
             //PC_Chen:return {} instead of ""
             if (v!=null)
             priceBuilder.add(k, v);
+            }
         }
         builder.add("priceList", priceBuilder.get());
 
         //最低价格
          DBObject priceList = priceBuilder.get();
             // 最低票价
-         if (null!= priceList ){
+         if (null!= priceList&&((BasicDBObject) priceList).size()>0){
             builder.add("price", Collections.min(priceList.toMap().values()));
          }
-
-        //no:selfChk meal noStop jetName jetFullName
 
         return Json.toJson(builder.get());
     }
