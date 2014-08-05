@@ -15,7 +15,6 @@ import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
 import models.morphia.poi.ViewSpot;
 import models.morphia.traffic.TrainRoute;
-import models.morphia.traffic.TrainRouteIterator;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
