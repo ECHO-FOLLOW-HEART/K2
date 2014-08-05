@@ -21,7 +21,7 @@ public class Hotel extends AbstractPOI {
     /**
      * 酒店类型，比如“经济型”等等。
      */
-    public String type;
+    public Integer type;
 
     public static List<String> getRetrievedFields(int level) {
         List<String> fieldList = AbstractPOI.getRetrievedFields(level);
@@ -38,8 +38,8 @@ public class Hotel extends AbstractPOI {
         else
             ((ObjectNode) node.get("ratings")).put("starLevel", 3);
 
-        if (level > 1)
-            node.put("type", type != null ? type : "");
+        if (level > 1 && type != null)
+            node.put("type", type);
         return node;
     }
 }
