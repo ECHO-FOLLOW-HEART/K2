@@ -42,7 +42,7 @@ public class PlanAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<Plan> query = ds.createQuery(Plan.class);
 
-        if (locId != null)
+        if (locId != null&&!locId.equals(""))
             query.field("targets.id").equal(locId);
 
         if (poiId != null)

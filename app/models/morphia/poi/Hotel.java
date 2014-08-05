@@ -25,6 +25,7 @@ public class Hotel extends AbstractPOI {
 
     public static List<String> getRetrievedFields(int level) {
         List<String> fieldList = AbstractPOI.getRetrievedFields(level);
+        fieldList.add("price");
         if (level > 1)
             fieldList.add("type");
         return fieldList;
@@ -37,7 +38,18 @@ public class Hotel extends AbstractPOI {
             ((ObjectNode) node.get("ratings")).put("starLevel", ratings.starLevel);
         else
             ((ObjectNode) node.get("ratings")).put("starLevel", 3);
-
+        if(null == price){
+            if(ratings.starLevel==null||ratings.starLevel<3){
+                price = 150.0;
+            }else if(ratings.starLevel ==3){
+                price = 300.0;
+            }else if(ratings.starLevel ==4){
+                price = 400.0;
+            }else if(ratings.starLevel > 5){
+                price = 800.0;
+            }
+        }
+        node.put("price",price);
         if (level > 1 && type != null)
             node.put("type", type);
         return node;
