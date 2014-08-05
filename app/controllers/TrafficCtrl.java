@@ -303,13 +303,9 @@ public class TrafficCtrl extends Controller {
             ObjectId arrOid = new ObjectId(arrId);
 
             List<JsonNode> results = new ArrayList<>();
-            TrainRoute tempTrain = null;
-            for (TrainRouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid,trainType, cal, depLimits, arrLimits, null, null,
+            for (RouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid,trainType, cal, depLimits, arrLimits, null, null,
                     sf, sort, page, pageSize); it.hasNext(); ) {
-                    tempTrain =(TrainRoute)it.next();
-                    if(!tempTrain.type.equals("EmptyFlag")){
-                    results.add(tempTrain.toJson());
-                }
+                    results.add(it.next().toJson());
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
         } catch (IllegalArgumentException e) {

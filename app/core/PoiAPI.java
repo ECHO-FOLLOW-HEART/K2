@@ -118,6 +118,7 @@ public class PoiAPI {
             query = query.filter("name", Pattern.compile(searchWord));
         if (tag != null && !tag.isEmpty())
             query = query.field("tags").equal(tag);
+        //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店
         if (hotelType != null && !hotelType.isEmpty())
             query = query.field("type").equal(hotelType);
 
