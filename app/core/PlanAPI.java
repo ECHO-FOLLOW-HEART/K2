@@ -1,6 +1,5 @@
 package core;
 
-import controllers.Bache;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -52,7 +51,7 @@ public class PlanAPI {
         if (tag != null && !tag.isEmpty())
             query.field("tags").equal(tag);
 
-        query.field("desc").notEqual("");
+        query.field("desc").notEqual("").field("days").greaterThan(0).field("vsCnt").greaterThan(0);
 
         query.order("manualPriority").offset(page * pageSize).limit(pageSize);
 
@@ -171,11 +170,8 @@ public class PlanAPI {
         addHotels(plan.details);
 
 
-
         return plan;
     }
-
-
 
 
     public static void pseudoOptimize(List<PlanDayEntry> entryList) {

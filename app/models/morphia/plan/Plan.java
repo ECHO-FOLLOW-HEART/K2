@@ -36,7 +36,15 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public Integer planId;
 
+    /**
+     * 行程天数
+     */
     public Integer days;
+
+    /**
+     * 景点个数
+     */
+    public Integer vsCnt;
 
     public String desc;
 
