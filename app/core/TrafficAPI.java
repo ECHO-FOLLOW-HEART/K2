@@ -302,16 +302,11 @@ public class TrafficAPI {
 //        query.offset(page * pageSize).limit(pageSize);
 //        Iterator<TrainRoute> it = query.iterator();
 
-        //分页
-        List<TrainRoute> pagingList = new ArrayList(pageSize);
-        for(int i=page * pageSize;i<pageSize;i++){
-            pagingList.add(validRoutes.get(i));
-        }
         Calendar cal;
         if (epTimeLimits != null && epTimeLimits.size() == 2)
             cal = epTimeLimits.get(0);
         else
             cal = baseCal;
-        return RouteIterator.getInstance(pagingList.iterator(), (cal != null ? cal.getTime() : null));
+        return RouteIterator.getInstance(validRoutes.iterator(), (cal != null ? cal.getTime() : null));
     }
 }
