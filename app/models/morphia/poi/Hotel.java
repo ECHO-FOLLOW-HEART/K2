@@ -39,15 +39,21 @@ public class Hotel extends AbstractPOI {
         else
             ((ObjectNode) node.get("ratings")).put("starLevel", 3);
         if(null == price){
-            if(ratings.starLevel==null||ratings.starLevel<3){
+            if(ratings!= null){
+                if(ratings.starLevel==null||ratings.starLevel<3){
+                    price = 150.0;
+                }else if(ratings.starLevel ==3){
+                    price = 300.0;
+                }else if(ratings.starLevel ==4){
+                    price = 400.0;
+                }else if(ratings.starLevel > 5){
+                    price = 800.0;
+                }
+            }else{
+
                 price = 150.0;
-            }else if(ratings.starLevel ==3){
-                price = 300.0;
-            }else if(ratings.starLevel ==4){
-                price = 400.0;
-            }else if(ratings.starLevel > 5){
-                price = 800.0;
             }
+
         }
         node.put("price",price);
         if (level > 1 && type != null)
