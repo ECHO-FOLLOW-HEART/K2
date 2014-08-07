@@ -43,6 +43,15 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public String desc;
 
+    /**
+     * 开放时间描述
+     */
+    public String openTime;
+
+    public Integer openHour;
+
+    public Integer closeHour;
+
     @Embedded
     public Description description;
 

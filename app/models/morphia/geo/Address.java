@@ -23,6 +23,8 @@ public class Address implements ITravelPiFormatter {
     @Embedded
     public Coords coords;
 
+    @Embedded
+    public Coords bCoords;
 
     /**
      * 序列化到JSON格式。
