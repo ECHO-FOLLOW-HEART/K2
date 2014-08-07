@@ -533,7 +533,8 @@ public class PlanCtrl extends Controller {
         PlanItem planItem = null;
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         SimpleRef ref;
-        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd hh:mm:ssZ");
+        //12小时制：hh:mm:ss  24小时制：HH:mm:ss
+        SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         switch (subType) {
             case "airport":
                 Airport airport = ds.createQuery(Airport.class).field("_id").equal(new ObjectId(itemId)).get();
