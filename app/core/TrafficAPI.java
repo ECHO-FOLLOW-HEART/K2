@@ -312,7 +312,6 @@ public class TrafficAPI {
 
         }
 
-
         Calendar cal;
         if (epTimeLimits != null && epTimeLimits.size() == 2)
             cal = epTimeLimits.get(0);
