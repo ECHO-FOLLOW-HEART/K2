@@ -227,6 +227,20 @@ public class PlanCtrl extends Controller {
                                     if (airport.addr.coords.blng != null)
                                         conItem.put("blat", airport.addr.coords.blng);
                                 }
+                            }else if("trainStation".equals(item.get("subType").asText())){
+                                Datastore dsTrain = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+                                TrainStation trainStation = dsTrain.createQuery(TrainStation.class).field("_id")
+                                        .equal(new ObjectId(item.get("itemId").asText())).get();
+                                if (trainStation != null&&trainStation.addr!= null&&trainStation.addr.coords!=null) {
+                                    if (trainStation.addr.coords.lat != null)
+                                        conItem.put("lat", trainStation.addr.coords.lat);
+                                    if (trainStation.addr.coords.lng != null)
+                                        conItem.put("lng", trainStation.addr.coords.lng);
+                                    if (trainStation.addr.coords.blat != null)
+                                        conItem.put("blat", trainStation.addr.coords.blat);
+                                    if (trainStation.addr.coords.blng != null)
+                                        conItem.put("blat", trainStation.addr.coords.blng);
+                                }
                             }
                         }
                     } else {
