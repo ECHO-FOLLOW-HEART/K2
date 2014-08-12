@@ -19,40 +19,10 @@ import java.util.Map;
  */
 public class MorphiaFactory {
 
+    private static Hashtable<DBType, Datastore> dsMap = new Hashtable<>();
+    private static MorphiaFactory ourInstance;
     private final Morphia morphia;
     private final MongoClient client;
-
-    public enum DBType {
-        GEO,
-        POI,
-        PLAN,
-        PLAN_UGC,
-        USER,
-        MISC,
-        TRAFFIC
-    }
-
-    private static Hashtable<DBType, Datastore> dsMap = new Hashtable<>();
-
-    private static MorphiaFactory ourInstance;
-
-    public synchronized static MorphiaFactory getInstance() throws TravelPiException {
-        if (ourInstance == null)
-            ourInstance = new MorphiaFactory();
-
-        return ourInstance;
-    }
-
-    public synchronized static MorphiaFactory getInstance(String host, int port) throws TravelPiException {
-        if (ourInstance == null)
-            ourInstance = new MorphiaFactory(host, port);
-
-        return ourInstance;
-    }
-
-    public Morphia getMorphia() {
-        return morphia;
-    }
 
     private MorphiaFactory(String host, int port) throws TravelPiException {
         try {
@@ -95,6 +65,24 @@ public class MorphiaFactory {
 //        morphia.mapPackage("models.morphia", true);
     }
 
+    public synchronized static MorphiaFactory getInstance() throws TravelPiException {
+        if (ourInstance == null)
+            ourInstance = new MorphiaFactory();
+
+        return ourInstance;
+    }
+
+    public synchronized static MorphiaFactory getInstance(String host, int port) throws TravelPiException {
+        if (ourInstance == null)
+            ourInstance = new MorphiaFactory(host, port);
+
+        return ourInstance;
+    }
+
+    public Morphia getMorphia() {
+        return morphia;
+    }
+
     public synchronized Datastore getDatastore(DBType type) throws TravelPiException {
         // 初始化
         getInstance();
@@ -129,5 +117,15 @@ public class MorphiaFactory {
         if (ds != null)
             dsMap.put(type, ds);
         return ds;
+    }
+
+    public enum DBType {
+        GEO,
+        POI,
+        PLAN,
+        PLAN_UGC,
+        USER,
+        MISC,
+        TRAFFIC
     }
 }

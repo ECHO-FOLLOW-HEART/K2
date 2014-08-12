@@ -165,13 +165,14 @@ public class Utils {
 
     /**
      * 根据经纬度计算距离，单位是公里
+     *
      * @param lat1
      * @param lat2
      * @param lon1
      * @param lon2
      * @return
      */
-    public static int getDistatce(double lat1, double lat2, double lon1,    double lon2) {
+    public static int getDistatce(double lat1, double lat2, double lon1, double lon2) {
         double R = 6371;
         double distance = 0.0;
         double dLat = (lat2 - lat1) * Math.PI / 180;

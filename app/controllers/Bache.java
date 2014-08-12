@@ -1,20 +1,13 @@
 package controllers;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBObject;
-import core.PlanAPI;
-import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.geo.Coords;
 import models.morphia.geo.Locality;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
 import models.morphia.poi.ViewSpot;
-import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -36,12 +29,13 @@ public class Bache extends Controller {
     private static final int STAY_DEFAULT_PRICE = 200;
 
     private static final Double VIEWPOINT_DEFAULT_PRICE = 30d;
+
     /**
      * 获得。
      *
      * @return
      */
-    public static Result getPlanBudget(String depId,String arrId){
+    public static Result getPlanBudget(String depId, String arrId) {
         int trafficBudget = 0;
 
         try {
@@ -60,18 +54,18 @@ public class Bache extends Controller {
             List<PlanItem> actvs = null;
             List<Double> vsPriceList = new ArrayList<Double>(VIEWPOINT_MOUNT);
             //得到景点Id-景点价格Map
-            Map<ObjectId,Double> iD_Price_Map = getVsPriceById();
+            Map<ObjectId, Double> iD_Price_Map = getVsPriceById();
             Double tempPrice = 0d;
             Double totalPrice = 0d;
             int days = 0;
 
             for (Iterator<Plan> it = query.iterator(); it.hasNext(); ) {
-                tempPlan =(Plan)it.next();
+                tempPlan = (Plan) it.next();
                 tempDetails = (List<PlanDayEntry>) tempPlan.details;
                 days = tempPlan.days;
                 actvs = new ArrayList<PlanItem>(10);
                 totalPrice = 0d;
-                if(null!=tempDetails) {
+                if (null != tempDetails) {
 
                     // 遍历details
                     for (PlanDayEntry entry : tempDetails) {
@@ -82,9 +76,9 @@ public class Bache extends Controller {
                                 //得到景点Id
                                 tempObjectId = item.item.id;
                                 tempPrice = iD_Price_Map.get(tempObjectId);
-                                if(null!= tempPrice){
-                                    totalPrice = totalPrice+tempPrice;
-                                }else{
+                                if (null != tempPrice) {
+                                    totalPrice = totalPrice + tempPrice;
+                                } else {
                                     totalPrice = totalPrice + VIEWPOINT_DEFAULT_PRICE;
                                 }
                             }
@@ -92,7 +86,7 @@ public class Bache extends Controller {
                     }
                 }
                 ops = ds.createUpdateOperations(Plan.class);
-                ops.set("viewBudget",totalPrice);
+                ops.set("viewBudget", totalPrice);
                 //ops.set("stayBudget",days*STAY_DEFAULT_PRICE);
                 //ops.set("trafficBudget",trafficBudget);
                 ds.update(query, ops, true);
@@ -108,7 +102,7 @@ public class Bache extends Controller {
      *
      * @return
      */
-    public static int getTrafficBudget(String depId,String arrId) {
+    public static int getTrafficBudget(String depId, String arrId) {
 
         int trafficBudget = 1;
         int trafficRatio = 10;
@@ -123,13 +117,13 @@ public class Bache extends Controller {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
             Query<Locality> query = ds.createQuery(Locality.class);
             Query<Locality> query1 = ds.createQuery(Locality.class);
-                depLoc = query.field("_id").equal(depOid).get();
-                arrLoc = query1.field("_id").equal(arrOid).get();
-            if(null!=depLoc && null!= arrLoc){
-            kmMount =  Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
+            depLoc = query.field("_id").equal(depOid).get();
+            arrLoc = query1.field("_id").equal(arrOid).get();
+            if (null != depLoc && null != arrLoc) {
+                kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
             }
 
-            trafficBudget = kmMount*2 / trafficRatio;
+            trafficBudget = kmMount * 2 / trafficRatio;
 
         } catch (TravelPiException e) {
         }
@@ -137,20 +131,20 @@ public class Bache extends Controller {
     }
 
 
-    private static Map<ObjectId,Double> getVsPriceById(){
+    private static Map<ObjectId, Double> getVsPriceById() {
 
-        Map<ObjectId,Double> mapPrice = new HashMap<ObjectId,Double>(VIEWPOINT_MOUNT);
+        Map<ObjectId, Double> mapPrice = new HashMap<ObjectId, Double>(VIEWPOINT_MOUNT);
 
-        try{
+        try {
 
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
             Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
             ViewSpot viewSpotTemp = null;
             for (Iterator<ViewSpot> it = query.iterator(); it.hasNext(); ) {
-                viewSpotTemp =(ViewSpot)it.next();
+                viewSpotTemp = (ViewSpot) it.next();
                 mapPrice.put(viewSpotTemp.id, viewSpotTemp.price);
             }
-        }  catch (TravelPiException e) {
+        } catch (TravelPiException e) {
         }
         return mapPrice;
     }

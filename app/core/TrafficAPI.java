@@ -3,7 +3,10 @@ package core;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.traffic.*;
+import models.morphia.traffic.AirRoute;
+import models.morphia.traffic.RouteIterator;
+import models.morphia.traffic.TrainEntry;
+import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -17,13 +20,6 @@ import java.util.*;
  * @author Zephyre
  */
 public class TrafficAPI {
-
-    /**
-     * 排序的字段。
-     */
-    public enum SortField {
-        PRICE, DEP_TIME, ARR_TIME, TIME_COST,CODE
-    }
 
     /**
      * 获得航班信息。
@@ -70,8 +66,8 @@ public class TrafficAPI {
      */
     public static RouteIterator searchAirRoutes(ObjectId depId, ObjectId arrId, Calendar baseCal, final List<Calendar> depTimeLimit,
 
- final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits,
- final SortField sortField, int sortType, int page, int pageSize) throws TravelPiException {
+                                                final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits,
+                                                final SortField sortField, int sortType, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<AirRoute> query = ds.createQuery(AirRoute.class);
@@ -195,9 +191,9 @@ public class TrafficAPI {
      * @param arrTimeLimit
      * @param priceLimits
      */
-    public static RouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId,String trainType, Calendar baseCal, final List<Calendar> depTimeLimit,
-                  final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField,
-                  int sortType, int page, int pageSize) throws TravelPiException {
+    public static RouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId, String trainType, Calendar baseCal, final List<Calendar> depTimeLimit,
+                                                  final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField,
+                                                  int sortType, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<TrainRoute> query = ds.createQuery(TrainRoute.class);
@@ -216,13 +212,13 @@ public class TrafficAPI {
 
         Iterator<TrainRoute> it = query.iterator();
         List<TrainRoute> validRoutes = new ArrayList<>();
-        for (TrainRoute route :query.asList() ) {
+        for (TrainRoute route : query.asList()) {
             // dep必须出现在arr前面，这样方向才是正确的，否则线路无效。
             boolean isDep = false;
             int depIdx = -1;
             for (int i = 0; i < route.details.size(); i++) {
                 TrainEntry entry = route.details.get(i);
-                if (entry.loc.id.toString().equals(depId.toString()) || entry.stop.id.toString().equals(depId.toString())  ) {
+                if (entry.loc.id.toString().equals(depId.toString()) || entry.stop.id.toString().equals(depId.toString())) {
                     // 遇到出发站点
                     if (isDep)
                         break;
@@ -254,30 +250,30 @@ public class TrafficAPI {
             }
         }
 
-        if(null!=depTimeLimit){
-        Calendar lower = Calendar.getInstance();
-        lower.setTimeInMillis(depTimeLimit.get(0).getTimeInMillis());
-        Calendar upper = Calendar.getInstance();
-        upper.setTimeInMillis(depTimeLimit.get(1).getTimeInMillis());
-        long elapse = upper.getTimeInMillis() - lower.getTimeInMillis();
-        lower.set(1980, Calendar.JANUARY, 1);
-        upper.setTimeInMillis(lower.getTimeInMillis() + elapse);
+        if (null != depTimeLimit) {
+            Calendar lower = Calendar.getInstance();
+            lower.setTimeInMillis(depTimeLimit.get(0).getTimeInMillis());
+            Calendar upper = Calendar.getInstance();
+            upper.setTimeInMillis(depTimeLimit.get(1).getTimeInMillis());
+            long elapse = upper.getTimeInMillis() - lower.getTimeInMillis();
+            lower.set(1980, Calendar.JANUARY, 1);
+            upper.setTimeInMillis(lower.getTimeInMillis() + elapse);
 
-        TrainRoute tempTrainRoute = null;
-        Iterator<TrainRoute> itTime = validRoutes.iterator();
-        Date dateDepTime = null;
-        boolean isRightTime = false;
-        while(itTime.hasNext()){
-            tempTrainRoute = itTime.next();
-            dateDepTime = tempTrainRoute.depTime;
-            if(null!= dateDepTime){
-                isRightTime = dateDepTime.getTime()>lower.getTimeInMillis()&&
-                        dateDepTime.getTime()<upper.getTimeInMillis();
-                if(!isRightTime){
-                    itTime.remove();
+            TrainRoute tempTrainRoute = null;
+            Iterator<TrainRoute> itTime = validRoutes.iterator();
+            Date dateDepTime = null;
+            boolean isRightTime = false;
+            while (itTime.hasNext()) {
+                tempTrainRoute = itTime.next();
+                dateDepTime = tempTrainRoute.depTime;
+                if (null != dateDepTime) {
+                    isRightTime = dateDepTime.getTime() > lower.getTimeInMillis() &&
+                            dateDepTime.getTime() < upper.getTimeInMillis();
+                    if (!isRightTime) {
+                        itTime.remove();
+                    }
                 }
             }
-        }
         }
         // 排序
         String stKey = null;
@@ -304,8 +300,8 @@ public class TrafficAPI {
 
         //分页
         List<TrainRoute> pagingList = new ArrayList(pageSize);
-        for(int i=page * pageSize;i<pageSize;i++){
-            if(i>validRoutes.size()-1){
+        for (int i = page * pageSize; i < pageSize; i++) {
+            if (i > validRoutes.size() - 1) {
                 break;
             }
             pagingList.add(validRoutes.get(i));
@@ -318,5 +314,12 @@ public class TrafficAPI {
         else
             cal = baseCal;
         return RouteIterator.getInstance(pagingList.iterator(), (cal != null ? cal.getTime() : null));
+    }
+
+    /**
+     * 排序的字段。
+     */
+    public enum SortField {
+        PRICE, DEP_TIME, ARR_TIME, TIME_COST, CODE
     }
 }

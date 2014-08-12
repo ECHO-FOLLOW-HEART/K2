@@ -6,7 +6,6 @@ import core.LocalityAPI;
 import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.TravelPiBaseItem;
 import models.geos.Locality;
 import models.morphia.poi.AbstractPOI;
 import play.libs.Json;
@@ -119,7 +118,7 @@ public class GeoCtrl extends Controller {
                 }
                 result.put("relVs", Json.toJson(retVsNodes));
             } else
-            //edit by PC_Chen : return a empty list instead
+                //edit by PC_Chen : return a empty list instead
 //                result.put("relVs", "");
                 result.put("relVs", Json.toJson(new ArrayList<JsonNode>()));
             return Utils.createResponse(ErrorCode.NORMAL, result);

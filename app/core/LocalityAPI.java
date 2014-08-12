@@ -77,7 +77,7 @@ public class LocalityAPI {
      */
     public static Iterator<Locality> getSuggestion(String searchWord, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        return ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^"+searchWord))
+        return ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord))
                 .retrievedFields(true, "zhName", "level", "superAdm").limit(pageSize).iterator();
     }
 

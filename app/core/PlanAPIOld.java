@@ -30,7 +30,7 @@ public class PlanAPIOld {
             //edit by PC_Chen
 //            builder.add(k, (tmp == null || !(tmp instanceof Integer)) ? "" : (int) tmp);
             if (tmp != null && (tmp instanceof Integer)) {
-                builder.add(k,  tmp);
+                builder.add(k, tmp);
             }
         }
 

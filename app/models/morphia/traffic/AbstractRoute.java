@@ -95,7 +95,7 @@ public abstract class AbstractRoute extends TravelPiBaseItem implements ITravelP
         return Json.toJson(builder.get());
     }
 
-    public void addColumn(BasicDBObjectBuilder builder,Class routesCls,String... keys){
+    public void addColumn(BasicDBObjectBuilder builder, Class routesCls, String... keys) {
 
         //basic data type fields
         for (String k : keys) {
@@ -104,7 +104,7 @@ public abstract class AbstractRoute extends TravelPiBaseItem implements ITravelP
                 val = routesCls.getField(k).get(this);
             } catch (NoSuchFieldException | IllegalAccessException ignored) {
             }
-            if (val != null){
+            if (val != null) {
 
                 builder.add(k, val);
             }

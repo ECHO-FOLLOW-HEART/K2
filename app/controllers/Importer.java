@@ -8,7 +8,6 @@ import models.MorphiaFactory.DBType;
 import models.morphia.geo.Address;
 import models.morphia.geo.Coords;
 import models.morphia.geo.Country;
-import models.morphia.geo.Locality;
 import models.morphia.misc.Contact;
 import models.morphia.misc.SimpleRef;
 import models.morphia.traffic.AirRoute;

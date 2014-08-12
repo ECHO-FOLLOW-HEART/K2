@@ -37,7 +37,7 @@ public class AirPrice implements ITravelPiFormatter {
             //PC_Chen
             if (k.equals("provider")) {
                 builder.add(k, val != null ? val : new ArrayList<>());
-            } else if(val != null)
+            } else if (val != null)
                 builder.add(k, val);
         }
         return Json.toJson(builder.get());

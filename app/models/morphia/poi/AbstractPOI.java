@@ -63,6 +63,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public List<String> alias;
 
+    /**
+     * 其它信息
+     */
+    public Map<String, Object> extra;
+
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:

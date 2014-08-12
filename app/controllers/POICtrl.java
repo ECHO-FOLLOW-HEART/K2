@@ -33,10 +33,10 @@ public class POICtrl extends Controller {
     /**
      * 获得POI的详细信息。
      *
-     * @param poiDesc POI的类型说明:
-     *                vs: 景点
-     *                hotel: 酒店
-     *                restaurant: 餐饮
+     * @param poiDesc     POI的类型说明:
+     *                    vs: 景点
+     *                    hotel: 酒店
+     *                    restaurant: 餐饮
      * @param spotId      POI的ID。
      * @param showDetails 获得更多的详情。
      * @param showRelated 获得相关POI信息。
@@ -74,7 +74,7 @@ public class POICtrl extends Controller {
                             {
                                 put("_id !=", vsId);
                             }
-                        },0); it.hasNext(); ) {
+                        }, 0); it.hasNext(); ) {
                     AbstractPOI vs = it.next();
                     vsList.add(vs.toJson(1));
                 }
@@ -247,7 +247,7 @@ public class POICtrl extends Controller {
                         {
                             put("_id !=", locId);
                         }
-                    },0); it.hasNext(); ) {
+                    }, 0); it.hasNext(); ) {
                 ViewSpot vs = (ViewSpot) it.next();
                 vsList.add(vs.toJson(2));
             }
@@ -270,11 +270,11 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize,String sortField, String sortType,String hotelTypeStr) {
+    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize, String sortField, String sortType, String hotelTypeStr) {
         if (locId.isEmpty())
             locId = null;
         int hotelType = 0;
-        if(!hotelTypeStr.equals("")){
+        if (!hotelTypeStr.equals("")) {
             try {
                 hotelType = Integer.parseInt(hotelTypeStr);
             } catch (ClassCastException e) {
@@ -325,7 +325,7 @@ public class POICtrl extends Controller {
                 }
             }
             List<JsonNode> results = new ArrayList<>();
-            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null,hotelType);
+            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
             while (it.hasNext())
                 results.add(it.next().toJson(2));
 

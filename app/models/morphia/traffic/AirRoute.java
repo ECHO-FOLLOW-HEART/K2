@@ -2,13 +2,9 @@ package models.morphia.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
-import models.ITravelPiFormatter;
 import models.morphia.misc.SimpleRef;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
-import org.mongodb.morphia.annotations.Property;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
@@ -50,13 +46,13 @@ public class AirRoute extends AbstractRoute {
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("_id", id.toString()).add("code", code);
 
-        for (Map.Entry<String,String> entry: new HashMap<String,String>(){
+        for (Map.Entry<String, String> entry : new HashMap<String, String>() {
             {
                 put("depStop", "depAirport");
                 put("arrStop", "arrAirport");
                 put("carrier", "carrier");
             }
-        }.entrySet()){
+        }.entrySet()) {
             String k = entry.getKey();
             String v = entry.getValue();
             SimpleRef val = null;

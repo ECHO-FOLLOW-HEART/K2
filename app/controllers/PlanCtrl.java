@@ -63,16 +63,16 @@ public class PlanCtrl extends Controller {
             //TODO
             //添加住宿预算，交通预算
             int trafficBudgetT = 0;
-            if(null!= plan.targets&&plan.targets.size()>0){
+            if (null != plan.targets && plan.targets.size() > 0) {
                 trafficBudgetT = Bache.getTrafficBudget(fromLocId, plan.targets.get(0).id.toString());
-            }else{
+            } else {
                 trafficBudgetT = 200;
             }
             List<SimpleRef> targets = plan.targets;
             SimpleRef arrSimpleRef = targets.get(0);
             String arrId = (arrSimpleRef.id).toString();
             plan.trafficBudget = Integer.valueOf(trafficBudgetT);
-            plan.stayBudget = plan.days*300;
+            plan.stayBudget = plan.days * 300;
 
 
             buildBudget(plan);
@@ -217,7 +217,7 @@ public class PlanCtrl extends Controller {
                                 Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
                                 Airport airport = ds.createQuery(Airport.class).field("_id")
                                         .equal(new ObjectId(item.get("itemId").asText())).get();
-                                if (airport != null&&airport.addr!= null&&airport.addr.coords!=null) {
+                                if (airport != null && airport.addr != null && airport.addr.coords != null) {
                                     if (airport.addr.coords.lat != null)
                                         conItem.put("lat", airport.addr.coords.lat);
                                     if (airport.addr.coords.lng != null)
@@ -227,11 +227,11 @@ public class PlanCtrl extends Controller {
                                     if (airport.addr.coords.blng != null)
                                         conItem.put("blat", airport.addr.coords.blng);
                                 }
-                            }else if("trainStation".equals(item.get("subType").asText())){
+                            } else if ("trainStation".equals(item.get("subType").asText())) {
                                 Datastore dsTrain = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
                                 TrainStation trainStation = dsTrain.createQuery(TrainStation.class).field("_id")
                                         .equal(new ObjectId(item.get("itemId").asText())).get();
-                                if (trainStation != null&&trainStation.addr!= null&&trainStation.addr.coords!=null) {
+                                if (trainStation != null && trainStation.addr != null && trainStation.addr.coords != null) {
                                     if (trainStation.addr.coords.lat != null)
                                         conItem.put("lat", trainStation.addr.coords.lat);
                                     if (trainStation.addr.coords.lng != null)
@@ -441,7 +441,7 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String fromLoc,String locId, String poiId, String sortField, String sort, String tag, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
 
         int trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
@@ -450,7 +450,7 @@ public class PlanCtrl extends Controller {
              it.hasNext(); ) {
             //加入交通预算,住宿预算
             if (null != fromLoc && !fromLoc.trim().equals("")) {
-                results.add(addTrafficBudget(it, fromLoc,trafficBudget));
+                results.add(addTrafficBudget(it, fromLoc, trafficBudget));
             } else {
                 results.add(it.next().toJson(false));
             }
@@ -462,16 +462,17 @@ public class PlanCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
-    private static JsonNode addTrafficBudget(Iterator<Plan> it,String fromLoc,int trafficBudg){
+    private static JsonNode addTrafficBudget(Iterator<Plan> it, String fromLoc, int trafficBudg) {
         Plan plan = it.next();
         List<SimpleRef> targets = plan.targets;
         SimpleRef arrSimpleRef = targets.get(0);
         String arrId = (arrSimpleRef.id).toString();
 
         plan.trafficBudget = trafficBudg;
-        plan.stayBudget = plan.days*300;
+        plan.stayBudget = plan.days * 300;
         return plan.toJson(false);
     }
+
     /**
      * 路线发现机制
      *

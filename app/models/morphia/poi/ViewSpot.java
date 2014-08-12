@@ -51,7 +51,7 @@ public class ViewSpot extends AbstractPOI {
 
     public static List<String> getRetrievedFields(int level) {
         List<String> fieldList = AbstractPOI.getRetrievedFields(level);
-        if (level>2)
+        if (level > 2)
             fieldList.addAll(Arrays.asList("rankingA", "openTime", "timeCost"));
         return fieldList;
     }
@@ -68,7 +68,7 @@ public class ViewSpot extends AbstractPOI {
 
             // TODO
             // 临时处理
-            if(openTime == null||openTime.equals("None")){
+            if (openTime == null || openTime.equals("None")) {
                 openTime = "全天";
             }
             node.put("openTime", openTime != null ? openTime : "");

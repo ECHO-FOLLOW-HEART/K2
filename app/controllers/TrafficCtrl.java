@@ -14,7 +14,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import play.mvc.Results;
-import utils.Traffic;
 import utils.Utils;
 
 import java.net.UnknownHostException;
@@ -206,7 +205,7 @@ public class TrafficCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getTrainRoutes(String depId, String arrId,String ts,String trainType,String sortField, String sortType,
+    public static Result getTrainRoutes(String depId, String arrId, String ts, String trainType, String sortField, String sortType,
                                         String timeFilterType, int timeFilter, int page, int pageSize)
             throws UnknownHostException, TravelPiException {
         int sort = -1;
@@ -303,9 +302,9 @@ public class TrafficCtrl extends Controller {
 
             List<JsonNode> results = new ArrayList<>();
 
-            for (RouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid,trainType, cal, depLimits, arrLimits, null, null,
+            for (RouteIterator it = TrafficAPI.searchTrainRoutes(depOid, arrOid, trainType, cal, depLimits, arrLimits, null, null,
                     sf, sort, page, pageSize); it.hasNext(); ) {
-                    results.add(it.next().toJson());
+                results.add(it.next().toJson());
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
         } catch (IllegalArgumentException e) {

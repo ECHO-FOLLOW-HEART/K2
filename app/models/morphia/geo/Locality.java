@@ -76,15 +76,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public String desc;
 
-    public JsonNode getJsonNode() {
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("name", zhName).add("level", level);
-
-        builder.add("parent", null);
-
-        return Json.toJson(builder.get());
-    }
-
     /**
      * 去掉末尾的省市县等名字。
      *
@@ -126,6 +117,15 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         name = pattern.matcher(name).replaceAll("");
 
         return name;
+    }
+
+    public JsonNode getJsonNode() {
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        builder.add("_id", id.toString()).add("name", zhName).add("level", level);
+
+        builder.add("parent", null);
+
+        return Json.toJson(builder.get());
     }
 
     @Override

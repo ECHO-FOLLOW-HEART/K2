@@ -33,13 +33,6 @@ import java.util.regex.Pattern;
 public class PoiAPI {
 
     /**
-     * 排序的字段。
-     */
-    public enum SortField {
-        SCORE, PRICE
-    }
-
-    /**
      * 获得POI联想列表。
      *
      * @param poiType
@@ -66,15 +59,6 @@ public class PoiAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         return ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word)).limit(pageSize).iterator();
     }
-
-    public enum POIType {
-        VIEW_SPOT,
-        HOTEL,
-        RESTAURANT,
-        SHOPPING,
-        ENTERTAINMENT
-    }
-
 
     /**
      * POI搜索。
@@ -119,7 +103,7 @@ public class PoiAPI {
         if (tag != null && !tag.isEmpty())
             query = query.field("tags").equal(tag);
         //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店
-        if (hotelType!= 0)
+        if (hotelType != 0)
             query = query.field("type").equal(hotelType);
 
         int detailLvl = details ? 3 : 2;
@@ -153,7 +137,6 @@ public class PoiAPI {
 
         return query.iterator();
     }
-
 
     /**
      * POI搜索。
@@ -235,7 +218,6 @@ public class PoiAPI {
         return getPOIInfo(id, poiType, showDetails);
     }
 
-
     /**
      * 获得POI信息。
      *
@@ -281,7 +263,6 @@ public class PoiAPI {
         }
     }
 
-
     /**
      * 发现POI。
      *
@@ -314,7 +295,6 @@ public class PoiAPI {
 
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
-
 
     /**
      * 发现POI。
@@ -369,7 +349,6 @@ public class PoiAPI {
         return results;
     }
 
-
     public static List<JsonNode> getSuggestionsOld(POIType poiType, String word, int page, int pageSize) throws TravelPiException {
         String colName;
         switch (poiType) {
@@ -402,7 +381,6 @@ public class PoiAPI {
             results.add(getPOIInfoJson(cursor.next(), 1));
         return results;
     }
-
 
     /**
      * 获得Json格式的POI信息。
@@ -474,5 +452,22 @@ public class PoiAPI {
             retVs.put("desc", (tmp == null ? "" : tmp.toString()));
 
         return (ObjectNode) Json.toJson(retVs);
+    }
+
+
+    /**
+     * 排序的字段。
+     */
+    public enum SortField {
+        SCORE, PRICE
+    }
+
+
+    public enum POIType {
+        VIEW_SPOT,
+        HOTEL,
+        RESTAURANT,
+        SHOPPING,
+        ENTERTAINMENT
     }
 }

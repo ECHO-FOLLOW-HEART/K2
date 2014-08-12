@@ -2,6 +2,7 @@ import play.Application;
 import play.GlobalSettings;
 import play.api.mvc.EssentialFilter;
 import play.filters.gzip.GzipFilter;
+
 import java.util.TimeZone;
 
 public class Global extends GlobalSettings {
