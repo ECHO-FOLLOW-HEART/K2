@@ -12,6 +12,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -24,19 +25,24 @@ import java.util.*;
  */
 public class Bache extends Controller {
 
-    private static final int VIEWPOINT_MOUNT = 5000;
-
-    private static final int STAY_DEFAULT_PRICE = 200;
-
-    private static final Double VIEWPOINT_DEFAULT_PRICE = 30d;
-
     /**
-     * 获得。
+     * 计算旅行计划模板的预算，并入库
      *
      * @return
      */
     public static Result getPlanBudget(String depId, String arrId) {
-        int trafficBudget = 0;
+        Double VIEWPOINT_DEFAULT_PRICE = 0d;
+
+        //取得景点预算常量
+        Configuration config = Configuration.root();
+        Map budget = (Map) config.getObject("budget");
+        try {
+            if (budget != null) {
+                VIEWPOINT_DEFAULT_PRICE = Double.valueOf(budget.get("viewpointBudgetDefault").toString());
+            }
+        } catch (ClassCastException e) {
+            return Utils.createResponse(ErrorCode.INVALID_CONFARG, Json.newObject());
+        }
 
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
@@ -52,7 +58,7 @@ public class Bache extends Controller {
             Plan tempPlan = null;
             List<PlanDayEntry> tempDetails = null;
             List<PlanItem> actvs = null;
-            List<Double> vsPriceList = new ArrayList<Double>(VIEWPOINT_MOUNT);
+            List<Double> vsPriceList = new ArrayList<Double>(5000);
             //得到景点Id-景点价格Map
             Map<ObjectId, Double> iD_Price_Map = getVsPriceById();
             Double tempPrice = 0d;
@@ -66,7 +72,6 @@ public class Bache extends Controller {
                 actvs = new ArrayList<PlanItem>(10);
                 totalPrice = 0d;
                 if (null != tempDetails) {
-
                     // 遍历details
                     for (PlanDayEntry entry : tempDetails) {
                         actvs = entry.actv;
@@ -87,28 +92,38 @@ public class Bache extends Controller {
                 }
                 ops = ds.createUpdateOperations(Plan.class);
                 ops.set("viewBudget", totalPrice);
-                //ops.set("stayBudget",days*STAY_DEFAULT_PRICE);
-                //ops.set("trafficBudget",trafficBudget);
                 ds.update(query, ops, true);
             }
-
         } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.DATABASE_ERROR, Json.newObject());
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.newObject());
     }
 
     /**
-     * 获得。
+     * 获得交通预算
      *
      * @return
      */
-    public static int getTrafficBudget(String depId, String arrId) {
+    public static Double getTrafficBudget(String depId, String arrId) throws TravelPiException {
 
-        int trafficBudget = 1;
-        int trafficRatio = 10;
-
+        //取得交通预算常量
+        Configuration config = Configuration.root();
+        Map mongo = (Map) config.getObject("budget");
+        Double trafficBudget = 0d;
+        Double trafficRatio = 0d;
+        try {
+            if (mongo != null) {
+                trafficBudget = Double.valueOf(mongo.get("trafficBudgetDefault").toString());
+                trafficRatio = Double.valueOf(mongo.get("trafficBudgetRatio").toString());
+            }
+        } catch (ClassCastException e) {
+            trafficBudget = 0d;
+            trafficRatio = 0d;
+        }
+        // 根据里程数与预算比率，计算得出交通预算
         if (null != depId && (!depId.trim().equals(""))
-                && null != arrId && (!arrId.trim().equals(""))) try {
+                && null != arrId && (!arrId.trim().equals(""))) {
             ObjectId depOid = new ObjectId(depId);
             ObjectId arrOid = new ObjectId(arrId);
             Locality depLoc = null;
@@ -122,30 +137,24 @@ public class Bache extends Controller {
             if (null != depLoc && null != arrLoc) {
                 kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
             }
-
-            trafficBudget = kmMount * 2 / trafficRatio;
-
-        } catch (TravelPiException e) {
+            trafficBudget = kmMount * trafficRatio;
         }
         return trafficBudget;
     }
 
 
-    private static Map<ObjectId, Double> getVsPriceById() {
+    private static Map<ObjectId, Double> getVsPriceById() throws TravelPiException {
 
-        Map<ObjectId, Double> mapPrice = new HashMap<ObjectId, Double>(VIEWPOINT_MOUNT);
+        Map<ObjectId, Double> mapPrice = new HashMap<ObjectId, Double>(5000);
 
-        try {
-
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-            Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
-            ViewSpot viewSpotTemp = null;
-            for (Iterator<ViewSpot> it = query.iterator(); it.hasNext(); ) {
-                viewSpotTemp = (ViewSpot) it.next();
-                mapPrice.put(viewSpotTemp.id, viewSpotTemp.price);
-            }
-        } catch (TravelPiException e) {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
+        ViewSpot viewSpotTemp = null;
+        for (Iterator<ViewSpot> it = query.iterator(); it.hasNext(); ) {
+            viewSpotTemp = (ViewSpot) it.next();
+            mapPrice.put(viewSpotTemp.id, viewSpotTemp.price);
         }
+
         return mapPrice;
     }
 

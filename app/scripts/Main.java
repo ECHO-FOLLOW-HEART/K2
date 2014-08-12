@@ -187,7 +187,8 @@ public class Main {
                 if (tmp2 != null && tmp2 instanceof Number)
                     r.shoppingIdx = ((Number) tmp2).intValue();
 
-                poi.ratings = r;
+                //poi.ratings = r;
+                poi.ratings = null;
             }
             tmp = poiDB.get("tel");
             if (tmp != null) {

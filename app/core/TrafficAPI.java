@@ -210,6 +210,18 @@ public class TrafficAPI {
         query.or(query.criteria("details.stop.id").equal(depId), query.criteria("details.loc.id").equal(depId));
         query.or(query.criteria("details.stop.id").equal(arrId), query.criteria("details.loc.id").equal(arrId));
 
+        // 时间节点过滤
+        if (epTimeLimits != null && epTimeLimits.size() == 2) {
+            Calendar lower = Calendar.getInstance();
+            lower.setTimeInMillis(epTimeLimits.get(0).getTimeInMillis());
+            Calendar upper = Calendar.getInstance();
+            upper.setTimeInMillis(epTimeLimits.get(1).getTimeInMillis());
+            long elapse = upper.getTimeInMillis() - lower.getTimeInMillis();
+            lower.set(1980, Calendar.JANUARY, 1);
+            upper.setTimeInMillis(lower.getTimeInMillis() + elapse);
+            query.and(query.criteria("depTime").greaterThanOrEq(lower.getTime()),
+                    query.criteria("arrTime").lessThanOrEq(upper.getTime()));
+        }
         Iterator<TrainRoute> it = query.iterator();
         List<TrainRoute> validRoutes = new ArrayList<>();
         for (TrainRoute route : query.asList()) {
@@ -275,6 +287,8 @@ public class TrafficAPI {
                 }
             }
         }
+
+
         // 排序
         String stKey = null;
         switch (sortField) {
@@ -305,7 +319,6 @@ public class TrafficAPI {
                 break;
             }
             pagingList.add(validRoutes.get(i));
-
         }
 
         Calendar cal;

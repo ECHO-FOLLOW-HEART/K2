@@ -461,9 +461,9 @@ public class PlanAPI {
                 TrafficAPI.searchAirRoutes(travelLoc, remoteLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1));
         if (!it.hasNext()) {
             it = (epDep ?
-                    TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, null, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
+                    TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
                     :
-                    TrafficAPI.searchTrainRoutes(travelLoc, remoteLoc, "", calLower, null, null, null, null, TrafficAPI.SortField.ARR_TIME, 1, 0, 1));
+                    TrafficAPI.searchTrainRoutes(travelLoc, remoteLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.ARR_TIME, 1, 0, 1));
         }
         if (!it.hasNext()) {
 

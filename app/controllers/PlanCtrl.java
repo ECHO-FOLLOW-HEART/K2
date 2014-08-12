@@ -26,6 +26,7 @@ import models.morphia.traffic.TrainRoute;
 import models.morphia.traffic.TrainStation;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -60,27 +61,37 @@ public class PlanCtrl extends Controller {
             cal.add(Calendar.DAY_OF_YEAR, 3);
             Plan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
 
-            //TODO
-            //添加住宿预算，交通预算
-            int trafficBudgetT = 0;
-            if (null != plan.targets && plan.targets.size() > 0) {
+            Configuration config = Configuration.root();
+            Map budget = (Map) config.getObject("budget");
+            Double trafficBudgetDefault = 0d;
+            int stayBudgetDefault = 0;
+            try {
+                if (budget != null) {
+                    trafficBudgetDefault = Double.valueOf(budget.get("trafficBudgetDefault").toString());
+                    stayBudgetDefault = Integer.valueOf(budget.get("stayBudgetDefault").toString());
+                }
+            } catch (ClassCastException e) {
+                trafficBudgetDefault = 0d;
+            }
+
+            //TODO 临时添加住宿预算，交通预算
+            Double trafficBudgetT = 0d;
+            List<SimpleRef> targets = plan.targets;
+            if (null != targets && targets.size() > 0) {
                 trafficBudgetT = Bache.getTrafficBudget(fromLocId, plan.targets.get(0).id.toString());
             } else {
-                trafficBudgetT = 200;
+                trafficBudgetT = trafficBudgetDefault;
             }
-            List<SimpleRef> targets = plan.targets;
-            SimpleRef arrSimpleRef = targets.get(0);
-            String arrId = (arrSimpleRef.id).toString();
-            plan.trafficBudget = Integer.valueOf(trafficBudgetT);
-            plan.stayBudget = plan.days * 300;
-
+            plan.trafficBudget = Integer.valueOf((int) trafficBudgetT.doubleValue());
+            plan.stayBudget = plan.days * stayBudgetDefault;
 
             buildBudget(plan);
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-
             return Utils.createResponse(ErrorCode.NORMAL, planJson);
+        } catch (ClassCastException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -444,32 +455,50 @@ public class PlanCtrl extends Controller {
     public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
 
-        int trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
+        Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
+        //取得预算常量
+        Configuration config = Configuration.root();
+        Map budget = (Map) config.getObject("budget");
+        int stayBudgetDefault = 0;
+        try {
+            if (budget != null) {
+                stayBudgetDefault = Integer.valueOf(budget.get("stayBudgetDefault").toString());
+            }
+        } catch (ClassCastException e) {
+            stayBudgetDefault = 0;
+        }
 
         for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, page, pageSize, sortField);
              it.hasNext(); ) {
             //加入交通预算,住宿预算
             if (null != fromLoc && !fromLoc.trim().equals("")) {
-                results.add(addTrafficBudget(it, fromLoc, trafficBudget));
+                try {
+                    results.add(addTrafficBudget(it, trafficBudget, stayBudgetDefault));
+                } catch (ClassCastException e) {
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+                }
             } else {
                 results.add(it.next().toJson(false));
             }
         }
-
-
-        // TODO 预算，以及这里不需要details字段
-
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
-    private static JsonNode addTrafficBudget(Iterator<Plan> it, String fromLoc, int trafficBudg) {
+    /**
+     * 路线中加入交通预算和食宿预算
+     *
+     * @param it
+     * @param trafficBudg
+     * @param stayBudgetDefault
+     * @return
+     * @throws ClassCastException
+     */
+    private static JsonNode addTrafficBudget(Iterator<Plan> it, Double trafficBudg, int stayBudgetDefault) throws ClassCastException {
         Plan plan = it.next();
-        List<SimpleRef> targets = plan.targets;
-        SimpleRef arrSimpleRef = targets.get(0);
-        String arrId = (arrSimpleRef.id).toString();
-
-        plan.trafficBudget = trafficBudg;
-        plan.stayBudget = plan.days * 300;
+        if (null != plan) {
+            plan.trafficBudget = Integer.valueOf((int) trafficBudg.doubleValue());
+            plan.stayBudget = plan.days == null ? 0 : plan.days * stayBudgetDefault;
+        }
         return plan.toJson(false);
     }
 
