@@ -52,7 +52,7 @@ public class PlanAPI {
             query.field("tags").equal(tag);
 
         query.field("desc").notEqual("").field("days").greaterThan(0).field("vsCnt").greaterThan(0);
-
+        query.field("enabled").equal(Boolean.TRUE);
         query.order("manualPriority").offset(page * pageSize).limit(pageSize);
 
         return query.iterator();
@@ -90,7 +90,7 @@ public class PlanAPI {
      */
     public static Plan getPlan(ObjectId planId, boolean ugc) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-        return ds.createQuery(Plan.class).field("_id").equal(planId).get();
+        return ds.createQuery(Plan.class).field("_id").equal(planId).field("enabled").equal(Boolean.TRUE).get();
     }
 
     /**
