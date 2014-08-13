@@ -25,6 +25,11 @@ public class Ratings implements ITravelPiFormatter {
 
     public Double ranking;
 
+    /**
+     * 百度搜索出来的结果数量。
+     */
+    public Integer baiduIndex;
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
