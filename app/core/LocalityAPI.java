@@ -114,7 +114,7 @@ public class LocalityAPI {
             Collections.addAll(fields, "imageList", "tags", "desc");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
-                .offset(page * pageSize).limit(pageSize).order("-ratings.score");
+                .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 
         return query.asList();
 

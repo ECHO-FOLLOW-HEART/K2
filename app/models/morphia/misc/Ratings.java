@@ -42,7 +42,7 @@ public class Ratings implements ITravelPiFormatter {
         if (favorCnt == null)
             favorCnt = (score != null ? score * 9 % 439 : 87);//(new Random()).nextInt(324);
 
-        for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt", "ranking"}) {
+        for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt", "ranking", "baiduIndex"}) {
             Object val = null;
             try {
                 val = Ratings.class.getField(k).get(this);
