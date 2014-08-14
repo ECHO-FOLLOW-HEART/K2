@@ -9,6 +9,7 @@ import models.morphia.geo.Address;
 import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.Contact;
 import models.morphia.misc.Description;
+import models.morphia.misc.ImageItem;
 import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
@@ -58,6 +59,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public String trafficInfo;
 
     public List<String> imageList;
+
+    public List<ImageItem> images;
 
     public List<String> tags;
 
