@@ -112,7 +112,7 @@ public class LocalityAPI {
         Collections.addAll(fields, "zhName", "ratings");
         if (showDetails)
             Collections.addAll(fields, "imageList", "tags", "desc");
-        Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
+        Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2).field("imageList").notEqual(null)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 

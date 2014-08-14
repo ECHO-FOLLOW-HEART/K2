@@ -293,7 +293,7 @@ public class PoiAPI {
         if (locId != null)
             query.field("addr.loc.id").equal(locId);
 
-        return query.offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
+        return query.field("imageList").notEqual(null).offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
     }
 
     /**
