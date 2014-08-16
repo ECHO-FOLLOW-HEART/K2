@@ -77,6 +77,11 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public String desc;
 
     /**
+     * 该locality对应路线的
+     */
+    public Integer relPlanCnt;
+
+    /**
      * 去掉末尾的省市县等名字。
      *
      * @param name

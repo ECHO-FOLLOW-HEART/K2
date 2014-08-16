@@ -67,6 +67,19 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public List<String> alias;
 
     /**
+     * 表示该POI的来源。注意：一个POI可以有多个来源。
+     * 示例：
+     *
+     * source: { "baidu": {"url": "foobar", "id": 27384}}
+     */
+    public Map<String, Object> source;
+
+    /**
+     * 相关路线的统计数目。
+     */
+    public Integer relPlanCnt;
+
+    /**
      * 其它信息
      */
     public Map<String, Object> extra;

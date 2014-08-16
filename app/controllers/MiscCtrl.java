@@ -256,12 +256,17 @@ public class MiscCtrl extends Controller {
         };
 
         for (PoiAPI.POIType poiType : poiKeyList) {
-            // 发现POI
-            List<JsonNode> retPoiList = new ArrayList<>();
-            for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize);
-                 it.hasNext(); )
-                retPoiList.add(it.next().toJson(2));
-            results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+            if (poiType == PoiAPI.POIType.VIEW_SPOT) {
+                // TODO 暂时不返回景点推荐数据
+                results.put(poiMap.get(poiType), Json.toJson(new ArrayList<>()));
+            } else {
+                // 发现POI
+                List<JsonNode> retPoiList = new ArrayList<>();
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize);
+                     it.hasNext(); )
+                    retPoiList.add(it.next().toJson(2));
+                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+            }
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, results);

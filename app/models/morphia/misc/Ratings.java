@@ -30,6 +30,11 @@ public class Ratings implements ITravelPiFormatter {
      */
     public Integer baiduIndex;
 
+    /**
+     * 去哪儿的评分。
+     */
+    public Integer qtScore;
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

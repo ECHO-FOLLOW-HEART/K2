@@ -57,7 +57,11 @@ public class PoiAPI {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        return ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word)).limit(pageSize).iterator();
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word));
+        if (poiType == POIType.VIEW_SPOT)
+            query.field("rankingA").greaterThanOrEq(5);
+        query.field("relPlanCnt").greaterThan(0);
+        return query.limit(pageSize).iterator();
     }
 
     /**
@@ -293,7 +297,10 @@ public class PoiAPI {
         if (locId != null)
             query.field("addr.loc.id").equal(locId);
 
-        return query.field("imageList").notEqual(null).offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
+        if (poiType == POIType.VIEW_SPOT)
+            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
+
+        return query.offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
     }
 
     /**
