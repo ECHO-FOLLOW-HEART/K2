@@ -54,7 +54,7 @@ public class UserAPI {
      */
     public static UserInfo getUserByUdid(String udid) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        return ds.createQuery(UserInfo.class).field("udid").equal(udid).get();
+        return ds.createQuery(UserInfo.class).field("udid").equal(udid).field("oauthList").notEqual(null).get();
     }
 
     /**
