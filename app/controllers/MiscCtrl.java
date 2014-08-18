@@ -6,6 +6,7 @@ import com.mongodb.*;
 import com.mongodb.util.JSON;
 import core.LocalityAPI;
 import core.PoiAPI;
+import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -279,11 +280,13 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
+    public static Result appHomeImage(int width, int height, int quality, String format, int interlace, String seq, String system, String appVersion) {
         try {
 //            Class.forName("exception.ErrorCode");
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();
+
+            UserAPI.upDateUserInfo(seq, system, appVersion);
 
             if (info == null)
                 return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());

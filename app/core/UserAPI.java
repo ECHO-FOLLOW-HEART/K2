@@ -9,6 +9,8 @@ import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 
 import java.util.ArrayList;
 
@@ -131,5 +133,23 @@ public class UserAPI {
         ds.save(user);
 
         return user;
+    }
+
+    public static void upDateUserInfo(String seq, String system, String appVersion) throws TravelPiException {
+
+        //取得用户信息
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<UserInfo> userQuery = dsUser.createQuery(UserInfo.class);
+        userQuery.field("udid").equal(seq);
+
+        //设置更新信息：用户机系统信息、用户App版本、用户设备编号
+        UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
+        ops.set("osVersion", system);
+        ops.set("appVersion", appVersion);
+        ops.set("udid", seq);
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+
+        ds.update(userQuery, ops, true);
     }
 }
