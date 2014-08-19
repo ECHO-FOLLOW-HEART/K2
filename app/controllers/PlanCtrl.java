@@ -16,6 +16,7 @@ import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
+import models.morphia.plan.UgcPlan;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.poi.Hotel;
 import models.morphia.poi.Restaurant;
@@ -34,6 +35,7 @@ import utils.Planner;
 import utils.Utils;
 
 import java.net.UnknownHostException;
+import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -436,7 +438,56 @@ public class PlanCtrl extends Controller {
      */
     public static Result saveUGCPlan() {
         JsonNode data = request().body().asJson();
-//        return play.mvc.Results.TODO;
+        JsonNode action = data.get("action");
+        String actionFlag = action.asText();
+
+        String templateId = null;
+        String fromLocId = null;
+        String uid = null;
+        String title = null;
+        String ugcPlanId = null;
+        String startDate = null;
+        String endDate = null;
+
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, 3);
+        try {
+            //新建或更新路线
+            if(actionFlag.equals("upsert")){
+                templateId = data.get("templateId").asText();
+                fromLocId = data.get("fromLoc").asText();
+                title = data.get("title").asText();
+                ugcPlanId = data.get("ugcPlanId")==null?"":data.get("ugcPlanId").asText();
+                uid = data.get("userId").asText();
+                startDate = data.get("startDate").asText();
+                endDate = data.get("endDate").asText();
+            }
+            ObjectId templateObId = new ObjectId(templateId);
+            ObjectId fromLocObId = new ObjectId(fromLocId);
+
+            Plan plan = PlanAPI.doPlanner(templateObId,fromLocObId,null,cal);
+            UgcPlan ugcPlan = new UgcPlan();
+            ugcPlan.templateId = templateObId;
+            ugcPlan.uid = new ObjectId(uid);
+            ugcPlan.details = plan.details;
+            ugcPlan.title = title;
+            ugcPlan.startDate = format.parse(startDate);
+            ugcPlan.endDate = format.parse(endDate);
+
+            ObjectId oid = ugcPlanId.equals("")?new ObjectId():new ObjectId(ugcPlanId);
+            PlanAPI.saveUGCPlan(oid,ugcPlan);
+
+        }catch (NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        }catch (ParseException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
@@ -874,4 +925,40 @@ public class PlanCtrl extends Controller {
 
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
+
+    /**
+     * 取得某用户的路线
+     *
+     * @param userId
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result getUGCPlans(String userId,String ugcPlanId, int page,int pageSize){
+
+        try {
+            UgcPlan ugcPlan = PlanAPI.getPlanByUser(userId,ugcPlanId,page,pageSize);
+
+            JsonNode planJson = ugcPlan.toJson();
+
+            return Utils.createResponse(ErrorCode.NORMAL, planJson);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+    }
+
+    public static Result deleteUGCPlans(String ugcPlanId){
+
+        try {
+            PlanAPI.deleteUGCPlan(ugcPlanId);
+
+            return Utils.createResponse(ErrorCode.NORMAL, "Success");
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+    }
+
+
 }

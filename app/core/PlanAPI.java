@@ -7,6 +7,7 @@ import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
+import models.morphia.plan.UgcPlan;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.poi.Hotel;
 import models.morphia.traffic.AbstractRoute;
@@ -16,6 +17,7 @@ import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 
 import java.util.*;
 
@@ -85,12 +87,13 @@ public class PlanAPI {
      * 获得路线规划。
      *
      * @param planId
-     * @param ugc
+     * @param isUgc
      * @return
      */
-    public static Plan getPlan(ObjectId planId, boolean ugc) throws TravelPiException {
+    public static Plan getPlan(ObjectId planId, boolean isUgc) throws TravelPiException {
+        Class<? extends Plan> cls = isUgc?UgcPlan.class:Plan.class;
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-        return ds.createQuery(Plan.class).field("_id").equal(planId).field("enabled").equal(Boolean.TRUE).get();
+        return ds.createQuery(cls).field("_id").equal(planId).field("enabled").equal(Boolean.TRUE).get();
     }
 
     /**
@@ -108,6 +111,33 @@ public class PlanAPI {
         }
     }
 
+    /**
+     * 获得用户的路线规划。
+     *
+     * @param userId
+     * @return
+     */
+    public static UgcPlan getPlanByUser(String userId,String ugcPlanId,int page,int pageSize) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
+        if(!userId.equals("")){
+            ObjectId userOid = new ObjectId(userId);
+            query.field("uid").equal(userOid);
+        }
+        if(!ugcPlanId.equals("")){
+            ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
+            query.field("_id").equal(ugcOPlanId);
+        }
+        query.field("enabled").equal(Boolean.TRUE);
+        query.offset(page * pageSize);
+        query.limit(pageSize);
+
+        if (!query.iterator().hasNext())
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", userId.toString()));
+
+        return query.get();
+    }
     /**
      * 从模板中提取路线，进行初步规划。
      *
@@ -140,7 +170,7 @@ public class PlanAPI {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId.toString()));
 
         plan.id = new ObjectId();
-        plan.templateId = planId;
+        //plan.templateId = planId;
 
         // TODO 景点需要照片、描述等内容。
 
@@ -534,4 +564,21 @@ public class PlanAPI {
 
         return plan;
     }
+
+    public static void saveUGCPlan (ObjectId ugcPlanId,UgcPlan ugcPlan) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
+        query.field("_id").equal(ugcPlanId);
+        ds.updateFirst(query,ugcPlan,true);
+    }
+
+    public static void deleteUGCPlan (String ugcPlanId) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
+
+            ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
+            query.field("_id").equal(ugcOPlanId);
+        ds.delete(query);
+    }
+
 }

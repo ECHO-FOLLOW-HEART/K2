@@ -22,10 +22,6 @@ import java.util.List;
  */
 @Entity
 public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
-    /**
-     * 表明该UGC路线是基于哪一条模板。
-     */
-    public ObjectId templateId;
 
     @Embedded
     public List<SimpleRef> targets;
@@ -72,6 +68,11 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public String tips;
 
+    /**
+     * 路线速览
+     */
+    public String summary;
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -85,7 +86,6 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public JsonNode toJson(boolean showDetails) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
-        builder.add("templateId", (templateId != null ? templateId.toString() : ""));
 
         List<JsonNode> targetList = new ArrayList<>();
         for (SimpleRef t : targets)
