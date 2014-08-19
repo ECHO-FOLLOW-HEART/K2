@@ -92,4 +92,4 @@ PUT           /users/:userId/favors/view-spots                   controllers.Use
 DELETE        /users/:userId/favors/view-spots/:vsId             controllers.UserCtrl.removeUserFavoredVS(userId: String, vsId: String)
 
 # 其它接口 RESTful
-GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1,seq: String?="",system: String?="",appVersion: String?="")
+GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)

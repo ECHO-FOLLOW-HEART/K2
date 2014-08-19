@@ -280,15 +280,20 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    public static Result appHomeImage(int width, int height, int quality, String format, int interlace, String seq, String system, String appVersion) {
+    public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
+            String seq = request().getQueryString("seq");
+            String system = request().getQueryString("system");
+            String appVersion = request().getQueryString("appVersion");
+            UserAPI.upDateUserInfo(seq, system, appVersion);
 //            Class.forName("exception.ErrorCode");
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();
 
-            UserAPI.upDateUserInfo(seq, system, appVersion);
+
 
             if (info == null)
+
                 return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
 
             ObjectNode node = Json.newObject();
