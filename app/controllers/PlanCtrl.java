@@ -439,8 +439,6 @@ public class PlanCtrl extends Controller {
     public static Result saveUGCPlan() {
         JsonNode data = request().body().asJson();
         JsonNode action = data.get("action");
-        String actionFlag = action.asText();
-
         String templateId = null;
         String fromLocId = null;
         String uid = null;
@@ -454,39 +452,49 @@ public class PlanCtrl extends Controller {
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, 3);
         try {
+            String actionFlag = action.asText();
+            ugcPlanId = data.get("ugcPlanId") == null ? null : data.get("ugcPlanId").asText();
+            ObjectId oid = ugcPlanId == null ? new ObjectId() : new ObjectId(ugcPlanId);
+            if (actionFlag.equals("updateTitle")) {
+                title = data.get("title").asText();
+                PlanAPI.updateUGCPlanByFiled(oid, "title", title);
+            }
+
             //新建或更新路线
-            if(actionFlag.equals("upsert")){
+            if (actionFlag.equals("upsert")) {
                 templateId = data.get("templateId").asText();
                 fromLocId = data.get("fromLoc").asText();
                 title = data.get("title").asText();
-                ugcPlanId = data.get("ugcPlanId")==null?"":data.get("ugcPlanId").asText();
                 uid = data.get("userId").asText();
                 startDate = data.get("startDate").asText();
                 endDate = data.get("endDate").asText();
+
+                ObjectId templateObId = new ObjectId(templateId);
+                ObjectId fromLocObId = new ObjectId(fromLocId);
+
+                Plan plan = PlanAPI.doPlanner(templateObId, fromLocObId, null, cal);
+                UgcPlan ugcPlan = new UgcPlan();
+                ugcPlan.templateId = templateObId;
+                ugcPlan.uid = new ObjectId(uid);
+                ugcPlan.details = plan.details;
+                ugcPlan.title = title;
+                ugcPlan.startDate = format.parse(startDate);
+                ugcPlan.endDate = format.parse(endDate);
+
+                PlanAPI.saveUGCPlan(oid, ugcPlan);
             }
-            ObjectId templateObId = new ObjectId(templateId);
-            ObjectId fromLocObId = new ObjectId(fromLocId);
 
-            Plan plan = PlanAPI.doPlanner(templateObId,fromLocObId,null,cal);
-            UgcPlan ugcPlan = new UgcPlan();
-            ugcPlan.templateId = templateObId;
-            ugcPlan.uid = new ObjectId(uid);
-            ugcPlan.details = plan.details;
-            ugcPlan.title = title;
-            ugcPlan.startDate = format.parse(startDate);
-            ugcPlan.endDate = format.parse(endDate);
-
-            ObjectId oid = ugcPlanId.equals("")?new ObjectId():new ObjectId(ugcPlanId);
-            PlanAPI.saveUGCPlan(oid,ugcPlan);
-
-        }catch (NullPointerException e) {
+        } catch (NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        }catch (ParseException e) {
+        } catch (IllegalAccessException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        } catch (NoSuchFieldException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        } catch (ParseException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
-
 
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
@@ -934,10 +942,10 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getUGCPlans(String userId,String ugcPlanId, int page,int pageSize){
+    public static Result getUGCPlans(String userId, String ugcPlanId, int page, int pageSize) {
 
         try {
-            UgcPlan ugcPlan = PlanAPI.getPlanByUser(userId,ugcPlanId,page,pageSize);
+            UgcPlan ugcPlan = PlanAPI.getPlanByUser(userId, ugcPlanId, page, pageSize);
 
             JsonNode planJson = ugcPlan.toJson();
 
@@ -948,7 +956,7 @@ public class PlanCtrl extends Controller {
 
     }
 
-    public static Result deleteUGCPlans(String ugcPlanId){
+    public static Result deleteUGCPlans(String ugcPlanId) {
 
         try {
             PlanAPI.deleteUGCPlan(ugcPlanId);

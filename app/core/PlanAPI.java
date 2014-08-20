@@ -17,8 +17,8 @@ import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.UpdateOperations;
 
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -91,7 +91,7 @@ public class PlanAPI {
      * @return
      */
     public static Plan getPlan(ObjectId planId, boolean isUgc) throws TravelPiException {
-        Class<? extends Plan> cls = isUgc?UgcPlan.class:Plan.class;
+        Class<? extends Plan> cls = isUgc ? UgcPlan.class : Plan.class;
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         return ds.createQuery(cls).field("_id").equal(planId).field("enabled").equal(Boolean.TRUE).get();
     }
@@ -117,15 +117,15 @@ public class PlanAPI {
      * @param userId
      * @return
      */
-    public static UgcPlan getPlanByUser(String userId,String ugcPlanId,int page,int pageSize) throws TravelPiException {
+    public static UgcPlan getPlanByUser(String userId, String ugcPlanId, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
-        if(!userId.equals("")){
+        if (!userId.equals("")) {
             ObjectId userOid = new ObjectId(userId);
             query.field("uid").equal(userOid);
         }
-        if(!ugcPlanId.equals("")){
+        if (!ugcPlanId.equals("")) {
             ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
             query.field("_id").equal(ugcOPlanId);
         }
@@ -138,6 +138,7 @@ public class PlanAPI {
 
         return query.get();
     }
+
     /**
      * 从模板中提取路线，进行初步规划。
      *
@@ -565,19 +566,35 @@ public class PlanAPI {
         return plan;
     }
 
-    public static void saveUGCPlan (ObjectId ugcPlanId,UgcPlan ugcPlan) throws TravelPiException {
+    public static void saveUGCPlan(ObjectId ugcPlanId, UgcPlan ugcPlan) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         query.field("_id").equal(ugcPlanId);
-        ds.updateFirst(query,ugcPlan,true);
+        ds.updateFirst(query, ugcPlan, true);
     }
 
-    public static void deleteUGCPlan (String ugcPlanId) throws TravelPiException {
+    public static void updateUGCPlanByFiled(ObjectId ugcPlanId, String filed, String filedValue) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
+        query.field("_id").equal(ugcPlanId);
+        Iterator<UgcPlan> it = query.iterator();
+        if (!it.hasNext())
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
+
+        UgcPlan ugcPlan = it.next();
+        Class ugcPlanCla = (Class) ugcPlan.getClass();
+        Field fid = ugcPlanCla.getField(filed);
+        fid.setAccessible(true);
+        fid.set(ugcPlan, filedValue);
+        ds.updateFirst(query, ugcPlan, true);
+    }
+
+    public static void deleteUGCPlan(String ugcPlanId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
 
-            ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
-            query.field("_id").equal(ugcOPlanId);
+        ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
+        query.field("_id").equal(ugcOPlanId);
         ds.delete(query);
     }
 
