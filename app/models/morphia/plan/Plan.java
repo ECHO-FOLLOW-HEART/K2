@@ -73,10 +73,17 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public String summary;
 
+    /**
+     * 人工编辑的路线标签：最省钱……
+     */
+    public List<String> lxpTags;
+
     @Embedded
     public CheckinRatings ratings;
 
     public List<PlanDayEntry> details;
+
+    public int vsCount;
 
     @Override
     public JsonNode toJson() {
@@ -125,10 +132,32 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
                 }
             }
             builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
-
-
         }
-
+        summary = this.buildSummary(details);
+        builder.add("summary",summary);
         return Json.toJson(builder.get());
+    }
+
+    private String buildSummary(List<PlanDayEntry> details){
+        StringBuffer result = new StringBuffer(10);
+        int day = 1;
+        List<PlanItem> tempAct = null;
+        for(PlanDayEntry planDayEntry: details){
+            result.append("D"+day);
+            result.append(" ");
+            tempAct = planDayEntry.actv;
+            for(PlanItem planItem :tempAct){
+                if(planItem.subType.equals("airRoute")||
+                   planItem.subType.equals("trainRoute")){
+                   continue;
+                }
+                result.append(planItem.item.zhName);
+                result.append("-");
+            }
+            result.append(":");
+        }
+        String summaryTemp = result.toString();
+        summaryTemp.replaceAll("-:",":");
+        return result.toString();
     }
 }

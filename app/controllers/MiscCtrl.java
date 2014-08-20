@@ -3,17 +3,20 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import com.mongodb.util.JSON;
 import core.LocalityAPI;
 import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.geo.Locality;
+import models.morphia.misc.Feedback;
+import models.morphia.misc.Feedback;
 import models.morphia.misc.MiscInfo;
 import models.morphia.poi.AbstractPOI;
+import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -33,12 +36,14 @@ public class MiscCtrl extends Controller {
         JsonNode feedback = request().body().asJson();
         ObjectId uid = null;
 
-        int x = 0;
         try {
             uid = new ObjectId(feedback.get("uid").asText());
-            DBCollection col = Utils.getMongoClient().getDB("user").getCollection("user_info");
-            DBObject userItem = col.findOne(QueryBuilder.start("_id").is(uid).get());
-            if (userItem == null)
+            //DBCollection col = Utils.getMongoClient().getDB("user").getCollection("user_info");
+            //DBObject userItem = col.findOne(QueryBuilder.start("_id").is(uid).get());
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            Query<UserInfo> query = ds.createQuery(UserInfo.class);
+            query.field("_id").equal(uid);
+            if (!query.iterator().hasNext())
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", uid));
         } catch (NullPointerException ignored) {
         } catch (IllegalArgumentException | TravelPiException e) {
@@ -50,25 +55,28 @@ public class MiscCtrl extends Controller {
         if (body == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "No body found.");
 
-        String title = null;
-        if (feedback.has("title"))
-            title = feedback.get("title").asText();
+        Feedback feedBack = new Feedback();
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        feedBack.uid = uid;
+        feedBack.body = body;
+        feedBack.time = new Date();
+        feedBack.enabled = true;
+        ds.save(feedBack);
+//        String title = null;
+//        if (feedback.has("title"))
+//            title = feedback.get("title").asText();
+//        DBObject entry = new BasicDBObject();
+//        if (uid != null)
+//            entry.put("user", uid);
+//        entry.put("body", body);
+//        entry.put("time", new Date());
 
-        DBObject entry = new BasicDBObject();
-        if (uid != null)
-            entry.put("user", uid);
-        entry.put("body", body);
-        entry.put("time", new Date());
-
-        JsonNode contact = feedback.get("contact");
-        if (contact != null)
-            entry.put("contact", JSON.parse(contact.toString()));
-
-        MongoClient client = Utils.getMongoClient();
-        DBCollection col = client.getDB("misc").getCollection("feedback");
-        col.save(entry);
-
-        return Utils.createResponse(ErrorCode.NORMAL, Json.newObject());
+//        JsonNode contact = feedback.get("contact");
+//        if (contact != null)
+//            entry.put("contact", JSON.parse(contact.toString()));
+        //MongoClient client = Utils.getMongoClient();
+        //DBCollection col = client.getDB("misc").getCollection("feedback");
+        return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
     /**
