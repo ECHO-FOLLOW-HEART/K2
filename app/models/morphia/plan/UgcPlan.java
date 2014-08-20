@@ -49,6 +49,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
     }
 
     public JsonNode toJson(boolean showDetails) {
+        // TODO 调用父类的方法，不要重写一遍：  ObjectNode node = (ObjectNode) super.toJson();
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
         builder.add("uid", uid.toString());

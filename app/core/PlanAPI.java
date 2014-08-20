@@ -118,9 +118,10 @@ public class PlanAPI {
      * @return
      */
     public static UgcPlan getPlanByUser(String userId, String ugcPlanId, int page, int pageSize) throws TravelPiException {
-
+        // TODO getDatastore的参数有误
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
+        // TODO 从逻辑上讲，userId的作用是什么？
         if (!userId.equals("")) {
             ObjectId userOid = new ObjectId(userId);
             query.field("uid").equal(userOid);
@@ -129,13 +130,13 @@ public class PlanAPI {
             ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
             query.field("_id").equal(ugcOPlanId);
         }
-        query.field("enabled").equal(Boolean.TRUE);
-        query.offset(page * pageSize);
-        query.limit(pageSize);
+        // TODO 使用fluent风格，会更加简洁
+        query.field("enabled").equal(Boolean.TRUE).offset(page * pageSize).limit(pageSize);
 
         if (!query.iterator().hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", userId.toString()));
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", userId));
 
+        // TODO 到底应该是返回具体的路线，还是返回路线列表？
         return query.get();
     }
 
@@ -567,13 +568,17 @@ public class PlanAPI {
     }
 
     public static void saveUGCPlan(ObjectId ugcPlanId, UgcPlan ugcPlan) throws TravelPiException {
+        // TODO getDatastore有误
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        // TODO ds.save(ugcPlan)即可
+
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         query.field("_id").equal(ugcPlanId);
         ds.updateFirst(query, ugcPlan, true);
     }
 
     public static void updateUGCPlanByFiled(ObjectId ugcPlanId, String filed, String filedValue) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+        // TODO getDatastore有误
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         query.field("_id").equal(ugcPlanId);
@@ -590,6 +595,7 @@ public class PlanAPI {
     }
 
     public static void deleteUGCPlan(String ugcPlanId) throws TravelPiException {
+        // TODO getDatastore有误
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
 
