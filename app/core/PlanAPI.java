@@ -17,8 +17,8 @@ import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -117,26 +117,29 @@ public class PlanAPI {
      * @param userId
      * @return
      */
-    public static UgcPlan getPlanByUser(String userId, String ugcPlanId, int page, int pageSize) throws TravelPiException {
-        // TODO getDatastore的参数有误
+    public static Iterator<UgcPlan> getPlanByUser(String userId, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
-        // TODO 从逻辑上讲，userId的作用是什么？
-        if (!userId.equals("")) {
-            ObjectId userOid = new ObjectId(userId);
-            query.field("uid").equal(userOid);
-        }
-        if (!ugcPlanId.equals("")) {
-            ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
-            query.field("_id").equal(ugcOPlanId);
-        }
-        // TODO 使用fluent风格，会更加简洁
-        query.field("enabled").equal(Boolean.TRUE).offset(page * pageSize).limit(pageSize);
-
+        ObjectId userOid = new ObjectId(userId);
+        query.field("uid").equal(userOid).field("enabled").equal(Boolean.TRUE).offset(page * pageSize).limit(pageSize);
         if (!query.iterator().hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", userId));
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid userId ID: %s.", userId));
+        return query.iterator();
+    }
 
-        // TODO 到底应该是返回具体的路线，还是返回路线列表？
+    /**
+     * 获得用户的路线规划。
+     *
+     * @param ugcPlanId
+     * @return
+     */
+    public static UgcPlan getPlanById(String ugcPlanId) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
+        ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
+        query.field("_id").equal(ugcOPlanId).field("enabled").equal(Boolean.TRUE);
+        if (!query.iterator().hasNext())
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", ugcPlanId));
         return query.get();
     }
 
@@ -567,18 +570,12 @@ public class PlanAPI {
         return plan;
     }
 
-    public static void saveUGCPlan(ObjectId ugcPlanId, UgcPlan ugcPlan) throws TravelPiException {
-        // TODO getDatastore有误
+    public static void saveUGCPlan(UgcPlan ugcPlan) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-        // TODO ds.save(ugcPlan)即可
-
-        Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
-        query.field("_id").equal(ugcPlanId);
-        ds.updateFirst(query, ugcPlan, true);
+        ds.save(ugcPlan);
     }
 
     public static void updateUGCPlanByFiled(ObjectId ugcPlanId, String filed, String filedValue) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
-        // TODO getDatastore有误
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         query.field("_id").equal(ugcPlanId);
@@ -587,18 +584,15 @@ public class PlanAPI {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
 
         UgcPlan ugcPlan = it.next();
-        Class ugcPlanCla = (Class) ugcPlan.getClass();
-        Field fid = ugcPlanCla.getField(filed);
-        fid.setAccessible(true);
-        fid.set(ugcPlan, filedValue);
-        ds.updateFirst(query, ugcPlan, true);
+        UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
+        ops.set(filed, filedValue);
+        ops.set("enable", true);
+        ds.update(query, ops, true);
     }
 
     public static void deleteUGCPlan(String ugcPlanId) throws TravelPiException {
-        // TODO getDatastore有误
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
-
         ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
         query.field("_id").equal(ugcOPlanId);
         ds.delete(query);

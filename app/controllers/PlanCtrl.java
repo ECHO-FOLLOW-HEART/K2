@@ -446,14 +446,13 @@ public class PlanCtrl extends Controller {
         String ugcPlanId = null;
         String startDate = null;
         String endDate = null;
-
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, 3);
         try {
             String actionFlag = action.asText();
-            ugcPlanId = data.get("ugcPlanId") == null ? null : data.get("ugcPlanId").asText();
+            ugcPlanId = data.get("_id") == null ? null : data.get("_id").asText();
             ObjectId oid = ugcPlanId == null ? new ObjectId() : new ObjectId(ugcPlanId);
             if (actionFlag.equals("updateTitle")) {
                 title = data.get("title").asText();
@@ -480,17 +479,12 @@ public class PlanCtrl extends Controller {
                 ugcPlan.title = title;
                 ugcPlan.startDate = format.parse(startDate);
                 ugcPlan.endDate = format.parse(endDate);
+                ugcPlan.id = oid;
+                ugcPlan.enabled = true;
 
-                PlanAPI.saveUGCPlan(oid, ugcPlan);
+                PlanAPI.saveUGCPlan(ugcPlan);
             }
-
-        } catch (NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        } catch (IllegalAccessException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        } catch (NoSuchFieldException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        } catch (ParseException e) {
+        } catch (NullPointerException | IllegalAccessException | NoSuchFieldException | ParseException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -945,28 +939,30 @@ public class PlanCtrl extends Controller {
     public static Result getUGCPlans(String userId, String ugcPlanId, int page, int pageSize) {
 
         try {
-            UgcPlan ugcPlan = PlanAPI.getPlanByUser(userId, ugcPlanId, page, pageSize);
-
-            JsonNode planJson = ugcPlan.toJson();
-
-            return Utils.createResponse(ErrorCode.NORMAL, planJson);
+            if (!ugcPlanId.equals("")) {
+                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
+                JsonNode planJson = ugcPlan.toJson();
+                return Utils.createResponse(ErrorCode.NORMAL, planJson);
+            }
+            if (!userId.equals("") && ugcPlanId.equals("")) {
+                List<JsonNode> results = new ArrayList<>();
+                for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
+                    results.add(it.next().toJson());
+                }
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+            }
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
-
     }
 
     public static Result deleteUGCPlans(String ugcPlanId) {
-
         try {
             PlanAPI.deleteUGCPlan(ugcPlanId);
-
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
-
     }
-
-
 }
