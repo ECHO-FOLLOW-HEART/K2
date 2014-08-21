@@ -103,7 +103,9 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         builder.add("title", (title != null && !title.isEmpty()) ? title : "");
         if (days != null)
             builder.add("days", days);
-        builder.add("desc", (desc != null && !desc.isEmpty()) ? desc : "");
+        if(null!= description && null!= description.desc){
+            builder.add("desc",description.desc);
+        }
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
         builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
 
