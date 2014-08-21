@@ -5,6 +5,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.CheckinRatings;
+import models.morphia.misc.Description;
 import models.morphia.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
@@ -47,6 +48,9 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public Integer vsCnt;
 
     public String desc;
+
+    @Embedded
+    public Description description;
 
     public List<String> imageList;
 
