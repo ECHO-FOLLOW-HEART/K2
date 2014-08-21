@@ -41,6 +41,8 @@ GET           /ugc-plans/:ugcPlanId                              controllers.Pla
 POST          /ugc-plans                                         controllers.PlanCtrl.saveUGCPlan()
 #删除一条路线
 DELETE        /ugc-plans/:ugcPlanId                              controllers.PlanCtrl.deleteUGCPlans(ugcPlanId: String)
+#分享路线
+POST          /ugc-plans/share                                   controllers.PlanCtrl.shareUGCPlan()
 
 # POI
 

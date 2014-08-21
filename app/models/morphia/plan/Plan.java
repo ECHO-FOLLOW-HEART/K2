@@ -6,7 +6,6 @@ import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.SimpleRef;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import play.libs.Json;
@@ -71,7 +70,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 路线速览
      */
-    public String summary;
+    public List<String> summary;
 
     /**
      * 人工编辑的路线标签：最省钱……
@@ -82,8 +81,6 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public CheckinRatings ratings;
 
     public List<PlanDayEntry> details;
-
-    public int vsCount;
 
     @Override
     public JsonNode toJson() {
@@ -133,31 +130,41 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
             }
             builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
         }
-        summary = this.buildSummary(details);
-        builder.add("summary",summary);
+
+        this.buildSummary(details);
+        builder.add("summary", summary);
+        builder.add("vsCnt", vsCnt);
         return Json.toJson(builder.get());
     }
 
-    private String buildSummary(List<PlanDayEntry> details){
+    private void buildSummary(List<PlanDayEntry> details) {
+
+        List<String> summaryList = new ArrayList<String>(10);
         StringBuffer result = new StringBuffer(10);
+        String tempString = null;
         int day = 1;
+        int tempVsCount = 0;
         List<PlanItem> tempAct = null;
-        for(PlanDayEntry planDayEntry: details){
-            result.append("D"+day);
-            result.append(" ");
+        for (PlanDayEntry planDayEntry : details) {
             tempAct = planDayEntry.actv;
-            for(PlanItem planItem :tempAct){
-                if(planItem.subType.equals("airRoute")||
-                   planItem.subType.equals("trainRoute")){
-                   continue;
+            for (PlanItem planItem : tempAct) {
+
+                if (null != planItem.type && (planItem.type.equals("traffic"))) {
+                    continue;
                 }
+                if (planItem.type.equals("vs"))
+                    tempVsCount++;
                 result.append(planItem.item.zhName);
                 result.append("-");
             }
-            result.append(":");
+            tempString = result.toString();
+            if (!tempString.equals(""))
+                summaryList.add(tempString.substring(0, tempString.length() - 1));
+            day++;
+            result.setLength(0);
         }
-        String summaryTemp = result.toString();
-        summaryTemp.replaceAll("-:",":");
-        return result.toString();
+        summary = summaryList;
+        vsCnt = tempVsCount;
+
     }
 }
