@@ -136,7 +136,7 @@ public class PoiAPI {
             }
             query.order(String.format("%s%s", asc ? "" : "-", stKey));
         } else {
-            query.order("-ratings.baiduIndex, -ratings.score");
+            query.order("-ratings.recommended, -ratings.qtScore, -ratings.baiduScore, -ratings.score");
         }
 
         query.offset(page * pageSize).limit(pageSize);
