@@ -94,7 +94,7 @@ public class LocalityAPI {
     public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Pattern pattern = Pattern.compile(prefix ? "^" + keyword : keyword);
-        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern);
+        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern).order("level");
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
