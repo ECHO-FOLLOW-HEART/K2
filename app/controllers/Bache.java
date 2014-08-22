@@ -60,11 +60,12 @@ public class Bache extends Controller {
             List<PlanItem> actvs = null;
             List<Double> vsPriceList = new ArrayList<Double>(5000);
             //得到景点Id-景点价格Map
-            Map<ObjectId, Double> iD_Price_Map = getVsPriceById();
+            // Map<ObjectId, Double> iD_Price_Map = getVsPriceById();
+            Map<ObjectId, Double> iD_Price_Map = new HashMap<ObjectId, Double>();
             Double tempPrice = 0d;
             Double totalPrice = 0d;
             int days = 0;
-
+            query.field("enabled").equal(Boolean.TRUE);
             for (Iterator<Plan> it = query.iterator(); it.hasNext(); ) {
                 tempPlan = (Plan) it.next();
                 tempDetails = (List<PlanDayEntry>) tempPlan.details;
@@ -80,6 +81,9 @@ public class Bache extends Controller {
                             if (item.type.equals("vs")) {
                                 //得到景点Id
                                 tempObjectId = item.item.id;
+                                if (iD_Price_Map.get(tempObjectId) == null) {
+                                    iD_Price_Map.putAll(getVsPriceById(tempObjectId));
+                                }
                                 tempPrice = iD_Price_Map.get(tempObjectId);
                                 if (null != tempPrice) {
                                     totalPrice = totalPrice + tempPrice;
@@ -143,18 +147,18 @@ public class Bache extends Controller {
     }
 
 
-    private static Map<ObjectId, Double> getVsPriceById() throws TravelPiException {
+    private static Map<ObjectId, Double> getVsPriceById(ObjectId id) throws TravelPiException {
 
         Map<ObjectId, Double> mapPrice = new HashMap<ObjectId, Double>(5000);
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
+        query.field("_id").equal(id);
         ViewSpot viewSpotTemp = null;
         for (Iterator<ViewSpot> it = query.iterator(); it.hasNext(); ) {
             viewSpotTemp = (ViewSpot) it.next();
             mapPrice.put(viewSpotTemp.id, viewSpotTemp.price);
         }
-
         return mapPrice;
     }
 

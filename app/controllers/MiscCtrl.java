@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import core.LocalityAPI;
 import core.PoiAPI;
+import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -264,12 +265,17 @@ public class MiscCtrl extends Controller {
         };
 
         for (PoiAPI.POIType poiType : poiKeyList) {
-            // 发现POI
-            List<JsonNode> retPoiList = new ArrayList<>();
-            for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize);
-                 it.hasNext(); )
-                retPoiList.add(it.next().toJson(2));
-            results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+            if (poiType == PoiAPI.POIType.VIEW_SPOT) {
+                // TODO 暂时不返回景点推荐数据
+                results.put(poiMap.get(poiType), Json.toJson(new ArrayList<>()));
+            } else {
+                // 发现POI
+                List<JsonNode> retPoiList = new ArrayList<>();
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize);
+                     it.hasNext(); )
+                    retPoiList.add(it.next().toJson(2));
+                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+            }
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, results);
@@ -284,7 +290,8 @@ public class MiscCtrl extends Controller {
      */
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
-//            Class.forName("exception.ErrorCode");
+            UserAPI.updateUserInfo(request());
+
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();
 
@@ -292,12 +299,9 @@ public class MiscCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
 
             ObjectNode node = Json.newObject();
-
-            // TODO 加入分辨率和格式的适配
             // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
             String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
             node.put("image", url);
-
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());

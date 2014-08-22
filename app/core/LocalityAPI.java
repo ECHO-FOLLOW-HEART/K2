@@ -77,8 +77,9 @@ public class LocalityAPI {
      */
     public static Iterator<Locality> getSuggestion(String searchWord, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        return ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord))
-                .retrievedFields(true, "zhName", "level", "superAdm").limit(pageSize).iterator();
+        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord));
+        query.field("relPlanCnt").greaterThan(0);
+        return query.retrievedFields(true, "zhName", "level", "superAdm").limit(pageSize).iterator();
     }
 
 
@@ -93,7 +94,7 @@ public class LocalityAPI {
     public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Pattern pattern = Pattern.compile(prefix ? "^" + keyword : keyword);
-        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern);
+        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern).order("level");
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
@@ -112,7 +113,9 @@ public class LocalityAPI {
         Collections.addAll(fields, "zhName", "ratings");
         if (showDetails)
             Collections.addAll(fields, "imageList", "tags", "desc");
-        Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2).field("imageList").notEqual(null)
+        Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
+                .field("imageList").notEqual(null)
+                .field("relPlanCnt").greaterThan(0)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 

@@ -47,11 +47,12 @@ public class Address implements ITravelPiFormatter {
             builder.add("addr", (address != null ? address : ""));
 
             if (level > 2) {
-                for (String k : new String[]{"lat", "lng", "blat", "blng"}) {
-                    if (coords != null) {
+                for (String k : new String[]{"lat", "lng"}) {
+                    Coords tmpCoords = bCoords != null ? bCoords : coords;
+                    if (tmpCoords != null) {
                         Object val = null;
                         try {
-                            val = Coords.class.getField(k).get(coords);
+                            val = Coords.class.getField(k).get(tmpCoords);
                         } catch (IllegalAccessException | NoSuchFieldException ignored) {
                         }
                         if (val != null)

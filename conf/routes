@@ -57,7 +57,8 @@ GET           /poi/view-spots/:spotId                            controllers.POI
 # 获得景区概貌
 GET           /poi/view-spots/:spotId/profiles                   controllers.POICtrl.viewSpotInfo(poiDesc: String="vs", spotId: String, showDetails: Int=0, showRelated: Int=1, pageSize: Int?=10)
 # 获得指定城市的景点
-GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
+# Deprecated。从v1.1开始，弃用此接口。
+GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="", sort: String?="asc",hotelType: String?="")
 # 获得相关景点
 GET           /poi/view-spots/:spotId/related                    controllers.POICtrl.relatedViewSpotList(spotId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
@@ -73,6 +74,7 @@ GET           /poi/hotels/:spotId/profiles                       controllers.POI
 GET           /poi/hotels/localities/:locId                      controllers.POICtrl.hotelList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
 
+
 # 餐厅
 
 # 搜索餐厅
@@ -81,12 +83,17 @@ GET           /poi/restaurants/search                            controllers.POI
 GET           /poi/restaurants/:spotId                           controllers.POICtrl.viewSpotInfo(poiDesc: String="restaurants", spotId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
 # 餐厅概貌
 GET           /poi/restaurants/:spotId/profiles                  controllers.POICtrl.viewSpotInfo(poiDesc: String="restaurants", spotId: String, showDetails: Int=0, showRelated: Int?=1, pageSize: Int?=10)
+<<<<<<< HEAD
 # 某城市餐厅列表
 GET           /poi/restaurants/localities/:locId                 controllers.POICtrl.restaurantList(locId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
 
 # 餐厅详情
 
+=======
+
+
+>>>>>>> dev
 # 其它
 POST          /sys/feedback                                      controllers.MiscCtrl.postFeedback()
 GET           /sys/updates/:platform                             controllers.MiscCtrl.getUpdateInfo(platform: String, platformVer: String, appVer: String)
@@ -107,4 +114,6 @@ PUT           /users/:userId/favors/view-spots                   controllers.Use
 DELETE        /users/:userId/favors/view-spots/:vsId             controllers.UserCtrl.removeUserFavoredVS(userId: String, vsId: String)
 
 # 其它接口 RESTful
-GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="webp", interlace: Int?=1)
+GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
+
+GET           /batch/planBudge                                   controllers.Bache.getPlanBudget(dep: String?="", arr: String?="" )

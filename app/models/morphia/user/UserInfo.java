@@ -42,6 +42,21 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public String udid;
 
+    /**
+     * 用户手机系统及版本
+     *
+     * @return
+     */
+    public String platform;
+
+    /**
+     * 用户App版本
+     *
+     * @return
+     */
+    public String app;
+
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

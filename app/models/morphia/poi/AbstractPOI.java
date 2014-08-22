@@ -11,6 +11,7 @@ import models.morphia.misc.Contact;
 import models.morphia.misc.Description;
 import models.morphia.misc.ImageItem;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 import utils.Constants;
@@ -65,6 +66,24 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public List<String> tags;
 
     public List<String> alias;
+
+    /**
+     * POI所在的行政区划。
+     */
+    public List<ObjectId> targets;
+
+    /**
+     * 表示该POI的来源。注意：一个POI可以有多个来源。
+     * 示例：
+     *
+     * source: { "baidu": {"url": "foobar", "id": 27384}}
+     */
+    public Map<String, Object> source;
+
+    /**
+     * 相关路线的统计数目。
+     */
+    public Integer relPlanCnt;
 
     /**
      * 其它信息

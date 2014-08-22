@@ -9,6 +9,8 @@ import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.UpdateOperations;
+import play.mvc.Http;
 
 import java.util.ArrayList;
 
@@ -131,5 +133,34 @@ public class UserAPI {
         ds.save(user);
 
         return user;
+    }
+
+    public static void updateUserInfo(Http.Request req) throws TravelPiException {
+        String seq = req.getQueryString("seq");
+        String platform = req.getQueryString("platform");
+        String app = req.getQueryString("app");
+        String uid = req.getQueryString("uid");
+
+        //取得用户信息
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        // 优先按照uid进行lookup
+        UserInfo user;
+        if (uid != null)
+            user = dsUser.createQuery(UserInfo.class).field("_id").equal(new ObjectId(uid)).get();
+        else if (seq != null)
+            user = dsUser.createQuery(UserInfo.class).field("udid").equal(seq).field("oauthList").equal(null).get();
+        else
+            user = null;
+
+        if (user == null)
+            return;
+
+        //设置更新信息：用户机系统信息、用户App版本、用户设备编号
+        UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
+        ops.set("platform", platform);
+        ops.set("app", app);
+        ops.set("udid", seq);
+
+        dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.id), ops);
     }
 }

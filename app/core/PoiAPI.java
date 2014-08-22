@@ -57,7 +57,11 @@ public class PoiAPI {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        return ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word)).limit(pageSize).iterator();
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word));
+        if (poiType == POIType.VIEW_SPOT)
+            query.field("rankingA").greaterThanOrEq(5);
+        query.field("relPlanCnt").greaterThan(0);
+        return query.limit(pageSize).iterator();
     }
 
     /**
@@ -96,8 +100,9 @@ public class PoiAPI {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+
         if (locId != null)
-            query = query.field("addr.loc.id").equal(locId);
+            query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
         if (searchWord != null && !searchWord.isEmpty())
             query = query.filter("name", Pattern.compile(searchWord));
         if (tag != null && !tag.isEmpty())
@@ -120,8 +125,8 @@ public class PoiAPI {
                 query = query.filter(entry.getKey(), entry.getValue());
         }
         // 排序
-        String stKey = null;
         if (sortField != null) {
+            String stKey = null;
             switch (sortField) {
                 case PRICE:
                     stKey = "price";
@@ -130,9 +135,11 @@ public class PoiAPI {
                     stKey = "ratings.score";
                     break;
             }
-        }
-        if (stKey != null)
             query.order(String.format("%s%s", asc ? "" : "-", stKey));
+        } else {
+            query.order("-ratings.recommended, -ratings.rankingA, -ratings.qtScore, -ratings.baiduScore, -ratings.viewCnt");
+        }
+
         query.offset(page * pageSize).limit(pageSize);
 
         return query.iterator();
@@ -291,9 +298,12 @@ public class PoiAPI {
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (locId != null)
-            query.field("addr.loc.id").equal(locId);
+            query.field("targets").equal(locId);
 
-        return query.field("imageList").notEqual(null).offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
+//        if (poiType == POIType.VIEW_SPOT)
+//            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
+
+        return query.offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
     }
 
     /**
