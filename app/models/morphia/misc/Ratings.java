@@ -35,6 +35,16 @@ public class Ratings implements ITravelPiFormatter {
      */
     public Integer qtScore;
 
+    /**
+     * 百度旅行的评分。
+     */
+    public Double baiduScore;
+
+    /**
+     * 是否为推荐POI。
+     */
+    public Boolean recommended;
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
@@ -47,7 +57,8 @@ public class Ratings implements ITravelPiFormatter {
         if (favorCnt == null)
             favorCnt = (score != null ? score * 9 % 439 : 87);//(new Random()).nextInt(324);
 
-        for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt", "ranking", "baiduIndex"}) {
+        for (String k : new String[]{"score", "dinningIdx", "shoppingIdx", "viewCnt", "favorCnt", "ranking",
+                "baiduScore", "qtScore", "recommended"}) {
             Object val = null;
             try {
                 val = Ratings.class.getField(k).get(this);
