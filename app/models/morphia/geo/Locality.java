@@ -97,14 +97,14 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
             if (m.find())
                 start = m.start();
             int idx = start;
-            int endIdx = start;
+            final int endIdx = start;
 
             if (idx != -1) {
                 // 尝试找出是什么族
                 String minorities = (String) GlobalInfo.metadata.get("minoritiesDesc");
                 idx--;
                 while (idx > 0) {
-                    Matcher matcher = Pattern.compile(name.substring(idx, endIdx)).matcher(minorities);
+                    Matcher matcher = Pattern.compile(String.format("\\|%s\\|", name.substring(idx, endIdx) + "族")).matcher(minorities);
                     if (matcher.find()) {
                         name = name.substring(0, idx);
                         stripped = true;
