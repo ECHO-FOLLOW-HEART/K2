@@ -100,8 +100,9 @@ public class PoiAPI {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+
         if (locId != null)
-            query = query.field("addr.loc.id").equal(locId);
+            query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
         if (searchWord != null && !searchWord.isEmpty())
             query = query.filter("name", Pattern.compile(searchWord));
         if (tag != null && !tag.isEmpty())
@@ -136,7 +137,7 @@ public class PoiAPI {
             }
             query.order(String.format("%s%s", asc ? "" : "-", stKey));
         } else {
-            query.order("-ratings.recommended, -ratings.qtScore, -ratings.baiduScore, -ratings.score");
+            query.order("-ratings.recommended, -ratings.rankingA, -ratings.qtScore, -ratings.baiduScore, -ratings.viewCnt");
         }
 
         query.offset(page * pageSize).limit(pageSize);

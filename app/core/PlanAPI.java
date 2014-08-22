@@ -51,7 +51,7 @@ public class PlanAPI {
         if (tag != null && !tag.isEmpty())
             query.field("tags").equal(tag);
 
-        query.field("desc").notEqual("").field("days").greaterThan(0).field("vsCnt").greaterThan(0);
+//        query.field("desc").notEqual("").field("days").greaterThan(0).field("vsCnt").greaterThan(0);
         query.field("enabled").equal(Boolean.TRUE);
         query.order("manualPriority").offset(page * pageSize).limit(pageSize);
 
