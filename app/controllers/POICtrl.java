@@ -60,6 +60,9 @@ public class POICtrl extends Controller {
 
         boolean details = (showDetails != 0);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
+        if (poiInfo == null)
+            return Utils.createResponse(ErrorCode.INVALID_OBJECTID, String.format("Invalid POI ID: %s.", spotId));
+
         ObjectNode results = (ObjectNode) poiInfo.toJson(details ? 3 : 2);
 
         if (showRelated != 0) {
@@ -73,6 +76,7 @@ public class POICtrl extends Controller {
                         new HashMap<String, Object>() {
                             {
                                 put("_id !=", vsId);
+                                put("imageList !=", null);
                             }
                         }, 0); it.hasNext(); ) {
                     AbstractPOI vs = it.next();
@@ -303,7 +307,7 @@ public class POICtrl extends Controller {
         if (sortType != null && sortType.equals("asc"))
             sort = true;
 
-        PoiAPI.SortField sf = PoiAPI.SortField.PRICE;
+        PoiAPI.SortField sf;
         switch (sortField) {
             case "price":
                 sf = PoiAPI.SortField.PRICE;
@@ -311,6 +315,8 @@ public class POICtrl extends Controller {
             case "score":
                 sf = PoiAPI.SortField.SCORE;
                 break;
+            default:
+                sf = null;
         }
 
         try {

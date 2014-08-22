@@ -124,8 +124,8 @@ public class PoiAPI {
                 query = query.filter(entry.getKey(), entry.getValue());
         }
         // 排序
-        String stKey = null;
         if (sortField != null) {
+            String stKey = null;
             switch (sortField) {
                 case PRICE:
                     stKey = "price";
@@ -134,9 +134,11 @@ public class PoiAPI {
                     stKey = "ratings.score";
                     break;
             }
-        }
-        if (stKey != null)
             query.order(String.format("%s%s", asc ? "" : "-", stKey));
+        } else {
+            query.order("-ratings.baiduIndex, -ratings.score");
+        }
+
         query.offset(page * pageSize).limit(pageSize);
 
         return query.iterator();
@@ -295,10 +297,10 @@ public class PoiAPI {
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (locId != null)
-            query.field("addr.loc.id").equal(locId);
+            query.field("targets").equal(locId);
 
-        if (poiType == POIType.VIEW_SPOT)
-            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
+//        if (poiType == POIType.VIEW_SPOT)
+//            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
 
         return query.offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
     }

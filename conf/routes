@@ -48,7 +48,7 @@ GET           /poi/view-spots/:spotId                            controllers.POI
 GET           /poi/view-spots/:spotId/profiles                   controllers.POICtrl.viewSpotInfo(poiDesc: String="vs", spotId: String, showDetails: Int=0, showRelated: Int=1, pageSize: Int?=10)
 # 获得指定城市的景点
 # Deprecated。从v1.1开始，弃用此接口。
-GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
+GET           /poi/view-spots/localities/:locId                  controllers.POICtrl.poiSearch(poiType: String="vs", locId: String, tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="", sort: String?="asc",hotelType: String?="")
 # 获得相关景点
 GET           /poi/view-spots/:spotId/related                    controllers.POICtrl.relatedViewSpotList(spotId: String, tagFilter: String?="", sortFilter: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
