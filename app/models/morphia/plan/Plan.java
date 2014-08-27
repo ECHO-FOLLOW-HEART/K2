@@ -6,18 +6,13 @@ import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.Description;
+import models.morphia.misc.ImageItem;
 import models.morphia.misc.SimpleRef;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import play.libs.Json;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * 用户路线规划。
@@ -52,6 +47,8 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public Description description;
 
     public List<String> imageList;
+
+    public List<ImageItem> images;
 
     public List<Integer> travelMonth;
 
@@ -100,7 +97,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public JsonNode toJson(boolean showDetails) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
-   
+
 
         List<JsonNode> targetList = new ArrayList<>();
         if (null != targets) {
@@ -122,6 +119,38 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
         builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
 
+        // 如果存在更高阶的images字段，则使用之
+        if (images != null && !images.isEmpty()) {
+            List<ImageItem> imgList = new ArrayList<>();
+            for (ImageItem img : images) {
+                if (img.enabled != null && !img.enabled)
+                    continue;
+                imgList.add(img);
+            }
+
+            Collections.sort(imgList, new Comparator<ImageItem>() {
+                @Override
+                public int compare(ImageItem o1, ImageItem o2) {
+                    if (o1.fSize != null && o2.fSize != null)
+                        return o2.fSize - o1.fSize;
+                    else if (o1.w != null && o2.w != null)
+                        return o2.w - o1.w;
+                    else if (o1.h != null && o2.h != null)
+                        return o2.h - o1.h;
+                    else
+                        return 0;
+                }
+            });
+
+            List<String> ret = new ArrayList<>();
+            for (ImageItem img : imgList) {
+                if (img.url != null)
+                    ret.add(img.url);
+            }
+
+            builder.add("imageList", ret);
+        }
+
 //        builder.add("budget", Arrays.asList(2000, 3000));
 
         Integer tempStayBudget = stayBudget == null ? 0 : stayBudget;
@@ -135,7 +164,6 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         total = (int) (Math.round(total / 100.0) * 100);
         addTotal = (int) (Math.round(addTotal / 80.0) * 100);
         builder.add("budget", Arrays.asList(total, addTotal));
-
 
 
         if (showDetails) {

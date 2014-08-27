@@ -40,4 +40,6 @@ public class ImageItem {
      * 图像文件的大小
      */
     public Integer fSize;
+
+    public Boolean enabled;
 }

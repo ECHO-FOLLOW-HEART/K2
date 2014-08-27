@@ -75,7 +75,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     *
+     * <p/>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -95,9 +95,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             case 1:
                 return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
             case 2:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "tags"));
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags"));
             case 3:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "tags", "contact", "url",
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags", "contact", "url",
                         "price", "priceDesc", "alias"));
         }
         return new ArrayList<>();
@@ -128,10 +128,50 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                     isNull = ((Collection) val).isEmpty();
                 builder.add(k, (isNull ? new ArrayList<>() : val));
             }
+
+            if (images != null) {
+                ArrayList<String> tmpList = new ArrayList<>();
+                for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
+                    tmpList.add(img.url);
+                builder.add("imageList", tmpList);
+            }
+
             builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
             if (price != null)
                 builder.add("price", price);
             builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
+
+            // 如果存在更高阶的images字段，则使用之
+            if (images != null && !images.isEmpty()) {
+                List<ImageItem> imgList = new ArrayList<>();
+                for (ImageItem img : images) {
+                    if (img.enabled != null && !img.enabled)
+                        continue;
+                    imgList.add(img);
+                }
+
+                Collections.sort(imgList, new Comparator<ImageItem>() {
+                    @Override
+                    public int compare(ImageItem o1, ImageItem o2) {
+                        if (o1.fSize != null && o2.fSize != null)
+                            return o2.fSize - o1.fSize;
+                        else if (o1.w != null && o2.w != null)
+                            return o2.w - o1.w;
+                        else if (o1.h != null && o2.h != null)
+                            return o2.h - o1.h;
+                        else
+                            return 0;
+                    }
+                });
+
+                List<String> ret = new ArrayList<>();
+                for (ImageItem img : imgList.subList(0, imgList.size() >= 5 ? 5 : imgList.size())) {
+                    if (img.url != null)
+                        ret.add(img.url);
+                }
+
+                builder.add("imageList", ret);
+            }
 
             // level3
             if (level > 2) {
