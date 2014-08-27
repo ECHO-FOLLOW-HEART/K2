@@ -34,9 +34,9 @@ POST          /plans/optimizers                                  controllers.Pla
 
 # ugc路线接口
 # 查看我的路线
-GET           /ugc-plans/users/:userId                           controllers.PlanCtrl.getUGCPlans(userId: String,ugcPlanId: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /ugc-plans/users/:userId                           controllers.PlanCtrl.getUGCPlans(userId: String,ugcPlanId: String?="", updateTime:String?="",page: Int?=0, pageSize: Int?=20)
 #查看路线详情
-GET           /ugc-plans/:ugcPlanId                              controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, page: Int?=0, pageSize: Int?=20)
+GET           /ugc-plans/:ugcPlanId                              controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, updateTime:String?="", page: Int?=0, pageSize: Int?=1)
 # 新建或更新一条路线
 POST          /ugc-plans                                         controllers.PlanCtrl.saveUGCPlan()
 #删除一条路线

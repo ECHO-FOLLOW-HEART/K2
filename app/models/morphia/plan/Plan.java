@@ -7,12 +7,16 @@ import models.TravelPiBaseItem;
 import models.morphia.misc.CheckinRatings;
 import models.morphia.misc.Description;
 import models.morphia.misc.SimpleRef;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import play.libs.Json;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -76,6 +80,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public List<String> summary;
 
+
     /**
      * 人工编辑的路线标签：最省钱……
      */
@@ -86,6 +91,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public List<PlanDayEntry> details;
 
+
     @Override
     public JsonNode toJson() {
         return toJson(true);
@@ -94,21 +100,24 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
     public JsonNode toJson(boolean showDetails) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString());
+   
 
         List<JsonNode> targetList = new ArrayList<>();
-        for (SimpleRef t : targets)
-            targetList.add(t.toJson());
+        if (null != targets) {
+            for (SimpleRef t : targets)
+                targetList.add(t.toJson());
 
-        if (targetList.size() > 0) {
-            builder.add("target", targetList.get(0));
-            builder.add("targets", Json.toJson(targetList));
+            if (targetList.size() > 0) {
+                builder.add("target", targetList.get(0));
+                builder.add("targets", Json.toJson(targetList));
+            }
         }
         builder.add("tags", (tags != null && !tags.isEmpty()) ? Json.toJson(tags) : new ArrayList<>());
         builder.add("title", (title != null && !title.isEmpty()) ? title : "");
         if (days != null)
             builder.add("days", days);
-        if(null!= description && null!= description.desc){
-            builder.add("desc",description.desc);
+        if (null != description && null != description.desc) {
+            builder.add("desc", description.desc);
         }
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
         builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
@@ -127,6 +136,8 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         addTotal = (int) (Math.round(addTotal / 80.0) * 100);
         builder.add("budget", Arrays.asList(total, addTotal));
 
+
+
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();
             if (details != null) {
@@ -135,11 +146,11 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
                 }
             }
             builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
-        }
 
-        this.buildSummary(details);
-        builder.add("summary", summary);
-        builder.add("vsCnt", vsCnt);
+            this.buildSummary(details);
+            builder.add("summary", summary);
+            builder.add("vsCnt", vsCnt);
+        }
         return Json.toJson(builder.get());
     }
 

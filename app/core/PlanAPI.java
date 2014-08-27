@@ -19,6 +19,8 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -151,12 +153,12 @@ public class PlanAPI {
      * @param backLoc
      * @return
      */
-    public static Plan doPlanner(String planId, String fromLoc, String backLoc, Calendar firstDate) throws TravelPiException {
+    public static UgcPlan doPlanner(String planId, String fromLoc, String backLoc, Calendar firstDate) throws TravelPiException {
         try {
             if (backLoc == null || backLoc.isEmpty())
                 backLoc = fromLoc;
             return doPlanner(new ObjectId(planId), new ObjectId(fromLoc), new ObjectId(backLoc), firstDate);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException |NoSuchFieldException|IllegalAccessException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId));
         }
     }
@@ -169,13 +171,11 @@ public class PlanAPI {
      * @param backLoc
      * @return
      */
-    public static Plan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate) throws TravelPiException {
+    public static UgcPlan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+        // 获取模板路线信息
         Plan plan = getPlan(planId, false);
         if (plan == null)
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId.toString()));
-
-        plan.id = new ObjectId();
-        //plan.templateId = planId;
 
         // TODO 景点需要照片、描述等内容。
 
@@ -183,7 +183,7 @@ public class PlanAPI {
             backLoc = fromLoc;
 
         if (plan.details == null || plan.details.isEmpty())
-            return plan;
+            return new UgcPlan(plan);
 
         // 进行日期标注
         int idx = 0;
@@ -204,8 +204,10 @@ public class PlanAPI {
         // 加入酒店
         addHotels(plan.details);
 
-
-        return plan;
+        //模板路线生成ugc路线
+        UgcPlan ugcPlan = new UgcPlan(plan);
+        ugcPlan.id = new ObjectId();
+        return ugcPlan;
     }
 
 
@@ -587,6 +589,7 @@ public class PlanAPI {
         UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
         ops.set(filed, filedValue);
         ops.set("enable", true);
+        ops.set("updateTime",new Date());
         ds.update(query, ops, true);
     }
 

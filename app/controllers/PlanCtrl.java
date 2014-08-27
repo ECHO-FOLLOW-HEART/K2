@@ -61,7 +61,7 @@ public class PlanCtrl extends Controller {
         try {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
-            Plan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
+            UgcPlan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
 
             Configuration config = Configuration.root();
             Map budget = (Map) config.getObject("budget");
@@ -88,6 +88,7 @@ public class PlanCtrl extends Controller {
             plan.stayBudget = plan.days * stayBudgetDefault;
 
             buildBudget(plan);
+
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
@@ -439,27 +440,25 @@ public class PlanCtrl extends Controller {
     public static Result saveUGCPlan() {
         JsonNode data = request().body().asJson();
         JsonNode action = data.get("action");
-        String templateId = null;
-        String fromLocId = null;
-        String uid = null;
         String title = null;
         String ugcPlanId = null;
-        String startDate = null;
-        String endDate = null;
+
         try {
             String actionFlag = action.asText();
             ugcPlanId = data.get("_id") == null ? null : data.get("_id").asText();
             ObjectId oid = ugcPlanId == null ? new ObjectId() : new ObjectId(ugcPlanId);
+            //只更新标题
             if (actionFlag.equals("updateTitle")) {
                 title = data.get("title").asText();
                 PlanAPI.updateUGCPlanByFiled(oid, "title", title);
             }
-            //新建或更新路线
+            //更新路线
             if (actionFlag.equals("upsert")) {
                 updateUGCPlan(data);
             }
-        } catch (NullPointerException | IllegalAccessException | NoSuchFieldException | ParseException e) {
+        } catch (NullPointerException | IllegalAccessException | NoSuchFieldException | ParseException | InstantiationException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -467,32 +466,46 @@ public class PlanCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
-    private static void updateUGCPlan(JsonNode data) throws TravelPiException, ParseException {
+    private static void updateUGCPlan(JsonNode data) throws TravelPiException, ParseException, IllegalAccessException, NoSuchFieldException, InstantiationException {
+        String ugcPlanId = data.get("_id").asText();
         String templateId = data.get("templateId").asText();
         String fromLocId = data.get("fromLoc").asText();
         String title = data.get("title").asText();
-        String uid = data.get("userId").asText();
-        String startDate = data.get("startDate").asText();
-        String endDate = data.get("endDate").asText();
-
+        String uid = data.get("uid").asText();
+        String startDateStr = data.get("startDate").asText();
+        String endDateStr = data.get("endDate").asText();
         ObjectId templateObId = new ObjectId(templateId);
         ObjectId fromLocObId = new ObjectId(fromLocId);
-
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, 3);
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        Plan plan = PlanAPI.doPlanner(templateObId, fromLocObId, null, cal);
-        UgcPlan ugcPlan = new UgcPlan();
-        ugcPlan.templateId = templateObId;
-        ugcPlan.uid = new ObjectId(uid);
-        ugcPlan.details = plan.details;
-        ugcPlan.title = title;
-        ugcPlan.startDate = format.parse(startDate);
-        ugcPlan.endDate = format.parse(endDate);
 
-        String ugcPlanId = data.get("_id") == null ? null : data.get("_id").asText();
-        ObjectId oid = ugcPlanId == null ? new ObjectId() : new ObjectId(ugcPlanId);
-        ugcPlan.id = oid;
+        JsonNode details = data.get("details");
+        JsonNode trafficInfo = data.get("traffic");
+
+        Date startDate = format.parse(startDateStr);
+        Date endDate = format.parse(startDateStr);
+        Calendar startCal = Calendar.getInstance();
+        startCal.setTime(startDate);
+        Calendar endCal = Calendar.getInstance();
+        endCal.setTime(endDate);
+        //根据模板路线获取UGC路线
+        Plan plan = PlanAPI.getPlan(templateId, false);
+        UgcPlan ugcPlan = new UgcPlan(plan);
+        if (plan == null)
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", templateId));
+
+        //补全信息
+        //List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal);
+        //ugcPlan.details = dayEntryList;
+        // TODO details信息不全
+        //设置UGC路线ID
+        ugcPlan.id = new ObjectId(ugcPlanId);
+        ugcPlan.startDate = startDate;
+        ugcPlan.endDate = endDate;
+        ugcPlan.title = title;
+        ugcPlan.uid = new ObjectId(uid);
+        ugcPlan.updateTime = new Date();
         ugcPlan.enabled = true;
 
         PlanAPI.saveUGCPlan(ugcPlan);
@@ -941,22 +954,37 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getUGCPlans(String userId, String ugcPlanId, int page, int pageSize) {
+    public static Result getUGCPlans(String userId, String ugcPlanId, String updateTime, int page, int pageSize) {
 
         try {
+            //根据ID取得UGC路线
             if (!ugcPlanId.equals("")) {
                 UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-                JsonNode planJson = ugcPlan.toJson();
+                //根据ID取用户路线时，先判断时间戳，是否需要更新
+                //如果不需要更新，只返回一个标识，以节省流量
+                Date updateTimeInDB = ugcPlan.updateTime;
+                if (null != updateTimeInDB && (!updateTime.equals(""))) {
+                    Long appTimeStamp = Long.parseLong(updateTime);
+                    if (appTimeStamp.longValue() == updateTimeInDB.getTime()) {
+                        return Utils.createResponse(ErrorCode.DONOTNEED_UPDATE, "DO NOT NEED UPDATE");
+                    }
+                }
+                //取详细信息
+                JsonNode planJson = ugcPlan.toJson(true);
                 return Utils.createResponse(ErrorCode.NORMAL, planJson);
             }
-            if (!userId.equals("") && ugcPlanId.equals("")) {
+            //根据用户ID取得UGC路线列表
+            if (!userId.equals("")) {
                 List<JsonNode> results = new ArrayList<>();
                 for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
-                    results.add(it.next().toJson());
+                    //取粗略信息
+                    results.add(it.next().toJson(false));
                 }
                 return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
             }
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
+        } catch (ClassCastException ec) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -990,7 +1018,7 @@ public class PlanCtrl extends Controller {
 
             PlanAPI.deleteUGCPlan("");
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (ClassCastException | ParseException ec) {
+        } catch (ClassCastException | ParseException | IllegalAccessException | NoSuchFieldException | InstantiationException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
