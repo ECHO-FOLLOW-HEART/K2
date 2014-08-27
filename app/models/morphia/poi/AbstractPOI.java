@@ -128,6 +128,14 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                     isNull = ((Collection) val).isEmpty();
                 builder.add(k, (isNull ? new ArrayList<>() : val));
             }
+
+            if (images != null) {
+                ArrayList<String> tmpList = new ArrayList<>();
+                for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
+                    tmpList.add(img.url);
+                builder.add("imageList", tmpList);
+            }
+
             builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
             if (price != null)
                 builder.add("price", price);
@@ -157,7 +165,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 });
 
                 List<String> ret = new ArrayList<>();
-                for (ImageItem img : imgList) {
+                for (ImageItem img : imgList.subList(0, imgList.size() >= 5 ? 5 : imgList.size())) {
                     if (img.url != null)
                         ret.add(img.url);
                 }
