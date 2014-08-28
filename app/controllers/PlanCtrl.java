@@ -59,7 +59,7 @@ public class PlanCtrl extends Controller {
      */
     public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int traffic, int hotel) {
         try {
-            if(fromLocId.equals("")){
+            if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);
                 if (plan == null)
                     throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId.toString()));
@@ -479,12 +479,10 @@ public class PlanCtrl extends Controller {
         String title = data.get("title").asText();
         String uid = data.get("uid").asText();
         String startDateStr = data.get("startDate").asText();
-        String endDateStr = data.get("endDate").asText();
-        ObjectId templateObId = new ObjectId(templateId);
-        ObjectId fromLocObId = new ObjectId(fromLocId);
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, 3);
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        DateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
 
         JsonNode details = data.get("details");
         JsonNode trafficInfo = data.get("traffic");
@@ -502,8 +500,57 @@ public class PlanCtrl extends Controller {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", templateId));
 
         //补全信息
-        //List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal);
-        //ugcPlan.details = dayEntryList;
+        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal);
+        ugcPlan.details = dayEntryList;
+
+        JsonNode ret = null;
+        PlanDayEntry planDayEntry = null;
+        List<PlanDayEntry> planDayEntryList = new ArrayList<PlanDayEntry>();
+        PlanItem planItem = null;
+        List<PlanItem> planItemList = new ArrayList<PlanItem>();
+        SimpleRef pItem = null;
+        SimpleRef pLoc = null;
+
+        for (PlanDayEntry dayEntry : dayEntryList) {
+            ret = dayEntry.toJson();
+            //补全details信息
+            fullfill(ret);
+
+            JsonNode dayNode = ret;
+            if (dayNode == null)
+                continue;
+            planDayEntry = new PlanDayEntry();
+            JsonNode actv = dayNode.get("actv");
+            JsonNode date = dayNode.get("date");
+            //设置Date
+            planDayEntry.date = timeFmt.parse(date.asText());
+            if (actv == null)
+                continue;
+            for (JsonNode item : actv) {
+                ObjectNode conItem = (ObjectNode) item;
+                //新建PlanItem
+                planItem = new PlanItem();
+                pItem = new SimpleRef();
+                pLoc = new SimpleRef();
+                pItem.id = new ObjectId(item.get("itemId").asText());
+                pItem.zhName = item.get("itemName").asText();
+                planItem.item = pItem;
+                if (item.has("locId")) {
+                    pLoc.id = new ObjectId(item.get("locId").asText());
+                    pLoc.zhName = item.get("locName").asText();
+                    planItem.loc = pLoc;
+                }
+                planItem.type = item.get("type").asText();
+                planItem.subType = item.get("subType").asText();
+                if (!item.get("ts").asText().equals("")) {
+                    planItem.ts = timeFmt.parse(item.get("ts").asText());
+                }
+                planItemList.add(planItem);
+            }
+            planDayEntry.actv = planItemList;
+            planDayEntryList.add(planDayEntry);
+        }
+        ugcPlan.details = planDayEntryList;
         // TODO details信息不全
         //设置UGC路线ID
         ugcPlan.id = new ObjectId(ugcPlanId);
@@ -529,7 +576,7 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays,int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
 
         Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
@@ -545,7 +592,7 @@ public class PlanCtrl extends Controller {
             stayBudgetDefault = 0;
         }
 
-        for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag,minDays,maxDays, page, pageSize, sortField);
+        for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, minDays, maxDays, page, pageSize, sortField);
              it.hasNext(); ) {
             //加入交通预算,住宿预算
             if (null != fromLoc && !fromLoc.trim().equals("")) {
