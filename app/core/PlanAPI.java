@@ -42,7 +42,7 @@ public class PlanAPI {
      * @param sortField @return
      * @throws TravelPiException
      */
-    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, int page, int pageSize, String sortField) throws TravelPiException {
+    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag,int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<Plan> query = ds.createQuery(Plan.class);
 
@@ -54,6 +54,8 @@ public class PlanAPI {
 
         if (tag != null && !tag.isEmpty())
             query.field("tags").equal(tag);
+        query.and(query.criteria("days").greaterThanOrEq(minDays),
+                query.criteria("days").lessThanOrEq(maxDays));
 
 //        query.field("desc").notEqual("").field("days").greaterThan(0).field("vsCnt").greaterThan(0);
         query.field("enabled").equal(Boolean.TRUE);
@@ -74,12 +76,12 @@ public class PlanAPI {
      * @param sortField @return
      * @throws TravelPiException
      */
-    public static Iterator<Plan> explore(String locId, String poiId, String sort, String tag, int page, int pageSize, String sortField) throws TravelPiException {
+    public static Iterator<Plan> explore(String locId, String poiId, String sort, String tag,int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
         try {
             return explore(
                     locId != null && !locId.isEmpty() ? new ObjectId(locId) : null,
                     poiId != null && !poiId.isEmpty() ? new ObjectId(poiId) : null,
-                    sort, tag, page, pageSize, sortField);
+                    sort, tag,minDays,maxDays, page, pageSize, sortField);
         } catch (IllegalArgumentException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
         }

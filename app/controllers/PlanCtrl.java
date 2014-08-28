@@ -59,6 +59,12 @@ public class PlanCtrl extends Controller {
      */
     public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int traffic, int hotel) {
         try {
+            if(fromLocId.equals("")){
+                Plan plan = PlanAPI.getPlan(planId, false);
+                if (plan == null)
+                    throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId.toString()));
+                return Utils.createResponse(ErrorCode.NORMAL, plan.toJson());
+            }
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
             UgcPlan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
@@ -523,7 +529,7 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays,int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
 
         Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
@@ -539,7 +545,7 @@ public class PlanCtrl extends Controller {
             stayBudgetDefault = 0;
         }
 
-        for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, page, pageSize, sortField);
+        for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag,minDays,maxDays, page, pageSize, sortField);
              it.hasNext(); ) {
             //加入交通预算,住宿预算
             if (null != fromLoc && !fromLoc.trim().equals("")) {
