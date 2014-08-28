@@ -26,7 +26,7 @@ GET           /itineraries/train-routes/:trainCode               controllers.Tra
 
 # 路线相关接口
 # 发现路线
-GET           /explore/plans                                     controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDyas:Int?=999, page: Int?=0, pageSize: Int?=20)
+GET           /explore/plans                                     controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 # 路线查询
 GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
 # 优化路线
@@ -113,8 +113,8 @@ GET           /batch/planBudge                                   controllers.Bac
 #-------------------------------------
 
 #查看UGC路线详情
-GET           /ugc-plans/:ugcPlanId                              controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, updateTime:String?="", page: Int?=0, pageSize: Int?=1)
+GET           /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, updateTime:String?="", page: Int?=0, pageSize: Int?=1)
 #根据目的地模板路线详情
-GET           /web/explore/plans                                 controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDyas:Int?=999, page: Int?=0, pageSize: Int?=1)
+GET           /web/explore/plans                                 controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 #查看模板路线详情
-GET           /web/plans/templates/:planId                       controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
+GET           /web/plans/:planId                                 controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
