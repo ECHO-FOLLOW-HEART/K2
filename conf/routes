@@ -47,6 +47,9 @@ POST          /ugc-plans/share                                   controllers.Pla
 # POI
 
 # 景点
+GET           /web/poi/view-spots/search                         controllers.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
+GET           /web/poi/hotels/search                             controllers.POICtrl.poiSearch(poiType: String="hotel", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
+GET           /web/poi/restaurants/search                        controllers.POICtrl.poiSearch(poiType: String="restaurant", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
 
 # 景点签到
 POST          /poi/view-spots/:spotId/checkin                    controllers.POICtrl.poiCheckin(poiType: String="vs", spotId: String)
@@ -114,7 +117,21 @@ GET           /batch/planBudge                                   controllers.Bac
 
 #查看UGC路线详情
 GET           /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, updateTime:String?="", page: Int?=0, pageSize: Int?=1)
-#根据目的地模板路线详情
+#根据目的地查看模板路线列表
 GET           /web/explore/plans                                 controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
-#查看模板路线详情
+#根据ID查看模板路线详情
 GET           /web/plans/:planId                                 controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
+#复制路线：生成一条UGC路线
+GET           /web/ugc-plans/templates/:planId                   controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="", traffic: Int?=0, hotel: Int?=0)
+
+#POI
+#根据ID获取景点
+GET           /web/poi/view-spots/:spotId                        controllers.POICtrl.viewSpotInfo(poiDesc: String="vs", spotId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
+
+#根据ID获取酒店
+GET           /web/poi/hotels/:hotelId                           controllers.POICtrl.viewSpotInfo(poiDesc: String="hotel", hotelId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
+
+#根据ID获取餐馆
+GET           /web/poi/restaurants/:resId                        controllers.POICtrl.viewSpotInfo(poiDesc: String="restaurant", resId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
+
+#GET           /web/poi/explore/:poiType                          controllers.POICtrl.explore(poiType: String?="", loc: Int?=0,page: Int?=0, pageSize: Int?=10)
