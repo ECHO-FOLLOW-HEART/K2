@@ -57,7 +57,7 @@ public class PlanCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int traffic, int hotel) {
+    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId) {
         try {
             if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);

@@ -3,12 +3,10 @@ package controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import core.LocalityAPI;
 import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.geo.Locality;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.poi.ViewSpot;
 import org.apache.commons.lang3.StringUtils;
@@ -352,49 +350,28 @@ public class POICtrl extends Controller {
     public static Result poiCheckin(String poiType, String poiId) {
         return Utils.createResponse(ErrorCode.NORMAL, "SUCCESS");
     }
+
     /**
      *
      */
-//    public static Result explore(String poiType,){
-//        // 发现城市
-//        if (loc != 0) {
-//            List<JsonNode> retLocList = new ArrayList<>();
-//            // TODO 获得城市信息
-//            for (Locality locality : LocalityAPI.explore(detailsFlag, page, pageSize))
-//                retLocList.add(locality.toJson(2));
-//            results.put("loc", Json.toJson(retLocList));
-//        }
-//
-//        List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
-//        if (vs != 0)
-//            poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
-//        if (hotel != 0)
-//            poiKeyList.add(PoiAPI.POIType.HOTEL);
-//        if (restaurant != 0)
-//            poiKeyList.add(PoiAPI.POIType.RESTAURANT);
-//
-//        HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
-//            {
-//                put(PoiAPI.POIType.VIEW_SPOT, "vs");
-//                put(PoiAPI.POIType.HOTEL, "hotel");
-//                put(PoiAPI.POIType.RESTAURANT, "restaurant");
-//            }
-//        };
-//
-//        for (PoiAPI.POIType poiType : poiKeyList) {
-//            if (poiType == PoiAPI.POIType.VIEW_SPOT) {
-//                // TODO 暂时不返回景点推荐数据
-//                results.put(poiMap.get(poiType), Json.toJson(new ArrayList<>()));
-//            } else {
-//                // 发现POI
-//                List<JsonNode> retPoiList = new ArrayList<>();
-//                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize);
-//                     it.hasNext(); )
-//                    retPoiList.add(it.next().toJson(2));
-//                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
-//            }
-//        }
-//
-//        return Utils.createResponse(ErrorCode.NORMAL, results);
-//    }
+    public static Result explore(String poiType, String locId, int page, int pageSize) throws TravelPiException {
+
+        ObjectId oLocId = locId.equals("") ? null : new ObjectId(locId);
+        PoiAPI.POIType pt = null;
+
+        if (poiType.equals("vs"))
+            pt = PoiAPI.POIType.VIEW_SPOT;
+        if (poiType.equals("hotel"))
+            pt = PoiAPI.POIType.HOTEL;
+        if (poiType.equals("restaurant"))
+            pt = PoiAPI.POIType.RESTAURANT;
+
+        List<JsonNode> retPoiList = new ArrayList<>();
+
+        for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(pt, oLocId, page, pageSize); it.hasNext(); )
+            retPoiList.add(it.next().toJson(2));
+
+        return Utils.createResponse(ErrorCode.NORMAL,Json.toJson(retPoiList));
+
+    }
 }

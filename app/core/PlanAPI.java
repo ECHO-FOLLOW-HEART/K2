@@ -19,8 +19,6 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -42,12 +40,13 @@ public class PlanAPI {
      * @param sortField @return
      * @throws TravelPiException
      */
-    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag,int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
+    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<Plan> query = ds.createQuery(Plan.class);
 
         if (locId != null && !locId.equals(""))
-            query.field("targets.id").equal(locId);
+            //query.field("targets.id").equal(locId);
+            query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
 
         if (poiId != null)
             query.field("details.actv.item.id").equal(poiId);
@@ -76,12 +75,12 @@ public class PlanAPI {
      * @param sortField @return
      * @throws TravelPiException
      */
-    public static Iterator<Plan> explore(String locId, String poiId, String sort, String tag,int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
+    public static Iterator<Plan> explore(String locId, String poiId, String sort, String tag, int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
         try {
             return explore(
                     locId != null && !locId.isEmpty() ? new ObjectId(locId) : null,
                     poiId != null && !poiId.isEmpty() ? new ObjectId(poiId) : null,
-                    sort, tag,minDays,maxDays, page, pageSize, sortField);
+                    sort, tag, minDays, maxDays, page, pageSize, sortField);
         } catch (IllegalArgumentException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
         }
@@ -125,7 +124,8 @@ public class PlanAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         ObjectId userOid = new ObjectId(userId);
-        query.field("uid").equal(userOid).field("enabled").equal(Boolean.TRUE).offset(page * pageSize).limit(pageSize);
+        query.field("uid").equal(userOid).field("enabled").equal(Boolean.TRUE);
+        query.offset(page * pageSize).limit(pageSize);
         if (!query.iterator().hasNext())
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid userId ID: %s.", userId));
         return query.iterator();
@@ -160,7 +160,7 @@ public class PlanAPI {
             if (backLoc == null || backLoc.isEmpty())
                 backLoc = fromLoc;
             return doPlanner(new ObjectId(planId), new ObjectId(fromLoc), new ObjectId(backLoc), firstDate);
-        } catch (IllegalArgumentException |NoSuchFieldException|IllegalAccessException e) {
+        } catch (IllegalArgumentException | NoSuchFieldException | IllegalAccessException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId));
         }
     }
@@ -591,7 +591,7 @@ public class PlanAPI {
         UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
         ops.set(filed, filedValue);
         ops.set("enable", true);
-        ops.set("updateTime",new Date());
+        ops.set("updateTime", new Date());
         ds.update(query, ops, true);
     }
 
