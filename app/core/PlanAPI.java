@@ -45,8 +45,7 @@ public class PlanAPI {
         Query<Plan> query = ds.createQuery(Plan.class);
 
         if (locId != null && !locId.equals(""))
-            //query.field("targets.id").equal(locId);
-            query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
+            query.field("targets.id").equal(locId);
 
         if (poiId != null)
             query.field("details.actv.item.id").equal(poiId);
@@ -127,7 +126,7 @@ public class PlanAPI {
         query.field("uid").equal(userOid).field("enabled").equal(Boolean.TRUE);
         query.offset(page * pageSize).limit(pageSize);
         if (!query.iterator().hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid userId ID: %s.", userId));
+            return new ArrayList<UgcPlan>().iterator();
         return query.iterator();
     }
 
