@@ -589,7 +589,7 @@ public class PlanAPI {
         UgcPlan ugcPlan = it.next();
         UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
         ops.set(filed, filedValue);
-        ops.set("enable", true);
+        ops.set("enabled", true);
         ops.set("updateTime", new Date());
         ds.update(query, ops, true);
     }

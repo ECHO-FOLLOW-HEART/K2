@@ -479,16 +479,17 @@ public class PlanCtrl extends Controller {
         String title = data.get("title").asText();
         String uid = data.get("uid").asText();
         String startDateStr = data.get("startDate").asText();
+        String endDateStr = data.get("endDate").asText();
         Calendar cal = Calendar.getInstance();
         cal.add(Calendar.DAY_OF_YEAR, 3);
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        DateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+        SimpleDateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
 
         JsonNode details = data.get("details");
         JsonNode trafficInfo = data.get("traffic");
 
         Date startDate = format.parse(startDateStr);
-        Date endDate = format.parse(startDateStr);
+        Date endDate = format.parse(endDateStr);
         Calendar startCal = Calendar.getInstance();
         startCal.setTime(startDate);
         Calendar endCal = Calendar.getInstance();
@@ -501,40 +502,45 @@ public class PlanCtrl extends Controller {
 
         //补全信息
         List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal);
-        ugcPlan.details = dayEntryList;
+        List<JsonNode> retDetails = new ArrayList<>();
+        for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
+        ObjectNode ret = Json.newObject();
+        ret.put("details", Json.toJson(retDetails));
 
-        JsonNode ret = null;
         PlanDayEntry planDayEntry = null;
-        List<PlanDayEntry> planDayEntryList = new ArrayList<PlanDayEntry>();
         PlanItem planItem = null;
-        List<PlanItem> planItemList = new ArrayList<PlanItem>();
+        List<PlanItem> planItemList = null;
         SimpleRef pItem = null;
         SimpleRef pLoc = null;
+        List<PlanDayEntry> planDayEntryList = new ArrayList<PlanDayEntry>();
 
-        for (PlanDayEntry dayEntry : dayEntryList) {
-            ret = dayEntry.toJson();
-            //补全details信息
-            fullfill(ret);
+        //补全details信息
+        fullfill(ret);
 
-            JsonNode dayNode = ret;
-            if (dayNode == null)
-                continue;
+        JsonNode jsList = ret.get("details");
+        JsonNode tempDay = null;
+        for (int i = 0; i < jsList.size(); i++) {
+            tempDay = jsList.get(i);
             planDayEntry = new PlanDayEntry();
-            JsonNode actv = dayNode.get("actv");
-            JsonNode date = dayNode.get("date");
+            if (!tempDay.has("actv"))
+                continue;
+            JsonNode actv = tempDay.get("actv");
+            JsonNode date = tempDay.get("date");
             //设置Date
             planDayEntry.date = timeFmt.parse(date.asText());
-            if (actv == null)
-                continue;
+            planItemList = new ArrayList<PlanItem>();
+
             for (JsonNode item : actv) {
                 ObjectNode conItem = (ObjectNode) item;
                 //新建PlanItem
                 planItem = new PlanItem();
                 pItem = new SimpleRef();
                 pLoc = new SimpleRef();
-                pItem.id = new ObjectId(item.get("itemId").asText());
-                pItem.zhName = item.get("itemName").asText();
-                planItem.item = pItem;
+                if (item.has("itemId")) {
+                    pItem.id = new ObjectId(item.get("itemId").asText());
+                    pItem.zhName = item.get("itemName").asText();
+                    planItem.item = pItem;
+                }
                 if (item.has("locId")) {
                     pLoc.id = new ObjectId(item.get("locId").asText());
                     pLoc.zhName = item.get("locName").asText();
@@ -551,7 +557,6 @@ public class PlanCtrl extends Controller {
             planDayEntryList.add(planDayEntry);
         }
         ugcPlan.details = planDayEntryList;
-        // TODO details信息不全
         //设置UGC路线ID
         ugcPlan.id = new ObjectId(ugcPlanId);
         ugcPlan.startDate = startDate;
