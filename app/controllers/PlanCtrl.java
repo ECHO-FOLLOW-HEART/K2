@@ -546,6 +546,32 @@ public class PlanCtrl extends Controller {
                     pLoc.zhName = item.get("locName").asText();
                     planItem.loc = pLoc;
                 }
+
+                String subTypeStr = item.get("subType").asText();
+                if (subTypeStr.equals("airport") || subTypeStr.equals("trainStaion")) {
+                    planItem.stopType = item.get("stopType").asText();
+                    if (item.has("lat") && item.has("lng")) {
+                        planItem.lat = Double.parseDouble(item.get("lat").asText());
+                        planItem.lng = Double.parseDouble(item.get("lng").asText());
+                    }
+                }
+                if (subTypeStr.equals("airRoute") || subTypeStr.equals("trainRoute")) {
+                    if (item.has("depStop") && item.has("depLoc")) {
+                        planItem.depLoc = new ObjectId(item.get("depLoc").asText());
+                        planItem.depStop = new ObjectId(item.get("depStop").asText());
+                    }
+                    if (item.has("arrLoc") && item.has("arrStop")) {
+                        planItem.arrLoc = new ObjectId(item.get("arrLoc").asText());
+                        planItem.arrStop = new ObjectId(item.get("arrStop").asText());
+                    }
+                    if (item.has("depTime") && item.has("arrTime")) {
+                        planItem.depTime = timeFmt.parse(item.get("depTime").asText());
+                        planItem.arrTime = timeFmt.parse(item.get("arrTime").asText());
+                    }
+                    if (item.has("distance")) {
+                        planItem.distance = item.get("distance").asText();
+                    }
+                }
                 planItem.type = item.get("type").asText();
                 planItem.subType = item.get("subType").asText();
                 if (!item.get("ts").asText().equals("")) {
@@ -557,13 +583,18 @@ public class PlanCtrl extends Controller {
             planDayEntryList.add(planDayEntry);
         }
         ugcPlan.details = planDayEntryList;
+
+        List<Integer> budgetList = new ArrayList<Integer>();
+        JsonNode budgetNode = data.get("budget");
+        for (int i = 0; i < budgetNode.size(); i++) budgetList.add(Integer.parseInt(budgetNode.get(i).asText()));
+        ugcPlan.budget = budgetList;
         //设置UGC路线ID
         ugcPlan.id = new ObjectId(ugcPlanId);
         ugcPlan.startDate = startDate;
         ugcPlan.endDate = endDate;
         ugcPlan.title = title;
         ugcPlan.uid = new ObjectId(uid);
-        ugcPlan.updateTime = new Date();
+        ugcPlan.updateTime = (new Date()).getTime();
         ugcPlan.enabled = true;
 
         PlanAPI.saveUGCPlan(ugcPlan);
@@ -1020,10 +1051,10 @@ public class PlanCtrl extends Controller {
                 UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
                 //根据ID取用户路线时，先判断时间戳，是否需要更新
                 //如果不需要更新，只返回一个标识，以节省流量
-                Date updateTimeInDB = ugcPlan.updateTime;
-                if (null != updateTimeInDB && (!updateTime.equals(""))) {
+                long updateTimeInDB = ugcPlan.updateTime;
+                if (!updateTime.equals("")) {
                     Long appTimeStamp = Long.parseLong(updateTime);
-                    if (appTimeStamp.longValue() == updateTimeInDB.getTime()) {
+                    if (appTimeStamp.longValue() == updateTimeInDB) {
                         return Utils.createResponse(ErrorCode.DONOTNEED_UPDATE, "DO NOT NEED UPDATE");
                     }
                 }

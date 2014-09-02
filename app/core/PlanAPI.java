@@ -125,6 +125,7 @@ public class PlanAPI {
         ObjectId userOid = new ObjectId(userId);
         query.field("uid").equal(userOid).field("enabled").equal(Boolean.TRUE);
         query.offset(page * pageSize).limit(pageSize);
+        query.order(String.format("%s%s", "-", "updateTime"));
         if (!query.iterator().hasNext())
             return new ArrayList<UgcPlan>().iterator();
         return query.iterator();
@@ -586,11 +587,10 @@ public class PlanAPI {
         if (!it.hasNext())
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
 
-        UgcPlan ugcPlan = it.next();
         UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
         ops.set(filed, filedValue);
         ops.set("enabled", true);
-        ops.set("updateTime", new Date());
+        ops.set("updateTime", (new Date()).getTime());
         ds.update(query, ops, true);
     }
 

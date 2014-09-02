@@ -39,7 +39,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
     /**
      * 更新时间。
      */
-    public Date updateTime;
+    public long updateTime;
 
     /**
      * 表明该UGC路线是基于哪一条模板。
@@ -53,7 +53,8 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
     public UgcPlan(Plan plan) throws NoSuchFieldException, IllegalAccessException {
         this.tranfToUgcPlan(plan);
     }
-    public UgcPlan(Plan plan,String uid,String startD,String endD,String id,String title) throws NoSuchFieldException, IllegalAccessException, InstantiationException, ParseException {
+
+    public UgcPlan(Plan plan, String uid, String startD, String endD, String id, String title) throws NoSuchFieldException, IllegalAccessException, InstantiationException, ParseException {
         this.tranfToUgcPlan(plan);
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         this.startDate = format.parse(startD);
@@ -61,7 +62,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
         this.id = new ObjectId(id);
         this.title = title;
         this.uid = new ObjectId(uid);
-        this.updateTime = new Date();
+        this.updateTime = (new Date()).getTime();
         this.enabled = true;
     }
 
@@ -72,18 +73,17 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
         //获取传进来的映射对象
         Class c = plan.getClass();
         //取得对象的所有属性，放到一个数组中
-        Field[]  f = c.getFields();
-        for(int i = 0; i<f.length; i++)
-        {
+        Field[] f = c.getFields();
+        for (int i = 0; i < f.length; i++) {
             paraFiledStr = f[i].getName();
             thisField = this.getClass().getField(paraFiledStr);
             //获取对象的属性
             Object filedValue = Plan.class.getField(f[i].getName()).get(plan);
             thisField.setAccessible(true);
-            thisField.set(this,filedValue);
+            thisField.set(this, filedValue);
         }
         //设置ID
-        this.id =  new ObjectId();
+        this.id = new ObjectId();
         this.templateId = plan.id;
     }
 
@@ -95,7 +95,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
     public JsonNode toJson(boolean showDetails) {
         //更新时间
         final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
-        if(!showDetails){
+        if (!showDetails) {
             BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
             builder.add("_id", id.toString());
             builder.add("title", (title != null && !title.isEmpty()) ? title : "");
@@ -103,7 +103,8 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             if (days != null)
                 builder.add("days", days);
 
-            builder.add("updateTime", null==updateTime?"":fmt.format(updateTime));
+            // builder.add("updateTime", null==updateTime?"":fmt.format(updateTime));
+            builder.add("updateTime", updateTime);
 
             return Json.toJson(builder.get());
         }
@@ -116,9 +117,8 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             node.put("startDate", startDate.toString());
         if (endDate != null)
             node.put("endDate", endDate.toString());
-        if(updateTime != null){
-            node.put("updateTime",fmt.format(updateTime));
-        }
+        node.put("updateTime", updateTime);
+
         return node;
     }
 }

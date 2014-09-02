@@ -6,6 +6,7 @@ import core.PoiAPI;
 import exception.TravelPiException;
 import models.ITravelPiFormatter;
 import models.morphia.misc.SimpleRef;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
@@ -39,6 +40,18 @@ public class PlanItem implements ITravelPiFormatter {
     @Transient
     public Object extra;
 
+    public double lat;
+    public double lng;
+    public String stopType;
+    public ObjectId depStop;
+    public ObjectId depLoc;
+    public Date depTime;
+    public ObjectId arrStop;
+    public ObjectId arrLoc;
+    public Date arrTime;
+    public String distance;
+
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
@@ -53,8 +66,27 @@ public class PlanItem implements ITravelPiFormatter {
         }
         builder.add("type", type != null ? type : "");
         builder.add("subType", subType != null ? subType : "");
+
+        final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+        if (subType != null && (subType.equals("airport") || subType.equals("trainStaion"))) {
+            if(lat!=0&&lng!=0){
+                builder.add("lat", lat);
+                builder.add("lng", lng);
+            }
+            builder.add("stopType", stopType);
+        }
+        if (subType != null && (subType.equals("airRoute") || subType.equals("trainRoute"))) {
+            builder.add("depStop", depStop == null ? depStop : depStop.toString());
+            builder.add("depLoc", depLoc == null ? depLoc : depLoc.toString());
+            builder.add("depTime", depTime == null ? "" : fmt.format(arrTime));
+            builder.add("arrStop", arrStop == null ? arrStop : arrStop.toString());
+            builder.add("arrLoc", arrLoc == null ? arrLoc : arrLoc.toString());
+            builder.add("arrTime", arrTime == null ? "" : fmt.format(arrTime));
+            builder.add("distance", distance);
+        }
+
         if (ts != null) {
-            final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+
             TimeZone tz = TimeZone.getTimeZone("Asia/Shanghai");
             fmt.setTimeZone(tz);
             builder.add("ts", fmt.format(ts));
@@ -65,6 +97,13 @@ public class PlanItem implements ITravelPiFormatter {
             // 将景点详情嵌入
             try {
                 builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.VIEW_SPOT, true).toJson(3));
+            } catch (TravelPiException ignored) {
+            }
+        }
+        if (type != null && type.equals("hotel")) {
+            // 将酒店详情嵌入
+            try {
+                builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.HOTEL, true).toJson(3));
             } catch (TravelPiException ignored) {
             }
         }
