@@ -298,7 +298,6 @@ public class PoiAPI {
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (locId != null)
-            //query.field("targets").equal(locId);
             query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
 
 //        if (poiType == POIType.VIEW_SPOT)
