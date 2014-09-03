@@ -58,9 +58,10 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word));
-        if (poiType == POIType.VIEW_SPOT)
-            query.field("rankingA").greaterThanOrEq(5);
-        query.field("relPlanCnt").greaterThan(0);
+        // TODO 暂时不做数据过滤
+        //if (poiType == POIType.VIEW_SPOT)
+        //    query.field("rankingA").greaterThanOrEq(5);
+        //query.field("relPlanCnt").greaterThan(0);
         return query.limit(pageSize).iterator();
     }
 

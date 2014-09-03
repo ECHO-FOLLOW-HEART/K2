@@ -961,17 +961,7 @@ public class PlanCtrl extends Controller {
             try {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(fmt.parse(item.get("st").asText()));
-                if (type.equals("vs") )
-                    entryList = appendPlanItem(entryList, poiMapper(item), cal);
-            } catch (ParseException ignored) {
-            }
-        }
-        for (JsonNode item : rawDetails) {
-            String type = item.get("type").asText();
-            try {
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(fmt.parse(item.get("st").asText()));
-                if ( type.equals("hotel"))
+                if (type.equals("vs")||type.equals("hotel") )
                     entryList = appendPlanItem(entryList, poiMapper(item), cal);
             } catch (ParseException ignored) {
             }
