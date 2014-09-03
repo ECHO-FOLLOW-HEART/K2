@@ -75,7 +75,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p/>
+     * <p>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -137,7 +137,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             }
 
             // TODO 暂时兼容两种数据
-            builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc!=null?desc:""));
+            if (null != description) {
+                builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc != null ? desc : ""));
+            } else {
+                builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
+            }
             if (price != null)
                 builder.add("price", price);
             builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
@@ -181,7 +185,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 builder.add("alias", alias != null ? alias : new ArrayList<>());
                 // TODO 暂时兼容两种数据
                 //builder.add("desc", (desc != null ? desc : ""));
-                builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc!=null?desc:""));
+                if (null != description) {
+                    builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc != null ? desc : ""));
+                } else {
+                    builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
+                }
+
             }
         }
 
