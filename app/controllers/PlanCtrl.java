@@ -501,7 +501,7 @@ public class PlanCtrl extends Controller {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", templateId));
 
         //补全信息
-        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal,false);
+        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, false);
         List<JsonNode> retDetails = new ArrayList<>();
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
@@ -824,26 +824,36 @@ public class PlanCtrl extends Controller {
 
         PlanDayEntry dayEntry;
         Calendar curCal;
-        while (true) {
-            dayEntry = plan.get(plan.size() - 1);
-            curCal = Calendar.getInstance();
-            curCal.setTime(dayEntry.date);
+        if (item.type.equals("vs") || item.type.equals("traffic")) {
+            while (true) {
+                dayEntry = plan.get(plan.size() - 1);
+                curCal = Calendar.getInstance();
+                curCal.setTime(dayEntry.date);
 
-            if (curCal.get(Calendar.DAY_OF_YEAR) == itemCal.get(Calendar.DAY_OF_YEAR))
-                break;
-            if (curCal.after(itemCal))
-                // 避免死循环。通常，itemCal一定会位于curCal之后。
-                return plan;
+                if (curCal.get(Calendar.DAY_OF_YEAR) == itemCal.get(Calendar.DAY_OF_YEAR))
+                    break;
+                if (curCal.after(itemCal))
+                    // 避免死循环。通常，itemCal一定会位于curCal之后。
+                    return plan;
 
-            // 新生成一个PlanDayEntry
-            curCal.add(Calendar.DAY_OF_YEAR, 1);
-            dayEntry = new PlanDayEntry(curCal);
-            plan.add(dayEntry);
+                // 新生成一个PlanDayEntry
+                curCal.add(Calendar.DAY_OF_YEAR, 1);
+                dayEntry = new PlanDayEntry(curCal);
+                plan.add(dayEntry);
+            }
+
+            // 此时的dayEntry，就是item应该插入的地方。
+            dayEntry.actv.add(item);
+        } else if (item.type.equals("hotel")) {
+
+            for (int i = 0; i < plan.size(); i++) {
+                curCal = Calendar.getInstance();
+                curCal.setTime(plan.get(i).date);
+                if (curCal.get(Calendar.DAY_OF_YEAR) == itemCal.get(Calendar.DAY_OF_YEAR)) {
+                    plan.get(i).actv.add(item);
+                }
+            }
         }
-
-        // 此时的dayEntry，就是item应该插入的地方。
-        dayEntry.actv.add(item);
-
         return plan;
     }
 
@@ -855,7 +865,7 @@ public class PlanCtrl extends Controller {
      * @return
      */
     private static List<PlanDayEntry> raw2plan(JsonNode rawDetails, JsonNode trafficInfo,
-                                               Calendar startCal, Calendar endCal,boolean needOptimize) throws TravelPiException {
+                                               Calendar startCal, Calendar endCal, boolean needOptimize) throws TravelPiException {
         // 获得两端大交通的信息
         List<PlanItem> awayTraffic = new ArrayList<>();
         List<PlanItem> backTraffic = new ArrayList<>();
@@ -884,7 +894,7 @@ public class PlanCtrl extends Controller {
         }
 
         // 需要考虑两端的大交通的时间是否需要shift
-        if (!awayTraffic.isEmpty()&&needOptimize) {
+        if (!awayTraffic.isEmpty() && needOptimize) {
             Calendar depCal = Calendar.getInstance();
             depCal.setTime(awayTraffic.get(0).ts);
             Calendar arrCal = Calendar.getInstance();
@@ -919,7 +929,7 @@ public class PlanCtrl extends Controller {
                 awayTraffic.get(2).ts = arrCal.getTime();
             }
         }
-        if (!backTraffic.isEmpty()&&needOptimize) {
+        if (!backTraffic.isEmpty() && needOptimize) {
             Calendar depCal = Calendar.getInstance();
             depCal.setTime(backTraffic.get(0).ts);
             Calendar arrCal = Calendar.getInstance();
@@ -962,11 +972,12 @@ public class PlanCtrl extends Controller {
             try {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(fmt.parse(item.get("st").asText()));
-                if (type.equals("vs")||type.equals("hotel") )
+                if (type.equals("vs") || type.equals("hotel"))
                     entryList = appendPlanItem(entryList, poiMapper(item), cal);
             } catch (ParseException ignored) {
             }
         }
+
 
         for (PlanItem item : backTraffic) entryList = appendPlanItem(entryList, item, null);
 
@@ -1008,11 +1019,15 @@ public class PlanCtrl extends Controller {
 
         List<PlanDayEntry> dayEntryList;
         try {
-            dayEntryList = raw2plan(details, trafficInfo, startCal, endCal,true);
+            dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
-        PlanAPI.addHotels(dayEntryList);
+
+        // 只有优化级别大于1时，才重新优化添加酒店
+        if (optLevel > 1) {
+            PlanAPI.addHotels(dayEntryList);
+        }
 
         if (optLevel == 2)
             PlanAPI.pseudoOptimize(dayEntryList);
