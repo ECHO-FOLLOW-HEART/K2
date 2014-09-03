@@ -136,7 +136,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 builder.add("imageList", tmpList);
             }
 
-            builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
+            // TODO 暂时兼容两种数据
+            builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc!=null?desc:""));
             if (price != null)
                 builder.add("price", price);
             builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
@@ -178,7 +179,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 builder.add("url", url != null ? url : "");
                 builder.add("priceDesc", priceDesc != null ? priceDesc : "");
                 builder.add("alias", alias != null ? alias : new ArrayList<>());
-                builder.add("desc", (desc != null ? desc : ""));
+                // TODO 暂时兼容两种数据
+                //builder.add("desc", (desc != null ? desc : ""));
+                builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc!=null?desc:""));
             }
         }
 
