@@ -13,6 +13,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -100,9 +101,8 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             builder.add("_id", id.toString());
             builder.add("title", (title != null && !title.isEmpty()) ? title : "");
             builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
-            if (days != null)
-                builder.add("days", days);
-
+            //全程天数取优化后天数
+            builder.add("days", details.size());
             // builder.add("updateTime", null==updateTime?"":fmt.format(updateTime));
             builder.add("updateTime", updateTime);
 

@@ -475,7 +475,6 @@ public class PlanCtrl extends Controller {
     private static void updateUGCPlan(JsonNode data) throws TravelPiException, ParseException, IllegalAccessException, NoSuchFieldException, InstantiationException {
         String ugcPlanId = data.get("_id").asText();
         String templateId = data.get("templateId").asText();
-        String fromLocId = data.get("fromLoc").asText();
         String title = data.get("title").asText();
         String uid = data.get("uid").asText();
         String startDateStr = data.get("startDate").asText();
@@ -501,7 +500,7 @@ public class PlanCtrl extends Controller {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", templateId));
 
         //补全信息
-        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal);
+        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal,false);
         List<JsonNode> retDetails = new ArrayList<>();
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
@@ -531,11 +530,11 @@ public class PlanCtrl extends Controller {
             planItemList = new ArrayList<PlanItem>();
 
             for (JsonNode item : actv) {
-                ObjectNode conItem = (ObjectNode) item;
                 //新建PlanItem
                 planItem = new PlanItem();
                 pItem = new SimpleRef();
                 pLoc = new SimpleRef();
+                planItem.ts = planDayEntry.date;
                 if (item.has("itemId")) {
                     pItem.id = new ObjectId(item.get("itemId").asText());
                     pItem.zhName = item.get("itemName").asText();
@@ -574,9 +573,7 @@ public class PlanCtrl extends Controller {
                 }
                 planItem.type = item.get("type").asText();
                 planItem.subType = item.get("subType").asText();
-                if (!item.get("ts").asText().equals("")) {
-                    planItem.ts = timeFmt.parse(item.get("ts").asText());
-                }
+
                 planItemList.add(planItem);
             }
             planDayEntry.actv = planItemList;
@@ -584,10 +581,9 @@ public class PlanCtrl extends Controller {
         }
         ugcPlan.details = planDayEntryList;
 
-        List<Integer> budgetList = new ArrayList<Integer>();
-        JsonNode budgetNode = data.get("budget");
-        for (int i = 0; i < budgetNode.size(); i++) budgetList.add(Integer.parseInt(budgetNode.get(i).asText()));
-        ugcPlan.budget = budgetList;
+        ugcPlan.stayBudget = Integer.parseInt(data.get("stayBudget").asText());
+        ugcPlan.viewBudget = Integer.parseInt(data.get("viewBudget").asText());
+        ugcPlan.trafficBudget = Integer.parseInt(data.get("trafficBudget").asText());
         //设置UGC路线ID
         ugcPlan.id = new ObjectId(ugcPlanId);
         ugcPlan.startDate = startDate;
@@ -858,7 +854,7 @@ public class PlanCtrl extends Controller {
      * @return
      */
     private static List<PlanDayEntry> raw2plan(JsonNode rawDetails, JsonNode trafficInfo,
-                                               Calendar startCal, Calendar endCal) throws TravelPiException {
+                                               Calendar startCal, Calendar endCal,boolean needOptimize) throws TravelPiException {
         // 获得两端大交通的信息
         List<PlanItem> awayTraffic = new ArrayList<>();
         List<PlanItem> backTraffic = new ArrayList<>();
@@ -887,7 +883,7 @@ public class PlanCtrl extends Controller {
         }
 
         // 需要考虑两端的大交通的时间是否需要shift
-        if (!awayTraffic.isEmpty()) {
+        if (!awayTraffic.isEmpty()&&needOptimize) {
             Calendar depCal = Calendar.getInstance();
             depCal.setTime(awayTraffic.get(0).ts);
             Calendar arrCal = Calendar.getInstance();
@@ -922,7 +918,7 @@ public class PlanCtrl extends Controller {
                 awayTraffic.get(2).ts = arrCal.getTime();
             }
         }
-        if (!backTraffic.isEmpty()) {
+        if (!backTraffic.isEmpty()&&needOptimize) {
             Calendar depCal = Calendar.getInstance();
             depCal.setTime(backTraffic.get(0).ts);
             Calendar arrCal = Calendar.getInstance();
@@ -965,7 +961,17 @@ public class PlanCtrl extends Controller {
             try {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(fmt.parse(item.get("st").asText()));
-                if (type.equals("vs") || type.equals("hotel"))
+                if (type.equals("vs") )
+                    entryList = appendPlanItem(entryList, poiMapper(item), cal);
+            } catch (ParseException ignored) {
+            }
+        }
+        for (JsonNode item : rawDetails) {
+            String type = item.get("type").asText();
+            try {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(fmt.parse(item.get("st").asText()));
+                if ( type.equals("hotel"))
                     entryList = appendPlanItem(entryList, poiMapper(item), cal);
             } catch (ParseException ignored) {
             }
@@ -1011,7 +1017,7 @@ public class PlanCtrl extends Controller {
 
         List<PlanDayEntry> dayEntryList;
         try {
-            dayEntryList = raw2plan(details, trafficInfo, startCal, endCal);
+            dayEntryList = raw2plan(details, trafficInfo, startCal, endCal,true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -1064,7 +1070,7 @@ public class PlanCtrl extends Controller {
             }
             //根据用户ID取得UGC路线列表
             if (!userId.equals("")) {
-                List<JsonNode> results = new ArrayList<>();
+                List<JsonNode> results = new ArrayList<JsonNode>();
                 for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
                     //取粗略信息
                     results.add(it.next().toJson(false));

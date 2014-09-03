@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
+import utils.POIUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,7 +61,11 @@ public class ViewSpot extends AbstractPOI {
     @Override
     public JsonNode toJson(int level) {
         ObjectNode node = (ObjectNode) super.toJson(level);
-        node.put("timeCost", (timeCost != null && timeCost > 0) ? timeCost : 3);
+        //node.put("timeCost", (timeCost != null && timeCost > 0) ? timeCost : 3);
+
+        // 按景点分类估算游玩时间
+        double fakeTime = POIUtils.ViewSpotClassifierForTime(name);
+        node.put("timeCost", (timeCost != null && timeCost > 0) ? timeCost : fakeTime);
 
         if (level > 2) {
             if (rankingA != null)

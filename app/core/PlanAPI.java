@@ -358,6 +358,7 @@ public class PlanAPI {
 
                     hotelItem.loc = hotel.addr.loc;
                     hotelItem.type = "hotel";
+                    hotelItem.ts = dayEntry.date;
 
 //                    Calendar cal = Calendar.getInstance();
 //                    cal.setTime(dayEntry.date);

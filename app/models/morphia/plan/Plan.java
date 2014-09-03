@@ -165,14 +165,21 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         addTotal = (int) (Math.round(addTotal / 80.0) * 100);
         builder.add("budget", Arrays.asList(total, addTotal));
 
+        // TODO 假数据
+        builder.add("lxpTags", lxpTags == null ? "" : lxpTags);
+        builder.add("lxpTags", Arrays.asList("最好吃", "最省钱"));
 
-        List<JsonNode> detailsNodes = new ArrayList<>();
-        if (details != null) {
-            for (PlanDayEntry entry : details) {
-                detailsNodes.add(entry.toJson());
+
+        if (showDetails) {
+            List<JsonNode> detailsNodes = new ArrayList<>();
+            if (details != null) {
+                for (PlanDayEntry entry : details) {
+                    detailsNodes.add(entry.toJson());
+                }
             }
+            builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
         }
-        builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
+
 
         this.buildSummary(details);
         builder.add("summary", summary);
