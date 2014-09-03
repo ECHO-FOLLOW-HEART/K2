@@ -12,6 +12,7 @@ import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.misc.Share;
 import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
@@ -1088,25 +1089,26 @@ public class PlanCtrl extends Controller {
     public static Result shareUGCPlan() {
         JsonNode data = request().body().asJson();
         try {
-            String uid = data.get("uid").asText();
-            String ugcPlanId = data.get("_id").asText();
-            String isUpdate = data.get("isUpdate").asText();
+//            String uid = data.get("uid").asText();
+//            String ugcPlanId = data.get("_id").asText();
+//            String isUpdate = data.get("isUpdate").asText();
 
             //不更新
-            if (isUpdate.equals("0")) {
-                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-            }
-            if (isUpdate.equals("1")) {
-                updateUGCPlan(data);
-                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-            }
+//            if (isUpdate.equals("0")) {
+//                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
+//            }
+//            if (isUpdate.equals("1")) {
+//                updateUGCPlan(data);
+//                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
+//            }
 
-            PlanAPI.deleteUGCPlan("");
-            return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (ClassCastException | ParseException | IllegalAccessException | NoSuchFieldException | InstantiationException ec) {
+            Share share = new Share();
+            List<String> urlList = new ArrayList<String>();
+            urlList.add("http://cms.lvxingpai.cn/wab/plants.php");
+            share.urls = urlList;
+            return Utils.createResponse(ErrorCode.NORMAL, share.toJson());
+        } catch (ClassCastException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 }
