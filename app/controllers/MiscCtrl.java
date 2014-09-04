@@ -11,7 +11,6 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.geo.Locality;
 import models.morphia.misc.Feedback;
-import models.morphia.misc.Feedback;
 import models.morphia.misc.MiscInfo;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.user.UserInfo;
@@ -25,6 +24,7 @@ import utils.Utils;
 
 import java.net.UnknownHostException;
 import java.util.*;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -303,6 +303,101 @@ public class MiscCtrl extends Controller {
             String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
             node.put("image", url);
             return Utils.createResponse(ErrorCode.NORMAL, node);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static Result getWeatherInfo(String locId) {
+        try {
+            DBCollection colLoc = Utils.getMongoClient().getDB("misc").getCollection("Weather");
+            DBObject qb = QueryBuilder.start("loc.id").is(new ObjectId(locId)).get();
+            DBObject data = colLoc.findOne(qb);
+            if (data == null) {
+                Locality loc = LocalityAPI.locDetails(locId, 1);
+                if (loc == null)
+                    return Utils.createResponse(ErrorCode.UNKOWN_ERROR, String.format("CANNOT FIND LOCALITY: %s.", locId));
+                data = colLoc.findOne(QueryBuilder.start("loc.id").is(loc.superAdm.id).get());
+            }
+            if (data == null)
+                return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "NO RESULTS FOUND.");
+
+            ObjectNode result = Json.newObject();
+
+            DBObject loc = (DBObject) data.get("loc");
+            Object tmp = loc.get("zhName");
+            result.put("locName", tmp != null ? tmp.toString() : "");
+            tmp = loc.get("id");
+            result.put("locId", tmp != null ? tmp.toString() : "");
+
+            BasicDBList ret = (BasicDBList) data.get("weather_data");
+            DBObject entry = (ret.size() > 0 ? (DBObject) ret.get(0) : new BasicDBObject());
+            tmp = entry.get("temperature");
+            result.put("temperature", tmp != null ? tmp.toString() : "");
+            tmp = entry.get("dayPictureUrl");
+            Matcher m = Pattern.compile("(\\w+)\\.png$").matcher(tmp != null ? tmp.toString() : "");
+
+            String icon = (m.find() ? m.group(1) : "");
+            int weatherType;
+            switch (icon) {
+                case "duoyun":
+                    weatherType = 1;
+                    break;
+                case "yin":
+                    weatherType = 2;
+                    break;
+                case "zhenyu":
+                    weatherType = 3;
+                    break;
+                case "xiaoyu":
+                    weatherType = 4;
+                    break;
+                case "zhongyu":
+                    weatherType = 5;
+                    break;
+                case "dayu":
+                    weatherType = 6;
+                    break;
+                case "baoyu":
+                    weatherType = 7;
+                    break;
+                case "leizhenyu":
+                    weatherType = 8;
+                    break;
+                case "wu":
+                    weatherType = 9;
+                    break;
+                case "xiaoxue":
+                    weatherType = 10;
+                    break;
+                case "zhongxue":
+                    weatherType = 11;
+                    break;
+                case "daxue":
+                    weatherType = 12;
+                    break;
+                case "baoxue":
+                    weatherType = 13;
+                    break;
+                case "yujiaxue":
+                    weatherType = 14;
+                    break;
+                case "qing":
+                    weatherType = 15;
+                    break;
+                default:
+                    weatherType = -1;
+                    break;
+            }
+            result.put("icon", icon.isEmpty() ? "" : String.format("http://lxp-assets.qiniudn.com/weather/%s", icon));
+            result.put("weatherType", weatherType);
+
+            tmp = entry.get("weather");
+            result.put("weather", tmp != null ? tmp.toString() : "");
+            tmp = entry.get("date");
+            result.put("sampleTime", tmp != null ? tmp.toString() : "");
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }

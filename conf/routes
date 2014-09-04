@@ -89,6 +89,7 @@ GET           /poi/restaurants/localities/:locId                 controllers.POI
 POST          /sys/feedback                                      controllers.MiscCtrl.postFeedback()
 GET           /sys/updates/:platform                             controllers.MiscCtrl.getUpdateInfo(platform: String, platformVer: String, appVer: String)
 GET           /suggestions                                       controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
+GET           /misc/weather/:locId                                    controllers.MiscCtrl.getWeatherInfo(locId :String)
 
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
