@@ -536,6 +536,11 @@ public class PlanCtrl extends Controller {
                 pItem = new SimpleRef();
                 pLoc = new SimpleRef();
                 planItem.ts = planDayEntry.date;
+                if (item.has("ts")) {
+                    planItem.ts = timeFmt.parse(item.get("ts").asText());
+                } else {
+                    planItem.ts = planDayEntry.date;
+                }
                 if (item.has("itemId")) {
                     pItem.id = new ObjectId(item.get("itemId").asText());
                     pItem.zhName = item.get("itemName").asText();
