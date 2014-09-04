@@ -78,7 +78,7 @@ public class PlanItem implements ITravelPiFormatter {
         if (subType != null && (subType.equals("airRoute") || subType.equals("trainRoute"))) {
             builder.add("depStop", depStop == null ? depStop : depStop.toString());
             builder.add("depLoc", depLoc == null ? depLoc : depLoc.toString());
-            builder.add("depTime", depTime == null ? "" : fmt.format(arrTime));
+            builder.add("depTime", depTime == null ? "" : fmt.format(depTime));
             builder.add("arrStop", arrStop == null ? arrStop : arrStop.toString());
             builder.add("arrLoc", arrLoc == null ? arrLoc : arrLoc.toString());
             builder.add("arrTime", arrTime == null ? "" : fmt.format(arrTime));

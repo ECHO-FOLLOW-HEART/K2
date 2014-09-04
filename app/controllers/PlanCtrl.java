@@ -689,7 +689,8 @@ public class PlanCtrl extends Controller {
     private static PlanItem poiMapper(JsonNode item) throws TravelPiException {
         String itemId = item.get("itemId").asText();
         String type = item.get("type").asText();
-//        String st = item.get("st").asText();
+        String st = item.get("st").asText();
+        SimpleDateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
 //        String subType = item.get("subType").asText();
 
         PlanItem planItem = null;
@@ -705,6 +706,11 @@ public class PlanCtrl extends Controller {
                 planItem.item = ref;
                 planItem.loc = vs.addr.loc;
                 planItem.type = "vs";
+                try {
+                    planItem.ts = timeFmt.parse(st);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 break;
             case "hotel":
                 Hotel hotel = ds.createQuery(Hotel.class).field("_id").equal(new ObjectId(itemId)).get();
@@ -715,6 +721,11 @@ public class PlanCtrl extends Controller {
                 planItem.item = ref;
                 planItem.loc = hotel.addr.loc;
                 planItem.type = "hotel";
+                try {
+                    planItem.ts = timeFmt.parse(st);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
                 break;
         }
         return planItem;
@@ -845,7 +856,7 @@ public class PlanCtrl extends Controller {
             // 此时的dayEntry，就是item应该插入的地方。
             dayEntry.actv.add(item);
         } else if (item.type.equals("hotel")) {
-
+            SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
             for (int i = 0; i < plan.size(); i++) {
                 curCal = Calendar.getInstance();
                 curCal.setTime(plan.get(i).date);
@@ -977,8 +988,6 @@ public class PlanCtrl extends Controller {
             } catch (ParseException ignored) {
             }
         }
-
-
         for (PlanItem item : backTraffic) entryList = appendPlanItem(entryList, item, null);
 
         return entryList;
@@ -1024,10 +1033,7 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        // 只有优化级别大于1时，才重新优化添加酒店
-        if (optLevel > 1) {
-            PlanAPI.addHotels(dayEntryList);
-        }
+        PlanAPI.addHotels(dayEntryList);
 
         if (optLevel == 2)
             PlanAPI.pseudoOptimize(dayEntryList);

@@ -332,6 +332,26 @@ public class PlanAPI {
                     break;
                 }
             }
+            //删除跨天交通间的酒店
+            //对于路线的第一天或倒数第二天
+            if (i == 0 || i == dayEntry.actv.size() - 2) {
+                List<PlanItem> todayActs = dayEntry.actv;
+                //如果今天最后一项是酒店并且酒店上面是交通
+                if (todayActs.get(todayActs.size() - 1).type.equals("hotel")
+                        && todayActs.get(todayActs.size() - 2).type.equals("traffic")) {
+                    //取得明天的活动
+                    List<PlanItem> nextDayActs = entryList.get(i + 1).actv;
+                    //取得明天第一项活动的类型
+                    String nextDayFirstActType = "";
+                    if (null != nextDayActs && nextDayActs.size() > 0)
+                        nextDayFirstActType = nextDayActs.get(0).type;
+                    // 如果明天一早还在交通上
+                    if (nextDayFirstActType != null && nextDayFirstActType.equals("traffic")) {
+                        todayActs.remove(todayActs.size() - 1);
+                    }
+                }
+            }
+
             if (hasHotel)
                 continue;
 
