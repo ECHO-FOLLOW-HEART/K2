@@ -11,6 +11,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Http;
+import utils.Utils;
 
 import java.util.ArrayList;
 
@@ -168,5 +169,31 @@ public class UserAPI {
         ops.set("udid", seq);
 
         dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.id), ops);
+    }
+
+    /**
+     * 进行用户权限验证
+     *
+     * @param uid
+     * @param timestamp
+     * @param sign
+     * @return
+     * @throws TravelPiException
+     */
+    public static boolean authenticate(String uid, String timestamp, String sign) throws TravelPiException {
+        if (uid == null || uid.isEmpty() || timestamp == null || timestamp.isEmpty() || sign == null || sign.isEmpty())
+            return false;
+
+        try {
+            UserInfo userInfo = UserAPI.getUserByUdid(uid);
+            if (userInfo == null || userInfo.secToken == null)
+                return false;
+            String serverSign = Utils.toSha1Hex(timestamp + userInfo.secToken);
+            if (!sign.equals(serverSign))
+                return false;
+        } catch (NullPointerException e) {
+            return false;
+        }
+        return true;
     }
 }

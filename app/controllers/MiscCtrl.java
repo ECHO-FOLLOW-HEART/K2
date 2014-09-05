@@ -291,7 +291,12 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
             //请求验证
-            requestAuthen();
+            String sign = request().getQueryString("sign");
+            String uid = request().getQueryString("uid");
+            String timestamp = request().getQueryString("timestamp");
+            boolean auth = UserAPI.authenticate(uid, timestamp, sign);
+            if (!auth)
+                return Utils.createResponse(ErrorCode.AUTHENTICATE_ERROR, "AUTHENTIFICATION FAILED.");
 
             UserAPI.updateUserInfo(request());
 
@@ -404,23 +409,5 @@ public class MiscCtrl extends Controller {
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
-    }
-
-    public static void requestAuthen() throws TravelPiException {
-
-        try {
-            String sign = request().getQueryString("sign");
-            String uid = request().getQueryString("uid");
-            String timestamp = request().getQueryString("timestamp");
-            UserInfo userInfo = UserAPI.getUserByUdid(uid);
-            String serverSign = Utils.toHex(Utils.toSha1(timestamp + userInfo.secToken));
-            if (!sign.equals(serverSign)) {
-                throw new TravelPiException(ErrorCode.AUTHENTICATE_FAlED, "AUTHENTICATION FAlED.");
-            }
-
-        }catch (NullPointerException e){
-            throw new TravelPiException(ErrorCode.AUTHENTICATE_FAlED, "AUTHENTICATION FAlED.");
-        }
-
     }
 }

@@ -195,49 +195,29 @@ public class Utils {
      */
     public static String getSecToken() {
         Long r = Math.abs(new Random().nextLong()) + System.currentTimeMillis();
-
-        String secToken = toHex(toSha1(r.toString()));
-
-        return secToken;
+        return toSha1Hex(r.toString());
     }
 
     /**
-     * SHA1加密
+     * SHA1摘要函数
      *
      * @param msg
      * @return
      */
-    public static byte[] toSha1(String msg) {
+    public static String toSha1Hex(String msg) {
         try {
+            byte[] ret = MessageDigest.getInstance("SHA").digest(msg.getBytes());
 
-
-            MessageDigest sha1 = MessageDigest.getInstance("SHA");
-
-            return sha1.digest(msg.toString().getBytes());
-
-        } catch (NoSuchAlgorithmException e) {
-
-        }
-        return null;
-    }
-
-    /**
-     * 转换成16进制
-     *
-     * @param array
-     * @return
-     */
-    public static String toHex(byte[] array) {
-
-        StringBuffer sb = new StringBuffer();
-
-        for (byte aB : array) {
-            String hex = Integer.toHexString(aB & 0xFF);
-            if (hex.length() == 1) {
-                hex = '0' + hex;
+            StringBuilder sb = new StringBuilder();
+            for (byte aB : ret) {
+                String hex = Integer.toHexString(aB & 0xFF);
+                if (hex.length() == 1)
+                    hex = '0' + hex;
+                sb.append(hex);
             }
-            sb.append(hex);
+            return sb.toString();
+        } catch (NoSuchAlgorithmException ignored) {
+            return null;
         }
-        return sb.toString();
     }
 }
