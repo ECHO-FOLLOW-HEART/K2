@@ -3,6 +3,7 @@ package models.morphia.poi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.morphia.misc.Description;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 import utils.POIUtils;
@@ -50,6 +51,11 @@ public class ViewSpot extends AbstractPOI {
      */
     public Double timeCost;
 
+    /**
+     * 标识Description各项是否存在
+     */
+    public Description descriptionFlag;
+
     public static List<String> getRetrievedFields(int level) {
         List<String> fieldList = AbstractPOI.getRetrievedFields(level);
         if (level > 2)
@@ -71,8 +77,7 @@ public class ViewSpot extends AbstractPOI {
             if (rankingA != null)
                 node.put("rankingA", rankingA);
 
-            // TODO
-            // 临时处理
+            // TODO 临时处理
             if (openTime == null || openTime.equals("None")) {
                 openTime = "全天";
             }
@@ -92,6 +97,18 @@ public class ViewSpot extends AbstractPOI {
                 } catch (IllegalAccessException | NoSuchFieldException ignored) {
                 }
             }
+
+            //标识描述的各项是否存在
+            Description flag = new Description();
+            if (description != null) {
+                flag.traffic = description.traffic == null ? "0" : "1";
+                flag.desc = description.desc == null ? "0" : "1";
+                flag.details = description.details == null ? "0" : "1";
+                flag.tips = description.tips == null ? "0" : "1";
+            }
+            builder.add("descriptionFlag", flag);
+            //builder.add("description", description == null ? "" : description.toJson());
+
             node.putAll((ObjectNode) Json.toJson(builder.get()));
         }
         return node;

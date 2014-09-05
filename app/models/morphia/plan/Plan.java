@@ -77,11 +77,10 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public List<String> summary;
 
-
     /**
      * 人工编辑的路线标签：最省钱……
      */
-    public List<String> lxpTags;
+    public List<String> lxpTag;
 
     @Embedded
     public CheckinRatings ratings;
@@ -142,7 +141,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
                 }
             });
 
-            List<String> ret = new ArrayList<>();
+            List<String> ret = new ArrayList<String>();
             for (ImageItem img : imgList) {
                 if (img.url != null)
                     ret.add(img.url);
@@ -165,10 +164,12 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
         addTotal = (int) (Math.round(addTotal / 80.0) * 100);
         builder.add("budget", Arrays.asList(total, addTotal));
 
-        // TODO 假数据
-        builder.add("lxpTags", lxpTags == null ? "" : lxpTags);
-        builder.add("lxpTags", Arrays.asList("最好吃", "最省钱"));
-
+        List<String> ret = new ArrayList<>();
+        if (null != lxpTag)
+            for (String tag : lxpTag) {
+                ret.add(tag);
+            }
+        builder.add("lxpTag",  ret);
 
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();
