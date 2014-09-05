@@ -181,6 +181,7 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
         String provider = req.get("provider").asText();
         String oauthId = req.get("oauthId").asText();
+        String secToken = Utils.getSecToken();
 
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         for (String k : new String[]{"nickName", "avatar", "token", "udid"}) {
@@ -192,7 +193,7 @@ public class UserCtrl extends Controller {
 
         try {
             // TODO 如果已经存在，则更新相应信息，比如todo
-            UserInfo user = UserAPI.regByOAuth(provider, oauthId, builder.get());
+            UserInfo user = UserAPI.regByOAuth(provider, oauthId, builder.get(),secToken);
             return Utils.createResponse(ErrorCode.NORMAL, user.toJson());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());

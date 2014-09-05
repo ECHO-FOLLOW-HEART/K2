@@ -97,20 +97,27 @@ public class ViewSpot extends AbstractPOI {
                 } catch (IllegalAccessException | NoSuchFieldException ignored) {
                 }
             }
-
-            //标识描述的各项是否存在
-            Description flag = new Description();
-            if (description != null) {
-                flag.traffic = description.traffic == null ? "0" : "1";
-                flag.desc = description.desc == null ? "0" : "1";
-                flag.details = description.details == null ? "0" : "1";
-                flag.tips = description.tips == null ? "0" : "1";
-            }
-            builder.add("descriptionFlag", flag);
-            //builder.add("description", description == null ? "" : description.toJson());
-
             node.putAll((ObjectNode) Json.toJson(builder.get()));
         }
+
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        //标识描述的各项是否存在
+        Description flag = new Description();
+        if (description != null) {
+            flag.traffic = description.traffic == null ? "0" : "1";
+            flag.desc = description.desc == null ? "0" : "1";
+            flag.details = description.details == null ? "0" : "1";
+            flag.tips = description.tips == null ? "0" : "1";
+        } else {
+            flag.traffic = "0";
+            flag.desc = "0";
+            flag.details = "0";
+            flag.tips = "0";
+        }
+        builder.add("descriptionFlag", flag);
+        //builder.add("description", description == null ? "" : description.toJson());
+
+        node.putAll((ObjectNode) Json.toJson(builder.get()));
         return node;
     }
 }

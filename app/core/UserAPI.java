@@ -91,11 +91,16 @@ public class UserAPI {
      * @return
      * @throws TravelPiException
      */
-    public static UserInfo regByOAuth(String provider, String oauthId, DBObject extra) throws TravelPiException {
+    public static UserInfo regByOAuth(String provider, String oauthId, DBObject extra, String secToken) throws TravelPiException {
         UserInfo user = getUserByOAuth(provider, oauthId);
-        if (user != null)
-            return user;
+        if (user != null) {
+            //更新签名
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            user.secToken = secToken;
+            ds.save(user);
 
+            return user;
+        }
         String nickName = null;
         String avatar = null;
         String token = null;
@@ -120,6 +125,7 @@ public class UserAPI {
         user.avatar = avatar;
         user.udid = udid;
         user.oauthList = new ArrayList<>();
+        user.secToken = secToken;
 
         OAuthInfo oauthInfo = new OAuthInfo();
         oauthInfo.provider = provider;

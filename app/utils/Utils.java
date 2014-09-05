@@ -15,6 +15,8 @@ import play.mvc.Result;
 
 import java.lang.reflect.Field;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -164,7 +166,7 @@ public class Utils {
     }
 
     /**
-     * 根据经纬度计算距离，单位是公里
+     * 根据经纬度计算两点距离，单位是公里
      *
      * @param lat1
      * @param lat2
@@ -184,5 +186,58 @@ public class Utils {
         distance = (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))) * R;
         int result = Integer.parseInt(new java.text.DecimalFormat("0").format(distance));
         return result;
+    }
+
+    /**
+     * 获得某用户登录签名
+     *
+     * @return
+     */
+    public static String getSecToken() {
+        Long r = Math.abs(new Random().nextLong()) + System.currentTimeMillis();
+
+        String secToken = toHex(toSha1(r.toString()));
+
+        return secToken;
+    }
+
+    /**
+     * SHA1加密
+     *
+     * @param msg
+     * @return
+     */
+    public static byte[] toSha1(String msg) {
+        try {
+
+
+            MessageDigest sha1 = MessageDigest.getInstance("SHA");
+
+            return sha1.digest(msg.toString().getBytes());
+
+        } catch (NoSuchAlgorithmException e) {
+
+        }
+        return null;
+    }
+
+    /**
+     * 转换成16进制
+     *
+     * @param array
+     * @return
+     */
+    public static String toHex(byte[] array) {
+
+        StringBuffer sb = new StringBuffer();
+
+        for (byte aB : array) {
+            String hex = Integer.toHexString(aB & 0xFF);
+            if (hex.length() == 1) {
+                hex = '0' + hex;
+            }
+            sb.append(hex);
+        }
+        return sb.toString();
     }
 }
