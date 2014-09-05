@@ -185,7 +185,7 @@ public class UserAPI {
             return false;
 
         try {
-            UserInfo userInfo = UserAPI.getUserByUdid(uid);
+            UserInfo userInfo = UserAPI.getUserById(uid);
             if (userInfo == null || userInfo.secToken == null)
                 return false;
             String serverSign = Utils.toSha1Hex(timestamp + userInfo.secToken);

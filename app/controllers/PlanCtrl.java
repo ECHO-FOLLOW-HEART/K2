@@ -14,10 +14,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.misc.Share;
 import models.morphia.misc.SimpleRef;
-import models.morphia.plan.Plan;
-import models.morphia.plan.PlanDayEntry;
-import models.morphia.plan.PlanItem;
-import models.morphia.plan.UgcPlan;
+import models.morphia.plan.*;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.poi.Hotel;
 import models.morphia.poi.Restaurant;
@@ -439,8 +436,12 @@ public class PlanCtrl extends Controller {
 //        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
+    public static String UGCPLAN = "UgcPlan";
+    public static String SHAREPLAN = "SharePlan";
+
     /**
      * 保存用户的路线
+     *
      *
      * @return
      */
@@ -461,7 +462,7 @@ public class PlanCtrl extends Controller {
             }
             //更新路线
             if (actionFlag.equals("upsert")) {
-                updateUGCPlan(data);
+                updateUGCPlan(data, UGCPLAN);
             }
         } catch (NullPointerException | IllegalAccessException | NoSuchFieldException | ParseException | InstantiationException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
@@ -473,7 +474,17 @@ public class PlanCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
-    private static void updateUGCPlan(JsonNode data) throws TravelPiException, ParseException, IllegalAccessException, NoSuchFieldException, InstantiationException {
+    /**
+     *
+     * @param data
+     * @param saveToTable UGC路线表，分享路线表
+     * @throws TravelPiException
+     * @throws ParseException
+     * @throws IllegalAccessException
+     * @throws NoSuchFieldException
+     * @throws InstantiationException
+     */
+    private static void updateUGCPlan(JsonNode data, String saveToTable) throws TravelPiException, ParseException, IllegalAccessException, NoSuchFieldException, InstantiationException {
         String ugcPlanId = data.get("_id").asText();
         String templateId = data.get("templateId").asText();
         String title = data.get("title").asText();
@@ -599,7 +610,14 @@ public class PlanCtrl extends Controller {
         ugcPlan.updateTime = (new Date()).getTime();
         ugcPlan.enabled = true;
 
-        PlanAPI.saveUGCPlan(ugcPlan);
+        if (saveToTable.equals(SHAREPLAN)) {
+            SharePlan sharePlan = new SharePlan(ugcPlan);
+
+            PlanAPI.saveSharePlan(sharePlan);
+        } else {
+            PlanAPI.saveUGCPlan(ugcPlan);
+        }
+
     }
 
 
@@ -1111,30 +1129,40 @@ public class PlanCtrl extends Controller {
         }
     }
 
-    // TODO 返回分享连接
+    /**
+     * 分享
+     * @return
+     */
     public static Result shareUGCPlan() {
-        JsonNode data = request().body().asJson();
         try {
-//            String uid = data.get("uid").asText();
-//            String ugcPlanId = data.get("_id").asText();
-//            String isUpdate = data.get("isUpdate").asText();
 
-            //不更新
-//            if (isUpdate.equals("0")) {
-//                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-//            }
-//            if (isUpdate.equals("1")) {
-//                updateUGCPlan(data);
-//                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-//            }
+            JsonNode data = request().body().asJson();
+
+            Configuration config = Configuration.root();
+            Map shareConf = (Map) config.getObject("share");
+
+            String domain = shareConf.get("domain").toString();
+            String url = shareConf.get("url").toString();
+            StringBuffer uri = new StringBuffer(10);
+            uri.append("http://");
+            uri.append(domain);
+            uri.append("/");
+            uri.append(url);
+            uri.append("?");
+            uri.append("id=");
+            uri.append(data.get("_id").asText());
+
+            updateUGCPlan(data,SHAREPLAN);
 
             Share share = new Share();
             List<String> urlList = new ArrayList<String>();
-            urlList.add("http://cms.lvxingpai.cn/wab/plants.php");
+            urlList.add(uri.toString());
             share.urls = urlList;
             return Utils.createResponse(ErrorCode.NORMAL, share.toJson());
-        } catch (ClassCastException ec) {
+        } catch (ClassCastException | NullPointerException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
+        } catch (TravelPiException | NoSuchFieldException | InstantiationException | ParseException |IllegalAccessException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
 }

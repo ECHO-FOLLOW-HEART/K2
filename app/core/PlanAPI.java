@@ -4,10 +4,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.misc.SimpleRef;
-import models.morphia.plan.Plan;
-import models.morphia.plan.PlanDayEntry;
-import models.morphia.plan.PlanItem;
-import models.morphia.plan.UgcPlan;
+import models.morphia.plan.*;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.poi.Hotel;
 import models.morphia.traffic.AbstractRoute;
@@ -598,6 +595,11 @@ public class PlanAPI {
     public static void saveUGCPlan(UgcPlan ugcPlan) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         ds.save(ugcPlan);
+    }
+
+    public static void saveSharePlan(SharePlan sharePlan) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        ds.save(sharePlan);
     }
 
     public static void updateUGCPlanByFiled(ObjectId ugcPlanId, String filed, String filedValue) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
