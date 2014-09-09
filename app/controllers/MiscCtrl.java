@@ -19,6 +19,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.Utils;
 
@@ -80,19 +81,70 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
+
     /**
      * 获得更新信息
      *
-     * @param platform    操作系统系统
-     * @param platformVer 操作系统版本
-     * @param appVer      App版本
      * @return
      */
-    public static Result getUpdateInfo(String platform, String platformVer, String appVer) {
-        ObjectNode ret = Json.newObject();
-        ret.put("update", false);
-        return Utils.createResponse(ErrorCode.NORMAL, ret);
+    public static Result getUpdateInfo(String platform) {
+        return getUpdates();
     }
+
+
+    /**
+     * 获得更新信息
+     *
+     * @return
+     */
+    public static Result getUpdates() {
+        Http.Request req = request();
+        String platform = req.getQueryString("platform");
+        if (platform == null)
+            // 在1.0版本中，
+            platform = req.getQueryString("platformVer");
+
+        String ver = req.getQueryString("v");
+
+        if (ver == null || ver.isEmpty() || platform == null || platform.isEmpty())
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID ARGUMENT");
+
+        platform = platform.toLowerCase();
+        ver = ver.toLowerCase();
+
+        double oldVerN = 0;
+        String[] oldVerP = ver.split("\\.");
+        for (int i = 0; i < oldVerP.length; i++)
+            oldVerN += Math.pow(10, -3 * i) * Double.parseDouble(oldVerP[i]);
+
+        Matcher m = Pattern.compile("^(android|ios)").matcher(platform);
+        if (!m.find() || !m.group(1).equals("android"))
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("INVALID PLATFORM: %s", platform));
+
+        BasicDBObject ret;
+        try {
+            DBCollection col = Utils.getMongoClient().getDB("misc").getCollection("MiscInfo");
+            ret = (BasicDBObject) col.findOne();
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        String[] newVerP = ret.getString("androidUpdates").split("\\.");
+        double newVerN = 0;
+        for (int i = 0; i < newVerP.length; i++)
+            newVerN += Math.pow(10, -3 * i) * Double.parseDouble(newVerP[i]);
+
+        ObjectNode result = Json.newObject();
+        if (newVerN > oldVerN) {
+            result.put("update", true);
+            result.put("url", ret.getString("androidUrl"));
+        } else {
+            result.put("update", false);
+            result.put("url", "");
+        }
+        return Utils.createResponse(ErrorCode.NORMAL, result);
+    }
+
 
     /**
      * 根据搜索词获得提示
