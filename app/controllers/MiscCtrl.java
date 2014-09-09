@@ -129,7 +129,8 @@ public class MiscCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        String[] newVerP = ret.getString("androidUpdates").split("\\.");
+        String newVerS = ret.getString("androidUpdates");
+        String[] newVerP = newVerS.split("\\.");
         double newVerN = 0;
         for (int i = 0; i < newVerP.length; i++)
             newVerN += Math.pow(10, -3 * i) * Double.parseDouble(newVerP[i]);
@@ -137,11 +138,11 @@ public class MiscCtrl extends Controller {
         ObjectNode result = Json.newObject();
         if (newVerN > oldVerN) {
             result.put("update", true);
+            result.put("version", newVerS);
+            result.put("desc", "");
             result.put("url", ret.getString("androidUrl"));
-        } else {
+        } else
             result.put("update", false);
-            result.put("url", "");
-        }
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
