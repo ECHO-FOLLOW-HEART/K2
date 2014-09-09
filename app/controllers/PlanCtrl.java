@@ -488,7 +488,7 @@ public class PlanCtrl extends Controller {
         String ugcPlanId = data.get("_id").asText();
         String templateId = data.get("templateId").asText();
         String title = data.get("title").asText();
-        String uid = data.get("uid").asText();
+        String uid = data.has("uid")?data.get("uid").asText():"";
         String startDateStr = data.get("startDate").asText();
         String endDateStr = data.get("endDate").asText();
         Calendar cal = Calendar.getInstance();
@@ -606,7 +606,10 @@ public class PlanCtrl extends Controller {
         ugcPlan.startDate = startDate;
         ugcPlan.endDate = endDate;
         ugcPlan.title = title;
-        ugcPlan.uid = new ObjectId(uid);
+        //分享接口
+        if(!uid.equals("")){
+            ugcPlan.uid = new ObjectId(uid);
+        }
         ugcPlan.updateTime = (new Date()).getTime();
         ugcPlan.enabled = true;
 

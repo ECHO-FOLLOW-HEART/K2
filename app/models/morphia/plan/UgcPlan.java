@@ -113,10 +113,10 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             node.put("uid", uid.toString());
         if (templateId != null)
             node.put("templateId", templateId.toString());
-        if (startDate != null)
-            node.put("startDate", startDate.toString());
-        if (endDate != null)
-            node.put("endDate", endDate.toString());
+//        if (startDate != null)
+//            node.put("startDate", startDate.toString());
+//        if (endDate != null)
+//            node.put("endDate", endDate.toString());
         node.put("updateTime", updateTime);
 
         return node;
