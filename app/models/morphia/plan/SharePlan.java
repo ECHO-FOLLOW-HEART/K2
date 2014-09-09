@@ -3,7 +3,6 @@ package models.morphia.plan;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.ITravelPiFormatter;
-import org.bson.types.ObjectId;
 
 import java.lang.reflect.Field;
 
@@ -12,6 +11,9 @@ import java.lang.reflect.Field;
  */
 public class SharePlan extends UgcPlan implements ITravelPiFormatter {
 
+    public SharePlan() {
+
+    }
 
     public SharePlan(UgcPlan plan) throws NoSuchFieldException, IllegalAccessException {
         this.tranfToUgcPlan(plan);
@@ -33,6 +35,7 @@ public class SharePlan extends UgcPlan implements ITravelPiFormatter {
             thisField.set(this, filedValue);
         }
     }
+
     @Override
     public JsonNode toJson() {
 

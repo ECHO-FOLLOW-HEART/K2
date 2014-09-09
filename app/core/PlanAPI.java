@@ -145,6 +145,22 @@ public class PlanAPI {
     }
 
     /**
+     * 获得分享的路线规划。
+     *
+     * @param planId
+     * @return
+     */
+    public static SharePlan getSharePlanById(String planId) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Query<SharePlan> query = ds.createQuery(SharePlan.class);
+        ObjectId sharePlanPlanId = new ObjectId(planId);
+        query.field("_id").equal(sharePlanPlanId).field("enabled").equal(Boolean.TRUE);
+        if (!query.iterator().hasNext())
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid sharePlan ID: %s.", planId));
+        return query.get();
+    }
+
+    /**
      * 从模板中提取路线，进行初步规划。
      *
      * @param planId

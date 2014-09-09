@@ -145,7 +145,7 @@ public class UserAPI {
     public static void updateUserInfo(Http.Request req) throws TravelPiException {
         String seq = req.getQueryString("seq");
         String platform = req.getQueryString("platform");
-        String app = req.getQueryString("app");
+        String appVersion = req.getQueryString("v");
         String uid = req.getQueryString("uid");
 
         //取得用户信息
@@ -165,8 +165,9 @@ public class UserAPI {
         //设置更新信息：用户机系统信息、用户App版本、用户设备编号
         UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
         ops.set("platform", platform);
-        ops.set("app", app);
+        ops.set("appVersion", appVersion);
         ops.set("udid", seq);
+        ops.set("enabled",true);
 
         dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.id), ops);
     }

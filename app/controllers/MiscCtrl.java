@@ -335,6 +335,22 @@ public class MiscCtrl extends Controller {
     }
 
     /**
+     * 更新用户信息。
+     *
+     * @return
+     */
+    public static Result updateUserInfo() {
+        try {
+
+            UserAPI.updateUserInfo(request());
+
+            return Utils.createResponse(ErrorCode.NORMAL, "Update UserInfo Success");
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
      * 获得App首页的图像。
      *
      * @param width  指定宽度
@@ -344,7 +360,7 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
 
-            UserAPI.updateUserInfo(request());
+            //UserAPI.updateUserInfo(request());
 
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();

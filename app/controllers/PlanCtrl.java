@@ -1119,7 +1119,29 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
+    /**
+     * 取得分享的路线
+     *
+     * @param planId
+     * @return
+     */
+    public static Result getSharePlans(String planId) {
 
+        try {
+            //根据ID取得分享的路线
+            if (!planId.equals("")) {
+                SharePlan sharePlan = PlanAPI.getSharePlanById(planId);
+
+                //取详细信息
+                JsonNode planJson = sharePlan.toJson(true);
+                return Utils.createResponse(ErrorCode.NORMAL, planJson);
+            }
+
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
     public static Result deleteUGCPlans(String ugcPlanId) {
         try {
             PlanAPI.deleteUGCPlan(ugcPlanId);

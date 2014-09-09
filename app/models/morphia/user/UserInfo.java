@@ -54,7 +54,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      *
      * @return
      */
-    public String app;
+    public String appVersion;
 
     /**
      * 用户签名

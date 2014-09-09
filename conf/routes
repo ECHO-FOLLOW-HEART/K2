@@ -37,6 +37,8 @@ POST          /plans/optimizers                                  controllers.Pla
 GET           /ugc-plans/users/:userId                           controllers.PlanCtrl.getUGCPlans(userId: String,ugcPlanId: String?="", updateTime:String?="",page: Int?=0, pageSize: Int?=20)
 #查看UGC路线详情
 GET           /ugc-plans/:ugcPlanId                              controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, updateTime:String?="", page: Int?=0, pageSize: Int?=1)
+#查看分享路线详情
+GET           /share-plans/:sharePlanId                          controllers.PlanCtrl.getSharePlans(sharePlanId: String)
 # 保存UGC路线
 POST          /ugc-plans                                         controllers.PlanCtrl.saveUGCPlan()
 #删除UGC路线
@@ -91,6 +93,8 @@ GET           /sys/updates/:platform                             controllers.Mis
 GET           /sys/updates                                       controllers.MiscCtrl.getUpdates()
 GET           /suggestions                                       controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
 GET           /misc/weather/:locId                               controllers.MiscCtrl.getWeatherInfo(locId :String)
+GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
+
 
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
