@@ -57,7 +57,9 @@ public class PoiAPI {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        Query<? extends AbstractPOI> query = ds.createQuery(poiClass).filter("name", Pattern.compile("^" + word));
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        //名称或别名
+        query.or(query.criteria("name").equal(Pattern.compile(word)), query.criteria("alias").equal(Pattern.compile(word)));
         // TODO 暂时不做数据过滤
         //if (poiType == POIType.VIEW_SPOT)
         //    query.field("rankingA").greaterThanOrEq(5);
