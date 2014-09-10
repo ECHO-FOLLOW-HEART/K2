@@ -159,3 +159,5 @@ GET           /web/suggestions                                   controllers.Mis
 GET           /web/geo/localities/search                         controllers.GeoCtrl.searchLocality(keyword: String?="", prefix: Int?=0, page: Int?=0, pageSize: Int?=20)
 # 查看城市详情
 GET           /web/geo/localities/:id                            controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
+#用户登录
+POST          /web/users/oauth-login                             controllers.UserCtrl.oauthLogin()
