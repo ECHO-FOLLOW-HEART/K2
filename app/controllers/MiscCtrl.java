@@ -140,7 +140,7 @@ public class MiscCtrl extends Controller {
             result.put("update", true);
             result.put("version", newVerS);
             result.put("desc", "");
-            result.put("url", ret.getString("androidUrl"));
+            result.put("downloadUrl", ret.getString("androidUrl"));
         } else
             result.put("update", false);
         return Utils.createResponse(ErrorCode.NORMAL, result);
