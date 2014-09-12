@@ -15,6 +15,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 import utils.Constants;
+import utils.DataFilter;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -181,7 +182,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             // level3
             if (level > 2) {
                 builder.add("url", url != null ? url : "");
-                builder.add("priceDesc", priceDesc != null ? priceDesc : "");
+                builder.add("priceDesc", DataFilter.priceDescFilter(priceDesc));
                 builder.add("alias", alias != null ? alias : new ArrayList<>());
                 // TODO 暂时兼容两种数据
                 //builder.add("desc", (desc != null ? desc : ""));
