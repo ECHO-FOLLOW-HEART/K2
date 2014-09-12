@@ -168,6 +168,8 @@ public class MiscCtrl extends Controller {
                         case "上海市":
                         case "重庆市":
                         case "天津市":
+                        case "香港特别行政区":
+                        case "澳门特别行政区":
                             if (item.level == 1)
                                 continue;
                     }
