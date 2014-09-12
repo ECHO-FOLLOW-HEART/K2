@@ -6,8 +6,10 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.morphia.misc.Description;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
+import utils.DataFilter;
 import utils.POIUtils;
 
+import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -67,21 +69,16 @@ public class ViewSpot extends AbstractPOI {
     @Override
     public JsonNode toJson(int level) {
         ObjectNode node = (ObjectNode) super.toJson(level);
-        //node.put("timeCost", (timeCost != null && timeCost > 0) ? timeCost : 3);
 
         // 按景点分类估算游玩时间
-        double fakeTime = POIUtils.ViewSpotClassifierForTime(name);
-        node.put("timeCost", (timeCost != null && timeCost > 0) ? timeCost : fakeTime);
+        node.put("timeCost", DataFilter.timeCostFilter(timeCost,name));
 
         if (level > 2) {
             if (rankingA != null)
                 node.put("rankingA", rankingA);
 
-            // TODO 临时处理
-            if (openTime == null || openTime.equals("None")) {
-                openTime = "全天";
-            }
-            node.put("openTime", openTime != null ? openTime : "");
+
+            node.put("openTime", DataFilter.openTimeFilter(openTime));
 
             BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
             for (String k : new String[]{"travelMonth", "trafficInfo", "guide", "kengdie"}) {

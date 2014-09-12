@@ -6,6 +6,8 @@ import core.PoiAPI;
 import exception.TravelPiException;
 import models.ITravelPiFormatter;
 import models.morphia.misc.SimpleRef;
+import models.morphia.poi.Hotel;
+import models.morphia.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
@@ -69,7 +71,7 @@ public class PlanItem implements ITravelPiFormatter {
 
         final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         if (subType != null && (subType.equals("airport") || subType.equals("trainStaion"))) {
-            if(lat!=0&&lng!=0){
+            if (lat != 0 && lng != 0) {
                 builder.add("lat", lat);
                 builder.add("lng", lng);
             }
@@ -93,17 +95,22 @@ public class PlanItem implements ITravelPiFormatter {
         } else
             builder.add("ts", "");
 
+
         if (type != null && type.equals("vs")) {
             // 将景点详情嵌入
             try {
-                builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.VIEW_SPOT, true).toJson(3));
+                ViewSpot vs = (ViewSpot) PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.VIEW_SPOT, true);
+                if (null != vs)
+                    builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.VIEW_SPOT, true).toJson(3));
             } catch (TravelPiException ignored) {
             }
         }
         if (type != null && type.equals("hotel")) {
             // 将酒店详情嵌入
             try {
-                builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.HOTEL, true).toJson(3));
+                Hotel ht = (Hotel) PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.HOTEL, true);
+                if (null != ht)
+                    builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.HOTEL, true).toJson(3));
             } catch (TravelPiException ignored) {
             }
         }

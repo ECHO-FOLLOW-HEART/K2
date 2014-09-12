@@ -140,7 +140,7 @@ public class MiscCtrl extends Controller {
             result.put("update", true);
             result.put("version", newVerS);
             result.put("desc", "");
-            result.put("url", ret.getString("androidUrl"));
+            result.put("downloadUrl", ret.getString("androidUrl"));
         } else
             result.put("update", false);
         return Utils.createResponse(ErrorCode.NORMAL, result);
@@ -168,6 +168,8 @@ public class MiscCtrl extends Controller {
                         case "上海市":
                         case "重庆市":
                         case "天津市":
+                        case "香港特别行政区":
+                        case "澳门特别行政区":
                             if (item.level == 1)
                                 continue;
                     }
