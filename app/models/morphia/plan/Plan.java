@@ -87,6 +87,8 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public List<PlanDayEntry> details;
 
+    public String moreDesc;
+
 
     @Override
     public JsonNode toJson() {
@@ -169,7 +171,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
             for (String tag : lxpTag) {
                 ret.add(tag);
             }
-        builder.add("lxpTag",  ret);
+        builder.add("lxpTag", ret);
 
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();
@@ -178,6 +180,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
                     detailsNodes.add(entry.toJson());
                 }
             }
+            builder.add("moreDesc", moreDesc == null ? "" : moreDesc);
             builder.add("details", !detailsNodes.isEmpty() ? Json.toJson(detailsNodes) : new ArrayList<>());
         }
 
