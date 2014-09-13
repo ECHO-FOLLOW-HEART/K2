@@ -46,6 +46,10 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
      * 表明该UGC路线是基于哪一条模板。
      */
     public ObjectId templateId;
+    /**
+     * 用户路线来源于Web。
+     */
+    public boolean isFromWeb;
 
     public UgcPlan() {
 
@@ -86,6 +90,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
         //设置ID
         this.id = new ObjectId();
         this.templateId = plan.id;
+        this.enabled = true;
     }
 
     @Override
