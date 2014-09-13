@@ -28,7 +28,7 @@ GET           /itineraries/train-routes/:trainCode               controllers.Tra
 # 发现路线
 GET           /explore/plans                                     controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 # 路线查询
-GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="",webFlag: Int?=0,uid: String?="")
+GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="",webFlag: Int=0,uid: String?="")
 # 优化路线
 POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan()
 
@@ -125,7 +125,7 @@ GET           /web/plans/explore                                 controllers.Pla
 #根据ID查看模板路线详情
 GET           /web/plans/:planId                                 controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="",webFlag: Int?=0,uid: String?="")
 #复制路线：生成一条UGC路线
-GET           /web/ugc-plans/templates/:planId                   controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="",webFlag: Int?=0,uid: String?="")
+GET           /web/ugc-plans/templates/:planId                   controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="",webFlag: Int=1,uid: String?="")
 #保存UGC路线
 POST          /web/ugc-plans                                     controllers.PlanCtrl.saveUGCPlan()
 #删除UGC路线
