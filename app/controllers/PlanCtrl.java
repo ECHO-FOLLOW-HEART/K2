@@ -55,7 +55,7 @@ public class PlanCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int webFlag,String uid) {
+    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int webFlag, String uid) {
         try {
             if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);
@@ -98,7 +98,8 @@ public class PlanCtrl extends Controller {
 
             if (webFlag == 1) {
 
-                updatePlanByNode(planJson,uid);
+                UgcPlan ugcPlan = updatePlanByNode(planJson, uid);
+                return Utils.createResponse(ErrorCode.NORMAL, ugcPlan.toJson());
             }
             return Utils.createResponse(ErrorCode.NORMAL, planJson);
         } catch (ClassCastException | IllegalAccessException | ParseException | NoSuchFieldException e) {
@@ -108,7 +109,7 @@ public class PlanCtrl extends Controller {
         }
     }
 
-    private static void updatePlanByNode(JsonNode data,String uid) throws ParseException, TravelPiException, NoSuchFieldException, IllegalAccessException {
+    private static UgcPlan updatePlanByNode(JsonNode data, String uid) throws ParseException, TravelPiException, NoSuchFieldException, IllegalAccessException {
         String ugcPlanId = data.get("_id").asText();
         String templateId = data.get("templateId").asText();
         String title = data.get("title").asText();
@@ -131,6 +132,9 @@ public class PlanCtrl extends Controller {
 
         JsonNode jsList = data.get("details");
         JsonNode tempDay = null;
+        int dayIndex = 0;
+        Date startDate = null;
+        Date endDate = null;
         for (int i = 0; i < jsList.size(); i++) {
             tempDay = jsList.get(i);
             planDayEntry = new PlanDayEntry();
@@ -138,8 +142,15 @@ public class PlanCtrl extends Controller {
                 continue;
             JsonNode actv = tempDay.get("actv");
             JsonNode date = tempDay.get("date");
+
             //设置Date
             planDayEntry.date = timeFmt.parse(date.asText());
+            if (dayIndex == 0) {
+                startDate = planDayEntry.date;
+            } else if (dayIndex == jsList.size() - 1) {
+                endDate = planDayEntry.date;
+            }
+            dayIndex++;
             planItemList = new ArrayList<PlanItem>();
 
             for (JsonNode item : actv) {
@@ -206,8 +217,8 @@ public class PlanCtrl extends Controller {
         //设置UGC路线ID
         ugcPlan.id = new ObjectId(ugcPlanId);
         ugcPlan.templateId = new ObjectId(templateId);
-        //ugcPlan.startDate = startDate;
-        //ugcPlan.endDate = endDate;
+        ugcPlan.startDate = startDate;
+        ugcPlan.endDate = endDate;
         ugcPlan.title = title;
         //分享接口
         if (!uid.equals("")) {
@@ -218,6 +229,7 @@ public class PlanCtrl extends Controller {
         ugcPlan.isFromWeb = true;
 
         PlanAPI.saveUGCPlan(ugcPlan);
+        return ugcPlan;
 
     }
 

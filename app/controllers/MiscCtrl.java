@@ -12,6 +12,7 @@ import models.MorphiaFactory;
 import models.morphia.geo.Locality;
 import models.morphia.misc.Feedback;
 import models.morphia.misc.MiscInfo;
+import models.morphia.misc.Recommendation;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
@@ -482,5 +483,22 @@ public class MiscCtrl extends Controller {
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+    }
+
+    public static Result recommend(String orderFiled,int page,int pageSize){
+        List<JsonNode> results = new ArrayList<JsonNode>();
+
+        Datastore ds = null;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            Query<Recommendation> query = ds.createQuery(Recommendation.class);
+
+            query.field("enabled").equal(Boolean.TRUE).field(orderFiled).notEqual(null);
+            query.order(orderFiled).offset(page * pageSize).limit(pageSize);
+        } catch (TravelPiException e) {
+            e.printStackTrace();
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 }

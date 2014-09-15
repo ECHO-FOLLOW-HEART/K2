@@ -161,3 +161,6 @@ GET           /web/geo/localities/search                         controllers.Geo
 GET           /web/geo/localities/:id                            controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 #用户登录
 POST          /web/users/oauth-login                             controllers.UserCtrl.oauthLogin()
+
+#发现：推荐机制
+GET           /web/recommend                                     controllers.MiscCtrl.recommend(int )
