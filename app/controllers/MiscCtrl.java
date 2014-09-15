@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import core.LocalityAPI;
+import core.PlanAPI;
 import core.PoiAPI;
 import core.UserAPI;
 import exception.ErrorCode;
@@ -13,6 +14,7 @@ import models.morphia.geo.Locality;
 import models.morphia.misc.Feedback;
 import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Recommendation;
+import models.morphia.plan.UgcPlan;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
@@ -485,7 +487,7 @@ public class MiscCtrl extends Controller {
         }
     }
 
-    public static Result recommend(String orderFiled,int page,int pageSize){
+    public static Result recommend(String type,int page,int pageSize){
         List<JsonNode> results = new ArrayList<JsonNode>();
 
         Datastore ds = null;
@@ -493,8 +495,12 @@ public class MiscCtrl extends Controller {
             ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             Query<Recommendation> query = ds.createQuery(Recommendation.class);
 
-            query.field("enabled").equal(Boolean.TRUE).field(orderFiled).notEqual(null);
-            query.order(orderFiled).offset(page * pageSize).limit(pageSize);
+            query.field("enabled").equal(Boolean.TRUE).field(type).notEqual(null);
+            query.order(type).offset(page * pageSize).limit(pageSize);
+
+            for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
+                results.add(it.next().toJson());
+            }
         } catch (TravelPiException e) {
             e.printStackTrace();
         }

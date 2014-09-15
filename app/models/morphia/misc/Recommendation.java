@@ -1,12 +1,10 @@
 package models.morphia.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
-import models.morphia.poi.AbstractPOI;
-import models.morphia.poi.ViewSpot;
-
-import java.util.List;
+import play.libs.Json;
 
 /**
  * Created by topy on 2014/9/13.
@@ -55,10 +53,8 @@ public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatt
 
     @Override
     public JsonNode toJson() {
-        return null;
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("name", name).add("id", id).add(reason, reason == null ? "" : reason);
+        return Json.toJson(builder.get());
     }
-
-
-
 
 }
