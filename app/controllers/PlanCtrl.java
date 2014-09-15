@@ -96,7 +96,7 @@ public class PlanCtrl extends Controller {
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-            if (webFlag == 0) {
+            if (webFlag == 1) {
 
                 updatePlanByNode(planJson,uid);
             }
