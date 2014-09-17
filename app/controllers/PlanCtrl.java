@@ -47,6 +47,10 @@ import java.util.*;
 public class PlanCtrl extends Controller {
 
 
+    public static int WEB_REQUEST_FLAG = 1;
+    public static String UGCPLAN = "UgcPlan";
+    public static String SHAREPLAN = "SharePlan";
+
     /**
      * 查询路线的详细信息。
      *
@@ -96,8 +100,8 @@ public class PlanCtrl extends Controller {
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-            if (webFlag == 1) {
-
+            //web分支
+            if (webFlag == WEB_REQUEST_FLAG) {
                 UgcPlan ugcPlan = updatePlanByNode(planJson, uid);
                 return Utils.createResponse(ErrorCode.NORMAL, ugcPlan.toJson());
             }
@@ -220,9 +224,12 @@ public class PlanCtrl extends Controller {
         ugcPlan.startDate = startDate;
         ugcPlan.endDate = endDate;
         ugcPlan.title = title;
-        //分享接口
+        //uid为空，中间态数据；否则为保存态数据。中间态数据会被定期清理。
         if (!uid.equals("")) {
             ugcPlan.uid = new ObjectId(uid);
+            ugcPlan.persisted = true;
+        }else{
+            ugcPlan.persisted = false;
         }
         ugcPlan.updateTime = (new Date()).getTime();
         ugcPlan.enabled = true;
@@ -565,8 +572,6 @@ public class PlanCtrl extends Controller {
 //        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
-    public static String UGCPLAN = "UgcPlan";
-    public static String SHAREPLAN = "SharePlan";
 
     /**
      * 保存用户的路线
@@ -587,6 +592,11 @@ public class PlanCtrl extends Controller {
             if (actionFlag.equals("updateTitle")) {
                 title = data.get("title").asText();
                 PlanAPI.updateUGCPlanByFiled(oid, "title", title);
+            }
+            //只更新用户ID：web用
+            if (actionFlag.equals("updateUid")) {
+                title = data.get("uid").asText();
+                PlanAPI.updateUGCPlanByFiled(oid, "uid", title);
             }
             //更新路线
             if (actionFlag.equals("upsert")) {
@@ -1195,14 +1205,25 @@ public class PlanCtrl extends Controller {
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
         ret.put("details", Json.toJson(retDetails));
-//        ret.put("budget", Json.toJson(Arrays.asList(2000, 3000)));
-
         try {
             fullfill(ret);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
+        //WEB分支
+        if (rawPlan.has("webFlag") && rawPlan.get("webFlag").asText().equals(String.valueOf(WEB_REQUEST_FLAG))) {
+            String uid = rawPlan.get("uid") == null ? "" : rawPlan.get("uid").asText();
+            UgcPlan ugcPlan = null;
+            ObjectNode planNode = (ObjectNode)rawPlan;
+            planNode.put("details",Json.toJson(ret.get("details")));
+            try {
+                ugcPlan = updatePlanByNode(Json.toJson(planNode), uid);
+                return Utils.createResponse(ErrorCode.NORMAL, ugcPlan.toJson());
+            } catch (TravelPiException | ParseException | NoSuchFieldException | IllegalAccessException e) {
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+            }
+        }
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 

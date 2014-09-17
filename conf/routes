@@ -130,6 +130,8 @@ GET           /web/ugc-plans/templates/:planId                   controllers.Pla
 POST          /web/ugc-plans                                     controllers.PlanCtrl.saveUGCPlan()
 #删除UGC路线
 DELETE        /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.deleteUGCPlans(ugcPlanId: String)
+#优化并保存路线
+POST          /web/plans/optimizers                              controllers.PlanCtrl.optimizePlan()
 
 #POI
 #搜索POI信息：根据位置、标签、关键词

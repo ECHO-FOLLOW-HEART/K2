@@ -50,6 +50,11 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
      */
     public boolean isFromWeb;
 
+    /**
+     * 用于WEB用户，true：最后要保存的数据，false：中间态
+     */
+    public boolean persisted;
+
     public UgcPlan() {
 
     }
