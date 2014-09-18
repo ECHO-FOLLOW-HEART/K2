@@ -97,8 +97,8 @@ public class TrafficAPI {
             }
         }
 
-        // 时间节点过滤
-        if (epTimeLimits != null && epTimeLimits.size() == 2) {
+        // 时间节点过滤。如果航班较少，就不做事件约束了
+        if (epTimeLimits != null && epTimeLimits.size() == 2 && query.asList().size() > 4) {
             Calendar lower = Calendar.getInstance();
             lower.setTimeInMillis(epTimeLimits.get(0).getTimeInMillis());
             Calendar upper = Calendar.getInstance();

@@ -162,4 +162,32 @@ public class Bache extends Controller {
         return mapPrice;
     }
 
+    public static Result updateLocalityProvCap() {
+
+        List<String> capList = Arrays.asList(cap);
+        try {
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+            Query<Locality> query = ds.createQuery(Locality.class);
+            query.field("zhName").hasAnyOf(capList).field("level").equal(2);
+            Locality locality = null;
+            UpdateOperations<Locality> ops = null;
+            Datastore updateDs = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+            for (Iterator<Locality> it = query.iterator(); it.hasNext(); ) {
+                locality = (Locality) it.next();
+                locality.provCap = true;
+                ds.save(locality);
+            }
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+        return Utils.createResponse(ErrorCode.NORMAL, "Success");
+    }
+
+
+    public static String[] cap = new String[]{"北京市", "天津市", "上海市", "重庆市", "哈尔滨市",
+            "长春市", "沈阳市", "呼和浩特市", "石家庄市", "乌鲁木齐市", "兰州市", "西宁市",
+            "西安市", "银川市", "郑州市", "济南市", "太原市", "合肥市", "武汉市", "长沙市",
+            "南京市", "成都市", "贵阳市", "昆明市", "南宁市", "拉萨市", "杭州市", "南昌市",
+            "广州市", "福州市", "台北市", "海口市"};
+
 }

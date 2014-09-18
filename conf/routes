@@ -114,6 +114,7 @@ DELETE        /users/:userId/favors/view-spots/:vsId             controllers.Use
 GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 
 GET           /batch/planBudge                                   controllers.Bache.getPlanBudget(dep: String?="", arr: String?="" )
+GET           /batch/provCap                                     controllers.Bache.updateLocalityProvCap()
 #-------------------------------------
 #路线
 #查看UGC路线详情

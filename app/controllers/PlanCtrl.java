@@ -1219,7 +1219,7 @@ public class PlanCtrl extends Controller {
             planNode.put("details",Json.toJson(ret.get("details")));
             try {
                 ugcPlan = updatePlanByNode(Json.toJson(planNode), uid);
-                return Utils.createResponse(ErrorCode.NORMAL, ugcPlan.toJson());
+                return Utils.createResponse(ErrorCode.NORMAL, "Success");
             } catch (TravelPiException | ParseException | NoSuchFieldException | IllegalAccessException e) {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
             }
