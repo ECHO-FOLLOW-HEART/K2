@@ -361,8 +361,8 @@ public class MiscCtrl extends Controller {
      */
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
-
-            //UserAPI.updateUserInfo(request());
+            // 获取首页图片时，记录用户数据
+            UserAPI.updateUserInfo(request());
 
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();
