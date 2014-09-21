@@ -32,6 +32,8 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public String enName;
 
+    public String shortName;
+
     public List<String> alias;
 
     public List<String> pinyin;
@@ -119,9 +121,11 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         }
 
         pattern = Pattern.compile("(市|县|省|直辖市|自治县|自治区|地区)$");
-        name = pattern.matcher(name).replaceAll("");
-
-        return name;
+        String result = pattern.matcher(name).replaceAll("");
+        if (result.length() == 1)
+            // 如果去掉县、市等字以后，名称只剩一个字，则不被允许
+            result = name;
+        return result;
     }
 
     public JsonNode getJsonNode() {
