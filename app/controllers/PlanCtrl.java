@@ -636,6 +636,16 @@ public class PlanCtrl extends Controller {
     public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
 
+        if (locId != null && !locId.isEmpty()) {
+            // fix一个bug。POI的id在不经意之间变动过，所以只能做重定向处理。
+            List<String> locIdList = Arrays.asList("53aa9b3610114e3fdc2fa5b9", "53aa9b3510114e3fdc2fa3e2",
+                    "53aa9b4110114e3fdc2fb266", "53aa9b5010114e3fdc2fbcdf", "53aa9b3310114e3fdc2fa014");
+            if (locIdList.contains(locId)) {
+                poiId = locId;
+                locId = null;
+            }
+        }
+
         if (poiId != null && !poiId.isEmpty()) {
             // fix一个bug。POI的id在不经意之间变动过，所以只能做重定向处理。
             Map<String, String> poiIdMapping = new HashMap<>();
@@ -690,9 +700,6 @@ public class PlanCtrl extends Controller {
             if (poiIdMapping.containsKey(poiId))
                 poiId = poiIdMapping.get(poiId);
         }
-
-        if (locId.equals("53aa9b3910114e3fdc2faa5b"))
-            locId = "53aa9a6510114e3fd4783bff";
 
         Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
         //取得预算常量
