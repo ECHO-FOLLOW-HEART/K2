@@ -8,6 +8,8 @@ package utils;
 public class Constants {
     // 如果长字符串需要截取，默认截取64个字符。
     public static int ABBREVIATE_LEN = 64;
+    //
+    public static int MAX_COUNT = 99999;
 
     public static int FORCAST_DUOYUN = 1;
     public static int FORCAST_YIN = 2;

@@ -1,5 +1,11 @@
 package utils;
 
+import com.google.common.collect.HashBiMap;
+import org.bson.types.ObjectId;
+
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by topy on 2014/9/12.
  */
@@ -34,5 +40,22 @@ public class DataFilter {
         String timeStr = String.valueOf(timeCost);
         String resylt = timeStr.substring(0,timeStr.length()-2);
         return resylt;
+    }
+
+    /**
+     * 有些地区需要映射到具体的县才有交通
+     * @param key
+     * @return
+     */
+    public static String localMapping(String key){
+
+        Map<String,String> locMap = new HashMap<String,String>();
+        //大兴安岭地区-映射到漠河县，key-value
+        locMap.put("53aa9a6410114e3fd47836cf","53aa9a6410114e3fd47836d2");
+        if(locMap.containsKey(key)){
+            return locMap.get(key);
+        }else{
+            return key;
+        }
     }
 }
