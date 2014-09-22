@@ -13,7 +13,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -46,6 +45,15 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
      * 表明该UGC路线是基于哪一条模板。
      */
     public ObjectId templateId;
+    /**
+     * 用户路线来源于Web。
+     */
+    public boolean isFromWeb;
+
+    /**
+     * 用于WEB用户，true：最后要保存的数据，false：中间态
+     */
+    public boolean persisted;
 
     public UgcPlan() {
 
@@ -86,6 +94,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
         //设置ID
         this.id = new ObjectId();
         this.templateId = plan.id;
+        this.enabled = true;
     }
 
     @Override
@@ -103,8 +112,9 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
             //全程天数取优化后天数
             builder.add("days", details.size());
-            // builder.add("updateTime", null==updateTime?"":fmt.format(updateTime));
             builder.add("updateTime", updateTime);
+            builder.add("startDate", startDate != null ? fmt.format(startDate) : "");
+            builder.add("endDate", endDate != null ? fmt.format(endDate) : "");
 
             return Json.toJson(builder.get());
         }
@@ -113,10 +123,10 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             node.put("uid", uid.toString());
         if (templateId != null)
             node.put("templateId", templateId.toString());
-//        if (startDate != null)
-//            node.put("startDate", startDate.toString());
-//        if (endDate != null)
-//            node.put("endDate", endDate.toString());
+        if (startDate != null)
+            node.put("startDate", fmt.format(startDate));
+        if (endDate != null)
+            node.put("endDate", fmt.format(endDate));
         node.put("updateTime", updateTime);
 
         return node;

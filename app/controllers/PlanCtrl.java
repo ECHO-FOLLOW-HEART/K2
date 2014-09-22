@@ -47,6 +47,10 @@ import java.util.*;
 public class PlanCtrl extends Controller {
 
 
+    public static int WEB_REQUEST_FLAG = 1;
+    public static String UGCPLAN = "UgcPlan";
+    public static String SHAREPLAN = "SharePlan";
+
     /**
      * 查询路线的详细信息。
      *
@@ -55,7 +59,7 @@ public class PlanCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId) {
+    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int webFlag, String uid) {
         try {
             if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);
@@ -96,12 +100,144 @@ public class PlanCtrl extends Controller {
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
+            //web分支
+            if (webFlag == WEB_REQUEST_FLAG) {
+                UgcPlan ugcPlan = updatePlanByNode(planJson, uid);
+                return Utils.createResponse(ErrorCode.NORMAL, ugcPlan.toJson());
+            }
             return Utils.createResponse(ErrorCode.NORMAL, planJson);
-        } catch (ClassCastException e) {
+        } catch (ClassCastException | IllegalAccessException | ParseException | NoSuchFieldException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+    }
+
+    private static UgcPlan updatePlanByNode(JsonNode data, String uid) throws ParseException, TravelPiException, NoSuchFieldException, IllegalAccessException {
+        String ugcPlanId = data.get("_id").asText();
+        String templateId = data.get("templateId").asText();
+        String title = data.get("title").asText();
+        //String uid = data.has("uid") ? data.get("uid").asText() : "";
+
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+
+        Plan plan = PlanAPI.getPlan(templateId, false);
+        if (plan == null)
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", templateId));
+        UgcPlan ugcPlan = new UgcPlan(plan);
+
+        PlanDayEntry planDayEntry = null;
+        PlanItem planItem = null;
+        List<PlanItem> planItemList = null;
+        SimpleRef pItem = null;
+        SimpleRef pLoc = null;
+        List<PlanDayEntry> planDayEntryList = new ArrayList<PlanDayEntry>();
+
+        JsonNode jsList = data.get("details");
+        JsonNode tempDay = null;
+        int dayIndex = 0;
+        Date startDate = null;
+        Date endDate = null;
+        for (int i = 0; i < jsList.size(); i++) {
+            tempDay = jsList.get(i);
+            planDayEntry = new PlanDayEntry();
+            if (!tempDay.has("actv"))
+                continue;
+            JsonNode actv = tempDay.get("actv");
+            JsonNode date = tempDay.get("date");
+
+            //设置Date
+            planDayEntry.date = timeFmt.parse(date.asText());
+            if (dayIndex == 0) {
+                startDate = planDayEntry.date;
+            } else if (dayIndex == jsList.size() - 1) {
+                endDate = planDayEntry.date;
+            }
+            dayIndex++;
+            planItemList = new ArrayList<PlanItem>();
+
+            for (JsonNode item : actv) {
+                //新建PlanItem
+                planItem = new PlanItem();
+                pItem = new SimpleRef();
+                pLoc = new SimpleRef();
+                planItem.ts = planDayEntry.date;
+                if (item.has("ts") && (!item.get("ts").asText().equals(""))) {
+                    planItem.ts = timeFmt.parse(item.get("ts").asText());
+                } else {
+                    planItem.ts = planDayEntry.date;
+                }
+                if (item.has("itemId")) {
+                    pItem.id = new ObjectId(item.get("itemId").asText());
+                    pItem.zhName = item.get("itemName").asText();
+                    planItem.item = pItem;
+                }
+                if (item.has("locId")) {
+                    pLoc.id = new ObjectId(item.get("locId").asText());
+                    pLoc.zhName = item.get("locName").asText();
+                    planItem.loc = pLoc;
+                }
+
+                String subTypeStr = item.get("subType").asText();
+                if (subTypeStr.equals("airport") || subTypeStr.equals("trainStaion")) {
+                    planItem.stopType = item.get("stopType").asText();
+                    if (item.has("lat") && item.has("lng")) {
+                        planItem.lat = Double.parseDouble(item.get("lat").asText());
+                        planItem.lng = Double.parseDouble(item.get("lng").asText());
+                    }
+                }
+                if (subTypeStr.equals("airRoute") || subTypeStr.equals("trainRoute")) {
+                    if (item.has("depStop") && item.has("depLoc")) {
+                        planItem.depLoc = new ObjectId(item.get("depLoc").asText());
+                        planItem.depStop = new ObjectId(item.get("depStop").asText());
+                    }
+                    if (item.has("arrLoc") && item.has("arrStop")) {
+                        planItem.arrLoc = new ObjectId(item.get("arrLoc").asText());
+                        planItem.arrStop = new ObjectId(item.get("arrStop").asText());
+                    }
+                    if (item.has("depTime") && item.has("arrTime")
+                            && (!item.get("depTime").asText().equals(""))
+                            && (!item.get("arrTime").asText().equals(""))) {
+                        planItem.depTime = timeFmt.parse(item.get("depTime").asText());
+                        planItem.arrTime = timeFmt.parse(item.get("arrTime").asText());
+                    }
+                    if (item.has("distance")) {
+                        planItem.distance = item.get("distance").asText();
+                    }
+                }
+                planItem.type = item.get("type").asText();
+                planItem.subType = item.get("subType").asText();
+
+                planItemList.add(planItem);
+            }
+            planDayEntry.actv = planItemList;
+            planDayEntryList.add(planDayEntry);
+        }
+        ugcPlan.details = planDayEntryList;
+        ugcPlan.stayBudget = Integer.parseInt(data.get("stayBudget").asText());
+        ugcPlan.viewBudget = Integer.parseInt(data.get("viewBudget").asText());
+        ugcPlan.trafficBudget = Integer.parseInt(data.get("trafficBudget").asText());
+        //设置UGC路线ID
+        ugcPlan.id = new ObjectId(ugcPlanId);
+        ugcPlan.templateId = new ObjectId(templateId);
+        ugcPlan.startDate = startDate;
+        ugcPlan.endDate = endDate;
+        ugcPlan.title = title;
+        //uid为空，中间态数据；否则为保存态数据。中间态数据会被定期清理。
+        if (!uid.equals("")) {
+            ugcPlan.uid = new ObjectId(uid);
+            ugcPlan.persisted = true;
+        }else{
+            ugcPlan.persisted = false;
+        }
+        ugcPlan.updateTime = (new Date()).getTime();
+        ugcPlan.enabled = true;
+        ugcPlan.isFromWeb = true;
+
+        PlanAPI.saveUGCPlan(ugcPlan);
+        return ugcPlan;
+
     }
 
     /**
@@ -436,8 +572,6 @@ public class PlanCtrl extends Controller {
 //        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
-    public static String UGCPLAN = "UgcPlan";
-    public static String SHAREPLAN = "SharePlan";
 
     /**
      * 保存用户的路线
@@ -458,6 +592,11 @@ public class PlanCtrl extends Controller {
             if (actionFlag.equals("updateTitle")) {
                 title = data.get("title").asText();
                 PlanAPI.updateUGCPlanByFiled(oid, "title", title);
+            }
+            //只更新用户ID：web用
+            if (actionFlag.equals("updateUid")) {
+                title = data.get("uid").asText();
+                PlanAPI.updateUGCPlanByFiled(oid, "uid", title);
             }
             //更新路线
             if (actionFlag.equals("upsert")) {
@@ -1121,14 +1260,25 @@ public class PlanCtrl extends Controller {
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
         ret.put("details", Json.toJson(retDetails));
-//        ret.put("budget", Json.toJson(Arrays.asList(2000, 3000)));
-
         try {
             fullfill(ret);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
+        //WEB分支
+        if (rawPlan.has("webFlag") && rawPlan.get("webFlag").asText().equals(String.valueOf(WEB_REQUEST_FLAG))) {
+            String uid = rawPlan.get("uid") == null ? "" : rawPlan.get("uid").asText();
+            UgcPlan ugcPlan = null;
+            ObjectNode planNode = (ObjectNode)rawPlan;
+            planNode.put("details",Json.toJson(ret.get("details")));
+            try {
+                ugcPlan = updatePlanByNode(Json.toJson(planNode), uid);
+                return Utils.createResponse(ErrorCode.NORMAL, "Success");
+            } catch (TravelPiException | ParseException | NoSuchFieldException | IllegalAccessException e) {
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+            }
+        }
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 

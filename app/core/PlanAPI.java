@@ -676,73 +676,7 @@ public class PlanAPI {
         PlanItem depItem = DataFactory.createDepStop(route);
         PlanItem arrItem = DataFactory.createArrStop(route);
         PlanItem trafficInfo = DataFactory.createTrafficInfo(route);
-//        String subType;
-//        if (route instanceof AirRoute)
-//            subType = "airport";
-//        else if (route instanceof TrainRoute)
-//            subType = "trainStation";
-//        else
-//            subType = "";
-//
-//        PlanItem depItem = new PlanItem();
-//        depItem.item = route.depStop;
-//        depItem.loc = route.depLoc;
-//        depItem.ts = route.depTime;
-//        depItem.type = "traffic";
-//        depItem.subType = subType;
-//
-//        PlanItem arrItem = new PlanItem();
-//        arrItem.item = route.arrStop;
-//        arrItem.loc = route.arrLoc;
-//        arrItem.ts = route.arrTime;
-//        arrItem.type = "traffic";
-//        arrItem.subType = subType;
-//
-//        PlanItem trafficInfo = new PlanItem();
-//        SimpleRef ref = new SimpleRef();
-//        ref.id = route.id;
-//        ref.zhName = route.code;
-//        trafficInfo.item = ref;
-//        trafficInfo.ts = route.depTime;
-//        trafficInfo.extra = route;
-//        trafficInfo.type = "traffic";
-//        if (route instanceof AirRoute)
-//            trafficInfo.subType = "airRoute";
-//        else if (route instanceof TrainRoute)
-//            trafficInfo.subType = "trainRoute";
-//        else
-//            trafficInfo.subType = "";
-
-//        if (route instanceof AirRoute)
-//            depItem.subType = "airport";
-//        else if (route instanceof TrainRoute)
-//            depItem.subType = "trainStation";
-//        else
-//            depItem.subType = "";
-
-//        if (epDep) {
-//            if (needTransitPoint) {
-//                AbstractRoute midRoute = midIt.next();
-//                PlanItem midDepItem = DataFactory.createDepStop(midRoute);
-//                PlanItem midArrItem = DataFactory.createArrStop(midRoute);
-//                PlanItem midTrafficInfo = DataFactory.createTrafficInfo(midRoute);
-//                addTrafficItem(true, plan, midArrItem);
-//                addTrafficItem(true, plan, midTrafficInfo);
-//                addTrafficItem(true, plan, midDepItem);
-//            }
-//           addTraffic( epDep, plan, arrItem, depItem, trafficInfo);
-//            addTrafficItem(true, plan, arrItem);
-//            addTrafficItem(true, plan, trafficInfo);
-//            addTrafficItem(true, plan, depItem);
-//
-//        } else {
-//            addTraffic( epDep, plan, arrItem, depItem, trafficInfo);
-//            addTrafficItem(false, plan, depItem);
-//            addTrafficItem(false, plan, trafficInfo);
-//            addTrafficItem(false, plan, arrItem);
-//        }
         if (midRoute != null) {
-
             PlanItem midDepItem = DataFactory.createDepStop(midRoute);
             PlanItem midArrItem = DataFactory.createArrStop(midRoute);
             PlanItem midTrafficInfo = DataFactory.createTrafficInfo(midRoute);

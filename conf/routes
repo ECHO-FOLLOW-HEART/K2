@@ -28,7 +28,7 @@ GET           /itineraries/train-routes/:trainCode               controllers.Tra
 # 发现路线
 GET           /explore/plans                                     controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 # 路线查询
-GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="")
+GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="",webFlag: Int=0,uid: String?="")
 # 优化路线
 POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan()
 
@@ -114,6 +114,7 @@ DELETE        /users/:userId/favors/view-spots/:vsId             controllers.Use
 GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 
 GET           /batch/planBudge                                   controllers.Bache.getPlanBudget(dep: String?="", arr: String?="" )
+GET           /batch/provCap                                     controllers.Bache.updateLocalityProvCap()
 #-------------------------------------
 #路线
 #查看UGC路线详情
@@ -123,13 +124,15 @@ GET           /web/ugc-plans/users/:userId                       controllers.Pla
 #根据目的地查看模板路线列表
 GET           /web/plans/explore                                 controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 #根据ID查看模板路线详情
-GET           /web/plans/:planId                                 controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="")
+GET           /web/plans/:planId                                 controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="",webFlag: Int?=0,uid: String?="")
 #复制路线：生成一条UGC路线
-GET           /web/ugc-plans/templates/:planId                   controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="")
+GET           /web/ugc-plans/templates/:planId                   controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="",webFlag: Int=1,uid: String?="")
 #保存UGC路线
 POST          /web/ugc-plans                                     controllers.PlanCtrl.saveUGCPlan()
 #删除UGC路线
 DELETE        /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.deleteUGCPlans(ugcPlanId: String)
+#优化并保存路线
+POST          /web/plans/optimizers                              controllers.PlanCtrl.optimizePlan()
 
 #POI
 #搜索POI信息：根据位置、标签、关键词
@@ -161,3 +164,5 @@ GET           /web/geo/localities/search                         controllers.Geo
 GET           /web/geo/localities/:id                            controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 #用户登录
 POST          /web/users/oauth-login                             controllers.UserCtrl.oauthLogin()
+#发现：推荐机制
+GET           /web/recommend                                     controllers.MiscCtrl.recommend(sortType: String?="", page: Int?=0, pageSize: Int?=20)
