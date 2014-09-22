@@ -683,6 +683,9 @@ public class PlanCtrl extends Controller {
             poiIdMapping.put("53aa9b3310114e3fdc2fa014", "53f310c010114e376de5bd60");
             poiIdMapping.put("53aa9b3610114e3fdc2fa5b6", "53f30f8a10114e376de5ba23");
             poiIdMapping.put("53aa9b3610114e3fdc2fa5b7", "53f30f8b10114e376de5ba24");
+            poiIdMapping.put("53aa9a6410114e3fd4783553", "53f310ff10114e3779f93527");
+            poiIdMapping.put("53aa9a6410114e3fd478355b", "53f317d610114e3b1d2e6f06");
+            poiIdMapping.put("53aa9a6410114e3fd4783576", "53f3172710114e3b12f69d3a");
 
             if (poiIdMapping.containsKey(poiId))
                 poiId = poiIdMapping.get(poiId);
