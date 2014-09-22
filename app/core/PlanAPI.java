@@ -385,8 +385,8 @@ public class PlanAPI {
 
             // 需要添加酒店
             try {
-                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastLoc.id, 0, Constants.MAX_COUNT);
-                Hotel hotel = null;
+                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastLoc.id, 0, 1);
+                Hotel hotel;
                 if (itr.hasNext()) {
                     List list = DataFactory.asList(itr);
                     if (lastItem != null) {
@@ -403,14 +403,6 @@ public class PlanAPI {
                     hotelItem.loc = hotel.addr.loc;
                     hotelItem.type = "hotel";
                     hotelItem.ts = dayEntry.date;
-
-//                    Calendar cal = Calendar.getInstance();
-//                    cal.setTime(dayEntry.date);
-//                    cal.set(Calendar.HOUR_OF_DAY, 20);
-//                    cal.set(Calendar.MINUTE, 0);
-//                    cal.set(Calendar.SECOND, 0);
-//                    cal.set(Calendar.MILLISECOND, 0);
-//                    hotelItem.ts = cal.getTime();
 
                     dayEntry.actv.add(hotelItem);
                 }
