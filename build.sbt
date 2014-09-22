@@ -20,6 +20,8 @@ libraryDependencies ++= Seq(
   "cglib" % "cglib-nodep" % "latest.integration",
   "com.thoughtworks.proxytoys" % "proxytoys" % "latest.integration",
   "com.vxp" % "plan_2.10" % "1.0.1",
+  "org.apache.solr" % "solr-solrj" % "4.10.0",
+  "commons-logging" % "commons-logging" % "1.2",
   filters
 )
 

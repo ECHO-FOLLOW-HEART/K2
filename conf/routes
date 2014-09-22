@@ -94,6 +94,7 @@ GET           /sys/updates                                       controllers.Mis
 GET           /suggestions                                       controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
 GET           /misc/weather/:locId                               controllers.MiscCtrl.getWeatherInfo(locId :String)
 GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
+GET           /misc/notes/search                                 controllers.TravelNoteCtrl.searchNotes()
 
 
 # 发现目的地（推荐机制）
