@@ -187,10 +187,13 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 // TODO 暂时兼容两种数据
                 //builder.add("desc", (desc != null ? desc : ""));
                 if (null != description) {
-                    builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc != null ? desc : ""));
+                    builder.add("desc", (description.desc != null ? description.desc : desc != null ? desc : ""));
+                    // web用
+                    builder.add("description", description.toJson());
                 } else {
-                    builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
+                    builder.add("desc", (desc != null ? desc : ""));
                 }
+
 
             }
         }

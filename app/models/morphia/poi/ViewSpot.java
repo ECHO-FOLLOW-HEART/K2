@@ -7,9 +7,7 @@ import models.morphia.misc.Description;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 import utils.DataFilter;
-import utils.POIUtils;
 
-import javax.xml.crypto.Data;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -71,7 +69,7 @@ public class ViewSpot extends AbstractPOI {
         ObjectNode node = (ObjectNode) super.toJson(level);
 
         // 按景点分类估算游玩时间
-        node.put("timeCost", DataFilter.timeCostFilter(timeCost,name));
+        node.put("timeCost", DataFilter.timeCostFilter(timeCost, name));
 
         if (level > 2) {
             if (rankingA != null)

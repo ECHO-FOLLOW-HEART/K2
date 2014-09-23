@@ -4,7 +4,7 @@ import org.mongodb.morphia.annotations.Embedded;
 
 /**
  * 表示一张图像。
- *
+ * <p/>
  * Created by zephyre on 8/14/14.
  */
 @Embedded

@@ -29,6 +29,8 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Constants;
+import utils.DataFilter;
 import utils.Planner;
 import utils.Utils;
 
@@ -46,6 +48,9 @@ import java.util.*;
  */
 public class PlanCtrl extends Controller {
 
+
+    public static String UGCPLAN = "UgcPlan";
+    public static String SHAREPLAN = "SharePlan";
 
     /**
      * 查询路线的详细信息。
@@ -96,9 +101,7 @@ public class PlanCtrl extends Controller {
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-            return Utils.createResponse(ErrorCode.NORMAL, planJson);
-        } catch (ClassCastException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.SMALL_PIC));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -436,9 +439,6 @@ public class PlanCtrl extends Controller {
 //        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
-    public static String UGCPLAN = "UgcPlan";
-    public static String SHAREPLAN = "SharePlan";
-
     /**
      * 保存用户的路线
      *
@@ -727,7 +727,7 @@ public class PlanCtrl extends Controller {
                 results.add(it.next().toJson(false));
             }
         }
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
     }
 
     /**
@@ -1139,7 +1139,7 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, ret);
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(ret, request(), Constants.SMALL_PIC));
     }
 
     /**
@@ -1167,7 +1167,8 @@ public class PlanCtrl extends Controller {
                 }
                 //取详细信息
                 JsonNode planJson = ugcPlan.toJson(true);
-                return Utils.createResponse(ErrorCode.NORMAL, planJson);
+                planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC));
             }
             //根据用户ID取得UGC路线列表
             if (!userId.equals("")) {
@@ -1176,7 +1177,7 @@ public class PlanCtrl extends Controller {
                     //取粗略信息
                     results.add(it.next().toJson(false));
                 }
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
             }
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
         } catch (ClassCastException ec) {
@@ -1249,7 +1250,7 @@ public class PlanCtrl extends Controller {
             List<String> urlList = new ArrayList<String>();
             urlList.add(uri.toString());
             share.urls = urlList;
-            return Utils.createResponse(ErrorCode.NORMAL, share.toJson());
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(share.toJson(), request(), Constants.SMALL_PIC));
         } catch (ClassCastException | NullPointerException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
         } catch (TravelPiException | NoSuchFieldException | InstantiationException | ParseException | IllegalAccessException e) {

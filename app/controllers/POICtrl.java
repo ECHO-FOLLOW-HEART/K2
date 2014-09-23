@@ -15,6 +15,8 @@ import org.mongodb.morphia.Datastore;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Constants;
+import utils.DataFilter;
 import utils.Utils;
 
 import java.net.UnknownHostException;
@@ -89,7 +91,8 @@ public class POICtrl extends Controller {
                 throw new TravelPiException(e.errCode, e.getMessage());
             }
         }
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+        JsonNode result = DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC);
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(result,request()));
     }
 
 
@@ -335,7 +338,7 @@ public class POICtrl extends Controller {
             while (it.hasNext())
                 results.add(it.next().toJson(2));
 
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -371,7 +374,7 @@ public class POICtrl extends Controller {
         for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(pt, oLocId, page, pageSize); it.hasNext(); )
             retPoiList.add(it.next().toJson(2));
 
-        return Utils.createResponse(ErrorCode.NORMAL,Json.toJson(retPoiList));
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(retPoiList), request(), Constants.SMALL_PIC));
 
     }
 }
