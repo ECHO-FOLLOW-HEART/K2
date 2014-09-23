@@ -169,7 +169,7 @@ public class Plan extends TravelPiBaseItem implements ITravelPiFormatter {
             for (String tag : lxpTag) {
                 ret.add(tag);
             }
-        builder.add("lxpTag",  ret);
+        builder.add("lxpTag", ret);
 
         if (showDetails) {
             List<JsonNode> detailsNodes = new ArrayList<>();

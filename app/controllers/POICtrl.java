@@ -91,7 +91,7 @@ public class POICtrl extends Controller {
                 throw new TravelPiException(e.errCode, e.getMessage());
             }
         }
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC) );
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
     }
 
 
@@ -337,7 +337,7 @@ public class POICtrl extends Controller {
             while (it.hasNext())
                 results.add(it.next().toJson(2));
 
-            return Utils.createResponse(ErrorCode.NORMAL,  DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -373,7 +373,7 @@ public class POICtrl extends Controller {
         for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(pt, oLocId, page, pageSize); it.hasNext(); )
             retPoiList.add(it.next().toJson(2));
 
-        return Utils.createResponse(ErrorCode.NORMAL,DataFilter.appJsonFilter(Json.toJson(retPoiList), request(), Constants.SMALL_PIC));
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(retPoiList), request(), Constants.SMALL_PIC));
 
     }
 }

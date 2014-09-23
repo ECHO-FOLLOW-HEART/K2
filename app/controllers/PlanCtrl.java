@@ -49,6 +49,9 @@ import java.util.*;
 public class PlanCtrl extends Controller {
 
 
+    public static String UGCPLAN = "UgcPlan";
+    public static String SHAREPLAN = "SharePlan";
+
     /**
      * 查询路线的详细信息。
      *
@@ -99,7 +102,7 @@ public class PlanCtrl extends Controller {
             fullfill(planJson);
 
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.SMALL_PIC));
-        }  catch (TravelPiException e) {
+        } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
@@ -435,9 +438,6 @@ public class PlanCtrl extends Controller {
 //
 //        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
-
-    public static String UGCPLAN = "UgcPlan";
-    public static String SHAREPLAN = "SharePlan";
 
     /**
      * 保存用户的路线
@@ -1129,7 +1129,7 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL,  DataFilter.appJsonFilter(ret, request(), Constants.SMALL_PIC));
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(ret, request(), Constants.SMALL_PIC));
     }
 
     /**

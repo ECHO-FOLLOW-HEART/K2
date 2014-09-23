@@ -17,7 +17,7 @@ public class POIUtils {
             return "1.5";
         }
         if (vsName.endsWith("动物园") || vsName.endsWith("山") || vsName.endsWith("自然保护区") || vsName.endsWith("温泉") || vsName.endsWith("谷")
-                || vsName.endsWith("公园")|| vsName.endsWith("海底世界")) {
+                || vsName.endsWith("公园") || vsName.endsWith("海底世界")) {
             return "4";
         }
 

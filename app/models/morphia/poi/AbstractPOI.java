@@ -76,7 +76,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p>
+     * <p/>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;

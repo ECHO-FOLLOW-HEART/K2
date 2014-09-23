@@ -65,7 +65,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("nickName", nickName).add("avatar", avatar).add("secToken",secToken);
+        builder.add("_id", id.toString()).add("nickName", nickName).add("avatar", avatar).add("secToken", secToken);
         return Json.toJson(builder.get());
     }
 }
