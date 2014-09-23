@@ -18,6 +18,7 @@ public class Constants {
 
     public static String SYMBOL_QUESTION = "?";
 
+
     public static int FORCAST_DUOYUN = 1;
     public static int FORCAST_YIN = 2;
     public static int FORCAST_ZHENYU = 3;

@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+
 /**
  * Created by topy on 2014/9/12.
  */
@@ -47,6 +48,7 @@ public class DataFilter {
         String timeStr = String.valueOf(timeCost);
         return timeStr.substring(0, timeStr.length() - 2);
     }
+
 
     /**
      * 有些地区需要映射到具体的县才有交通
@@ -191,5 +193,6 @@ public class DataFilter {
         tempObjNode.put("imageList", Json.toJson(newNodeList));
 
     }
+
 
 }
