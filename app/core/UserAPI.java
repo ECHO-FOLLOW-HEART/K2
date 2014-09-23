@@ -164,10 +164,10 @@ public class UserAPI {
 
         //设置更新信息：用户机系统信息、用户App版本、用户设备编号
         UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
-        ops.set("platform", platform == null ? "" : platform);
-        ops.set("appVersion", appVersion == null ? "" : appVersion);
+        ops.set("platform", platform);
+        ops.set("appVersion", appVersion);
         ops.set("udid", seq);
-        ops.set("enabled", true);
+        ops.set("enabled",true);
 
         dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.id), ops);
     }
