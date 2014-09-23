@@ -45,8 +45,7 @@ public class DataFilter {
         if (timeCost < 1.0)
             return "0.5";
         String timeStr = String.valueOf(timeCost);
-        String resylt = timeStr.substring(0, timeStr.length() - 2);
-        return resylt;
+        return timeStr.substring(0, timeStr.length() - 2);
     }
 
     /**
@@ -83,34 +82,32 @@ public class DataFilter {
         List<JsonNode> newNodeList = null;
         String fullUrl = null;
         String picUrl = getPictureUrl(picSize);
-        if (picUrl == null) {
+        if (picUrl == null)
             return json;
-        }
+
         // 非App请求
-        if (request.getQueryString("platform") == null) {
+        if (request.getQueryString("platform") == null)
             return json;
-        }
+
         // 非App请求
-        String platform = request.getQueryString("platform").toString();
-        if (!platform.toUpperCase().contains("IOS") && (!platform.toUpperCase().contains("ANDROID"))) {
+        String platform = request.getQueryString("platform");
+        if (!platform.toUpperCase().contains("IOS") && (!platform.toUpperCase().contains("ANDROID")))
             return json;
-        }
+
         //列表时
         if (json.isArray() && json.findValues("imageList") != null && json.findValues("imageList").size() > 0) {
             for (JsonNode node : json) {
-
                 tempObjNode = (ObjectNode) node;
                 tempJsImg = tempObjNode.get("imageList");
-                if (!tempJsImg.isArray()) {
+                if (!tempJsImg.isArray())
                     continue;
-                }
-                newNodeList = new ArrayList<JsonNode>();
+
+                newNodeList = new ArrayList<>();
                 for (JsonNode imgNode : tempJsImg) {
                     fullUrl = imgNode.asText() + Constants.SYMBOL_QUESTION + picUrl;
                     newNodeList.add(Json.toJson(fullUrl));
                 }
                 tempObjNode.put("imageList", Json.toJson(newNodeList));
-
             }
         }
         //一条数据
@@ -129,30 +126,29 @@ public class DataFilter {
      */
     public static void traversalJson(JsonNode jsNode) {
 
-        if (jsNode.iterator() == null) {
+        if (jsNode.iterator() == null)
             return;
-        } else {
-            if (jsNode.has("details")) {
-                if (jsNode.get("details").has("imageList")) {
-                    traverImageListNode(jsNode.get("details"), Constants.SMALL_PIC);
-                }
-                for (JsonNode imgNode : jsNode.get("details")) {
-                    if (!(imgNode instanceof ValueNode) && (!(imgNode instanceof ArrayNode))) {
-                        traversalJson((ObjectNode) imgNode);
 
-                    }
-                }
+        if (jsNode.has("details")) {
+            if (jsNode.get("details").has("imageList")) {
+                traverImageListNode(jsNode.get("details"), Constants.SMALL_PIC);
             }
-            if (jsNode.has("actv")) {
-                for (JsonNode imgNode : jsNode.get("actv")) {
-                    traversalJson((ObjectNode) imgNode);
+            for (JsonNode imgNode : jsNode.get("details")) {
+                if (!(imgNode instanceof ValueNode) && (!(imgNode instanceof ArrayNode))) {
+                    traversalJson(imgNode);
+
                 }
-            }
-            if (jsNode.has("imageList")) {
-                traverImageListNode(jsNode, Constants.SMALL_PIC);
             }
         }
-
+        
+        if (jsNode.has("actv")) {
+            for (JsonNode imgNode : jsNode.get("actv")) {
+                traversalJson(imgNode);
+            }
+        }
+        if (jsNode.has("imageList")) {
+            traverImageListNode(jsNode, Constants.SMALL_PIC);
+        }
     }
 
     /**
@@ -183,11 +179,11 @@ public class DataFilter {
         if (tempJsImg.get(0) == null || tempJsImg.get(0).asText().contains(Constants.SYMBOL_QUESTION)) {
             return;
         }
-        List<JsonNode> newNodeList = null;
-        String fullUrl = null;
+        List<JsonNode> newNodeList;
+        String fullUrl;
 
 
-        newNodeList = new ArrayList<JsonNode>();
+        newNodeList = new ArrayList<>();
         for (JsonNode imgNode : tempJsImg) {
             fullUrl = imgNode.asText() + Constants.SYMBOL_QUESTION + getPictureUrl(picSize);
             newNodeList.add(Json.toJson(fullUrl));
