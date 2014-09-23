@@ -91,7 +91,8 @@ public class POICtrl extends Controller {
                 throw new TravelPiException(e.errCode, e.getMessage());
             }
         }
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
+        JsonNode result = DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC);
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(result,request()));
     }
 
 

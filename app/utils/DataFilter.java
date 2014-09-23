@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
+import org.apache.commons.lang3.StringUtils;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http.Request;
@@ -88,12 +89,7 @@ public class DataFilter {
             return json;
 
         // 非App请求
-        if (request.getQueryString("platform") == null)
-            return json;
-
-        // 非App请求
-        String platform = request.getQueryString("platform");
-        if (!platform.toUpperCase().contains("IOS") && (!platform.toUpperCase().contains("ANDROID")))
+        if (!isAppRequest(request))
             return json;
 
         //列表时
@@ -142,7 +138,7 @@ public class DataFilter {
                 }
             }
         }
-        
+
         if (jsNode.has("actv")) {
             for (JsonNode imgNode : jsNode.get("actv")) {
                 traversalJson(imgNode);
@@ -192,6 +188,51 @@ public class DataFilter {
         }
         tempObjNode.put("imageList", Json.toJson(newNodeList));
 
+    }
+
+    /**
+     * app请求图片图片地址时，添加图片的规格
+     *
+     * @param json
+     * @param request
+     * @return
+     */
+    public static JsonNode appDescFilter(JsonNode json, Request request) {
+
+        String descFilter;
+        ObjectNode tempJson;
+
+        // 非App请求
+        if (!isAppRequest(request))
+            return json;
+
+        // app请求，截断过长的描述
+        if (json.get("desc") != null && (!json.get("desc").equals(""))) {
+            descFilter = StringUtils.abbreviate(json.get("desc").asText(), Constants.ABBREVIATE_LEN);
+            tempJson = (ObjectNode)json;
+            tempJson.put("desc",descFilter);
+        }
+        // app请求，不显示description
+        if (json.has("description")) {
+            tempJson = (ObjectNode)json;
+            tempJson.put("description","");
+        }
+        return json;
+    }
+
+    /**
+     * 判断是否是App请求
+     *
+     * @param request
+     * @return
+     */
+    private static boolean isAppRequest(Request request){
+        if (request.getQueryString("platform") == null)
+            return false;
+        String platform = request.getQueryString("platform");
+        if (!platform.toUpperCase().contains("IOS") && (!platform.toUpperCase().contains("ANDROID")))
+            return false;
+        return true;
     }
 
 
