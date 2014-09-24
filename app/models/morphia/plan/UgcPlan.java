@@ -3,6 +3,8 @@ package models.morphia.plan;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
+import exception.ErrorCode;
+import exception.TravelPiException;
 import models.ITravelPiFormatter;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -59,15 +61,21 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
 
     }
 
-    public UgcPlan(Plan plan) throws NoSuchFieldException, IllegalAccessException {
+    public UgcPlan(Plan plan) throws TravelPiException {
         this.tranfToUgcPlan(plan);
     }
 
-    public UgcPlan(Plan plan, String uid, String startD, String endD, String id, String title) throws NoSuchFieldException, IllegalAccessException, InstantiationException, ParseException {
+    public UgcPlan(Plan plan, String uid, String startD, String endD, String id, String title) throws TravelPiException {
         this.tranfToUgcPlan(plan);
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        this.startDate = format.parse(startD);
-        this.endDate = format.parse(endD);
+
+        try {
+            this.startDate = format.parse(startD);
+            this.endDate = format.parse(endD);
+        } catch (ParseException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+        }
+
         this.id = new ObjectId(id);
         this.title = title;
         this.uid = new ObjectId(uid);
@@ -75,7 +83,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
         this.enabled = true;
     }
 
-    private void tranfToUgcPlan(Plan plan) throws NoSuchFieldException, IllegalAccessException {
+    private void tranfToUgcPlan(Plan plan) throws TravelPiException {
         String paraFiledStr = null;
         Field thisField = null;
 
@@ -83,14 +91,20 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
         Class c = plan.getClass();
         //取得对象的所有属性，放到一个数组中
         Field[] f = c.getFields();
-        for (int i = 0; i < f.length; i++) {
-            paraFiledStr = f[i].getName();
-            thisField = this.getClass().getField(paraFiledStr);
-            //获取对象的属性
-            Object filedValue = Plan.class.getField(f[i].getName()).get(plan);
-            thisField.setAccessible(true);
-            thisField.set(this, filedValue);
+
+        try {
+            for (Field aF : f) {
+                paraFiledStr = aF.getName();
+                thisField = this.getClass().getField(paraFiledStr);
+                //获取对象的属性
+                Object filedValue = Plan.class.getField(aF.getName()).get(plan);
+                thisField.setAccessible(true);
+                thisField.set(this, filedValue);
+            }
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
         }
+
         //设置ID
         this.id = new ObjectId();
         this.templateId = plan.id;
@@ -118,7 +132,8 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
 
             return Json.toJson(builder.get());
         }
-        ObjectNode node = (ObjectNode) super.toJson(showDetails);
+
+        ObjectNode node = (ObjectNode) super.toJson();
         if (uid != null)
             node.put("uid", uid.toString());
         if (templateId != null)

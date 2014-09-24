@@ -18,13 +18,14 @@ public class DataFactory {
 
     public static List<?> asList(Iterator<?> it) {
         List l = new ArrayList();
-        for (; it.hasNext();) {
+        for (; it.hasNext(); ) {
             Object element = (Object) it.next();
             l.add(element);
         }
         return l;
 
     }
+
     public static PlanItem createLocality(Locality locality) {
         if (null == locality) {
             return null;

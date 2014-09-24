@@ -8,8 +8,16 @@ package utils;
 public class Constants {
     // 如果长字符串需要截取，默认截取64个字符。
     public static int ABBREVIATE_LEN = 64;
-    //
+    // 一个大数
     public static int MAX_COUNT = 99999;
+    // 标识web请求
+    public static int WEB_REQUEST = 1;
+    // 图片标识
+    public static int BIG_PIC = 1;
+    public static int SMALL_PIC = 0;
+
+    public static String SYMBOL_QUESTION = "?";
+
 
     public static int FORCAST_DUOYUN = 1;
     public static int FORCAST_YIN = 2;

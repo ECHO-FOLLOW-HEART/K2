@@ -3,22 +3,18 @@ package core;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.geo.Locality;
 import models.morphia.misc.SimpleRef;
 import models.morphia.plan.*;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.poi.Hotel;
-import models.morphia.poi.ViewSpot;
 import models.morphia.traffic.AbstractRoute;
+import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.RouteIterator;
+import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
-import utils.Constants;
-import utils.DataFactory;
-import utils.DataFilter;
-import utils.Utils;
 
 import java.util.*;
 
@@ -372,9 +368,8 @@ public class PlanAPI {
             if (hasHotel)
                 continue;
 
-            PlanItem lastItem = null;
             if (!dayEntry.actv.isEmpty()) {
-                lastItem = dayEntry.actv.get(dayEntry.actv.size() - 1);
+                PlanItem lastItem = dayEntry.actv.get(dayEntry.actv.size() - 1);
                 // 如果最后一条记录为trainRoute活着airRoute，说明游客还在路上，不需要添加酒店。
                 if (lastItem.subType != null && (lastItem.subType.equals("trainRoute") || lastItem.subType.equals("airRoute")))
                     continue;
@@ -386,14 +381,8 @@ public class PlanAPI {
             // 需要添加酒店
             try {
                 Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastLoc.id, 0, 1);
-                Hotel hotel;
                 if (itr.hasNext()) {
-                    List list = DataFactory.asList(itr);
-                    if (lastItem != null) {
-                        hotel = getNearHotel(lastItem.item.id, list);
-                    } else {
-                        hotel = (Hotel) itr.next();
-                    }
+                    Hotel hotel = (Hotel) itr.next();
                     PlanItem hotelItem = new PlanItem();
                     SimpleRef ref = new SimpleRef();
                     ref.id = hotel.id;
@@ -410,103 +399,6 @@ public class PlanAPI {
             }
         }
         return;
-    }
-
-    /**
-     * 找到距离最近的餐馆
-     *
-     * @param travelId
-     * @return
-     * @throws TravelPiException
-     */
-    public static Hotel getNearHotel(ObjectId travelId, List itr) throws TravelPiException {
-
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        //查询出路线的目的地
-        Query<ViewSpot> queryLoc = ds.createQuery(ViewSpot.class);
-        ViewSpot viewSpot = queryLoc.field("_id").equal(travelId).get();
-        double latFrom = 0d;
-        double lngFrom = 0d;
-        if (viewSpot != null && viewSpot.addr != null && viewSpot.addr.coords != null) {
-            latFrom = viewSpot.addr.coords.lat;
-            lngFrom = viewSpot.addr.coords.lng;
-        } else if (viewSpot != null && viewSpot.addr != null && viewSpot.addr.bCoords != null) {
-            latFrom = viewSpot.addr.bCoords.lat;
-            lngFrom = viewSpot.addr.bCoords.lng;
-        } else {
-            return (Hotel) itr.get(0);
-        }
-
-        int nearDistance = Constants.MAX_COUNT;
-        int tempDistance = 0;
-        Hotel tempHotel = null;
-        Hotel nearLocality = null;
-        for (Object o : itr) {
-            tempHotel = (Hotel) o;
-            if (null == tempHotel.addr || null == tempHotel.addr.coords) {
-                continue;
-            }
-            tempDistance = Utils.getDistatce(latFrom, tempHotel.addr.coords.lat, lngFrom, tempHotel.addr.coords.lng);
-            if (tempDistance < nearDistance) {
-                nearDistance = tempDistance;
-                nearLocality = tempHotel;
-            }
-            if (tempDistance <= 1) {
-                break;
-            }
-        }
-
-        return nearLocality;
-    }
-
-    /**
-     * 将交通信息插入到路线规划中。
-     *
-     * @param epDep 出发地。
-     * @param plan
-     * @param item
-     * @return
-     */
-    private static Plan addLocalityItem(boolean epDep, Plan plan, PlanItem item) {
-        if (plan.details == null)
-            plan.details = new ArrayList<>();
-
-        PlanDayEntry dayEntry = null;
-        Calendar itemDate = Calendar.getInstance();
-        itemDate.setTime(item.ts);
-
-        if (!plan.details.isEmpty()) {
-            int epIdx = (epDep ? 0 : plan.details.size() - 1);
-            dayEntry = plan.details.get(epIdx);
-            Calendar epDate = Calendar.getInstance();
-            epDate.setTime(dayEntry.date);
-
-            if (epDate.get(Calendar.DAY_OF_YEAR) != itemDate.get(Calendar.DAY_OF_YEAR))
-                dayEntry = null;
-        }
-
-        if (dayEntry == null) {
-
-            Calendar tmpDate = Calendar.getInstance();
-            tmpDate.setTimeInMillis(itemDate.getTimeInMillis());
-            tmpDate.set(Calendar.HOUR_OF_DAY, 0);
-            tmpDate.set(Calendar.MINUTE, 0);
-            tmpDate.set(Calendar.SECOND, 0);
-            tmpDate.set(Calendar.MILLISECOND, 0);
-            dayEntry = new PlanDayEntry(tmpDate);
-
-            if (epDep)
-                plan.details.add(0, dayEntry);
-            else
-                plan.details.add(dayEntry);
-        }
-
-        if (epDep)
-            dayEntry.actv.add(0, item);
-        else
-            dayEntry.actv.add(item);
-
-        return plan;
     }
 
     /**
@@ -628,127 +520,82 @@ public class PlanAPI {
         timeLimits = Arrays.asList(calLower, calUpper);
 
 
-        //首推飞机
-//        RouteIterator it = (epDep ?
-//                TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
-//                :
-//                TrafficAPI.searchAirRoutes(travelLoc, remoteLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1));
-//        //次推火车
-//        if (!it.hasNext()) {
-//            it = (epDep ?
-//                    TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
-//                    :
-//                    TrafficAPI.searchTrainRoutes(travelLoc, remoteLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.ARR_TIME, 1, 0, 1));
-//        }
-
-        // TODO 对特殊的地点做过滤
-        travelLoc = new ObjectId(DataFilter.localMapping(travelLoc.toString()));
-        AbstractRoute midRoute = null;
-        AbstractRoute route = epDep ? searchOneWayRoutes(remoteLoc, travelLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE) :
-                searchOneWayRoutes(travelLoc, remoteLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE);
-
-        if (route == null) {
-            PlanItem midLocality = null;
-            midLocality = getNearCap(travelLoc);
-            ObjectId midLocId = midLocality.loc.id;
-            //前半程
-            route = epDep ? searchOneWayRoutes(remoteLoc, midLocId, calLower, null, TrafficAPI.SortField.TIME_COST) :
-                    searchOneWayRoutes(travelLoc, midLocId, calLower, null, TrafficAPI.SortField.TIME_COST);
-            //后半程
-            midRoute = epDep ? searchOneWayRoutes(midLocId, travelLoc, calLower, null, TrafficAPI.SortField.TIME_COST) :
-                    searchOneWayRoutes(midLocId, remoteLoc, calLower, null, TrafficAPI.SortField.TIME_COST);
-
-            if (route == null || midRoute == null) {
-                return plan;
-            }
-
+        RouteIterator it = (epDep ?
+                TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
+                :
+                TrafficAPI.searchAirRoutes(travelLoc, remoteLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1));
+        if (!it.hasNext()) {
+            it = (epDep ?
+                    TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
+                    :
+                    TrafficAPI.searchTrainRoutes(travelLoc, remoteLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.ARR_TIME, 1, 0, 1));
         }
+        if (!it.hasNext())
+            return plan;
 
-        // 构造出发、到达和交通信息三个item arrItem
-        PlanItem depItem = DataFactory.createDepStop(route);
-        PlanItem arrItem = DataFactory.createArrStop(route);
-        PlanItem trafficInfo = DataFactory.createTrafficInfo(route);
-        if (midRoute != null) {
-            PlanItem midDepItem = DataFactory.createDepStop(midRoute);
-            PlanItem midArrItem = DataFactory.createArrStop(midRoute);
-            PlanItem midTrafficInfo = DataFactory.createTrafficInfo(midRoute);
-            addTraffic(epDep, plan, midArrItem, midDepItem, midTrafficInfo);
+        AbstractRoute route = it.next();
+        Calendar depTime = Calendar.getInstance();
+        depTime.setTime(route.depTime);
+        Calendar firstDay = Calendar.getInstance();
+        firstDay.setTime(dayEntry.date);
+
+        // 构造出发、到达和交通信息三个item
+
+        String subType;
+        if (route instanceof AirRoute)
+            subType = "airport";
+        else if (route instanceof TrainRoute)
+            subType = "trainStation";
+        else
+            subType = "";
+
+        PlanItem depItem = new PlanItem();
+        depItem.item = route.depStop;
+        depItem.loc = route.depLoc;
+        depItem.ts = route.depTime;
+        depItem.type = "traffic";
+        depItem.subType = subType;
+
+        PlanItem arrItem = new PlanItem();
+        arrItem.item = route.arrStop;
+        arrItem.loc = route.arrLoc;
+        arrItem.ts = route.arrTime;
+        arrItem.type = "traffic";
+        arrItem.subType = subType;
+
+        PlanItem trafficInfo = new PlanItem();
+        SimpleRef ref = new SimpleRef();
+        ref.id = route.id;
+        ref.zhName = route.code;
+        trafficInfo.item = ref;
+        trafficInfo.ts = route.depTime;
+        trafficInfo.extra = route;
+        trafficInfo.type = "traffic";
+        if (route instanceof AirRoute)
+            trafficInfo.subType = "airRoute";
+        else if (route instanceof TrainRoute)
+            trafficInfo.subType = "trainRoute";
+        else
+            trafficInfo.subType = "";
+
+        if (route instanceof AirRoute)
+            depItem.subType = "airport";
+        else if (route instanceof TrainRoute)
+            depItem.subType = "trainStation";
+        else
+            depItem.subType = "";
+
+        if (epDep) {
+            addTrafficItem(true, plan, arrItem);
+            addTrafficItem(true, plan, trafficInfo);
+            addTrafficItem(true, plan, depItem);
+        } else {
+            addTrafficItem(false, plan, depItem);
+            addTrafficItem(false, plan, trafficInfo);
+            addTrafficItem(false, plan, arrItem);
         }
-        addTraffic(epDep, plan, arrItem, depItem, trafficInfo);
 
         return plan;
-    }
-
-    private static List<? extends AbstractRoute> searchRoutes(ObjectId remoteLoc, ObjectId travelLoc, Calendar calLower, final List<Calendar> timeLimits, TrafficAPI.SortField sortField) throws TravelPiException {
-        RouteIterator it = TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
-        //次推火车
-        if (!it.hasNext()) {
-            it = TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
-        }
-        List routeList = DataFactory.asList(it);
-
-        return routeList;
-    }
-
-    private static AbstractRoute searchOneWayRoutes(ObjectId remoteLoc, ObjectId travelLoc, Calendar calLower, final List<Calendar> timeLimits, TrafficAPI.SortField sortField) throws TravelPiException {
-        RouteIterator it = TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
-        //次推火车
-        if (!it.hasNext()) {
-            it = TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
-        }
-        List list = DataFactory.asList(it);
-        return list.isEmpty() ? null : (AbstractRoute) list.get(0);
-    }
-
-    private static void addTraffic(boolean epDep, Plan plan, PlanItem arrItem, PlanItem depItem, PlanItem trafficInfo) {
-        if (epDep) {
-            addTrafficItem(epDep, plan, arrItem);
-            addTrafficItem(epDep, plan, trafficInfo);
-            addTrafficItem(epDep, plan, depItem);
-        } else {
-            addTrafficItem(epDep, plan, depItem);
-            addTrafficItem(epDep, plan, trafficInfo);
-            addTrafficItem(epDep, plan, arrItem);
-        }
-    }
-
-    /**
-     * 找到距离最近的省会
-     *
-     * @param travelId
-     * @return
-     * @throws TravelPiException
-     */
-    public static PlanItem getNearCap(ObjectId travelId) throws TravelPiException {
-
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        //查询出路线的目的地
-        Query<Locality> queryLoc = ds.createQuery(Locality.class);
-        Locality travelLoc = queryLoc.field("_id").equal(travelId).get();
-
-        if (travelLoc.provCap) {
-            return DataFactory.createLocality(ds.createQuery(Locality.class).field("_id").equal(new ObjectId("53aa9a6410114e3fd47833bd")).get());
-        }
-
-        //查询出所有省会
-        Query<Locality> query = ds.createQuery(Locality.class);
-        query.field("provCap").equal(Boolean.TRUE).field("level").equal(2);
-        Locality tempLocality = null;
-        Locality nearLocality = null;
-
-        int nearDistance = Constants.MAX_COUNT;
-        int tempDistance = 0;
-        for (Iterator<Locality> it = query.iterator(); it.hasNext(); ) {
-            tempLocality = (Locality) it.next();
-            tempDistance = Utils.getDistatce(travelLoc.coords.lat, tempLocality.coords.lat, travelLoc.coords.lng, tempLocality.coords.lng);
-            if (tempDistance < nearDistance) {
-                nearDistance = tempDistance;
-                nearLocality = tempLocality;
-            }
-        }
-
-        PlanItem nearCap = DataFactory.createLocality(nearLocality);
-        return nearCap;
     }
 
     public static void saveUGCPlan(UgcPlan ugcPlan) throws TravelPiException {

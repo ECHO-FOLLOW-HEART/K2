@@ -28,7 +28,10 @@ import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
+import utils.Constants;
+import utils.DataFilter;
 import utils.Planner;
 import utils.Utils;
 
@@ -100,20 +103,17 @@ public class PlanCtrl extends Controller {
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-            //web分支
-            if (webFlag == WEB_REQUEST_FLAG) {
-                UgcPlan ugcPlan = updatePlanByNode(planJson, uid);
-                return Utils.createResponse(ErrorCode.NORMAL, ugcPlan.toJson());
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, planJson);
-        } catch (ClassCastException | IllegalAccessException | ParseException | NoSuchFieldException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+            Http.Request req = request();
+            if (DataFilter.isAppRequest(req))
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC));
+            else
+                return Utils.createResponse(ErrorCode.NORMAL, updatePlanByNode(planJson, uid).toJson());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 
-    private static UgcPlan updatePlanByNode(JsonNode data, String uid) throws ParseException, TravelPiException, NoSuchFieldException, IllegalAccessException {
+    private static UgcPlan updatePlanByNode(JsonNode data, String uid) throws TravelPiException {
         String ugcPlanId = data.get("_id").asText();
         String templateId = data.get("templateId").asText();
         String title = data.get("title").asText();
@@ -148,7 +148,11 @@ public class PlanCtrl extends Controller {
             JsonNode date = tempDay.get("date");
 
             //设置Date
-            planDayEntry.date = timeFmt.parse(date.asText());
+            try {
+                planDayEntry.date = timeFmt.parse(date.asText());
+            } catch (ParseException e) {
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+            }
             if (dayIndex == 0) {
                 startDate = planDayEntry.date;
             } else if (dayIndex == jsList.size() - 1) {
@@ -158,58 +162,62 @@ public class PlanCtrl extends Controller {
             planItemList = new ArrayList<PlanItem>();
 
             for (JsonNode item : actv) {
-                //新建PlanItem
-                planItem = new PlanItem();
-                pItem = new SimpleRef();
-                pLoc = new SimpleRef();
-                planItem.ts = planDayEntry.date;
-                if (item.has("ts") && (!item.get("ts").asText().equals(""))) {
-                    planItem.ts = timeFmt.parse(item.get("ts").asText());
-                } else {
+                try {
+                    //新建PlanItem
+                    planItem = new PlanItem();
+                    pItem = new SimpleRef();
+                    pLoc = new SimpleRef();
                     planItem.ts = planDayEntry.date;
-                }
-                if (item.has("itemId")) {
-                    pItem.id = new ObjectId(item.get("itemId").asText());
-                    pItem.zhName = item.get("itemName").asText();
-                    planItem.item = pItem;
-                }
-                if (item.has("locId")) {
-                    pLoc.id = new ObjectId(item.get("locId").asText());
-                    pLoc.zhName = item.get("locName").asText();
-                    planItem.loc = pLoc;
-                }
+                    if (item.has("ts") && (!item.get("ts").asText().equals(""))) {
+                        planItem.ts = timeFmt.parse(item.get("ts").asText());
+                    } else {
+                        planItem.ts = planDayEntry.date;
+                    }
+                    if (item.has("itemId")) {
+                        pItem.id = new ObjectId(item.get("itemId").asText());
+                        pItem.zhName = item.get("itemName").asText();
+                        planItem.item = pItem;
+                    }
+                    if (item.has("locId")) {
+                        pLoc.id = new ObjectId(item.get("locId").asText());
+                        pLoc.zhName = item.get("locName").asText();
+                        planItem.loc = pLoc;
+                    }
 
-                String subTypeStr = item.get("subType").asText();
-                if (subTypeStr.equals("airport") || subTypeStr.equals("trainStaion")) {
-                    planItem.stopType = item.get("stopType").asText();
-                    if (item.has("lat") && item.has("lng")) {
-                        planItem.lat = Double.parseDouble(item.get("lat").asText());
-                        planItem.lng = Double.parseDouble(item.get("lng").asText());
+                    String subTypeStr = item.get("subType").asText();
+                    if (subTypeStr.equals("airport") || subTypeStr.equals("trainStaion")) {
+                        planItem.stopType = item.get("stopType").asText();
+                        if (item.has("lat") && item.has("lng")) {
+                            planItem.lat = Double.parseDouble(item.get("lat").asText());
+                            planItem.lng = Double.parseDouble(item.get("lng").asText());
+                        }
                     }
-                }
-                if (subTypeStr.equals("airRoute") || subTypeStr.equals("trainRoute")) {
-                    if (item.has("depStop") && item.has("depLoc")) {
-                        planItem.depLoc = new ObjectId(item.get("depLoc").asText());
-                        planItem.depStop = new ObjectId(item.get("depStop").asText());
+                    if (subTypeStr.equals("airRoute") || subTypeStr.equals("trainRoute")) {
+                        if (item.has("depStop") && item.has("depLoc")) {
+                            planItem.depLoc = new ObjectId(item.get("depLoc").asText());
+                            planItem.depStop = new ObjectId(item.get("depStop").asText());
+                        }
+                        if (item.has("arrLoc") && item.has("arrStop")) {
+                            planItem.arrLoc = new ObjectId(item.get("arrLoc").asText());
+                            planItem.arrStop = new ObjectId(item.get("arrStop").asText());
+                        }
+                        if (item.has("depTime") && item.has("arrTime")
+                                && (!item.get("depTime").asText().equals(""))
+                                && (!item.get("arrTime").asText().equals(""))) {
+                            planItem.depTime = timeFmt.parse(item.get("depTime").asText());
+                            planItem.arrTime = timeFmt.parse(item.get("arrTime").asText());
+                        }
+                        if (item.has("distance")) {
+                            planItem.distance = item.get("distance").asText();
+                        }
                     }
-                    if (item.has("arrLoc") && item.has("arrStop")) {
-                        planItem.arrLoc = new ObjectId(item.get("arrLoc").asText());
-                        planItem.arrStop = new ObjectId(item.get("arrStop").asText());
-                    }
-                    if (item.has("depTime") && item.has("arrTime")
-                            && (!item.get("depTime").asText().equals(""))
-                            && (!item.get("arrTime").asText().equals(""))) {
-                        planItem.depTime = timeFmt.parse(item.get("depTime").asText());
-                        planItem.arrTime = timeFmt.parse(item.get("arrTime").asText());
-                    }
-                    if (item.has("distance")) {
-                        planItem.distance = item.get("distance").asText();
-                    }
-                }
-                planItem.type = item.get("type").asText();
-                planItem.subType = item.get("subType").asText();
+                    planItem.type = item.get("type").asText();
+                    planItem.subType = item.get("subType").asText();
 
-                planItemList.add(planItem);
+                    planItemList.add(planItem);
+                } catch (ParseException e) {
+                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+                }
             }
             planDayEntry.actv = planItemList;
             planDayEntryList.add(planDayEntry);
@@ -228,7 +236,7 @@ public class PlanCtrl extends Controller {
         if (!uid.equals("")) {
             ugcPlan.uid = new ObjectId(uid);
             ugcPlan.persisted = true;
-        }else{
+        } else {
             ugcPlan.persisted = false;
         }
         ugcPlan.updateTime = (new Date()).getTime();
@@ -775,6 +783,16 @@ public class PlanCtrl extends Controller {
     public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) throws UnknownHostException, TravelPiException {
         List<JsonNode> results = new ArrayList<>();
 
+        if (locId != null && !locId.isEmpty()) {
+            // fix一个bug。POI的id在不经意之间变动过，所以只能做重定向处理。
+            List<String> locIdList = Arrays.asList("53aa9b3610114e3fdc2fa5b9", "53aa9b3510114e3fdc2fa3e2",
+                    "53aa9b4110114e3fdc2fb266", "53aa9b5010114e3fdc2fbcdf", "53aa9b3310114e3fdc2fa014");
+            if (locIdList.contains(locId)) {
+                poiId = locId;
+                locId = null;
+            }
+        }
+
         if (poiId != null && !poiId.isEmpty()) {
             // fix一个bug。POI的id在不经意之间变动过，所以只能做重定向处理。
             Map<String, String> poiIdMapping = new HashMap<>();
@@ -822,13 +840,13 @@ public class PlanCtrl extends Controller {
             poiIdMapping.put("53aa9b3310114e3fdc2fa014", "53f310c010114e376de5bd60");
             poiIdMapping.put("53aa9b3610114e3fdc2fa5b6", "53f30f8a10114e376de5ba23");
             poiIdMapping.put("53aa9b3610114e3fdc2fa5b7", "53f30f8b10114e376de5ba24");
+            poiIdMapping.put("53aa9a6410114e3fd4783553", "53f310ff10114e3779f93527");
+            poiIdMapping.put("53aa9a6410114e3fd478355b", "53f317d610114e3b1d2e6f06");
+            poiIdMapping.put("53aa9a6410114e3fd4783576", "53f3172710114e3b12f69d3a");
 
             if (poiIdMapping.containsKey(poiId))
                 poiId = poiIdMapping.get(poiId);
         }
-
-        if (locId.equals("53aa9b3910114e3fdc2faa5b"))
-            locId = "53aa9a6510114e3fd4783bff";
 
         Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
         //取得预算常量
@@ -856,7 +874,7 @@ public class PlanCtrl extends Controller {
                 results.add(it.next().toJson(false));
             }
         }
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
     }
 
     /**
@@ -1266,20 +1284,20 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        //WEB分支
-        if (rawPlan.has("webFlag") && rawPlan.get("webFlag").asText().equals(String.valueOf(WEB_REQUEST_FLAG))) {
+        Http.Request req = request();
+        if (DataFilter.isAppRequest(req)) {
+            //WEB分支
             String uid = rawPlan.get("uid") == null ? "" : rawPlan.get("uid").asText();
-            UgcPlan ugcPlan = null;
-            ObjectNode planNode = (ObjectNode)rawPlan;
-            planNode.put("details",Json.toJson(ret.get("details")));
+            ObjectNode planNode = (ObjectNode) rawPlan;
+            planNode.put("details", Json.toJson(ret.get("details")));
             try {
-                ugcPlan = updatePlanByNode(Json.toJson(planNode), uid);
+                updatePlanByNode(Json.toJson(planNode), uid);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success");
-            } catch (TravelPiException | ParseException | NoSuchFieldException | IllegalAccessException e) {
+            } catch (TravelPiException e) {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
             }
-        }
-        return Utils.createResponse(ErrorCode.NORMAL, ret);
+        } else
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(ret, req, Constants.SMALL_PIC));
     }
 
     /**
@@ -1307,7 +1325,8 @@ public class PlanCtrl extends Controller {
                 }
                 //取详细信息
                 JsonNode planJson = ugcPlan.toJson(true);
-                return Utils.createResponse(ErrorCode.NORMAL, planJson);
+                planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC));
             }
             //根据用户ID取得UGC路线列表
             if (!userId.equals("")) {
@@ -1316,7 +1335,7 @@ public class PlanCtrl extends Controller {
                     //取粗略信息
                     results.add(it.next().toJson(false));
                 }
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
             }
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
         } catch (ClassCastException ec) {
@@ -1389,7 +1408,7 @@ public class PlanCtrl extends Controller {
             List<String> urlList = new ArrayList<String>();
             urlList.add(uri.toString());
             share.urls = urlList;
-            return Utils.createResponse(ErrorCode.NORMAL, share.toJson());
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(share.toJson(), request(), Constants.SMALL_PIC));
         } catch (ClassCastException | NullPointerException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
         } catch (TravelPiException | NoSuchFieldException | InstantiationException | ParseException | IllegalAccessException e) {

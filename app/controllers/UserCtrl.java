@@ -193,7 +193,7 @@ public class UserCtrl extends Controller {
 
         try {
             // TODO 如果已经存在，则更新相应信息，比如todo
-            UserInfo user = UserAPI.regByOAuth(provider, oauthId, builder.get(),secToken);
+            UserInfo user = UserAPI.regByOAuth(provider, oauthId, builder.get(), secToken);
             return Utils.createResponse(ErrorCode.NORMAL, user.toJson());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
