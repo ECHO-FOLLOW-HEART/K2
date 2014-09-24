@@ -363,7 +363,7 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
 
-            //UserAPI.updateUserInfo(request());
+            UserAPI.updateUserInfo(request());
 
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();
