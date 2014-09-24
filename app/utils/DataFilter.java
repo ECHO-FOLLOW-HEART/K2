@@ -226,6 +226,29 @@ public class DataFilter {
     }
 
     /**
+     * app请求推荐时的过滤
+     *
+     * @param json
+     * @param request
+     * @return
+     */
+    public static JsonNode appRecommendFilter(JsonNode json, Request request) {
+        ObjectNode tempObjNode;
+
+        // 非App请求
+        if (!isAppRequest(request))
+            return json;
+        //App请求，不显示image
+        if (json.isArray() && json.findValues("image") != null && json.findValues("image").size() > 0) {
+            for (JsonNode node : json) {
+                tempObjNode = (ObjectNode) node;
+                tempObjNode.put("image", "");
+            }
+        }
+        return json;
+    }
+
+    /**
      * 判断是否是App请求
      *
      * @param request

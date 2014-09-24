@@ -22,6 +22,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import utils.DataFilter;
 import utils.Utils;
 
 import java.net.UnknownHostException;
@@ -493,7 +494,7 @@ public class MiscCtrl extends Controller {
             ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             Query<Recommendation> query = ds.createQuery(Recommendation.class);
 
-            query.field("enabled").equal(Boolean.TRUE).field(type).notEqual(null);
+            query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
             query.order(type).offset(page * pageSize).limit(pageSize);
 
             for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
@@ -503,6 +504,6 @@ public class MiscCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
     }
 }

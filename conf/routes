@@ -116,6 +116,9 @@ GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.Mis
 
 GET           /batch/planBudge                                   controllers.Bache.getPlanBudget(dep: String?="", arr: String?="" )
 GET           /batch/provCap                                     controllers.Bache.updateLocalityProvCap()
+#GET           /batch/recVs                                       controllers.Bache.getViewSpot()
+#GET           /batch/recLoc                                      controllers.Bache.getLocalities()
+#GET           /batch/recPlan                                     controllers.Bache.getRecPlans(plType: Int?=1)
 #-------------------------------------
 #路线
 #查看UGC路线详情
@@ -166,4 +169,15 @@ GET           /web/geo/localities/:id                            controllers.Geo
 #用户登录
 POST          /web/users/oauth-login                             controllers.UserCtrl.oauthLogin()
 #发现：推荐机制
-GET           /web/recommend                                     controllers.MiscCtrl.recommend(sortType: String?="", page: Int?=0, pageSize: Int?=20)
+#热门景点
+GET           /web/recommend/hotvs                               controllers.MiscCtrl.recommend(sortType: String = "hotVs", page: Int?=0, pageSize: Int?=20)
+#热门城市
+GET           /web/recommend/hotcity                             controllers.MiscCtrl.recommend(sortType: String = "hotCity", page: Int?=0, pageSize: Int?=20)
+#新鲜出炉
+GET           /web/recommend/newitem                             controllers.MiscCtrl.recommend(sortType: String = "newItemWeight", page: Int?=0, pageSize: Int?=20)
+#小编推荐
+GET           /web/recommend/editor                              controllers.MiscCtrl.recommend(sortType: String = "editorWeight", page: Int?=0, pageSize: Int?=20)
+#不可不去
+GET           /web/recommend/mustgo                              controllers.MiscCtrl.recommend(sortType: String = "mustGoWeight", page: Int?=0, pageSize: Int?=20)
+#人气之旅
+GET           /web/recommend/popularity                          controllers.MiscCtrl.recommend(sortType: String = "popularityWeight", page: Int?=0, pageSize: Int?=20)

@@ -4,6 +4,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.geo.Locality;
+import models.morphia.misc.Recommendation;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
@@ -147,6 +148,13 @@ public class Bache extends Controller {
     }
 
 
+    /**
+     * 生成
+     *
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
     private static Map<ObjectId, Double> getVsPriceById(ObjectId id) throws TravelPiException {
 
         Map<ObjectId, Double> mapPrice = new HashMap<ObjectId, Double>(5000);
@@ -162,6 +170,11 @@ public class Bache extends Controller {
         return mapPrice;
     }
 
+    /**
+     * 设置省会城市
+     *
+     * @return
+     */
     public static Result updateLocalityProvCap() {
 
         List<String> capList = Arrays.asList(cap);
@@ -189,5 +202,154 @@ public class Bache extends Controller {
             "西安市", "银川市", "郑州市", "济南市", "太原市", "合肥市", "武汉市", "长沙市",
             "南京市", "成都市", "贵阳市", "昆明市", "南宁市", "拉萨市", "杭州市", "南昌市",
             "广州市", "福州市", "台北市", "海口市"};
+
+
+    public static void addRecommend() {
+        try {
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            ds.save();
+            Query<Recommendation> query = ds.createQuery(Recommendation.class);
+            query.field("");
+
+        } catch (TravelPiException e) {
+            Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+
+    public static Result getLocalities() {
+        List<String> capList = Arrays.asList(cap);
+        Datastore ds = null;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+            Query<Locality> query = ds.createQuery(Locality.class);
+            query.field("zhName").hasAnyOf(capList).field("level").equal(2).field("enabled").equal(Boolean.TRUE);
+            List<Recommendation> recommendList = new ArrayList<Recommendation>();
+            Recommendation rec;
+            int index = 1;
+            for (Locality locality : query.asList()) {
+                rec = new Recommendation();
+                rec.hotCity = index;
+                index++;
+                rec.imageList = locality.imageList;
+                rec.id = locality.id;
+                rec.name = locality.zhName;
+                rec.enabled = true;
+                recommendList.add(rec);
+            }
+            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            update.save(recommendList);
+
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+    }
+
+    public static String[] vsList = new String[]{"火石寨", "黄梁梦吕仙祠", "景洪曼听公园", "中国竹艺城", "神木臭柏自然保护区",
+            "寒山寺", "罗锅箐―大羊场"};
+
+    public static Result getViewSpot() {
+        List<String> capList = Arrays.asList(vsList);
+        Datastore ds = null;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+            Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
+            query.field("name").hasAnyOf(capList).field("enabled").equal(Boolean.TRUE);
+            List<Recommendation> recommendList = new ArrayList<Recommendation>();
+            Recommendation rec;
+            int index = 1;
+            for (ViewSpot vs : query.asList()) {
+                rec = new Recommendation();
+                rec.hotVs = index;
+                index++;
+                rec.imageList = vs.imageList;
+                rec.images = vs.images;
+                rec.id = vs.id;
+                rec.name = vs.name;
+                rec.enabled = true;
+                recommendList.add(rec);
+            }
+            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            update.save(recommendList);
+
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+    }
+
+    public static String[] plListNew = new String[]{"高句丽云峰湖之旅", "桂林激情之旅", "别样武汉走透透", "老上海徒步路线六", "苏杭天堂自由行"};
+    public static String[] plListEdit = new String[]{"穿梭石头古堡间", "桂林激情之旅", "穿越历史之行", "古村风情", "古国森林胜景"};
+    public static String[] plListMust = new String[]{"神农架新奇之旅", "神农之上", "神农之上千奇百怪", "桂林激情之旅"};
+    public static String[] plListPopular = new String[]{"张家界全景之旅", "张家界休闲游", "桂林激情之旅", "张家界自然氧吧之旅"};
+    public static String AVATAR = "http://q.qlogo.cn/qqapp/1101717903/F4CE6A45B977464B9EB28EA856024170/100";
+
+    public static Result getRecPlans(int plType) {
+        List<String> capList = Arrays.asList(plListNew);
+        Class cls = Plan.class;
+        switch (plType) {
+            case 1:
+                capList = Arrays.asList(plListNew);
+                break;
+            case 2:
+                capList = Arrays.asList(plListEdit);
+                break;
+            case 3:
+                capList = Arrays.asList(plListMust);
+                break;
+            case 4:
+                capList = Arrays.asList(plListPopular);
+                break;
+        }
+        Datastore ds = null;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+            Query<Plan> query = ds.createQuery(Plan.class);
+            query.field("title").hasAnyOf(capList).field("enabled").equal(Boolean.TRUE);
+            List<Recommendation> recommendList = new ArrayList<Recommendation>();
+            Recommendation rec;
+            int index = 1;
+            for (Plan pl : query.asList()) {
+                rec = new Recommendation();
+                switch (plType) {
+                    case 1:
+                        rec.newItemWeight = index;
+                        break;
+                    case 2:
+                        rec.editorWeight = index;
+                        break;
+                    case 3:
+                        rec.mustGoWeight = index;
+                        break;
+                    case 4:
+                        rec.popularityWeight = index;
+                        break;
+                }
+                index++;
+                rec.imageList = pl.imageList;
+                rec.images = pl.images;
+                rec.id = pl.id;
+                rec.name = pl.title;
+                rec.editorNickName = "小王";
+                rec.editorAvatar = AVATAR;
+                rec.enabled = true;
+                recommendList.add(rec);
+            }
+            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            update.save(recommendList);
+
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+    }
+
 
 }
