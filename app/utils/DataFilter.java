@@ -217,6 +217,11 @@ public class DataFilter {
             tempJson = (ObjectNode)json;
             tempJson.put("description","");
         }
+        // app请求，不显示moreDesc
+        if (json.has("moreDesc")) {
+            tempJson = (ObjectNode)json;
+            tempJson.put("moreDesc","");
+        }
         return json;
     }
 

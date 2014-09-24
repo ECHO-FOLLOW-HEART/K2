@@ -105,7 +105,7 @@ public class PlanCtrl extends Controller {
 
             Http.Request req = request();
             if (DataFilter.isAppRequest(req))
-                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC));
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC),req));
             else
                 return Utils.createResponse(ErrorCode.NORMAL, updatePlanByNode(planJson, uid).toJson());
         } catch (TravelPiException e) {
