@@ -133,7 +133,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             return Json.toJson(builder.get());
         }
 
-        ObjectNode node = (ObjectNode) super.toJson();
+        ObjectNode node = (ObjectNode) super.toJson(true);
         if (uid != null)
             node.put("uid", uid.toString());
         if (templateId != null)
