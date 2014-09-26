@@ -18,6 +18,17 @@ public class Plan extends AbstractPlan implements ITravelPiFormatter {
      */
     public Integer forkedCnt;
 
+    /**
+     * 路线作者昵称
+     */
+    public String authorName;
+
+    /**
+     * 路线作者头像
+     */
+    public String authorAvatar;
+
+
     @Override
     public JsonNode toJson() {
         return toJson(true);
@@ -27,6 +38,8 @@ public class Plan extends AbstractPlan implements ITravelPiFormatter {
     public JsonNode toJson(boolean showDetails) {
         ObjectNode ret = (ObjectNode) super.toJson(showDetails);
         ret.put("forkedCnt", forkedCnt != null ? forkedCnt : 0);
+        ret.put("authorName", authorName != null ? authorName : "");
+        ret.put("authorAvatar", authorAvatar != null ? authorAvatar : "");
         return ret;
     }
 }
