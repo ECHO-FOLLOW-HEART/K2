@@ -22,6 +22,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
+import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
 
@@ -335,7 +336,7 @@ public class MiscCtrl extends Controller {
             }
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, results);
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
     }
 
     /**
