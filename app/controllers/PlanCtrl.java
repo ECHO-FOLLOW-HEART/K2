@@ -105,7 +105,7 @@ public class PlanCtrl extends Controller {
 
             Http.Request req = request();
             if (DataFilter.isAppRequest(req))
-                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC),req));
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC), req));
             else
                 return Utils.createResponse(ErrorCode.NORMAL, updatePlanByNode(planJson, uid).toJson());
         } catch (TravelPiException e) {
@@ -589,7 +589,7 @@ public class PlanCtrl extends Controller {
     public static Result saveUGCPlan() {
         JsonNode data = request().body().asJson();
         JsonNode action = data.get("action");
-        String title = null;
+        String updateField = null;
         String ugcPlanId = null;
 
         try {
@@ -598,13 +598,13 @@ public class PlanCtrl extends Controller {
             ObjectId oid = ugcPlanId == null ? new ObjectId() : new ObjectId(ugcPlanId);
             //只更新标题
             if (actionFlag.equals("updateTitle")) {
-                title = data.get("title").asText();
-                PlanAPI.updateUGCPlanByFiled(oid, "title", title);
+                updateField = data.get("title").asText();
+                PlanAPI.updateUGCPlanByFiled(oid, "title", updateField);
             }
             //只更新用户ID：web用
             if (actionFlag.equals("updateUid")) {
-                title = data.get("uid").asText();
-                PlanAPI.updateUGCPlanByFiled(oid, "uid", title);
+                updateField = data.get("uid").asText();
+                PlanAPI.updateUGCPlanByFiled(oid, "uid", updateField);
             }
             //更新路线
             if (actionFlag.equals("upsert")) {

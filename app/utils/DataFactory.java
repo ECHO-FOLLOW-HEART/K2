@@ -8,6 +8,7 @@ import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.TrainRoute;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -17,6 +18,9 @@ import java.util.List;
 public class DataFactory {
 
     public static List<?> asList(Iterator<?> it) {
+        if(null ==it){
+            return Collections.emptyList();
+        }
         List l = new ArrayList();
         for (; it.hasNext(); ) {
             Object element = (Object) it.next();

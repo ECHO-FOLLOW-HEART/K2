@@ -4,6 +4,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.geo.Locality;
+import models.morphia.misc.Description;
 import models.morphia.misc.Recommendation;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
@@ -227,6 +228,7 @@ public class Bache extends Controller {
             List<Recommendation> recommendList = new ArrayList<Recommendation>();
             Recommendation rec;
             int index = 1;
+            Description descp = null;
             for (Locality locality : query.asList()) {
                 rec = new Recommendation();
                 rec.hotCity = index;
@@ -234,6 +236,9 @@ public class Bache extends Controller {
                 rec.imageList = locality.imageList;
                 rec.id = locality.id;
                 rec.name = locality.zhName;
+                descp = new Description();
+                descp.desc = locality.desc;
+                rec.description = descp;
                 rec.enabled = true;
                 recommendList.add(rec);
             }
@@ -249,7 +254,7 @@ public class Bache extends Controller {
     }
 
     public static String[] vsList = new String[]{"火石寨", "黄梁梦吕仙祠", "景洪曼听公园", "中国竹艺城", "神木臭柏自然保护区",
-            "寒山寺", "罗锅箐―大羊场"};
+            "寒山寺", "罗锅箐―大羊场","景洪曼听公园","大连星海国际会展中心","兴光朝鲜族民族村","梅城故城址","布托湖","朗豪坊商场","高岭山","蒲花暗河景区","石象寺"};
 
     public static Result getViewSpot() {
         List<String> capList = Arrays.asList(vsList);
@@ -269,6 +274,7 @@ public class Bache extends Controller {
                 rec.images = vs.images;
                 rec.id = vs.id;
                 rec.name = vs.name;
+                rec.description = vs.description;
                 rec.enabled = true;
                 recommendList.add(rec);
             }
@@ -337,6 +343,7 @@ public class Bache extends Controller {
                 rec.name = pl.title;
                 rec.editorNickName = "小王";
                 rec.editorAvatar = AVATAR;
+                rec.description = pl.description;
                 rec.enabled = true;
                 recommendList.add(rec);
             }

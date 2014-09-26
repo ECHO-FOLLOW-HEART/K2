@@ -7,8 +7,6 @@ import models.TravelPiBaseItem;
 import play.libs.Json;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -70,6 +68,11 @@ public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatt
     public String editorAvatar;
 
     /**
+     * 介绍
+     */
+    public Description description;
+
+    /**
      * 理由
      */
     public String reason;
@@ -77,7 +80,7 @@ public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatt
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("name", name).add("id", id.toString()).add("reason", reason == null ? "" : reason)
-                .add("editor", editorNickName == null ? "" : editorNickName).add("editorAvatar", editorAvatar == null ? "" : editorAvatar);
+                .add("editor", editorNickName == null ? "" : editorNickName).add("editorAvatar", editorAvatar == null ? "" : editorAvatar).add("description", description == null ? "" : description.toJson());
 
         // 如果存在更高阶的images字段，则使用之
         if (images != null && !images.isEmpty()) {

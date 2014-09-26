@@ -116,9 +116,9 @@ GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.Mis
 
 GET           /batch/planBudge                                   controllers.Bache.getPlanBudget(dep: String?="", arr: String?="" )
 GET           /batch/provCap                                     controllers.Bache.updateLocalityProvCap()
-#GET           /batch/recVs                                       controllers.Bache.getViewSpot()
-#GET           /batch/recLoc                                      controllers.Bache.getLocalities()
-#GET           /batch/recPlan                                     controllers.Bache.getRecPlans(plType: Int?=1)
+GET           /batch/recVs                                       controllers.Bache.getViewSpot()
+GET           /batch/recLoc                                      controllers.Bache.getLocalities()
+GET           /batch/recPlan                                     controllers.Bache.getRecPlans(plType: Int?=1)
 #-------------------------------------
 #路线
 #查看UGC路线详情

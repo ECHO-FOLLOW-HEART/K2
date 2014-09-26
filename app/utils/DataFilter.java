@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
+import models.morphia.plan.Plan;
+import models.morphia.plan.PlanItem;
 import org.apache.commons.lang3.StringUtils;
 import play.Configuration;
 import play.libs.Json;
@@ -243,18 +245,18 @@ public class DataFilter {
         // app请求，截断过长的描述
         if (json.get("desc") != null && (!json.get("desc").equals(""))) {
             descFilter = StringUtils.abbreviate(json.get("desc").asText(), Constants.ABBREVIATE_LEN);
-            tempJson = (ObjectNode)json;
-            tempJson.put("desc",descFilter);
+            tempJson = (ObjectNode) json;
+            tempJson.put("desc", descFilter);
         }
         // app请求，不显示description
         if (json.has("description")) {
-            tempJson = (ObjectNode)json;
-            tempJson.put("description","");
+            tempJson = (ObjectNode) json;
+            tempJson.put("description", "");
         }
         // app请求，不显示moreDesc
         if (json.has("moreDesc")) {
-            tempJson = (ObjectNode)json;
-            tempJson.put("moreDesc","");
+            tempJson = (ObjectNode) json;
+            tempJson.put("moreDesc", "");
         }
         return json;
     }
@@ -288,13 +290,42 @@ public class DataFilter {
      * @param request
      * @return
      */
-    public static boolean isAppRequest(Request request){
+    public static boolean isAppRequest(Request request) {
         if (request.getQueryString("platform") == null)
             return false;
         String platform = request.getQueryString("platform");
         if (!platform.toUpperCase().contains("IOS") && (!platform.toUpperCase().contains("ANDROID")))
             return false;
         return true;
+    }
+
+    /**
+     * 在规划路线时，在交通中，去掉相同的车站
+     * 例如：北京机场-飞机-哈尔滨机场-哈尔滨机场-飞机-漠河机场
+     *
+     * @param plan 路线计划
+     * @param ep   去程还是返程
+     */
+    public static void trafficSameStopFilter(Plan plan, boolean ep) {
+        if (plan == null || plan.details == null || plan.details.isEmpty()) {
+            return;
+        }
+        int index = ep ? 0 : plan.details.size() - 1;
+        List<PlanItem> actvs = plan.details.get(index).actv;
+        String frontStop;
+        List<PlanItem> newActvs = new ArrayList<>();
+        PlanItem tempItem, tempItemNext;
+        int size = actvs.size();
+        for (int i = 0; i < actvs.size() - 1; i++) {
+            tempItem = actvs.get(i);
+            tempItemNext = actvs.get(i + 1);
+            if (tempItem.item.zhName.equals(tempItemNext.item.zhName)) {
+                    continue;
+            }
+            newActvs.add(tempItem);
+        }
+
+
     }
 
 
