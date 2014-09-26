@@ -116,6 +116,10 @@ public class DataFilter {
         if (json.has("details")) {
             traversalJson(json);
         }
+        // 首页推荐中
+        if (json.has("loc")) {
+            traversalLocJson(json,Constants.BIG_PIC);
+        }
         return json;
     }
 
@@ -138,7 +142,6 @@ public class DataFilter {
                 }
             }
         }
-
         if (jsNode.has("actv")) {
             for (JsonNode imgNode : jsNode.get("actv")) {
                 traversalJson(imgNode);
@@ -147,6 +150,37 @@ public class DataFilter {
         if (jsNode.has("imageList")) {
             traverImageListNode(jsNode, Constants.SMALL_PIC);
         }
+    }
+    /**
+     * 遍历loc中内容，添加图片规格。
+     */
+    public static void traversalLocJson(JsonNode jsNode,int size) {
+
+        ObjectNode tempObjNode;
+        JsonNode oNode,tempJsImg;
+        List<JsonNode> newNodeList;
+        String fullUrl;
+
+        if (jsNode.has("loc")) {
+            oNode = jsNode.get("loc");
+            //列表时
+            if (oNode.isArray() && oNode.findValues("imageList") != null && oNode.findValues("imageList").size() > 0) {
+                for (JsonNode node : oNode) {
+                    tempObjNode = (ObjectNode) node;
+                    tempJsImg = tempObjNode.get("imageList");
+                    if (!tempJsImg.isArray())
+                        continue;
+
+                    newNodeList = new ArrayList<>();
+                    for (JsonNode imgNode : tempJsImg) {
+                        fullUrl = imgNode.asText() + Constants.SYMBOL_QUESTION + getPictureUrl(size);
+                        newNodeList.add(Json.toJson(fullUrl));
+                    }
+                    tempObjNode.put("imageList", Json.toJson(newNodeList));
+                }
+            }
+        }
+
     }
 
     /**
