@@ -1285,7 +1285,7 @@ public class PlanCtrl extends Controller {
         }
 
         Http.Request req = request();
-        if (DataFilter.isAppRequest(req)) {
+        if (!DataFilter.isAppRequest(req)) {
             //WEB分支
             String uid = rawPlan.get("uid") == null ? "" : rawPlan.get("uid").asText();
             ObjectNode planNode = (ObjectNode) rawPlan;
