@@ -80,7 +80,7 @@ public class PlanAPI {
             return explore(
                     locId != null && !locId.isEmpty() ? new ObjectId(locId) : null,
                     poiId != null && !poiId.isEmpty() ? new ObjectId(poiId) : null,
-                    sort, tag, minDays, maxDays, page, pageSize, sortField);
+                    sort, tag != null && !tag.isEmpty() ? tag : null, minDays, maxDays, page, pageSize, sortField);
         } catch (IllegalArgumentException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
         }
@@ -533,13 +533,13 @@ public class PlanAPI {
 
         if (route == null) {
             //取得中转站
-            Locality midLocality = GEOUtils.getNearCap(epDep?travelLoc:remoteLoc);
+            Locality midLocality = GEOUtils.getNearCap(epDep ? travelLoc : remoteLoc);
             PlanItem nearCap = DataFactory.createLocality(midLocality);
             //取得转乘交通
-            List<AbstractRoute> twoRoutes = searchMoreWayRoutes(epDep,midLocality, remoteLoc,  travelLoc,  calLower,timeLimits);
-            if(twoRoutes.isEmpty()){
+            List<AbstractRoute> twoRoutes = searchMoreWayRoutes(epDep, midLocality, remoteLoc, travelLoc, calLower, timeLimits);
+            if (twoRoutes.isEmpty()) {
                 return plan;
-            }else{
+            } else {
                 PlanItem depItem = DataFactory.createDepStop(twoRoutes.get(0));
                 PlanItem arrItem = DataFactory.createArrStop(twoRoutes.get(0));
                 PlanItem trafficInfo = DataFactory.createTrafficInfo(twoRoutes.get(0));
@@ -564,7 +564,7 @@ public class PlanAPI {
                     addTrafficItem(false, plan, trafficInfo);
                     addTrafficItem(false, plan, arrItem);
                 }
-                DataFilter.trafficSameStopFilter(plan,epDep);
+                DataFilter.trafficSameStopFilter(plan, epDep);
                 return plan;
             }
 
@@ -608,14 +608,14 @@ public class PlanAPI {
     }
 
 
-    private static List<AbstractRoute> searchMoreWayRoutes(boolean epDep,Locality midLocality ,ObjectId remoteLocPara, ObjectId travelLocPara, Calendar calLower, final List<Calendar> timeLimits) throws TravelPiException {
+    private static List<AbstractRoute> searchMoreWayRoutes(boolean epDep, Locality midLocality, ObjectId remoteLocPara, ObjectId travelLocPara, Calendar calLower, final List<Calendar> timeLimits) throws TravelPiException {
 
         int MAX_ROUTES = 20;
-        ObjectId remoteLoc,travelLoc;
-        if(epDep){
+        ObjectId remoteLoc, travelLoc;
+        if (epDep) {
             remoteLoc = remoteLocPara;
             travelLoc = travelLocPara;
-        }else{
+        } else {
             remoteLoc = travelLocPara;
             travelLoc = remoteLocPara;
         }
@@ -643,7 +643,7 @@ public class PlanAPI {
         List firstTrainList = null;
         //再推火车飞机
         if (!nextAirList.isEmpty()) {
-            RouteIterator firstTrainIt = TrafficAPI.searchTrainRoutes( remoteLoc , midLocality.id, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+            RouteIterator firstTrainIt = TrafficAPI.searchTrainRoutes(remoteLoc, midLocality.id, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
             firstTrainList = DataFactory.asList(firstTrainIt);
 
             List<AbstractRoute> trainAirRoutes = PlanUtils.getFitRoutes(firstTrainList, nextAirList);
