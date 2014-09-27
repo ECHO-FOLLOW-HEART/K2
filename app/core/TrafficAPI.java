@@ -97,8 +97,8 @@ public class TrafficAPI {
             }
         }
 
-        // 时间节点过滤。如果航班较少，就不做事件约束了
-        if (epTimeLimits != null && epTimeLimits.size() == 2 && query.asList().size() > 4) {
+        // 时间节点过滤。如果航班较少，就不做时间约束了
+        if (epTimeLimits != null && epTimeLimits.size() == 2 && query.asList().size() > 6) {
             Calendar lower = Calendar.getInstance();
             lower.setTimeInMillis(epTimeLimits.get(0).getTimeInMillis());
             Calendar upper = Calendar.getInstance();
@@ -211,7 +211,7 @@ public class TrafficAPI {
         query.or(query.criteria("details.stop.id").equal(arrId), query.criteria("details.loc.id").equal(arrId));
 
         // 时间节点过滤
-        if (epTimeLimits != null && epTimeLimits.size() == 2 && query.asList().size() > 4) {
+        if (epTimeLimits != null && epTimeLimits.size() == 2 && query.asList().size() > 6) {
             Calendar lower = Calendar.getInstance();
             lower.setTimeInMillis(epTimeLimits.get(0).getTimeInMillis());
             Calendar upper = Calendar.getInstance();

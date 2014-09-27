@@ -4,8 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
-import models.morphia.plan.Plan;
-import models.morphia.plan.PlanItem;
 import org.apache.commons.lang3.StringUtils;
 import play.Configuration;
 import play.libs.Json;
@@ -101,7 +99,6 @@ public class DataFilter {
                 tempJsImg = tempObjNode.get("imageList");
                 if (!tempJsImg.isArray())
                     continue;
-
                 newNodeList = new ArrayList<>();
                 for (JsonNode imgNode : tempJsImg) {
                     fullUrl = imgNode.asText() + Constants.SYMBOL_QUESTION + picUrl;
@@ -120,7 +117,7 @@ public class DataFilter {
         }
         // 首页推荐中
         if (json.has("loc")) {
-            traversalLocJson(json,Constants.BIG_PIC);
+            traversalLocJson(json, Constants.BIG_PIC);
         }
         return json;
     }
@@ -153,13 +150,14 @@ public class DataFilter {
             traverImageListNode(jsNode, Constants.SMALL_PIC);
         }
     }
+
     /**
      * 遍历loc中内容，添加图片规格。
      */
-    public static void traversalLocJson(JsonNode jsNode,int size) {
+    public static void traversalLocJson(JsonNode jsNode, int size) {
 
         ObjectNode tempObjNode;
-        JsonNode oNode,tempJsImg;
+        JsonNode oNode, tempJsImg;
         List<JsonNode> newNodeList;
         String fullUrl;
 
@@ -306,27 +304,28 @@ public class DataFilter {
      * @param plan 路线计划
      * @param ep   去程还是返程
      */
-    public static void trafficSameStopFilter(Plan plan, boolean ep) {
-        if (plan == null || plan.details == null || plan.details.isEmpty()) {
-            return;
-        }
-        int index = ep ? 0 : plan.details.size() - 1;
-        List<PlanItem> actvs = plan.details.get(index).actv;
-        String frontStop;
-        List<PlanItem> newActvs = new ArrayList<>();
-        PlanItem tempItem, tempItemNext;
-        int size = actvs.size();
-        for (int i = 0; i < actvs.size() - 1; i++) {
-            tempItem = actvs.get(i);
-            tempItemNext = actvs.get(i + 1);
-            if (tempItem.item.zhName.equals(tempItemNext.item.zhName)) {
-                    continue;
-            }
-            newActvs.add(tempItem);
-        }
-
-
-    }
-
+//    public static void trafficSameStopFilter(Plan plan, boolean ep) {
+//        if (plan == null || plan.details == null || plan.details.isEmpty()) {
+//            return;
+//        }
+//        int index = ep ? 0 : plan.details.size() - 1;
+//        List<PlanItem> actvs = plan.details.get(index).actv;
+//        String frontStop;
+//        List<PlanItem> newActvs = new ArrayList<>();
+//        PlanItem tempItem, tempItemNext;
+//        int size = actvs.size();
+//        for (int i = 0; i < actvs.size() - 1; i++) {
+//            tempItem = actvs.get(i);
+//            tempItemNext = actvs.get(i + 1);
+//            if (tempItem.item.zhName.equals(tempItemNext.item.zhName)) {
+//                continue;
+//            }
+//            newActvs.add(tempItem);
+//            if (i == actvs.size() - 2) {
+//                newActvs.add(tempItemNext);
+//            }
+//        }
+//        plan.details.get(index).actv = newActvs;
+//    }
 
 }

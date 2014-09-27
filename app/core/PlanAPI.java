@@ -487,54 +487,23 @@ public class PlanAPI {
         ObjectId travelLoc = actv.loc.id;
 
         // 大交通筛选
-        List<Calendar> timeLimits;
-        Calendar calLower, calUpper;
-
-        if (epDep) {
-            calLower = Calendar.getInstance();
-            calLower.setTime(dayEntry.date);
-            // 允许的日期从前一天17:00到第二天12:00
-            calLower.add(Calendar.DAY_OF_YEAR, -1);
-            calLower.set(Calendar.HOUR_OF_DAY, 17);
-            calLower.set(Calendar.MINUTE, 0);
-            calLower.set(Calendar.SECOND, 0);
-            calLower.set(Calendar.MILLISECOND, 0);
-            calUpper = Calendar.getInstance();
-            calUpper.setTime(dayEntry.date);
-            calUpper.set(Calendar.HOUR_OF_DAY, 12);
-            calUpper.set(Calendar.MINUTE, 0);
-            calUpper.set(Calendar.SECOND, 0);
-            calUpper.set(Calendar.MILLISECOND, 0);
-        } else {
-            calLower = Calendar.getInstance();
-            calLower.setTime(dayEntry.date);
-            // 允许的日期从前一天12:00到第二天12:00
-            calLower.set(Calendar.HOUR_OF_DAY, 12);
-            calLower.set(Calendar.MINUTE, 0);
-            calLower.set(Calendar.SECOND, 0);
-            calLower.set(Calendar.MILLISECOND, 0);
-            calUpper = Calendar.getInstance();
-            calUpper.setTime(dayEntry.date);
-            calUpper.add(Calendar.DAY_OF_YEAR, 1);
-            calUpper.set(Calendar.HOUR_OF_DAY, 12);
-            calUpper.set(Calendar.MINUTE, 0);
-            calUpper.set(Calendar.SECOND, 0);
-            calUpper.set(Calendar.MILLISECOND, 0);
-        }
-        timeLimits = Arrays.asList(calLower, calUpper);
-
+        List<Calendar> timeLimits = DataFactory.createTrafficTimeFilter(dayEntry.date, epDep);
+        Calendar calLower = timeLimits.get(0);
 
         //对特殊的地点做过滤
         travelLoc = new ObjectId(DataFilter.localMapping(travelLoc.toString()));
-        AbstractRoute midRoute = null;
         AbstractRoute route = epDep ? searchOneWayRoutes(remoteLoc, travelLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE) :
                 searchOneWayRoutes(travelLoc, remoteLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE);
 
-
+        // 如果没有交通，就去掉时间过滤
+        if (route == null) {
+            route = epDep ? searchOneWayRoutes(remoteLoc, travelLoc, calLower, null, TrafficAPI.SortField.PRICE) :
+                    searchOneWayRoutes(travelLoc, remoteLoc, calLower, null, TrafficAPI.SortField.PRICE);
+        }
+        //如果没有交通，就添加转乘交通
         if (route == null) {
             //取得中转站
-            Locality midLocality = GEOUtils.getNearCap(epDep ? travelLoc : remoteLoc);
-            PlanItem nearCap = DataFactory.createLocality(midLocality);
+            Locality midLocality = GEOUtils.getInstance().getNearCap(travelLoc);
             //取得转乘交通
             List<AbstractRoute> twoRoutes = searchMoreWayRoutes(epDep, midLocality, remoteLoc, travelLoc, calLower, timeLimits);
             if (twoRoutes.isEmpty()) {
@@ -549,26 +518,26 @@ public class PlanAPI {
                 PlanItem trafficInfoTwo = DataFactory.createTrafficInfo(twoRoutes.get(1));
 
                 if (epDep) {
-                    addTrafficItem(true, plan, arrItemTwo);
-                    addTrafficItem(true, plan, trafficInfoTwo);
-                    addTrafficItem(true, plan, depItemTwo);
+                    addTrafficItem(epDep, plan, arrItemTwo);
+                    addTrafficItem(epDep, plan, trafficInfoTwo);
+                    addTrafficItem(epDep, plan, depItemTwo);
                     addTrafficItem(epDep, plan, arrItem);
                     addTrafficItem(epDep, plan, trafficInfo);
                     addTrafficItem(epDep, plan, depItem);
                 } else {
-
                     addTrafficItem(epDep, plan, depItem);
                     addTrafficItem(epDep, plan, trafficInfo);
                     addTrafficItem(epDep, plan, arrItem);
-                    addTrafficItem(false, plan, depItem);
-                    addTrafficItem(false, plan, trafficInfo);
-                    addTrafficItem(false, plan, arrItem);
+                    addTrafficItem(epDep, plan, depItemTwo);
+                    addTrafficItem(epDep, plan, trafficInfoTwo);
+                    addTrafficItem(epDep, plan, arrItemTwo);
                 }
-                DataFilter.trafficSameStopFilter(plan, epDep);
                 return plan;
             }
 
         }
+
+
         // 构造出发、到达和交通信息三个item
         PlanItem depItem = DataFactory.createDepStop(route);
         PlanItem arrItem = DataFactory.createArrStop(route);
@@ -587,24 +556,13 @@ public class PlanAPI {
         return plan;
     }
 
-    private static List<? extends AbstractRoute> searchRoutes(ObjectId remoteLoc, ObjectId travelLoc, Calendar calLower, final List<Calendar> timeLimits, TrafficAPI.SortField sortField) throws TravelPiException {
-        RouteIterator it = TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
-        //次推火车
-        if (!it.hasNext()) {
-            it = TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
-        }
-        List routeList = DataFactory.asList(it);
-        return routeList;
-    }
-
     private static AbstractRoute searchOneWayRoutes(ObjectId remoteLoc, ObjectId travelLoc, Calendar calLower, final List<Calendar> timeLimits, TrafficAPI.SortField sortField) throws TravelPiException {
         RouteIterator it = TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
         //次推火车
         if (!it.hasNext()) {
             it = TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
         }
-        List list = DataFactory.asList(it);
-        return list.isEmpty() ? null : (AbstractRoute) list.get(0);
+        return it.hasNext() ? it.next() : null;
     }
 
 

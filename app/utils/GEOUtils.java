@@ -3,17 +3,22 @@ package utils;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.geo.Locality;
-import models.morphia.plan.PlanItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 
+import java.util.Hashtable;
 import java.util.Iterator;
 
 /**
  * Created by topy on 2014/9/25.
  */
 public class GEOUtils {
+
+    private static GEOUtils ourInstance;
+
+    //Key-目的地的LocId,Value-目的地附近省会
+    private static Hashtable<ObjectId, Locality> dsMap = new Hashtable<>();
 
     /**
      * 找到距离最近的省会
@@ -22,10 +27,13 @@ public class GEOUtils {
      * @return
      * @throws exception.TravelPiException
      */
-    public static Locality getNearCap(ObjectId travelId) throws TravelPiException {
-        if(null == travelId){
+    public synchronized Locality getNearCap(ObjectId travelId) throws TravelPiException {
+        if (null == travelId) {
             return null;
         }
+        if (dsMap.containsKey(travelId))
+            return dsMap.get(travelId);
+
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         //查询出路线的目的地
         Query<Locality> queryLoc = ds.createQuery(Locality.class);
@@ -52,6 +60,14 @@ public class GEOUtils {
                 nearLocality = tempLocality;
             }
         }
+        dsMap.put(travelId, nearLocality);
         return nearLocality;
+    }
+
+    public synchronized static GEOUtils getInstance() throws TravelPiException {
+        if (ourInstance == null)
+            ourInstance = new GEOUtils();
+
+        return ourInstance;
     }
 }
