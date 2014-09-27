@@ -92,6 +92,7 @@ public class TravelNoteAPI {
                 note.source = "baidu";
                 note.commentCnt = (Integer) doc.get("commentCnt");
                 note.viewCnt = (Integer) doc.get("viewCnt");
+                note.publishDate = new Date();
 
                 if (note.contents.size() > 1) {
                     sb = new StringBuilder();

@@ -7,6 +7,7 @@ import models.TravelPiBaseItem;
 import org.mongodb.morphia.annotations.Entity;
 import play.libs.Json;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -122,6 +123,8 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
             } catch (IllegalAccessException | NoSuchFieldException ignored) {
             }
         }
+
+        builder.add("publishDate", publishDate == null ? "" : new SimpleDateFormat("yyyy-MM-dd").format(publishDate));
 
         return Json.toJson(builder.get());
     }
