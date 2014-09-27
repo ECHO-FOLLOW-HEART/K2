@@ -41,18 +41,19 @@ public class PlanAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<Plan> query = ds.createQuery(Plan.class);
 
-        if (locId != null && !locId.equals(""))
-            query.field("targets.id").equal(locId);
+        if (locId == null && poiId == null && tag == null)
+            return new ArrayList<Plan>().iterator();
 
+        if (locId != null)
+            query.field("targets.id").equal(locId);
         if (poiId != null)
             query.field("details.actv.item.id").equal(poiId);
-
         if (tag != null && !tag.isEmpty())
             query.field("tags").equal(tag);
+
         query.and(query.criteria("days").greaterThanOrEq(minDays),
                 query.criteria("days").lessThanOrEq(maxDays));
 
-//        query.field("desc").notEqual("").field("days").greaterThan(0).field("vsCnt").greaterThan(0);
         query.field("enabled").equal(Boolean.TRUE);
         query.order("manualPriority").offset(page * pageSize).limit(pageSize);
 
