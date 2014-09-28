@@ -14,10 +14,8 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
-import utils.DataFactory;
-import utils.DataFilter;
-import utils.GEOUtils;
-import utils.PlanUtils;
+import play.mvc.Http;
+import utils.*;
 
 import java.util.*;
 
@@ -172,11 +170,11 @@ public class PlanAPI {
      * @param backLoc
      * @return
      */
-    public static UgcPlan doPlanner(String planId, String fromLoc, String backLoc, Calendar firstDate) throws TravelPiException {
+    public static UgcPlan doPlanner(String planId, String fromLoc, String backLoc, Calendar firstDate, Http.Request req) throws TravelPiException {
         try {
             if (backLoc == null || backLoc.isEmpty())
                 backLoc = fromLoc;
-            return doPlanner(new ObjectId(planId), new ObjectId(fromLoc), new ObjectId(backLoc), firstDate);
+            return doPlanner(new ObjectId(planId), new ObjectId(fromLoc), new ObjectId(backLoc), firstDate, req);
         } catch (IllegalArgumentException | NoSuchFieldException | IllegalAccessException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId));
         }
@@ -190,7 +188,7 @@ public class PlanAPI {
      * @param backLoc
      * @return
      */
-    public static UgcPlan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+    public static UgcPlan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate, Http.Request req) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
         // 获取模板路线信息
         Plan plan = getPlan(planId, false);
         if (plan == null)
@@ -216,9 +214,15 @@ public class PlanAPI {
             idx++;
         }
 
-        // 加入大交通
-        addTelomere(true, plan, fromLoc);
-        addTelomere(false, plan, backLoc);
+        if (AdapterUtils.isVerUnder120(req)) {
+            // 适配1.2.0及以下版本
+            AdapterUtils.addTelomere_120(true, plan, fromLoc);
+            AdapterUtils.addTelomere_120(false, plan, backLoc);
+        } else {
+            // 加入大交通
+            addTelomere(true, plan, fromLoc);
+            addTelomere(false, plan, backLoc);
+        }
 
         // 加入酒店
         addHotels(plan.details);

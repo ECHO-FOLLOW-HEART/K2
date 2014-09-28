@@ -30,10 +30,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.Constants;
-import utils.DataFilter;
-import utils.Planner;
-import utils.Utils;
+import utils.*;
 
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -64,6 +61,7 @@ public class PlanCtrl extends Controller {
      */
     public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int webFlag, String uid) {
         try {
+            Http.Request req = request();
             if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);
                 if (plan == null)
@@ -72,7 +70,8 @@ public class PlanCtrl extends Controller {
             }
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
-            UgcPlan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
+
+            UgcPlan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req);
 
             Configuration config = Configuration.root();
             Map budget = (Map) config.getObject("budget");
@@ -103,7 +102,7 @@ public class PlanCtrl extends Controller {
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-            Http.Request req = request();
+
             if (DataFilter.isAppRequest(req))
                 return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC), req));
             else
