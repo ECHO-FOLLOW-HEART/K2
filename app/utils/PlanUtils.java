@@ -1,5 +1,6 @@
 package utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import models.morphia.traffic.AbstractRoute;
 
 import java.util.ArrayList;
@@ -11,6 +12,15 @@ import java.util.List;
  * Created by topy on 2014/9/25.
  */
 public class PlanUtils {
+
+    public static String TRANS_FROM_FIRST = "from.2.1";
+    public static String TRANS_FROM_NEXT = "from.2.2";
+    public static String TRANS_BACK_FIRST = "back.2.1";
+    public static String TRANS_BACK_NEXT = "back.2.2";
+
+    public static String NO_TRANS_FROM = "no.from";
+    public static String NO_TRANS_BACK = "no.back";
+
 
     public static boolean matchRoutes(AbstractRoute firstRoute, AbstractRoute secondRoute) {
         Calendar depTime = Calendar.getInstance();
@@ -33,17 +43,17 @@ public class PlanUtils {
     }
 
     public static List<AbstractRoute> getFitRoutes(List<AbstractRoute> first, List<AbstractRoute> second) {
-        if(first.isEmpty() ||second.isEmpty()){
+        if (first.isEmpty() || second.isEmpty()) {
             return Collections.emptyList();
         }
         AbstractRoute firstRoute = null;
         AbstractRoute secondRoute = null;
         boolean findFlag = false;
         for (AbstractRoute fRoute : first) {
-            for(AbstractRoute sRoute : second){
-                if(findFlag)
+            for (AbstractRoute sRoute : second) {
+                if (findFlag)
                     break;
-                if(matchRoutes(fRoute,sRoute)){
+                if (matchRoutes(fRoute, sRoute)) {
                     firstRoute = fRoute;
                     secondRoute = sRoute;
                     findFlag = true;
@@ -51,7 +61,7 @@ public class PlanUtils {
                 }
             }
         }
-        if(findFlag){
+        if (findFlag) {
             List<AbstractRoute> result = new ArrayList<>();
             result.add(firstRoute);
             result.add(secondRoute);
@@ -59,5 +69,23 @@ public class PlanUtils {
             return result;
         }
         return Collections.emptyList();
+    }
+
+    public static boolean isTransferTraffic(JsonNode item) {
+
+        if (item.get("transfer") != null && !item.get("transfer").asText().startsWith("no")) {
+            return true;
+        }
+        return false;
+    }
+
+    public static boolean isFromTraffic(JsonNode item) {
+        if (item.get("transfer") != null && item.get("transfer").asText().startsWith("from")) {
+            return true;
+        }
+        if (item.get("transfer") != null && item.get("transfer").asText().endsWith("from")) {
+            return true;
+        }
+        return false;
     }
 }

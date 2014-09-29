@@ -39,6 +39,8 @@ public class PlanItem implements ITravelPiFormatter {
 
     public Date ts;
 
+    public String transfer;
+
     @Transient
     public Object extra;
 
@@ -68,6 +70,9 @@ public class PlanItem implements ITravelPiFormatter {
         }
         builder.add("type", type != null ? type : "");
         builder.add("subType", subType != null ? subType : "");
+        if (type != null && type.equals("traffic")) {
+            builder.add("transfer", transfer != null ? transfer : "");
+        }
 
         final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         if (subType != null && (subType.equals("airport") || subType.equals("trainStaion"))) {

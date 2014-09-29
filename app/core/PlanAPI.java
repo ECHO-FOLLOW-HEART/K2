@@ -516,10 +516,16 @@ public class PlanAPI {
                 PlanItem depItem = DataFactory.createDepStop(twoRoutes.get(0));
                 PlanItem arrItem = DataFactory.createArrStop(twoRoutes.get(0));
                 PlanItem trafficInfo = DataFactory.createTrafficInfo(twoRoutes.get(0));
+                depItem.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
+                arrItem.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
+                trafficInfo.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
 
                 PlanItem depItemTwo = DataFactory.createDepStop(twoRoutes.get(1));
                 PlanItem arrItemTwo = DataFactory.createArrStop(twoRoutes.get(1));
                 PlanItem trafficInfoTwo = DataFactory.createTrafficInfo(twoRoutes.get(1));
+                depItemTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
+                arrItemTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
+                trafficInfoTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
 
                 if (epDep) {
                     addTrafficItem(epDep, plan, arrItemTwo);
@@ -546,6 +552,9 @@ public class PlanAPI {
         PlanItem depItem = DataFactory.createDepStop(route);
         PlanItem arrItem = DataFactory.createArrStop(route);
         PlanItem trafficInfo = DataFactory.createTrafficInfo(route);
+        depItem.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
+        arrItem.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
+        trafficInfo.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
 
         if (epDep) {
             addTrafficItem(true, plan, arrItem);

@@ -993,6 +993,7 @@ public class PlanCtrl extends Controller {
                 planItem.loc = airport.addr.loc;
                 planItem.type = "traffic";
                 planItem.subType = "airport";
+                planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
                 } catch (ParseException ignored) {
@@ -1008,6 +1009,7 @@ public class PlanCtrl extends Controller {
                 planItem.loc = trainStation.addr.loc;
                 planItem.type = "traffic";
                 planItem.subType = "trainStation";
+                planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
                 } catch (ParseException ignored) {
@@ -1022,6 +1024,7 @@ public class PlanCtrl extends Controller {
                 planItem.item = ref;
                 planItem.type = "traffic";
                 planItem.subType = "airRoute";
+                planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
 //                planItem.ts = airRoute.depTime;
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
@@ -1037,6 +1040,7 @@ public class PlanCtrl extends Controller {
                 planItem.item = ref;
                 planItem.type = "traffic";
                 planItem.subType = "trainRoute";
+                planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
 //                planItem.ts = trainRoute.depTime;
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
@@ -1122,6 +1126,9 @@ public class PlanCtrl extends Controller {
             String type = item.get("type").asText();
             if (!type.equals("traffic"))
                 continue;
+            if (PlanUtils.isTransferTraffic(item)) {
+                needOptimize = false;
+            }
 
             String subType = item.get("subType").asText();
             PlanItem trafficItem = trafficMapper(item);
@@ -1130,13 +1137,14 @@ public class PlanCtrl extends Controller {
             else
                 lastTs = trafficItem.ts;
 
+            isAway = PlanUtils.isFromTraffic(item);
             (isAway ? awayTraffic : backTraffic).add(trafficItem);
 
-            if (subType.equals("airport") || subType.equals("trainStation")) {
-                arrived = !arrived;
-                if (arrived)
-                    isAway = !isAway;
-            }
+//            if (subType.equals("airport") || subType.equals("trainStation")) {
+//                arrived = !arrived;
+//                if (arrived)
+//                    isAway = !isAway;
+//            }
         }
 
         // 需要考虑两端的大交通的时间是否需要shift
