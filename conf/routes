@@ -137,6 +137,8 @@ POST          /web/ugc-plans                                     controllers.Pla
 DELETE        /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.deleteUGCPlans(ugcPlanId: String)
 #优化并保存路线
 POST          /web/plans/optimizers                              controllers.PlanCtrl.optimizePlan()
+#路线相关游记
+GET           /web/misc/notes/search                             controllers.TravelNoteCtrl.searchNotes()
 
 #POI
 #搜索POI信息：根据位置、标签、关键词
