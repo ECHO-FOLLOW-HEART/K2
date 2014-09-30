@@ -6,7 +6,10 @@ import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import play.libs.Json;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -68,6 +71,15 @@ public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatt
     public String editorAvatar;
 
     /**
+     * 路线编辑的头像
+     */
+    public Date editorDate;
+    /**
+     * 浏览量
+     */
+    public Integer planViews;
+
+    /**
      * 介绍
      */
     public Description description;
@@ -79,8 +91,12 @@ public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatt
 
     @Override
     public JsonNode toJson() {
+        final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("name", name).add("id", id.toString()).add("reason", reason == null ? "" : reason)
-                .add("editor", editorNickName == null ? "" : editorNickName).add("editorAvatar", editorAvatar == null ? "" : editorAvatar).add("description", description == null ? "" : description.toJson());
+                .add("editor", editorNickName == null ? "" : editorNickName).add("editorAvatar", editorAvatar == null ? "" : editorAvatar)
+                .add("description", description == null ? "" : description.toJson())
+                .add("editorDate", editorDate == null ? "" : fmt.format(editorDate))
+                .add("planViews", planViews == null ? "" : planViews);
 
         // 如果存在更高阶的images字段，则使用之
         if (images != null && !images.isEmpty()) {

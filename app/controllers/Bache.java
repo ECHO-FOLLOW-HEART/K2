@@ -254,7 +254,7 @@ public class Bache extends Controller {
     }
 
     public static String[] vsList = new String[]{"火石寨", "黄梁梦吕仙祠", "景洪曼听公园", "中国竹艺城", "神木臭柏自然保护区",
-            "寒山寺", "罗锅箐―大羊场","景洪曼听公园","大连星海国际会展中心","兴光朝鲜族民族村","梅城故城址","布托湖","朗豪坊商场","高岭山","蒲花暗河景区","石象寺"};
+            "寒山寺", "罗锅箐―大羊场", "景洪曼听公园", "大连星海国际会展中心", "兴光朝鲜族民族村", "梅城故城址", "布托湖", "朗豪坊商场", "高岭山", "蒲花暗河景区", "石象寺"};
 
     public static Result getViewSpot() {
         List<String> capList = Arrays.asList(vsList);
@@ -293,34 +293,51 @@ public class Bache extends Controller {
     public static String[] plListEdit = new String[]{"穿梭石头古堡间", "桂林激情之旅", "穿越历史之行", "古村风情", "古国森林胜景"};
     public static String[] plListMust = new String[]{"神农架新奇之旅", "神农之上", "神农之上千奇百怪", "桂林激情之旅"};
     public static String[] plListPopular = new String[]{"张家界全景之旅", "张家界休闲游", "桂林激情之旅", "张家界自然氧吧之旅"};
-    public static String AVATAR = "http://q.qlogo.cn/qqapp/1101717903/F4CE6A45B977464B9EB28EA856024170/100";
+    public static String[] EDITOR_AVATAR = new String[]{"http://q.qlogo.cn/qqapp/1101717903/F4CE6A45B977464B9EB28EA856024170/100",
+            "http://tp1.sinaimg.cn/1449136544/180/5700214805/0", "http://tp2.sinaimg.cn/1988161053/180/5649844519/1",
+            "http://tp2.sinaimg.cn/1350968733/180/5622387392/1"};
+
+    public static String[] EDITOR_NICKNAME = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
+
+    public static String[] EDITOR_DATE = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
 
     public static Result getRecPlans(int plType) {
         List<String> capList = Arrays.asList(plListNew);
+
         Class cls = Plan.class;
+        int manualIndex = 1;
         switch (plType) {
             case 1:
+                manualIndex = 1;
                 capList = Arrays.asList(plListNew);
                 break;
             case 2:
+                manualIndex = 2;
                 capList = Arrays.asList(plListEdit);
                 break;
             case 3:
+                manualIndex = 3;
                 capList = Arrays.asList(plListMust);
                 break;
             case 4:
+                manualIndex = 4;
                 capList = Arrays.asList(plListPopular);
                 break;
         }
         Datastore ds = null;
         try {
+
             ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+
+            Query<Plan> querySrc = ds.createQuery(Plan.class);
+            querySrc.field("manualPriority").equal(manualIndex).field("desc").notEqual(null)
+            .field("images").notEqual(null).field("enabled").equal(Boolean.TRUE);
             Query<Plan> query = ds.createQuery(Plan.class);
-            query.field("title").hasAnyOf(capList).field("enabled").equal(Boolean.TRUE);
+            List<Plan> titleList = querySrc.asList();
             List<Recommendation> recommendList = new ArrayList<Recommendation>();
             Recommendation rec;
             int index = 1;
-            for (Plan pl : query.asList()) {
+            for (Plan pl : titleList) {
                 rec = new Recommendation();
                 switch (plType) {
                     case 1:
@@ -336,14 +353,17 @@ public class Bache extends Controller {
                         rec.popularityWeight = index;
                         break;
                 }
+                int number = new Random().nextInt(3) + 1;
                 index++;
                 rec.imageList = pl.imageList;
                 rec.images = pl.images;
                 rec.id = pl.id;
                 rec.name = pl.title;
-                rec.editorNickName = "小王";
-                rec.editorAvatar = AVATAR;
+                rec.editorNickName = EDITOR_NICKNAME[number];
+                rec.editorAvatar = EDITOR_AVATAR[number];
                 rec.description = pl.description;
+                rec.editorDate = new Date();
+                rec.planViews = 1000 + new Random().nextInt(1000);
                 rec.enabled = true;
                 recommendList.add(rec);
             }
