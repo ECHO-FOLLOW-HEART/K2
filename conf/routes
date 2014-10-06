@@ -15,6 +15,10 @@ GET           /geo/localities/search                             controllers.Geo
 GET           /geo/localities/:id                                controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 # 百度ID转换
 GET           /geo/localities/baiduId/:baiduId                   controllers.GeoCtrl.getLocalityBaiduId(baiduId: Integer)
+# 搜索国家
+GET           /geo/countries/search                              controllers.GeoCtrl.searchCountry(keyword: String?="", searchType: String?="", page: Int?=0, pageSize: Int?=10)
+# 获得国家信息
+GET           /geo/countries/:id                                 controllers.GeoCtrl.getCountry(id: String)
 
 # 交通查询
 GET           /itineraries/air-routes                            controllers.TrafficCtrl.searchAirRoutes(dep: String, arr: String, depTime: String?="", sortField: String?="price", sort: String?="desc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)

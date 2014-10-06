@@ -7,6 +7,7 @@ import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.geos.Locality;
+import models.morphia.geo.Country;
 import models.morphia.poi.AbstractPOI;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -153,5 +154,60 @@ public class GeoCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
+    }
+
+    /**
+     * 根据ID获得
+     *
+     * @param id
+     * @return
+     */
+    public static Result getCountry(String id) {
+        try {
+            Country country = LocalityAPI.countryDetails(id);
+            return Utils.createResponse(ErrorCode.NORMAL, country.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 搜索国家信息
+     *
+     * @param keyword
+     * @param searchType
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result searchCountry(String keyword, String searchType, int page, int pageSize) {
+//        if (keyword == null || keyword.trim().isEmpty())
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid keyword");
+        if (searchType == null || searchType.trim().isEmpty())
+            searchType = "name";
+
+        try {
+            List<Country> countryList;
+            switch (searchType) {
+                case "name":
+                    countryList = LocalityAPI.searchCountryByName(keyword, page, pageSize);
+                    break;
+                case "code":
+                    countryList = LocalityAPI.searchCountryByCode(keyword, page, pageSize);
+                    break;
+                case "region":
+                    countryList = LocalityAPI.searchCountryByRegion(keyword, page, pageSize);
+                    break;
+                default:
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search type: %s", searchType));
+            }
+
+            List<JsonNode> result = new ArrayList<>();
+            for (Country c : countryList)
+                result.add(c.toJson());
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
     }
 }

@@ -3,6 +3,7 @@ package core;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.geo.Country;
 import models.morphia.geo.Locality;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -17,6 +18,33 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 public class LocalityAPI {
+
+    /**
+     * 获得国家详情
+     *
+     * @param countryId
+     * @return
+     * @throws TravelPiException
+     */
+    public static Country countryDetails(String countryId) throws TravelPiException {
+        try {
+            return countryDetails(new ObjectId(countryId));
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid country ID: %s.", countryId));
+        }
+    }
+
+    /**
+     * 获得国家详情
+     *
+     * @param countryId
+     * @return
+     * @throws TravelPiException
+     */
+    public static Country countryDetails(ObjectId countryId) throws TravelPiException {
+        return MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
+                .createQuery(Country.class).field("_id").equal(countryId).get();
+    }
 
     /**
      * 获得城市详情。
@@ -131,5 +159,59 @@ public class LocalityAPI {
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 
         return query.asList();
+    }
+
+    /**
+     * 根据名称搜索国家。
+     *
+     * @param keyword
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws TravelPiException {
+        Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        query.or(
+                query.criteria("zhName").equal(keyword),
+                query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
+                query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
+        );
+        return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
+    }
+
+    /**
+     * 根据国家代码搜索国家。
+     *
+     * @param keyword
+     * @return
+     */
+    public static List<Country> searchCountryByCode(String keyword, int page, int pageSize) throws TravelPiException {
+        Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        query.or(
+                query.criteria("code").equal(keyword),
+                query.criteria("code3").equal(keyword)
+        );
+        return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
+    }
+
+    /**
+     * 根据地区搜索国家。
+     *
+     * @param keyword
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static List<Country> searchCountryByRegion(String keyword, int page, int pageSize) throws TravelPiException {
+        Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        if (keyword != null && !keyword.isEmpty()) {
+            query.or(
+                    query.criteria("zhCont").equal(keyword),
+                    query.criteria("enCont").equal(keyword),
+                    query.criteria("zhRegion").equal(keyword),
+                    query.criteria("enRegion").equal(keyword)
+            );
+        }
+        query.field("enabled").equal(true);
+        return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
     }
 }
