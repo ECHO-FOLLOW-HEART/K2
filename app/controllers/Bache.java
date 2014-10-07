@@ -6,6 +6,7 @@ import models.MorphiaFactory;
 import models.morphia.geo.Locality;
 import models.morphia.misc.Description;
 import models.morphia.misc.Recommendation;
+import models.morphia.misc.SimpleRef;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
@@ -218,6 +219,11 @@ public class Bache extends Controller {
     }
 
 
+    /**
+     * 添加推荐城市
+     *
+     * @return
+     */
     public static Result getLocalities() {
         List<String> capList = Arrays.asList(cap);
         Datastore ds = null;
@@ -256,6 +262,11 @@ public class Bache extends Controller {
     public static String[] vsList = new String[]{"火石寨", "黄梁梦吕仙祠", "景洪曼听公园", "中国竹艺城", "神木臭柏自然保护区",
             "寒山寺", "罗锅箐―大羊场", "景洪曼听公园", "大连星海国际会展中心", "兴光朝鲜族民族村", "梅城故城址", "布托湖", "朗豪坊商场", "高岭山", "蒲花暗河景区", "石象寺"};
 
+    /**
+     * 添加推荐景点
+     *
+     * @return
+     */
     public static Result getViewSpot() {
         List<String> capList = Arrays.asList(vsList);
         Datastore ds = null;
@@ -301,6 +312,12 @@ public class Bache extends Controller {
 
     public static String[] EDITOR_DATE = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
 
+    /**
+     * 添加推荐计划
+     *
+     * @param plType
+     * @return
+     */
     public static Result getRecPlans(int plType) {
         List<String> capList = Arrays.asList(plListNew);
 
@@ -331,8 +348,8 @@ public class Bache extends Controller {
 
             Query<Plan> querySrc = ds.createQuery(Plan.class);
             querySrc.field("manualPriority").equal(manualIndex).field("desc").notEqual(null)
-            .field("images").notEqual(null).field("enabled").equal(Boolean.TRUE);
-            Query<Plan> query = ds.createQuery(Plan.class);
+                    .field("images").notEqual(null).field("enabled").equal(Boolean.TRUE);
+
             List<Plan> titleList = querySrc.asList();
             List<Recommendation> recommendList = new ArrayList<Recommendation>();
             Recommendation rec;
@@ -378,5 +395,87 @@ public class Bache extends Controller {
         return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
     }
 
+    /**
+     * 在路线中标识路线所属的省
+     *
+     * @return
+     */
+    public static Result addProToPlan() {
 
+
+        try {
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+            Query<Plan> querySrc = ds.createQuery(Plan.class);
+
+            Plan plan;
+            List<SimpleRef> sims;
+            Locality cap;
+            SimpleRef capRef;
+            HashMap<String, SimpleRef> capMap;
+            for (Iterator it = querySrc.iterator(); it.hasNext(); ) {
+                capMap = new HashMap<>();
+                plan = (Plan) it.next();
+                sims = plan.targets;
+                if (null == sims)
+                    continue;
+                for (SimpleRef refs : sims) {
+                    cap = findCap(refs.id);
+                    if (cap == null)
+                        continue;
+                    capRef = new SimpleRef();
+                    capRef.id = cap.id;
+                    capRef.zhName = cap.zhName;
+                    capMap.put(capRef.id.toString(), capRef);
+                }
+                for (SimpleRef capTemp : capMap.values()) {
+                    sims.add(capTemp);
+                }
+                plan.targets = sims;
+                ds.save(plan);
+            }
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+
+    }
+
+    public static Locality findCap(ObjectId oid) {
+
+        Datastore ds;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+
+            Query<Locality> querySrc = ds.createQuery(Locality.class);
+
+            Locality locality = querySrc.field("_id").equal(oid).get();
+            if (locality.level == 1) {
+                return locality;
+            } else {
+                ObjectId superId = locality.superAdm.id;
+                querySrc = ds.createQuery(Locality.class);
+                Locality sLocality = querySrc.field("_id").equal(superId).get();
+                if (sLocality.level == 1) {
+                    return sLocality;
+                } else {
+                    ObjectId sSuperId = sLocality.superAdm.id;
+                    querySrc = ds.createQuery(Locality.class);
+                    Locality sSLocality = querySrc.field("_id").equal(sSuperId).get();
+
+                    if (sSLocality.level == 1) {
+                        return sSLocality;
+                    } else {
+                        return null;
+                    }
+                }
+            }
+
+        } catch (TravelPiException e) {
+            return null;
+        }
+
+
+    }
 }

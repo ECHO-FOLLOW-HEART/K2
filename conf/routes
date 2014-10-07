@@ -119,6 +119,8 @@ GET           /batch/provCap                                     controllers.Bac
 GET           /batch/recVs                                       controllers.Bache.getViewSpot()
 GET           /batch/recLoc                                      controllers.Bache.getLocalities()
 GET           /batch/recPlan                                     controllers.Bache.getRecPlans(plType: Int?=1)
+GET           /batch/addProToPlan                                controllers.Bache.addProToPlan()
+
 #-------------------------------------
 #路线
 #复制路线：生成一条UGC路线
