@@ -90,6 +90,12 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
      * @return
      */
     public static String stripLocName(String name) {
+        // TODO 西藏的简称返回西藏，不能返回西
+        if(name.equals("西藏自治区")){
+            return "西藏";
+        }else if(name.equals("内蒙古自治区")){
+            return "内蒙";
+        }
         Pattern pattern = Pattern.compile("(族|自治)");
 
         while (true) {
