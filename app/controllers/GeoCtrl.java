@@ -7,7 +7,9 @@ import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.geos.Locality;
+import models.morphia.geo.Country;
 import models.morphia.poi.AbstractPOI;
+import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -79,18 +81,42 @@ public class GeoCtrl extends Controller {
 
 
     /**
-     * 搜索城市信息
+     * 搜索城市信息。
      *
-     * @param searchWord
-     * @param prefix     是否为前缀搜索？
-     * @param page
-     * @param pageSize
-     * @return
+     * @param searchWord 搜索关键词。
+     * @param country    限定国家或地区的ID。//要求为国家ISO 3166代码，如CN或CHN。如果为null或""，则不限定国家。
+     * @param prefix     是否为前缀搜索。
      */
-    public static Result searchLocality(String searchWord, int prefix, int page, int pageSize) throws TravelPiException {
+    public static Result searchLocality(String searchWord, String country, int prefix) throws TravelPiException {
+        int page;
+        try {
+            page = Integer.parseInt(request().getQueryString("page"));
+        } catch (NullPointerException | NumberFormatException ignore) {
+            page = 0;
+        }
+
+        int pageSize;
+        try {
+            pageSize = Integer.parseInt(request().getQueryString("pageSize"));
+        } catch (NullPointerException | NumberFormatException ignore) {
+            pageSize = 10;
+        }
+
+        searchWord = (searchWord != null ? searchWord.trim() : "");
+        country = (country != null ? country.trim() : "");
+
+        ObjectId countryId = null;
+        if (!country.isEmpty()) {
+            try {
+                countryId = new ObjectId(country);
+            } catch (IllegalArgumentException e) {
+                return Utils.createResponse(ErrorCode.INVALID_OBJECTID, String.format("Invalid ObjectId: %s", country));
+            }
+        }
+
         List<JsonNode> results = new ArrayList<>();
         for (Iterator<models.morphia.geo.Locality> it =
-                     LocalityAPI.searchLocalities(searchWord, (prefix != 0), page, pageSize);
+                     LocalityAPI.searchLocalities(searchWord, countryId, (prefix != 0), page, pageSize);
              it.hasNext(); )
             results.add(it.next().toJson(1));
 
@@ -153,5 +179,60 @@ public class GeoCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
+    }
+
+    /**
+     * 根据ID获得
+     *
+     * @param id
+     * @return
+     */
+    public static Result getCountry(String id) {
+        try {
+            Country country = LocalityAPI.countryDetails(id);
+            return Utils.createResponse(ErrorCode.NORMAL, country.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 搜索国家信息
+     *
+     * @param keyword
+     * @param searchType
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result searchCountry(String keyword, String searchType, int page, int pageSize) {
+//        if (keyword == null || keyword.trim().isEmpty())
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid keyword");
+        if (searchType == null || searchType.trim().isEmpty())
+            searchType = "name";
+
+        try {
+            List<Country> countryList;
+            switch (searchType) {
+                case "name":
+                    countryList = LocalityAPI.searchCountryByName(keyword, page, pageSize);
+                    break;
+                case "code":
+                    countryList = LocalityAPI.searchCountryByCode(keyword, page, pageSize);
+                    break;
+                case "region":
+                    countryList = LocalityAPI.searchCountryByRegion(keyword, page, pageSize);
+                    break;
+                default:
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search type: %s", searchType));
+            }
+
+            List<JsonNode> result = new ArrayList<>();
+            for (Country c : countryList)
+                result.add(c.toJson());
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
     }
 }

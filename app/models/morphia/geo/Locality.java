@@ -7,6 +7,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import misc.GlobalInfo;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
+import models.morphia.misc.ImageItem;
 import models.morphia.misc.Ratings;
 import models.morphia.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
@@ -38,6 +39,14 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public List<String> pinyin;
 
+    @Embedded
+    public SimpleRef country;
+
+    /**
+     * 是否为国外城市
+     */
+    public Boolean abroad;
+
     public List<Integer> travelMonth;
 
     @Constraints.Required
@@ -46,11 +55,11 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     @Embedded
     public Ratings ratings;
 
-    public String countryId;
-
-    public String countryEnName;
-
-    public String countryZhName;
+//    public String countryId;
+//
+//    public String countryEnName;
+//
+//    public String countryZhName;
 
     @Embedded
     public SimpleRef superAdm;
@@ -65,6 +74,8 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public List<String> imageList;
 
+    public List<ImageItem> images;
+
     public boolean provCap;
 
     public Integer baiduId;
@@ -75,6 +86,9 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Embedded
     public Coords coords;
+
+    @Embedded
+    public Coords bCoords;
 
     public String desc;
 
@@ -114,8 +128,14 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
                 while (idx > 0) {
                     Matcher matcher = Pattern.compile(String.format("\\|%s\\|", name.substring(idx, endIdx) + "族")).matcher(minorities);
                     if (matcher.find()) {
-                        name = name.substring(0, idx);
-                        stripped = true;
+                        String tmp = name.substring(0, idx);
+                        if (tmp.length() > 1) {
+                            name = tmp;
+                            stripped = true;
+                        } else {
+                            name = name.substring(0, endIdx);
+                            stripped = false;
+                        }
                         break;
                     }
                     idx--;
@@ -150,7 +170,9 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public JsonNode toJson(int detailLevel) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("name", stripLocName(zhName)).add("level", level).add("fullName", zhName);
+        if (shortName == null)
+            shortName = stripLocName(zhName);
+        builder.add("_id", id.toString()).add("name", shortName).add("level", level).add("fullName", zhName);
 
         if (superAdm != null) {
             String fullName = superAdm.zhName;
@@ -160,6 +182,14 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
             builder.add("parent", node);
         } else
             builder.add("parent", new BasicDBObject());
+
+        builder.add("abroad", (abroad != null && abroad));
+
+        if (country != null) {
+            ObjectNode node = (ObjectNode) country.toJson();
+            builder.add("country", node);
+        } else
+            builder.add("country", new BasicDBObject());
 
         if (coords != null) {
             if (coords.blat != null) builder.add("blat", coords.blat);
