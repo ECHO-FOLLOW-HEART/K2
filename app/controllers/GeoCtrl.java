@@ -9,6 +9,7 @@ import exception.TravelPiException;
 import models.geos.Locality;
 import models.morphia.geo.Country;
 import models.morphia.poi.AbstractPOI;
+import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -80,18 +81,42 @@ public class GeoCtrl extends Controller {
 
 
     /**
-     * 搜索城市信息
+     * 搜索城市信息。
      *
-     * @param searchWord
-     * @param prefix     是否为前缀搜索？
-     * @param page
-     * @param pageSize
-     * @return
+     * @param searchWord 搜索关键词。
+     * @param country    限定国家或地区的ID。//要求为国家ISO 3166代码，如CN或CHN。如果为null或""，则不限定国家。
+     * @param prefix     是否为前缀搜索。
      */
-    public static Result searchLocality(String searchWord, int prefix, int page, int pageSize) throws TravelPiException {
+    public static Result searchLocality(String searchWord, String country, int prefix) throws TravelPiException {
+        int page;
+        try {
+            page = Integer.parseInt(request().getQueryString("page"));
+        } catch (NullPointerException | NumberFormatException ignore) {
+            page = 0;
+        }
+
+        int pageSize;
+        try {
+            pageSize = Integer.parseInt(request().getQueryString("pageSize"));
+        } catch (NullPointerException | NumberFormatException ignore) {
+            pageSize = 10;
+        }
+
+        searchWord = (searchWord != null ? searchWord.trim() : "");
+        country = (country != null ? country.trim() : "");
+
+        ObjectId countryId = null;
+        if (!country.isEmpty()) {
+            try {
+                countryId = new ObjectId(country);
+            } catch (IllegalArgumentException e) {
+                return Utils.createResponse(ErrorCode.INVALID_OBJECTID, String.format("Invalid ObjectId: %s", country));
+            }
+        }
+
         List<JsonNode> results = new ArrayList<>();
         for (Iterator<models.morphia.geo.Locality> it =
-                     LocalityAPI.searchLocalities(searchWord, (prefix != 0), page, pageSize);
+                     LocalityAPI.searchLocalities(searchWord, countryId, (prefix != 0), page, pageSize);
              it.hasNext(); )
             results.add(it.next().toJson(1));
 

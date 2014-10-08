@@ -119,11 +119,16 @@ public class LocalityAPI {
      * @param page     分页偏移量。
      * @param pageSize 页面大小。
      */
-    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
+    public static java.util.Iterator<Locality> searchLocalities(String keyword, ObjectId countryId, boolean prefix,
+                                                                int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Pattern pattern = Pattern.compile(prefix ? "^" + keyword : keyword);
-        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern).order("level");
-        return query.offset(page * pageSize).limit(pageSize).iterator();
+
+        Query<Locality> query = ds.createQuery(Locality.class);
+        if (keyword != null && !keyword.isEmpty())
+            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
+        if (countryId != null)
+            query.filter("country.id", countryId);
+        return query.order("level").offset(page * pageSize).limit(pageSize).iterator();
     }
 
     /**

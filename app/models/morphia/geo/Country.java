@@ -4,22 +4,35 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 国家模型。
+ * 国家模型。主键为ISO 3166-2标准的国家代码。
  *
  * @author Zephyre
  */
 @Entity
 public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
+    /**
+     * ISO 3166-2标准的国家代码
+     */
     public String code;
 
+    /**
+     * ISO 3166-3标准的国家代码
+     */
     public String code3;
+
+    /**
+     * FIPS国家代码
+     */
+    public String fips;
 
     /**
      * 所在大洲的中文名称
@@ -30,6 +43,11 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      * 所在大洲的英文名称
      */
     public String enCont;
+
+    /**
+     * 所在大洲的代码
+     */
+    public String contCode;
 
     /**
      * 所在区域的中文名称
