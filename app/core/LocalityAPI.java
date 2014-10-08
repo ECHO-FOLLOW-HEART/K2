@@ -107,7 +107,8 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord));
         query.field("relPlanCnt").greaterThan(0);
-        return query.retrievedFields(true, "zhName", "level", "superAdm").limit(pageSize).iterator();
+        return query.retrievedFields(true, "zhName", "enName", "country", "level", "superAdm", "abroad")
+                .limit(pageSize).iterator();
     }
 
 
