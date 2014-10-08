@@ -166,7 +166,8 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         if (shortName == null)
             shortName = stripLocName(zhName);
-        builder.add("_id", id.toString()).add("name", shortName).add("level", level).add("fullName", zhName);
+        builder.add("_id", id.toString()).add("name", shortName).add("level", level).add("fullName", zhName)
+                .add("enName", (enName != null ? enName : ""));
 
         if (superAdm != null) {
             String fullName = superAdm.zhName;
