@@ -354,8 +354,8 @@ public class PlanAPI {
                 }
             }
             //删除跨天交通间的酒店
-            //对于路线的第一天或倒数第二天
-            if (i == 0 || i == dayEntry.actv.size() - 2) {
+            //对于路线的第一天或倒数第二天,且路线大于一天
+            if ((i == 0 || i == dayEntry.actv.size() - 2) && (dayEntry.actv.size() > 1)) {
                 List<PlanItem> todayActs = dayEntry.actv;
                 //如果今天最后一项是酒店并且酒店上面是交通
                 if (todayActs.get(todayActs.size() - 1).type.equals("hotel")
