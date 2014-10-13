@@ -10,6 +10,7 @@ import models.TravelPiBaseItem;
 import models.morphia.misc.ImageItem;
 import models.morphia.misc.Ratings;
 import models.morphia.misc.SimpleRef;
+import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Indexed;
@@ -166,8 +167,10 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         if (shortName == null)
             shortName = stripLocName(zhName);
-        builder.add("_id", id.toString()).add("name", shortName).add("level", level).add("fullName", zhName)
-                .add("enName", (enName != null ? enName : ""));
+        builder.add("_id", id.toString()).add("level", level)
+                .add("name", StringUtils.capitalize(shortName))
+                .add("fullName", StringUtils.capitalize(zhName))
+                .add("enName", (enName != null ? StringUtils.capitalize(enName) : ""));
 
         if (superAdm != null) {
             String fullName = superAdm.zhName;
