@@ -16,5 +16,16 @@ public class ErrorCode {
     public static int UNKOWN_ERROR = 900;
     public static int AUTHENTICATE_ERROR = 300;
 
+    /**
+     * 数据已存在的错误
+     */
+    public static int DATA_EXIST = 401;
+    public static int DATA_NOT_EXIST = 402;
+
+    /**
+     * 注册时验证码错误
+     */
+    public static int CAPTCHA_ERROR = 403;
+
 
 }

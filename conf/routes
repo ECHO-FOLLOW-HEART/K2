@@ -189,3 +189,18 @@ GET           /web/recommend/editor                              controllers.Mis
 GET           /web/recommend/mustgo                              controllers.MiscCtrl.recommend(sortType: String = "mustGoWeight", page: Int?=0, pageSize: Int?=20)
 #人气之旅
 GET           /web/recommend/popularity                          controllers.MiscCtrl.recommend(sortType: String = "popularityWeight", page: Int?=0, pageSize: Int?=20)
+
+#-------------------------------------
+#用户
+#手机注册
+POST          /app/users/signup                                  peachControllers.UserCtrl.register()
+#第三方注册
+POST          /app/users/auth-signup                             peachControllers.UserCtrl.authRegister()
+#检验用户信息的有效性(手机号)
+GET           /app/users/validate                                peachControllers.UserCtrl.getUserByTel(tel:String?="")
+#发送手机验证码
+POST          /app/users/cell-validator                          peachControllers.UserCtrl.authRegister()
+#获取用户信息
+GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
+#编辑用户信息
+POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)

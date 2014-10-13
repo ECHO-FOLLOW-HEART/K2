@@ -386,13 +386,13 @@ public class MiscCtrl extends Controller {
     public static Result getWeatherInfo(String locId) {
         try {
 
-            //请求验证
-            String sign = request().getQueryString("sign");
-            String uid = request().getQueryString("uid");
-            String timestamp = request().getQueryString("timestamp");
-            boolean auth = UserAPI.authenticate(uid, timestamp, sign);
-            if (!auth)
-                return Utils.createResponse(ErrorCode.AUTHENTICATE_ERROR, "AUTHENTIFICATION FAILED.");
+//            //请求验证
+//            String sign = request().getQueryString("sign");
+//            String uid = request().getQueryString("uid");
+//            String timestamp = request().getQueryString("timestamp");
+//            boolean auth = UserAPI.authenticate(uid, timestamp, sign);
+//            if (!auth)
+//                return Utils.createResponse(ErrorCode.AUTHENTICATE_ERROR, "AUTHENTIFICATION FAILED.");
 
             DBCollection colLoc = Utils.getMongoClient().getDB("misc").getCollection("Weather");
             DBObject qb = QueryBuilder.start("loc.id").is(new ObjectId(locId)).get();

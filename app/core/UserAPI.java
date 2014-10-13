@@ -5,6 +5,7 @@ import com.mongodb.DBObject;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.user.Credential;
 import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
@@ -13,7 +14,10 @@ import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Http;
 import utils.Utils;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * 用户相关API。
@@ -33,6 +37,11 @@ public class UserAPI {
         } catch (IllegalArgumentException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid user ID: %s.", id));
         }
+    }
+
+    public static UserInfo getUserByUserId(String id) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        return ds.createQuery(UserInfo.class).field("userId").equal(id).get();
     }
 
     /**
@@ -167,7 +176,7 @@ public class UserAPI {
         ops.set("platform", platform);
         ops.set("appVersion", appVersion);
         ops.set("udid", seq);
-        ops.set("enabled",true);
+        ops.set("enabled", true);
 
         dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.id), ops);
     }
@@ -197,4 +206,95 @@ public class UserAPI {
         }
         return true;
     }
+
+    /**
+     * 根据手机号码获得用户信息。
+     *
+     * @param tel
+     * @return
+     */
+    public static UserInfo getUserByTel(String tel) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        return ds.createQuery(UserInfo.class).field("tel").equal(tel).get();
+    }
+
+    /**
+     * 根据昵称获得用户信息。
+     *
+     * @param nickName
+     * @return
+     */
+    public static UserInfo getUserByNickName(String nickName) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        return ds.createQuery(UserInfo.class).field("nickName").equal(nickName).get();
+    }
+
+    /**
+     * 暂存验证码。
+     *
+     * @param
+     * @return
+     */
+    public static void saveCaptcha(Credential ce) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(ce);
+    }
+
+    /**
+     * 储存用户信息。
+     *
+     * @param
+     * @return
+     */
+    public static void saveUserInfo(UserInfo u) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(u);
+    }
+    /**
+     * 根据手机号码完成用户注册。
+     *
+     * @param
+     * @return
+     */
+    public static UserInfo regByTel(String tel) throws TravelPiException {
+
+        final DateFormat fmt = new SimpleDateFormat("yyMMddHHmmss");
+        UserInfo user = new UserInfo();
+        user.id = new ObjectId();
+        user.userId = fmt.format(new Date());
+        user.nickName = (new ObjectId()).toString();
+        user.avatar = "http://default";
+        user.oauthList = new ArrayList<>();
+        user.tel = tel;
+        user.gender = "F";
+        user.countryCode = 86;
+        user.email = "";
+        user.signature = "";
+        user.origin = "peach";
+        user.enabled = true;
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(user);
+        return user;
+    }
+
+    /**
+     * 密码加密
+     *
+     * @param u
+     * @param pwd
+     * @return
+     */
+    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
+        Credential cre = new Credential();
+        cre.id = u.id;
+        cre.userId = u.userId;
+        cre.salt = Utils.getSalt();
+        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(cre);
+    }
+
+
 }

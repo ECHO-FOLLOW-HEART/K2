@@ -206,7 +206,7 @@ public class Utils {
      */
     public static String toSha1Hex(String msg) {
         try {
-            byte[] ret = MessageDigest.getInstance("SHA").digest(msg.getBytes());
+            byte[] ret = MessageDigest.getInstance("SHA-256").digest(msg.getBytes());
 
             StringBuilder sb = new StringBuilder();
             for (byte aB : ret) {
@@ -220,4 +220,31 @@ public class Utils {
             return null;
         }
     }
+
+    /**
+     * 生成随机字符串
+     *
+     * @param length 生成字符串的长度
+     * @return
+     */
+    public static String getRandomString(int length) {
+        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+        int size = base.length();
+        Random random = new Random();
+        StringBuffer sb = new StringBuffer();
+        int number;
+        for (int i = 0; i < length; i++) {
+            number = random.nextInt(size);
+            sb.append(base.charAt(number));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 取得密盐
+     */
+    public static String getSalt() {
+        return getRandomString(32);
+    }
+
 }
