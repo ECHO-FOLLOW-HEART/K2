@@ -104,6 +104,11 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public String sourceUrl;
 
+    /**
+     * 是否为精华游记
+     */
+    public Boolean elite;
+
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("title", title).add("authorName", authorName);

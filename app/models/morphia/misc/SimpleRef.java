@@ -3,6 +3,7 @@ package models.morphia.misc;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
@@ -20,7 +21,8 @@ public class SimpleRef implements ITravelPiFormatter {
 
     @Override
     public JsonNode toJson() {
-        return Json.toJson(BasicDBObjectBuilder.start("_id", id.toString()).add("name", (zhName != null ? zhName : ""))
-                .add("enName", (enName != null ? enName : "")).get());
+        return Json.toJson(BasicDBObjectBuilder.start("_id", id.toString())
+                .add("name", (zhName != null ? StringUtils.capitalize(zhName) : ""))
+                .add("enName", (enName != null ? StringUtils.capitalize(enName) : "")).get());
     }
 }

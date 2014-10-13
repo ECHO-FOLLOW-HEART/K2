@@ -10,7 +10,7 @@ GET           /assets/*file                                      controllers.Ass
 
 # 基础地理信息查询
 # 搜索城市
-GET           /geo/localities/search                             controllers.GeoCtrl.searchLocality(keyword: String?="", country: String?="", prefix: Int?=0)
+GET           /geo/localities/search                             controllers.GeoCtrl.searchLocality(keyword: String?="", country: String?="", scope: Int?=1, prefix: Int?=1)
 # 查看城市详情
 GET           /geo/localities/:id                                controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 # 百度ID转换
