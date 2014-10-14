@@ -13,11 +13,13 @@ import models.morphia.geo.Locality;
 import models.morphia.misc.Feedback;
 import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Recommendation;
+import models.morphia.misc.ValidationCode;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -506,5 +508,60 @@ public class MiscCtrl extends Controller {
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
+    }
+
+    public static Result cellValidate() {
+        JsonNode data = request().body().asJson();
+
+        JsonNode tmp = data.get("tel");
+        String tel = null;
+
+        if (tmp != null)
+            tel = Utils.telParser(tmp.asText());
+
+        Integer code = 86;
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                code = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        if (tel == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+
+        Map<String, Object> smsConf = Configuration.root().getConfig("sms").asMap();
+        int intervalMs = Integer.parseInt(smsConf.get("interval").toString()) * 1000;
+
+        ValidationCode valCode;
+        try {
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            valCode = ds.createQuery(ValidationCode.class).field("key")
+                    .equal(ValidationCode.calcKey(code, tel)).get();
+            long cur = System.currentTimeMillis();
+
+            if (valCode != null && cur < valCode.sendTime + intervalMs)
+                return Utils.createResponse(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
+
+            ValidationCode oldCode = valCode;
+            valCode = ValidationCode.newInstance(code, tel);
+            if (oldCode != null)
+                valCode.id = oldCode.id;
+
+            List<String> recipients = new ArrayList<>();
+            recipients.add(tel);
+            Utils.sendSms(recipients, String.format("Validation code: %s", valCode.value));
+            valCode.sendTime = System.currentTimeMillis();
+
+            ds.save(valCode);
+
+            ObjectNode result = Json.newObject();
+            result.put("coolDown", intervalMs / 1000);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
     }
 }

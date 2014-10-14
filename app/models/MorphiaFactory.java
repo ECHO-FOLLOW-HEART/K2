@@ -3,6 +3,7 @@ package models;
 import com.mongodb.MongoClient;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.morphia.misc.ValidationCode;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.ValidationExtension;
@@ -24,16 +25,16 @@ public class MorphiaFactory {
     private final Morphia morphia;
     private final MongoClient client;
 
-    private MorphiaFactory(String host, int port) throws TravelPiException {
-        try {
-            client = new MongoClient(host, port);
-        } catch (UnknownHostException e) {
-            throw new TravelPiException(ErrorCode.DATABASE_ERROR, "Invalid database connection.");
-        }
-
-        morphia = new Morphia();
-        new ValidationExtension(morphia);
-    }
+//    private MorphiaFactory(String host, int port) throws TravelPiException {
+//        try {
+//            client = new MongoClient(host, port);
+//        } catch (UnknownHostException e) {
+//            throw new TravelPiException(ErrorCode.DATABASE_ERROR, "Invalid database connection.");
+//        }
+//
+//        morphia = new Morphia();
+//        new ValidationExtension(morphia);
+//    }
 
     private MorphiaFactory() throws TravelPiException {
         Configuration config = Configuration.root();
@@ -54,6 +55,8 @@ public class MorphiaFactory {
         morphia = new Morphia();
         new ValidationExtension(morphia);
 
+        morphia.map(ValidationCode.class);
+
 //        morphia.map(MiscInfo.class);
 //        morphia.map(Locality.class);
 //        morphia.map(Country.class);
@@ -72,12 +75,12 @@ public class MorphiaFactory {
         return ourInstance;
     }
 
-    public synchronized static MorphiaFactory getInstance(String host, int port) throws TravelPiException {
-        if (ourInstance == null)
-            ourInstance = new MorphiaFactory(host, port);
-
-        return ourInstance;
-    }
+//    public synchronized static MorphiaFactory getInstance(String host, int port) throws TravelPiException {
+//        if (ourInstance == null)
+//            ourInstance = new MorphiaFactory(host, port);
+//
+//        return ourInstance;
+//    }
 
     public Morphia getMorphia() {
         return morphia;
@@ -114,8 +117,12 @@ public class MorphiaFactory {
                 ds = morphia.createDatastore(client, "traffic");
                 break;
         }
-        if (ds != null)
+        if (ds != null) {
+            ds.ensureIndexes();
+            ds.ensureCaps();
             dsMap.put(type, ds);
+        }
+
         return ds;
     }
 

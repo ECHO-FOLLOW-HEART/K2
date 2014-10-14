@@ -27,5 +27,9 @@ public class ErrorCode {
      */
     public static int CAPTCHA_ERROR = 403;
 
+    /**
+     * 短信发送超过配额
+     */
+    public static int SMS_QUOTA_ERROR = 500;
 
 }
