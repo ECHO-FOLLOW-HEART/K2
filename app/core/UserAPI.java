@@ -2,6 +2,7 @@ package core;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+import core.user.ValFormatterFactory;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -9,6 +10,8 @@ import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Sequence;
 import models.morphia.plan.Plan;
 import models.morphia.traffic.TrainRoute;
+import models.morphia.misc.ValidationCode;
+
 import models.morphia.user.Credential;
 import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
@@ -24,6 +27,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 用户相关API。
@@ -254,7 +258,6 @@ public class UserAPI {
         ds.save(u);
     }
 
-
     /**
      * 根据手机号码完成用户注册。
      *
@@ -311,5 +314,54 @@ public class UserAPI {
         ds.save(cre);
     }
 
+    /**
+     * 发送手机验证码
+     *
+     * @param countryCode 国家代码
+     * @param tel         手机号码
+     * @param actionCode  动作代码，表示发送验证码的原因
+     * @param expireMs    多少豪秒以后过期
+     * @param resendMs    多少毫秒以后可以重新发送验证短信
+     */
+    public static void sendValCode(int countryCode, String tel, int actionCode, long expireMs, long resendMs)
+            throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
+                .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
 
+        if (valCode != null && System.currentTimeMillis() < valCode.resendTime)
+            throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
+
+        ValidationCode oldCode = valCode;
+        valCode = ValidationCode.newInstance(countryCode, tel, actionCode, expireMs);
+        if (oldCode != null)
+            valCode.id = oldCode.id;
+
+        List<String> recipients = new ArrayList<>();
+        recipients.add(tel);
+
+        String content = ValFormatterFactory.newInstance(actionCode).format(countryCode, tel, valCode.value, expireMs, null);
+        Utils.sendSms(recipients, content);
+
+        valCode.lastSendTime = System.currentTimeMillis();
+        valCode.resendTime = valCode.lastSendTime + resendMs;
+        ds.save(valCode);
+    }
+
+    /**
+     * 验证验证码
+     *
+     * @param countryCode 国家代码
+     * @param tel         手机号码
+     * @param actionCode  操作码
+     * @param valCode     验证码
+     * @return 验证码是否有效
+     */
+    public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode)
+            throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
+                .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
+        return !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
+    }
 }

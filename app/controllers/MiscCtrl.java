@@ -18,6 +18,7 @@ import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -506,5 +507,102 @@ public class MiscCtrl extends Controller {
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
+    }
+
+    public static Result checkValidation() {
+        JsonNode data = request().body().asJson();
+
+        JsonNode tmp = data.get("tel");
+        String tel = null;
+        if (tmp != null)
+            tel = Utils.telParser(tmp.asText());
+
+        tmp = data.get("actionCode");
+        Integer actionCode = null;
+        try {
+            if (tmp != null)
+                actionCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        Integer countryCode = 86;
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                countryCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        String v = null;
+        tmp = data.get("validationCode");
+        if (tmp != null)
+            v = tmp.asText();
+
+        if (tel == null || actionCode == null || v == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+
+        try {
+            if (actionCode != 1)
+                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+
+            boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v);
+
+            ObjectNode result = Json.newObject();
+            result.put("isValid", valid);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static Result sendValidation() {
+        JsonNode data = request().body().asJson();
+
+        JsonNode tmp = data.get("tel");
+        String tel = null;
+        if (tmp != null)
+            tel = Utils.telParser(tmp.asText());
+
+        tmp = data.get("actionCode");
+        Integer actionCode = null;
+        try {
+            if (tmp != null)
+                actionCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        Integer countryCode = 86;
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                countryCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        if (tel == null || actionCode == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+
+        try {
+            if (actionCode != 1)
+                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+
+            // 确定过期时间
+            Map<String, Object> smsConf = Configuration.root().getConfig("sms").asMap();
+            long expireMs = Integer.parseInt(smsConf.get("signupExpire").toString()) * 1000L;
+            long resendMs = Integer.parseInt(smsConf.get("resendInterval").toString()) * 1000L;
+
+            UserAPI.sendValCode(countryCode, tel, actionCode, expireMs, resendMs);
+
+            ObjectNode result = Json.newObject();
+            result.put("coolDown", resendMs / 1000);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
     }
 }

@@ -97,6 +97,9 @@ GET           /sys/updates/:platform                             controllers.Mis
 GET           /sys/updates                                       controllers.MiscCtrl.getUpdates()
 GET           /suggestions                                       controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
 GET           /misc/weather/:locId                               controllers.MiscCtrl.getWeatherInfo(locId :String)
+
+POST          /app/misc/send-validation                          controllers.MiscCtrl.sendValidation()
+POST          /app/misc/check-validation                         controllers.MiscCtrl.checkValidation()
 GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
 GET           /misc/notes/search                                 controllers.TravelNoteCtrl.searchNotes()
 
@@ -205,5 +208,4 @@ POST          /app/users/cell-validator                          peachController
 GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
 #编辑用户信息
 POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
-
 

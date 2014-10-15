@@ -22,6 +22,9 @@ libraryDependencies ++= Seq(
   "com.vxp" % "plan_2.10" % "1.0.1",
   "org.apache.solr" % "solr-solrj" % "4.10.0",
   "commons-logging" % "commons-logging" % "1.2",
+  "dom4j" % "dom4j" % "1.6.1",
+  "jaxen" % "jaxen" % "1.1.6",
+  "commons-codec" % "commons-codec" % "1.9",
   filters
 )
 

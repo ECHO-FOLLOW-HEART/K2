@@ -30,5 +30,14 @@ public class ErrorCode {
      */
     public static int WEIXIN_CODE_ERROR = 404;
 
+    /**
+     * 短信发送超过配额
+     */
+    public static int SMS_QUOTA_ERROR = 500;
+
+    /**
+     * 无效的短信操作码
+     */
+    public static int SMS_INVALID_ACTION = 501;
 
 }
