@@ -13,7 +13,6 @@ import models.morphia.geo.Locality;
 import models.morphia.misc.Feedback;
 import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Recommendation;
-import models.morphia.misc.ValidationCode;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
@@ -510,54 +509,96 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
     }
 
-    public static Result cellValidate() {
+    public static Result checkValidation() {
         JsonNode data = request().body().asJson();
 
         JsonNode tmp = data.get("tel");
         String tel = null;
-
         if (tmp != null)
             tel = Utils.telParser(tmp.asText());
 
-        Integer code = 86;
+        tmp = data.get("actionCode");
+        Integer actionCode = null;
         try {
-            tmp = data.get("code");
             if (tmp != null)
-                code = Integer.parseInt(tmp.asText());
+                actionCode = Integer.parseInt(tmp.asText());
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
         }
 
-        if (tel == null)
+        Integer countryCode = 86;
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                countryCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        String v = null;
+        tmp = data.get("validationCode");
+        if (tmp != null)
+            v = tmp.asText();
+
+        if (tel == null || actionCode == null || v == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
 
-        Map<String, Object> smsConf = Configuration.root().getConfig("sms").asMap();
-        int intervalMs = Integer.parseInt(smsConf.get("interval").toString()) * 1000;
-
-        ValidationCode valCode;
         try {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            valCode = ds.createQuery(ValidationCode.class).field("key")
-                    .equal(ValidationCode.calcKey(code, tel)).get();
-            long cur = System.currentTimeMillis();
+            if (actionCode != 1)
+                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
 
-            if (valCode != null && cur < valCode.sendTime + intervalMs)
-                return Utils.createResponse(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
-
-            ValidationCode oldCode = valCode;
-            valCode = ValidationCode.newInstance(code, tel);
-            if (oldCode != null)
-                valCode.id = oldCode.id;
-
-            List<String> recipients = new ArrayList<>();
-            recipients.add(tel);
-            Utils.sendSms(recipients, String.format("Validation code: %s", valCode.value));
-            valCode.sendTime = System.currentTimeMillis();
-
-            ds.save(valCode);
+            boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v);
 
             ObjectNode result = Json.newObject();
-            result.put("coolDown", intervalMs / 1000);
+            result.put("isValid", valid);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static Result sendValidation() {
+        JsonNode data = request().body().asJson();
+
+        JsonNode tmp = data.get("tel");
+        String tel = null;
+        if (tmp != null)
+            tel = Utils.telParser(tmp.asText());
+
+        tmp = data.get("actionCode");
+        Integer actionCode = null;
+        try {
+            if (tmp != null)
+                actionCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        Integer countryCode = 86;
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                countryCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        if (tel == null || actionCode == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+
+        try {
+            if (actionCode != 1)
+                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+
+            // 确定过期时间
+            Map<String, Object> smsConf = Configuration.root().getConfig("sms").asMap();
+            long expireMs = Integer.parseInt(smsConf.get("signupExpire").toString()) * 1000L;
+            long resendMs = Integer.parseInt(smsConf.get("resendInterval").toString()) * 1000L;
+
+            UserAPI.sendValCode(countryCode, tel, actionCode, expireMs, resendMs);
+
+            ObjectNode result = Json.newObject();
+            result.put("coolDown", resendMs / 1000);
             return Utils.createResponse(ErrorCode.NORMAL, result);
 
         } catch (TravelPiException e) {

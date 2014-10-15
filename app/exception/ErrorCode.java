@@ -32,4 +32,9 @@ public class ErrorCode {
      */
     public static int SMS_QUOTA_ERROR = 500;
 
+    /**
+     * 无效的短信操作码
+     */
+    public static int SMS_INVALID_ACTION = 501;
+
 }

@@ -25,32 +25,33 @@ public class ValidationCode {
      *
      * @param countryCode 国家代码，默认为86。
      * @param tel         电话号码
+     * @param actionCode  操作码
      * @return 一个新的验证码对象
      */
-    public static ValidationCode newInstance(Integer countryCode, String tel) {
+    public static ValidationCode newInstance(int countryCode, String tel, int actionCode, long expireMs) {
         ValidationCode code = new ValidationCode();
 
-        code.key = calcKey(countryCode, tel);
+        code.key = calcKey(countryCode, tel, actionCode);
         code.value = ((Integer) (new Random()).nextInt(1000000)).toString();
         code.createTime = System.currentTimeMillis();
-        // 默认1小时过期
-        code.expireTime = code.createTime + 60 * 60 * 1000L;
+        code.expireTime = code.createTime + expireMs;
         code.countryCode = 86;
         code.tel = tel;
+        code.actionCode = actionCode;
 
         return code;
     }
 
     /**
-     * 根据国家代码和手机号获得key。
+     * 根据国家代码、手机号和操作码获得key。
      *
-     * @param countryCode
-     * @param tel
+     * @param countryCode 国家代码
+     * @param tel 手机号码
+     * @param actionCode 操作码
      * @return
      */
-    public static String calcKey(Integer countryCode, String tel) {
-        String fullName = String.format("+%d%s", countryCode, tel);
-
+    public static String calcKey(int countryCode, String tel, int actionCode) {
+        String fullName = String.format("+%d%s%d", countryCode, tel, actionCode);
         try {
             return Base64.encodeBase64String(MessageDigest.getInstance("MD5").digest(fullName.getBytes()));
         } catch (NoSuchAlgorithmException e) {
@@ -71,7 +72,7 @@ public class ValidationCode {
     public String value;
 
     /**
-     * 验证码的key。由国家代码+手机号经过hash生成，方便查询。
+     * 验证码的key。由国家代码+手机号+操作码经过hash生成，方便查询。
      */
     @Indexed(value = IndexDirection.ASC, unique = true, dropDups = true)
     @Constraints.Required
@@ -91,9 +92,14 @@ public class ValidationCode {
     public Long createTime;
 
     /**
-     * 发送验证码的时间
+     * 上次发送验证码的时间
      */
-    public Long sendTime;
+    public Long lastSendTime;
+
+    /**
+     * 下次可以发送验证码的时间
+     */
+    public Long resendTime;
 
     /**
      * 国家代码
@@ -106,4 +112,10 @@ public class ValidationCode {
      */
     @Constraints.Required
     public String tel;
+
+    /**
+     * 验证操作代码
+     */
+    @Constraints.Required
+    public Integer actionCode;
 }

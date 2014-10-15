@@ -1,6 +1,7 @@
 package models;
 
 import com.mongodb.MongoClient;
+import com.mongodb.MongoClientException;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.misc.ValidationCode;
@@ -117,10 +118,14 @@ public class MorphiaFactory {
                 ds = morphia.createDatastore(client, "traffic");
                 break;
         }
-        if (ds != null) {
-            ds.ensureIndexes();
-            ds.ensureCaps();
-            dsMap.put(type, ds);
+        try {
+            if (ds != null) {
+                ds.ensureIndexes();
+                ds.ensureCaps();
+                dsMap.put(type, ds);
+            }
+        } catch (MongoClientException e) {
+            throw new TravelPiException(ErrorCode.DATABASE_ERROR, "Database error.", e);
         }
 
         return ds;
