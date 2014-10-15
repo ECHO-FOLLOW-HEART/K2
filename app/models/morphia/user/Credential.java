@@ -16,7 +16,7 @@ public class Credential extends TravelPiBaseItem {
     public ObjectId id;
 
     @Constraints.Required
-    public String userId;
+    public Integer userId;
 
     @Constraints.Required
     public String pwdHash;

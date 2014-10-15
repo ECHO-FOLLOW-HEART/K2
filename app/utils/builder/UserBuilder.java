@@ -2,11 +2,9 @@ package utils.builder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
-import models.morphia.misc.SimpleRef;
 import models.morphia.user.UserInfo;
 import play.libs.Json;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -14,36 +12,40 @@ import java.util.Map;
  */
 public class UserBuilder {
 
-    public static int DETAILS_LEVEL_1 =1;
+    public static int DETAILS_LEVEL_1 = 1;
 
-    public static int DETAILS_LEVEL_2 =2;
+    public static int DETAILS_LEVEL_2 = 2;
 
-    public static JsonNode buildUserInfo(UserInfo u,int level){
+    public static JsonNode buildUserInfo(UserInfo u, int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
-            builder.add("userId",u.userId).add("nickName", u.nickName).add("avatar", u.avatar).add("gender",u.gender)
-                    .add("signature",u.signature).add("tel",u.tel);
-        if(level == DETAILS_LEVEL_2){
-            builder.add("countryCode", u.countryCode)
-                    .add("userId",u.userId).add("email",u.email)
-                    .add("friends", UserBuilder.buildUserFriends(u.friends)).add("remark",u.remark);
+        builder.add("userId", u.userId == null ? "" : u.userId).add("nickName", u.nickName == null ? "" : u.nickName)
+                .add("avatar", u.avatar == null ? "" : u.avatar).add("gender", u.gender == null ? "" : u.gender)
+                .add("signature", u.signature == null ? "" : u.signature).add("tel", u.tel == null ? "" : u.tel)
+                .add("secToken", u.secToken == null ? "" : u.secToken);
+        if (level == DETAILS_LEVEL_2) {
+            JsonNode friends = UserBuilder.buildUserFriends(u.friends);
+            JsonNode remark = UserBuilder.buildRemark(u.remark);
+            builder.add("countryCode", u.countryCode == null ? "" : u.countryCode)
+                    .add("email", u.email == null ? "" : u.email)
+                    .add("friends", friends == null ? "" : friends).add("remark", remark == null ? "" : remark);
         }
 
         return Json.toJson(builder.get());
     }
 
-    public static JsonNode buildUserFriends(Map<Integer,UserInfo> u){
-        if(u == null)
+    public static JsonNode buildUserFriends(Map<Integer, UserInfo> u) {
+        if (u == null)
             return null;
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         for (Map.Entry<Integer, UserInfo> entry : u.entrySet()) {
-            builder.add(entry.getKey().toString(), UserBuilder.buildUserInfo(entry.getValue(),DETAILS_LEVEL_1));
+            builder.add(entry.getKey().toString(), UserBuilder.buildUserInfo(entry.getValue(), DETAILS_LEVEL_1));
         }
         return Json.toJson(builder.get());
     }
 
-    public static JsonNode buildRemark(Map<Integer,String> remark){
-        if(remark == null)
+    public static JsonNode buildRemark(Map<Integer, String> remark) {
+        if (remark == null)
             return null;
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         for (Map.Entry<Integer, String> entry : remark.entrySet()) {

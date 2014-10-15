@@ -5,13 +5,19 @@ import com.mongodb.DBObject;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.misc.MiscInfo;
+import models.morphia.misc.Sequence;
+import models.morphia.plan.Plan;
+import models.morphia.traffic.TrainRoute;
 import models.morphia.user.Credential;
 import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Http;
+import utils.DataConvert.UserConvert;
 import utils.Utils;
 
 import java.text.DateFormat;
@@ -25,6 +31,13 @@ import java.util.Date;
  * @author Zephyre
  */
 public class UserAPI {
+
+    /**
+     * 排序的字段。
+     */
+    public enum UserInfoField {
+        TEL, NICKNAME, OPENID
+    }
 
     public static UserInfo getUserById(ObjectId id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
@@ -208,36 +221,26 @@ public class UserAPI {
     }
 
     /**
-     * 根据手机号码获得用户信息。
-     *
-     * @param tel
-     * @return
-     */
-    public static UserInfo getUserByTel(String tel) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        return ds.createQuery(UserInfo.class).field("tel").equal(tel).get();
-    }
-
-    /**
-     * 根据昵称获得用户信息。
-     *
-     * @param nickName
-     * @return
-     */
-    public static UserInfo getUserByNickName(String nickName) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        return ds.createQuery(UserInfo.class).field("nickName").equal(nickName).get();
-    }
-
-    /**
-     * 暂存验证码。
+     * 根据字段获得用户信息。
      *
      * @param
      * @return
      */
-    public static void saveCaptcha(Credential ce) throws TravelPiException {
+    public static UserInfo getUserByField(UserInfoField field,String value) throws TravelPiException {
+        String stKey = null;
+        switch (field) {
+            case TEL:
+                stKey = "tel";
+                break;
+            case NICKNAME:
+                stKey = "nickName";
+                break;
+            case OPENID:
+                stKey = "oauthList.oauthId";
+                break;
+        }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        ds.save(ce);
+        return ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
     }
 
     /**
@@ -250,6 +253,8 @@ public class UserAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(u);
     }
+
+
     /**
      * 根据手机号码完成用户注册。
      *
@@ -258,10 +263,9 @@ public class UserAPI {
      */
     public static UserInfo regByTel(String tel) throws TravelPiException {
 
-        final DateFormat fmt = new SimpleDateFormat("yyMMddHHmmss");
         UserInfo user = new UserInfo();
         user.id = new ObjectId();
-        user.userId = fmt.format(new Date());
+        user.userId = getUserId();
         user.nickName = (new ObjectId()).toString();
         user.avatar = "http://default";
         user.oauthList = new ArrayList<>();
@@ -278,6 +282,17 @@ public class UserAPI {
         return user;
     }
 
+    public static Integer getUserId() throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Sequence> query = ds.createQuery(Sequence.class);
+        query.field("column").equals(Sequence.USERID);
+        Integer uid = query.get().count;
+        //DBObject newDocument = new BasicDBObject();
+        //newDocument.put("$inc", new BasicDBObject().append("count", 1));
+        UpdateOperations<Sequence> ops = ds.createUpdateOperations(Sequence.class).inc("count");
+        ds.findAndModify(query,ops);
+        return uid;
+    }
     /**
      * 密码加密
      *

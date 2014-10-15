@@ -52,7 +52,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 用户ID
      */
-    public String userId;
+    public Integer userId;
 
     /**
      * 好友列表:用户ID-用户简要信息

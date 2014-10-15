@@ -4,9 +4,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.geo.Locality;
-import models.morphia.misc.Description;
-import models.morphia.misc.Recommendation;
-import models.morphia.misc.SimpleRef;
+import models.morphia.misc.*;
 import models.morphia.plan.Plan;
 import models.morphia.plan.PlanDayEntry;
 import models.morphia.plan.PlanItem;
@@ -29,6 +27,7 @@ import java.util.*;
 public class Bache extends Controller {
 
     /**
+     * Need
      * 计算旅行计划模板的预算，并入库
      *
      * @return
@@ -151,7 +150,7 @@ public class Bache extends Controller {
 
 
     /**
-     * 生成
+     * 生成景点价格
      *
      * @param id
      * @return
@@ -185,8 +184,6 @@ public class Bache extends Controller {
             Query<Locality> query = ds.createQuery(Locality.class);
             query.field("zhName").hasAnyOf(capList).field("level").equal(2);
             Locality locality = null;
-            UpdateOperations<Locality> ops = null;
-            Datastore updateDs = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
             for (Iterator<Locality> it = query.iterator(); it.hasNext(); ) {
                 locality = (Locality) it.next();
                 locality.provCap = true;
@@ -204,21 +201,6 @@ public class Bache extends Controller {
             "西安市", "银川市", "郑州市", "济南市", "太原市", "合肥市", "武汉市", "长沙市",
             "南京市", "成都市", "贵阳市", "昆明市", "南宁市", "拉萨市", "杭州市", "南昌市",
             "广州市", "福州市", "台北市", "海口市"};
-
-
-    public static void addRecommend() {
-        try {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            ds.save();
-            Query<Recommendation> query = ds.createQuery(Recommendation.class);
-            query.field("");
-
-        } catch (TravelPiException e) {
-            Utils.createResponse(e.errCode, e.getMessage());
-        }
-    }
-
-
     /**
      * 添加推荐城市
      *
@@ -396,7 +378,7 @@ public class Bache extends Controller {
     }
 
     /**
-     * 在路线中标识路线所属的省
+     * 在路线中标识路线所属的省，支持根据省会查询接口
      *
      * @return
      */
@@ -442,7 +424,12 @@ public class Bache extends Controller {
 
     }
 
-    public static Locality findCap(ObjectId oid) {
+    /**
+     * 查找一个城市所在省的省会
+     * @param oid
+     * @return
+     */
+    private static Locality findCap(ObjectId oid) {
 
         Datastore ds;
         try {
@@ -471,11 +458,26 @@ public class Bache extends Controller {
                     }
                 }
             }
-
         } catch (TravelPiException e) {
             return null;
         }
-
-
     }
+
+    /**
+     * 设置自增序列，用于记录用户自增ID
+     */
+    public static Result addUserIdSequence(){
+        try {
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            Sequence info = new Sequence();
+            info.column = Sequence.USERID;
+            info.count = 100000;
+            ds.save(info);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL,"Success");
+    }
+
 }

@@ -124,7 +124,8 @@ GET           /batch/recVs                                       controllers.Bac
 GET           /batch/recLoc                                      controllers.Bache.getLocalities()
 GET           /batch/recPlan                                     controllers.Bache.getRecPlans(plType: Int?=1)
 GET           /batch/addProToPlan                                controllers.Bache.addProToPlan()
-
+#刷新自增序列
+GET           /batch/refrechUid                                  controllers.Bache.addUserIdSequence()
 #-------------------------------------
 #路线
 #复制路线：生成一条UGC路线
@@ -197,10 +198,12 @@ POST          /app/users/signup                                  peachController
 #第三方注册
 POST          /app/users/auth-signup                             peachControllers.UserCtrl.authRegister()
 #检验用户信息的有效性(手机号)
-GET           /app/users/validate                                peachControllers.UserCtrl.getUserByTel(tel:String?="")
+GET           /app/users/validate                                peachControllers.UserCtrl.validityInfo(tel:String?="",nick:String?="")
 #发送手机验证码
 POST          /app/users/cell-validator                          peachControllers.UserCtrl.authRegister()
 #获取用户信息
 GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
 #编辑用户信息
 POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
+
+
