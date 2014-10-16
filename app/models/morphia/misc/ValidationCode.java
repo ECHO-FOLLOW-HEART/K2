@@ -38,6 +38,7 @@ public class ValidationCode {
         code.countryCode = 86;
         code.tel = tel;
         code.actionCode = actionCode;
+        code.failCnt = 0;
 
         return code;
     }
@@ -46,8 +47,8 @@ public class ValidationCode {
      * 根据国家代码、手机号和操作码获得key。
      *
      * @param countryCode 国家代码
-     * @param tel 手机号码
-     * @param actionCode 操作码
+     * @param tel         手机号码
+     * @param actionCode  操作码
      * @return
      */
     public static String calcKey(int countryCode, String tel, int actionCode) {
@@ -118,4 +119,9 @@ public class ValidationCode {
      */
     @Constraints.Required
     public Integer actionCode;
+
+    /**
+     * 验证失败的次数
+     */
+    public Integer failCnt;
 }
