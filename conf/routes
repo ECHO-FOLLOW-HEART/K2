@@ -141,7 +141,7 @@ GET           /web/ugc-plans/users/:userId                       controllers.Pla
 GET           /web/plans/explore                                 controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 #根据ID查看模板路线详情
 GET           /web/plans/:planId                                 controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="",webFlag: Int?=0,uid: String?="")
-#保存UGC路线
+#保存UGC路线,修改路线标题
 POST          /web/ugc-plans                                     controllers.PlanCtrl.saveUGCPlan()
 #删除UGC路线
 DELETE        /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.deleteUGCPlans(ugcPlanId: String)
@@ -198,12 +198,14 @@ GET           /web/recommend/popularity                          controllers.Mis
 #用户
 #手机注册
 POST          /app/users/signup                                  peachControllers.UserCtrl.register()
-#第三方注册
+#第三方注册、登录
 POST          /app/users/auth-signup                             peachControllers.UserCtrl.authRegister()
 #检验用户信息的有效性(手机号)
-GET           /app/users/validate                                peachControllers.UserCtrl.validityInfo(tel:String?="",nick:String?="")
+GET           /app/users/validity                                peachControllers.UserCtrl.validityInfo(tel:String?="",nick:String?="")
+#手机号登录
+POST          /app/users/signin                                  peachControllers.UserCtrl.signin()
 #发送手机验证码
-POST          /app/users/cell-validator                          peachControllers.UserCtrl.authRegister()
+POST          /app/users/send-validation                         peachControllers.UserCtrl.sendCaptcha()
 #获取用户信息
 GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
 #编辑用户信息

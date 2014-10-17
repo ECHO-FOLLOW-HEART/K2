@@ -2,16 +2,18 @@ package peachControllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.BasicDBObjectBuilder;
 import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.morphia.user.Credential;
 import models.morphia.user.UserInfo;
 import org.apache.commons.io.IOUtils;
 import play.Configuration;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.DataConvert.UserConvert;
+import utils.MsgConstants;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
@@ -38,54 +40,160 @@ public class UserCtrl extends Controller {
         try {
             String tel = req.get("tel").asText();
             String pwd = req.get("pwd").asText();
+            Integer countryCode;
+            String captcha = req.get("captcha").asText();
+            if (req.has("countryCode")) {
+                countryCode = Integer.valueOf(req.get("countryCode").asText());
+            } else {
+                countryCode = 86;
+            }
 
             //验证用户是否存在
             if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
-                return Utils.createResponse(ErrorCode.DATA_EXIST, "User has exist.");
+                return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG);
             }
 
+            UserInfo userInfo;
             //验证验证码
-            // TODO
-            if (true) {
-
+            if (UserAPI.checkValidation(countryCode, tel, 1, captcha)) {
                 // 生成用户
-                UserInfo userInfo = UserAPI.regByTel(tel);
+                userInfo = UserAPI.regByTel(tel, countryCode);
                 UserAPI.regCredential(userInfo, pwd);
 
             } else {
-                return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, "Captcha is wrong.");
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
             }
 
-            UserInfo userInfo = new UserInfo();
-
-            return Utils.createResponse(ErrorCode.NORMAL, "Success");
+            if (userInfo != null)
+                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 
     /**
+     * 绑定手机
+     *
+     * @return
+     */
+    public static Result bandTel() {
+        JsonNode req = request().body().asJson();
+        String tel = req.get("tel").asText();
+        String captcha = req.get("captcha").asText();
+        Integer countryCode;
+        if (req.has("countryCode")) {
+            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        } else {
+            countryCode = 86;
+        }
+        //验证验证码
+        try {
+            if (UserAPI.checkValidation(countryCode, tel, 1, captcha))
+                return null;
+            else {
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
+            }
+        } catch (TravelPiException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+//    /**
+//     * 找回密码
+//     *
+//     * @return
+//     */
+//    public static Result findPassword.() {
+//        JsonNode req = request().body().asJson();
+//        String tel = req.get("tel").asText();
+//        String captcha = req.get("captcha").asText();
+//        Integer countryCode;
+//        if (req.has("countryCode")) {
+//            countryCode = Integer.valueOf(req.get("countryCode").asText());
+//        } else {
+//            countryCode = 86;
+//        }
+//        //验证验证码
+//        try {
+//            if (UserAPI.checkValidation(countryCode, tel, 1, captcha))
+//                return null;
+//            else {
+//                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
+//            }
+//        } catch (TravelPiException e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
+    /**
      * 发送手机验证码号码。
      *
      * @return
      */
-    public static Result sendCaptcha() throws UnknownHostException, TravelPiException {
+    public static Result sendCaptcha() {
 
         JsonNode req = request().body().asJson();
 
         String tel = req.get("tel").asText();
-        String pwd = req.get("pwd").asText();
+        Integer countryCode = req.has("countryCode") ? Integer.valueOf(req.get("countryCode").asText()) : 86;
+        Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        //验证用户是否存在
+        try {
+            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
+                return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG);
+            }
+            Configuration config = Configuration.root();
+            Map sms = (Map) config.getObject("sms");
+            long expireMs = Long.valueOf(sms.get("signupExpire").toString());
+            long resendMs = Long.valueOf(sms.get("resendInterval").toString());
+            //注册发验证码-1，找回密码-2，绑定手机-3
 
-        // TODO 调用SP
-        String captcha = "1234";
-
-        // TODO 存入缓存
-        Credential ce = new Credential();
-        ce.pwdHash = "";
-        ce.salt = "";
+            //注册发送短信
+            UserAPI.sendValCode(countryCode, tel, actionCode, expireMs * 1000, resendMs * 1000);
+            builder.add("coolDown", resendMs);
 
 
-        return Utils.createResponse(ErrorCode.NORMAL, "Success");
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 手机号登录
+     *
+     * @return
+     */
+    public static Result signin() {
+
+        JsonNode req = request().body().asJson();
+        try {
+            UserInfo userInfo = null;
+            String pwd = req.get("pwd").asText();
+            String loginName = req.get("loginName").asText();
+                //验证用户是否存在-手机号
+                userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
+            if (userInfo == null)
+                //验证用户是否存在-昵称
+                userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, loginName);
+            if (userInfo == null)
+                //验证用户是否存在-用户ID
+                userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, loginName);
+            if (userInfo == null)
+                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG);
+
+            //验证密码
+            if (UserAPI.validCredential(userInfo, pwd))
+                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
+            else
+                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
     }
 
     /**
@@ -94,17 +202,18 @@ public class UserCtrl extends Controller {
      * @return
      */
     public static Result validityInfo(String tel, String nick) {
-
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         try {
             if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null)
-                return Utils.createResponse(ErrorCode.DATA_EXIST, "Telephone number has exist:" + tel);
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, tel) != null) {
-                return Utils.createResponse(ErrorCode.DATA_EXIST, "Nickname has exist:" + nick);
+                return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
+            if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, nick) != null) {
+                return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
             }
+
         } catch (TravelPiException e) {
-            e.printStackTrace();
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
-        return Utils.createResponse(ErrorCode.NORMAL, "Success");
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.add("valid", true).get()));
     }
 
 
@@ -237,12 +346,15 @@ public class UserCtrl extends Controller {
      * @return
      */
     public static Result getUserProfileById(String userId) throws UnknownHostException {
+
         try {
 
-            UserInfo userInfor = UserAPI.getUserByUserId(userId);
+            UserInfo userInfor = UserAPI.getUserByUserId(Integer.valueOf(userId));
+            if (userInfor == null)
+                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
             return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfor, UserBuilder.DETAILS_LEVEL_1));
 
-        } catch (TravelPiException e) {
+        } catch (TravelPiException | ClassCastException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
     }
@@ -257,9 +369,7 @@ public class UserCtrl extends Controller {
         try {
             JsonNode req = request().body().asJson();
 
-            String uid = req.get("userId").asText();
-            String tel = req.get("tel").asText();
-            UserInfo userInfor = UserAPI.getUserByUserId(uid);
+            UserInfo userInfor = UserAPI.getUserByUserId(Integer.valueOf(userId));
             if (userInfor == null) {
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %s.", userId));
             }
@@ -267,16 +377,25 @@ public class UserCtrl extends Controller {
             if (req.has("nickName")) {
                 String nickName = req.get("nickName").asText();
                 //如果昵称不存在
-                if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, nickName) == null) {
+                if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, nickName) == null)
                     userInfor.nickName = nickName;
-                }
+                else
+                    return Utils.createResponse(MsgConstants.NICKNAME_EXIST, MsgConstants.NICKNAME_EXIST_MSG);
             }
             //修改签名
             if (req.has("signature"))
                 userInfor.signature = req.get("signature").asText();
             //修改性别
-            if (req.has("gender"))
-                userInfor.gender = req.get("gender").asText();
+            if (req.has("gender")) {
+                String genderStr = req.get("gender").asText();
+                if ((!genderStr.equals("F")) && (!genderStr.equals("M"))) {
+                    Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid gender");
+                }
+                userInfor.gender = genderStr;
+            }
+            //修改头像
+            if (req.has("avatar"))
+                userInfor.avatar = req.get("avatar").asText();
             UserAPI.saveUserInfo(userInfor);
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | TravelPiException e) {

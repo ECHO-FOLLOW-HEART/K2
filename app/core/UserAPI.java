@@ -6,12 +6,8 @@ import core.user.ValFormatterFactory;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Sequence;
-import models.morphia.plan.Plan;
-import models.morphia.traffic.TrainRoute;
 import models.morphia.misc.ValidationCode;
-
 import models.morphia.user.Credential;
 import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
@@ -20,13 +16,9 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Http;
-import utils.DataConvert.UserConvert;
 import utils.Utils;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -40,7 +32,7 @@ public class UserAPI {
      * 排序的字段。
      */
     public enum UserInfoField {
-        TEL, NICKNAME, OPENID
+        TEL, NICKNAME, OPENID,USERID
     }
 
     public static UserInfo getUserById(ObjectId id) throws TravelPiException {
@@ -56,7 +48,7 @@ public class UserAPI {
         }
     }
 
-    public static UserInfo getUserByUserId(String id) throws TravelPiException {
+    public static UserInfo getUserByUserId(Integer id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         return ds.createQuery(UserInfo.class).field("userId").equal(id).get();
     }
@@ -230,21 +222,30 @@ public class UserAPI {
      * @param
      * @return
      */
-    public static UserInfo getUserByField(UserInfoField field,String value) throws TravelPiException {
+    public static UserInfo getUserByField(UserInfoField field, String value) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         String stKey = null;
+        UserInfo userInfo = null;
         switch (field) {
             case TEL:
                 stKey = "tel";
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
                 break;
             case NICKNAME:
                 stKey = "nickName";
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
                 break;
             case OPENID:
                 stKey = "oauthList.oauthId";
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
                 break;
+            case USERID:
+                stKey = "userId";
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(Integer.valueOf(value)).get();
+                break;
+
         }
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        return ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
+        return userInfo;
     }
 
     /**
@@ -264,18 +265,19 @@ public class UserAPI {
      * @param
      * @return
      */
-    public static UserInfo regByTel(String tel) throws TravelPiException {
+    public static UserInfo regByTel(String tel,Integer countryCode) throws TravelPiException {
 
         UserInfo user = new UserInfo();
         user.id = new ObjectId();
         user.userId = getUserId();
-        user.nickName = (new ObjectId()).toString();
         user.avatar = "http://default";
         user.oauthList = new ArrayList<>();
         user.tel = tel;
+        user.nickName = "桃子_" + user.userId;
         user.gender = "F";
-        user.countryCode = 86;
+        user.countryCode = countryCode;
         user.email = "";
+        user.secToken =Utils.getSecToken();
         user.signature = "";
         user.origin = "peach";
         user.enabled = true;
@@ -293,9 +295,10 @@ public class UserAPI {
         //DBObject newDocument = new BasicDBObject();
         //newDocument.put("$inc", new BasicDBObject().append("count", 1));
         UpdateOperations<Sequence> ops = ds.createUpdateOperations(Sequence.class).inc("count");
-        ds.findAndModify(query,ops);
+        ds.findAndModify(query, ops);
         return uid;
     }
+
     /**
      * 密码加密
      *
@@ -309,9 +312,30 @@ public class UserAPI {
         cre.userId = u.userId;
         cre.salt = Utils.getSalt();
         cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        cre.enabled = true;
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(cre);
+    }
+
+    /**
+     * 密码验证
+     *
+     * @param u
+     * @param pwd
+     * @return
+     */
+    public static boolean validCredential(UserInfo u, String pwd) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Credential> ceQuery = ds.createQuery(Credential.class);
+        Credential ce = ceQuery.field("userId").equal(u.userId).get();
+        if (ce == null)
+            return false;
+        else if (ce.pwdHash.equals(Utils.toSha1Hex(ce.salt + pwd)))
+            return true;
+        else
+            return false;
     }
 
     /**
@@ -362,16 +386,11 @@ public class UserAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
-        boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
+        return !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
+    }
 
-        // 避免暴力攻击。验证失效次数超过5次，验证码就会失效。
-        if (!ret && entry != null) {
-            entry.failCnt++;
-            if (entry.failCnt > 5)
-                entry.expireTime = 0L;
-            ds.save(entry);
-        }
-
-        return ret;
+    public static boolean newPassword(int countryCode, String tel, int actionCode, String valCode)
+            throws TravelPiException {
+        return true;
     }
 }

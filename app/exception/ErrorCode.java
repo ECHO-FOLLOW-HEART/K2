@@ -29,6 +29,14 @@ public class ErrorCode {
      * 微信注册时请求用户信息失败
      */
     public static int WEIXIN_CODE_ERROR = 404;
+    /**
+     * 用户已存在
+     */
+    public static int USER_EXIST  = 405;
+    /**
+     * 用户不已存在
+     */
+    public static int USER_NOT_EXIST  = 406;
 
     /**
      * 短信发送超过配额
