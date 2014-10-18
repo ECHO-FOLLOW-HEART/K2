@@ -8,4 +8,5 @@ import org.mongodb.morphia.annotations.Entity;
  */
 @Entity
 public class WeatherInfo {
+
 }
