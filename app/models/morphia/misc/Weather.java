@@ -14,6 +14,12 @@ import java.util.List;
  */
 @Entity
 public class Weather extends TravelPiBaseItem {
+
+    /**
+     * 地点
+     */
+    public SimpleRef loc;
+
     /**
      * 当前天气
      */
