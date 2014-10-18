@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
@@ -79,7 +81,9 @@ public class UserCtrl extends Controller {
      */
     public static Result bandTel() {
         JsonNode req = request().body().asJson();
+        UserInfo userInfo;
         String tel = req.get("tel").asText();
+        String userId = req.get("userId").asText();
         String captcha = req.get("captcha").asText();
         Integer countryCode;
         if (req.has("countryCode")) {
@@ -89,44 +93,102 @@ public class UserCtrl extends Controller {
         }
         //验证验证码
         try {
-            if (UserAPI.checkValidation(countryCode, tel, 1, captcha))
-                return null;
-            else {
+            if (UserAPI.checkValidation(countryCode, tel, 1, captcha)) {
+                //验证用户是否存在
+                if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
+                    return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG);
+                }
+                userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
+                userInfo.tel = tel;
+                UserAPI.saveUserInfo(userInfo);
+                return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+            }
+            else{
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
             }
         } catch (TravelPiException e) {
-            e.printStackTrace();
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
-        return null;
     }
 
-//    /**
-//     * 找回密码
-//     *
-//     * @return
-//     */
-//    public static Result findPassword.() {
-//        JsonNode req = request().body().asJson();
-//        String tel = req.get("tel").asText();
-//        String captcha = req.get("captcha").asText();
-//        Integer countryCode;
-//        if (req.has("countryCode")) {
-//            countryCode = Integer.valueOf(req.get("countryCode").asText());
-//        } else {
-//            countryCode = 86;
-//        }
-//        //验证验证码
-//        try {
-//            if (UserAPI.checkValidation(countryCode, tel, 1, captcha))
-//                return null;
-//            else {
-//                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
-//            }
-//        } catch (TravelPiException e) {
-//            e.printStackTrace();
-//        }
-//        return null;
-//    }
+    /**
+     * 修改密码
+     *
+     * @return
+     */
+    public static Result modPassword() {
+        JsonNode req = request().body().asJson();
+        String tel = req.get("tel").asText();
+        String oldPwd = req.get("oldPwd").asText();
+        String newPwd = req.get("newPwd").asText();
+        Integer countryCode;
+        if (req.has("countryCode")) {
+            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        } else {
+            countryCode = 86;
+        }
+
+        //验证用户是否存在-手机号
+        try {
+            UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
+            if (userInfo == null)
+                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG);
+
+            //验证密码
+            if (UserAPI.validCredential(userInfo, oldPwd)) {
+                //重设密码
+                UserAPI.resetPwd(userInfo, newPwd);
+                return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+            } else
+                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 重新设密码
+     *
+     * @return
+     */
+    public static Result newPassword() {
+        JsonNode req = request().body().asJson();
+        String tel = req.get("tel").asText();
+        String pwd = req.get("pwd").asText();
+        String captcha = req.get("captcha").asText();
+        Integer countryCode;
+        if (req.has("countryCode")) {
+            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        } else {
+            countryCode = 86;
+        }
+
+        //验证密码格式
+        if (!validityPwd(pwd)) {
+            return Utils.createResponse(MsgConstants.PWD_FORMAT_ERROR, MsgConstants.PWD_FORMAT_ERROR_MSG);
+        }
+        //验证验证码
+        try {
+            if (UserAPI.checkValidation(countryCode, tel, 2, captcha)) {
+
+                UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
+                UserAPI.resetPwd(userInfo, pwd);
+                return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+            } else
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    private static boolean validityPwd(String pwd) {
+        String regEx = "[0-9a-zA-Z_]{6,12}$";
+        Pattern pat = Pattern.compile(regEx);
+        Matcher mat = pat.matcher(pwd);
+        return mat.find();
+    }
+
     /**
      * 发送手机验证码号码。
      *
@@ -174,14 +236,14 @@ public class UserCtrl extends Controller {
             UserInfo userInfo = null;
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
-                //验证用户是否存在-手机号
-                userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
-            if (userInfo == null)
-                //验证用户是否存在-昵称
-                userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, loginName);
-            if (userInfo == null)
-                //验证用户是否存在-用户ID
-                userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, loginName);
+            //验证用户是否存在-手机号
+            userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
+            //if (userInfo == null)
+            //验证用户是否存在-昵称
+            //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, loginName);
+            //if (userInfo == null)
+            //验证用户是否存在-用户ID
+            //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, loginName);
             if (userInfo == null)
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG);
 

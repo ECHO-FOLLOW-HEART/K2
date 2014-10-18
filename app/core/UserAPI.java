@@ -259,6 +259,8 @@ public class UserAPI {
         ds.save(u);
     }
 
+
+
     /**
      * 根据手机号码完成用户注册。
      *
@@ -316,6 +318,23 @@ public class UserAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(cre);
+    }
+
+    /**
+     * 重设密码
+     *
+     * @param u
+     * @param pwd
+     * @throws TravelPiException
+     */
+    public static void resetPwd(UserInfo u,String pwd) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Credential> ceQuery = ds.createQuery(Credential.class);
+        Credential cre = ceQuery.field("userId").equal(u.userId).get();
+        cre.salt = Utils.getSalt();
+        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        ds.save(u);
     }
 
     /**
@@ -389,8 +408,7 @@ public class UserAPI {
         return !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
     }
 
-    public static boolean newPassword(int countryCode, String tel, int actionCode, String valCode)
-            throws TravelPiException {
-        return true;
-    }
+
+
+
 }
