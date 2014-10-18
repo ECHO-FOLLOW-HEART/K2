@@ -34,5 +34,5 @@ public class Weather extends TravelPiBaseItem {
     /**
      * 更新时间
      */
-    public Date updateDate;
+    public Date updateTime;
 }
