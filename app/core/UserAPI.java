@@ -405,7 +405,17 @@ public class UserAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
-        return !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
+        boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
+
+        // 避免暴力攻击。验证失效次数超过5次，验证码就会失效。
+        if (!ret && entry != null) {
+            entry.failCnt++;
+            if (entry.failCnt > 5)
+                entry.expireTime = 0L;
+            ds.save(entry);
+        }
+
+        return ret;
     }
 
 
