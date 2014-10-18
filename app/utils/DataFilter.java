@@ -62,6 +62,8 @@ public class DataFilter {
         Map<String, String> locMap = new HashMap<String, String>();
         //大兴安岭地区-映射到漠河县，key-value
         locMap.put("53aa9a6410114e3fd47836cf", "53aa9a6410114e3fd47836d2");
+        //湘西土家族苗族自治州-吉首市
+        locMap.put("53aa9a6510114e3fd4783b4e", "53aa9a6510114e3fd4783b4f");
         if (locMap.containsKey(key)) {
             return locMap.get(key);
         } else {
@@ -99,7 +101,6 @@ public class DataFilter {
                 tempJsImg = tempObjNode.get("imageList");
                 if (!tempJsImg.isArray())
                     continue;
-
                 newNodeList = new ArrayList<>();
                 for (JsonNode imgNode : tempJsImg) {
                     fullUrl = imgNode.asText() + Constants.SYMBOL_QUESTION + picUrl;
@@ -118,7 +119,7 @@ public class DataFilter {
         }
         // 首页推荐中
         if (json.has("loc")) {
-            traversalLocJson(json,Constants.BIG_PIC);
+            traversalLocJson(json, Constants.BIG_PIC);
         }
         return json;
     }
@@ -151,13 +152,14 @@ public class DataFilter {
             traverImageListNode(jsNode, Constants.SMALL_PIC);
         }
     }
+
     /**
      * 遍历loc中内容，添加图片规格。
      */
-    public static void traversalLocJson(JsonNode jsNode,int size) {
+    public static void traversalLocJson(JsonNode jsNode, int size) {
 
         ObjectNode tempObjNode;
-        JsonNode oNode,tempJsImg;
+        JsonNode oNode, tempJsImg;
         List<JsonNode> newNodeList;
         String fullUrl;
 
@@ -243,13 +245,41 @@ public class DataFilter {
         // app请求，截断过长的描述
         if (json.get("desc") != null && (!json.get("desc").equals(""))) {
             descFilter = StringUtils.abbreviate(json.get("desc").asText(), Constants.ABBREVIATE_LEN);
-            tempJson = (ObjectNode)json;
-            tempJson.put("desc",descFilter);
+            tempJson = (ObjectNode) json;
+            tempJson.put("desc", descFilter);
         }
         // app请求，不显示description
         if (json.has("description")) {
-            tempJson = (ObjectNode)json;
-            tempJson.put("description","");
+            tempJson = (ObjectNode) json;
+            tempJson.put("description", "");
+        }
+        // app请求，不显示moreDesc
+        if (json.has("moreDesc")) {
+            tempJson = (ObjectNode) json;
+            tempJson.put("moreDesc", "");
+        }
+        return json;
+    }
+
+    /**
+     * app请求推荐时的过滤
+     *
+     * @param json
+     * @param request
+     * @return
+     */
+    public static JsonNode appRecommendFilter(JsonNode json, Request request) {
+        ObjectNode tempObjNode;
+
+        // 非App请求
+        if (!isAppRequest(request))
+            return json;
+        //App请求，不显示image
+        if (json.isArray() && json.findValues("image") != null && json.findValues("image").size() > 0) {
+            for (JsonNode node : json) {
+                tempObjNode = (ObjectNode) node;
+                tempObjNode.put("image", "");
+            }
         }
         return json;
     }
@@ -260,7 +290,7 @@ public class DataFilter {
      * @param request
      * @return
      */
-    private static boolean isAppRequest(Request request){
+    public static boolean isAppRequest(Request request) {
         if (request.getQueryString("platform") == null)
             return false;
         String platform = request.getQueryString("platform");
@@ -269,5 +299,35 @@ public class DataFilter {
         return true;
     }
 
+    /**
+     * 在规划路线时，在交通中，去掉相同的车站
+     * 例如：北京机场-飞机-哈尔滨机场-哈尔滨机场-飞机-漠河机场
+     *
+     * @param plan 路线计划
+     * @param ep   去程还是返程
+     */
+//    public static void trafficSameStopFilter(Plan plan, boolean ep) {
+//        if (plan == null || plan.details == null || plan.details.isEmpty()) {
+//            return;
+//        }
+//        int index = ep ? 0 : plan.details.size() - 1;
+//        List<PlanItem> actvs = plan.details.get(index).actv;
+//        String frontStop;
+//        List<PlanItem> newActvs = new ArrayList<>();
+//        PlanItem tempItem, tempItemNext;
+//        int size = actvs.size();
+//        for (int i = 0; i < actvs.size() - 1; i++) {
+//            tempItem = actvs.get(i);
+//            tempItemNext = actvs.get(i + 1);
+//            if (tempItem.item.zhName.equals(tempItemNext.item.zhName)) {
+//                continue;
+//            }
+//            newActvs.add(tempItem);
+//            if (i == actvs.size() - 2) {
+//                newActvs.add(tempItemNext);
+//            }
+//        }
+//        plan.details.get(index).actv = newActvs;
+//    }
 
 }

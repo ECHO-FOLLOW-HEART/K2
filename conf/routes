@@ -10,11 +10,15 @@ GET           /assets/*file                                      controllers.Ass
 
 # 基础地理信息查询
 # 搜索城市
-GET           /geo/localities/search                             controllers.GeoCtrl.searchLocality(keyword: String?="", prefix: Int?=0, page: Int?=0, pageSize: Int?=20)
+GET           /geo/localities/search                             controllers.GeoCtrl.searchLocality(keyword: String?="", country: String?="", scope: Int?=1, prefix: Int?=1)
 # 查看城市详情
 GET           /geo/localities/:id                                controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 # 百度ID转换
 GET           /geo/localities/baiduId/:baiduId                   controllers.GeoCtrl.getLocalityBaiduId(baiduId: Integer)
+# 搜索国家
+GET           /geo/countries/search                              controllers.GeoCtrl.searchCountry(keyword: String?="", searchType: String?="", page: Int?=0, pageSize: Int?=10)
+# 获得国家信息
+GET           /geo/countries/:id                                 controllers.GeoCtrl.getCountry(id: String)
 
 # 交通查询
 GET           /itineraries/air-routes                            controllers.TrafficCtrl.searchAirRoutes(dep: String, arr: String, depTime: String?="", sortField: String?="price", sort: String?="desc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
@@ -28,7 +32,7 @@ GET           /itineraries/train-routes/:trainCode               controllers.Tra
 # 发现路线
 GET           /explore/plans                                     controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 # 路线查询
-GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="")
+GET           /plans/templates/:planId                           controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="",webFlag: Int=0,uid: String?="")
 # 优化路线
 POST          /plans/optimizers                                  controllers.PlanCtrl.optimizePlan()
 
@@ -93,7 +97,11 @@ GET           /sys/updates/:platform                             controllers.Mis
 GET           /sys/updates                                       controllers.MiscCtrl.getUpdates()
 GET           /suggestions                                       controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
 GET           /misc/weather/:locId                               controllers.MiscCtrl.getWeatherInfo(locId :String)
+
+POST          /app/misc/send-validation                          controllers.MiscCtrl.sendValidation()
+POST          /app/misc/check-validation                         controllers.MiscCtrl.checkValidation()
 GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
+GET           /misc/notes/search                                 controllers.TravelNoteCtrl.searchNotes()
 
 
 # 发现目的地（推荐机制）
@@ -114,8 +122,17 @@ DELETE        /users/:userId/favors/view-spots/:vsId             controllers.Use
 GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 
 GET           /batch/planBudge                                   controllers.Bache.getPlanBudget(dep: String?="", arr: String?="" )
+GET           /batch/provCap                                     controllers.Bache.updateLocalityProvCap()
+GET           /batch/recVs                                       controllers.Bache.getViewSpot()
+GET           /batch/recLoc                                      controllers.Bache.getLocalities()
+GET           /batch/recPlan                                     controllers.Bache.getRecPlans(plType: Int?=1)
+GET           /batch/addProToPlan                                controllers.Bache.addProToPlan()
+#刷新自增序列
+GET           /batch/refrechUid                                  controllers.Bache.addUserIdSequence()
 #-------------------------------------
 #路线
+#复制路线：生成一条UGC路线
+GET           /web/ugc-plans/templates/:planId                   controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="",webFlag: Int=1,uid: String?="")
 #查看UGC路线详情
 GET           /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, updateTime:String?="", page: Int?=0, pageSize: Int?=1)
 #根据用户获得UGC路线列表
@@ -123,13 +140,15 @@ GET           /web/ugc-plans/users/:userId                       controllers.Pla
 #根据目的地查看模板路线列表
 GET           /web/plans/explore                                 controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 #根据ID查看模板路线详情
-GET           /web/plans/:planId                                 controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="")
-#复制路线：生成一条UGC路线
-GET           /web/ugc-plans/templates/:planId                   controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="")
-#保存UGC路线
+GET           /web/plans/:planId                                 controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String?="", backLoc: String?="",webFlag: Int?=0,uid: String?="")
+#保存UGC路线,修改路线标题
 POST          /web/ugc-plans                                     controllers.PlanCtrl.saveUGCPlan()
 #删除UGC路线
 DELETE        /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.deleteUGCPlans(ugcPlanId: String)
+#优化并保存路线
+POST          /web/plans/optimizers                              controllers.PlanCtrl.optimizePlan()
+#路线相关游记
+GET           /web/misc/notes/search                             controllers.TravelNoteCtrl.searchNotes()
 
 #POI
 #搜索POI信息：根据位置、标签、关键词
@@ -155,9 +174,45 @@ GET           /web/itineraries/train-routes/:trainCode           controllers.Tra
 GET           /web/suggestions                                   controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
 
 #地理
-# 搜索城市
-GET           /web/geo/localities/search                         controllers.GeoCtrl.searchLocality(keyword: String?="", prefix: Int?=0, page: Int?=0, pageSize: Int?=20)
+## 搜索城市
+#GET           /web/geo/localities/search                         controllers.GeoCtrl.searchLocality(keyword: String?="", prefix: Int?=0, page: Int?=0, pageSize: Int?=20)
 # 查看城市详情
 GET           /web/geo/localities/:id                            controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 #用户登录
 POST          /web/users/oauth-login                             controllers.UserCtrl.oauthLogin()
+#发现：推荐机制
+#热门景点
+GET           /web/recommend/hotvs                               controllers.MiscCtrl.recommend(sortType: String = "hotVs", page: Int?=0, pageSize: Int?=20)
+#热门城市
+GET           /web/recommend/hotcity                             controllers.MiscCtrl.recommend(sortType: String = "hotCity", page: Int?=0, pageSize: Int?=20)
+#新鲜出炉
+GET           /web/recommend/newitem                             controllers.MiscCtrl.recommend(sortType: String = "newItemWeight", page: Int?=0, pageSize: Int?=20)
+#小编推荐
+GET           /web/recommend/editor                              controllers.MiscCtrl.recommend(sortType: String = "editorWeight", page: Int?=0, pageSize: Int?=20)
+#不可不去
+GET           /web/recommend/mustgo                              controllers.MiscCtrl.recommend(sortType: String = "mustGoWeight", page: Int?=0, pageSize: Int?=20)
+#人气之旅
+GET           /web/recommend/popularity                          controllers.MiscCtrl.recommend(sortType: String = "popularityWeight", page: Int?=0, pageSize: Int?=20)
+
+#-------------------------------------
+#用户
+#手机注册
+POST          /app/users/signup                                  peachControllers.UserCtrl.register()
+#第三方注册、登录
+POST          /app/users/auth-signup                             peachControllers.UserCtrl.authRegister()
+#检验用户信息的有效性(手机号)
+GET           /app/users/validity                                peachControllers.UserCtrl.validityInfo(tel:String?="",nick:String?="")
+#手机号登录
+POST          /app/users/signin                                  peachControllers.UserCtrl.signin()
+#发送手机验证码
+POST          /app/users/send-validation                         peachControllers.UserCtrl.sendCaptcha()
+#获取用户信息
+GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
+#编辑用户信息，修改密码
+POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
+#修改密码
+POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
+#验证验证码，重设密码
+POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
+
+

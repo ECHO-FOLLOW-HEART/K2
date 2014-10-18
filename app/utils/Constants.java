@@ -34,4 +34,6 @@ public class Constants {
     public static int FORCAST_BAOXUE = 13;
     public static int FORCAST_YUJIAXUE = 14;
     public static int FORCAST_QING = 15;
+
+
 }

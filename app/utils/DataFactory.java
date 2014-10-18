@@ -7,9 +7,7 @@ import models.morphia.traffic.AbstractRoute;
 import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.TrainRoute;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by topy on 2014/9/19.
@@ -17,6 +15,9 @@ import java.util.List;
 public class DataFactory {
 
     public static List<?> asList(Iterator<?> it) {
+        if (null == it) {
+            return Collections.emptyList();
+        }
         List l = new ArrayList();
         for (; it.hasNext(); ) {
             Object element = (Object) it.next();
@@ -98,5 +99,46 @@ public class DataFactory {
             trafficInfo.subType = "";
 
         return trafficInfo;
+    }
+
+    /**
+     * 生成添加交通时的时间过滤
+     */
+    public static List<Calendar> createTrafficTimeFilter(Date firstDate, boolean epDep) {
+
+        Calendar calLower, calUpper;
+        if (epDep) {
+            calLower = Calendar.getInstance();
+            calLower.setTime(firstDate);
+            // 允许的日期从前一天17:00到第二天12:00
+            calLower.add(Calendar.DAY_OF_YEAR, -1);
+            calLower.set(Calendar.HOUR_OF_DAY, 17);
+            calLower.set(Calendar.MINUTE, 0);
+            calLower.set(Calendar.SECOND, 0);
+            calLower.set(Calendar.MILLISECOND, 0);
+            calUpper = Calendar.getInstance();
+            calUpper.setTime(firstDate);
+            calUpper.set(Calendar.HOUR_OF_DAY, 12);
+            calUpper.set(Calendar.MINUTE, 0);
+            calUpper.set(Calendar.SECOND, 0);
+            calUpper.set(Calendar.MILLISECOND, 0);
+        } else {
+            calLower = Calendar.getInstance();
+            calLower.setTime(firstDate);
+            // 允许的日期从前一天12:00到第二天12:00
+            calLower.set(Calendar.HOUR_OF_DAY, 12);
+            calLower.set(Calendar.MINUTE, 0);
+            calLower.set(Calendar.SECOND, 0);
+            calLower.set(Calendar.MILLISECOND, 0);
+            calUpper = Calendar.getInstance();
+            calUpper.setTime(firstDate);
+            calUpper.add(Calendar.DAY_OF_YEAR, 1);
+            calUpper.set(Calendar.HOUR_OF_DAY, 12);
+            calUpper.set(Calendar.MINUTE, 0);
+            calUpper.set(Calendar.SECOND, 0);
+            calUpper.set(Calendar.MILLISECOND, 0);
+        }
+
+        return Arrays.asList(calLower, calUpper);
     }
 }

@@ -17,3 +17,6 @@ dist
 doc
 conf/mongodb.conf
 *.jar
+credential.conf
+SandboxCtrl.java
+generated.keystore

@@ -3,18 +3,19 @@ package core;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.geo.Locality;
 import models.morphia.misc.SimpleRef;
 import models.morphia.plan.*;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.poi.Hotel;
 import models.morphia.traffic.AbstractRoute;
-import models.morphia.traffic.AirRoute;
 import models.morphia.traffic.RouteIterator;
-import models.morphia.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import play.mvc.Http;
+import utils.*;
 
 import java.util.*;
 
@@ -77,7 +78,7 @@ public class PlanAPI {
             return explore(
                     locId != null && !locId.isEmpty() ? new ObjectId(locId) : null,
                     poiId != null && !poiId.isEmpty() ? new ObjectId(poiId) : null,
-                    sort, tag, minDays, maxDays, page, pageSize, sortField);
+                    sort, tag != null && !tag.isEmpty() ? tag : null, minDays, maxDays, page, pageSize, sortField);
         } catch (IllegalArgumentException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
         }
@@ -169,11 +170,11 @@ public class PlanAPI {
      * @param backLoc
      * @return
      */
-    public static UgcPlan doPlanner(String planId, String fromLoc, String backLoc, Calendar firstDate) throws TravelPiException {
+    public static UgcPlan doPlanner(String planId, String fromLoc, String backLoc, Calendar firstDate, Http.Request req) throws TravelPiException {
         try {
             if (backLoc == null || backLoc.isEmpty())
                 backLoc = fromLoc;
-            return doPlanner(new ObjectId(planId), new ObjectId(fromLoc), new ObjectId(backLoc), firstDate);
+            return doPlanner(new ObjectId(planId), new ObjectId(fromLoc), new ObjectId(backLoc), firstDate, req);
         } catch (IllegalArgumentException | NoSuchFieldException | IllegalAccessException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId));
         }
@@ -187,7 +188,7 @@ public class PlanAPI {
      * @param backLoc
      * @return
      */
-    public static UgcPlan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+    public static UgcPlan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate, Http.Request req) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
         // 获取模板路线信息
         Plan plan = getPlan(planId, false);
         if (plan == null)
@@ -213,9 +214,15 @@ public class PlanAPI {
             idx++;
         }
 
-        // 加入大交通
-        addTelomere(true, plan, fromLoc);
-        addTelomere(false, plan, backLoc);
+        if (AdapterUtils.isVerUnder120(req)) {
+            // 适配1.2.0及以下版本
+            AdapterUtils.addTelomere_120(true, plan, fromLoc);
+            AdapterUtils.addTelomere_120(false, plan, backLoc);
+        } else {
+            // 加入大交通
+            addTelomere(true, plan, fromLoc);
+            addTelomere(false, plan, backLoc);
+        }
 
         // 加入酒店
         addHotels(plan.details);
@@ -347,8 +354,8 @@ public class PlanAPI {
                 }
             }
             //删除跨天交通间的酒店
-            //对于路线的第一天或倒数第二天
-            if (i == 0 || i == dayEntry.actv.size() - 2) {
+            //对于路线的第一天或倒数第二天,且路线大于一天
+            if ((i == 0 || i == dayEntry.actv.size() - 2) && (dayEntry.actv.size() > 1)) {
                 List<PlanItem> todayActs = dayEntry.actv;
                 //如果今天最后一项是酒店并且酒店上面是交通
                 if (todayActs.get(todayActs.size() - 1).type.equals("hotel")
@@ -393,14 +400,6 @@ public class PlanAPI {
                     hotelItem.loc = hotel.addr.loc;
                     hotelItem.type = "hotel";
                     hotelItem.ts = dayEntry.date;
-
-//                    Calendar cal = Calendar.getInstance();
-//                    cal.setTime(dayEntry.date);
-//                    cal.set(Calendar.HOUR_OF_DAY, 20);
-//                    cal.set(Calendar.MINUTE, 0);
-//                    cal.set(Calendar.SECOND, 0);
-//                    cal.set(Calendar.MILLISECOND, 0);
-//                    hotelItem.ts = cal.getTime();
 
                     dayEntry.actv.add(hotelItem);
                 }
@@ -492,109 +491,70 @@ public class PlanAPI {
         ObjectId travelLoc = actv.loc.id;
 
         // 大交通筛选
-        List<Calendar> timeLimits;
-        Calendar calLower, calUpper;
+        List<Calendar> timeLimits = DataFactory.createTrafficTimeFilter(dayEntry.date, epDep);
+        Calendar calLower = timeLimits.get(0);
 
-        if (epDep) {
-            calLower = Calendar.getInstance();
-            calLower.setTime(dayEntry.date);
-            // 允许的日期从前一天17:00到第二天12:00
-            calLower.add(Calendar.DAY_OF_YEAR, -1);
-            calLower.set(Calendar.HOUR_OF_DAY, 17);
-            calLower.set(Calendar.MINUTE, 0);
-            calLower.set(Calendar.SECOND, 0);
-            calLower.set(Calendar.MILLISECOND, 0);
-            calUpper = Calendar.getInstance();
-            calUpper.setTime(dayEntry.date);
-            calUpper.set(Calendar.HOUR_OF_DAY, 12);
-            calUpper.set(Calendar.MINUTE, 0);
-            calUpper.set(Calendar.SECOND, 0);
-            calUpper.set(Calendar.MILLISECOND, 0);
-        } else {
-            calLower = Calendar.getInstance();
-            calLower.setTime(dayEntry.date);
-            // 允许的日期从前一天12:00到第二天12:00
-            calLower.set(Calendar.HOUR_OF_DAY, 12);
-            calLower.set(Calendar.MINUTE, 0);
-            calLower.set(Calendar.SECOND, 0);
-            calLower.set(Calendar.MILLISECOND, 0);
-            calUpper = Calendar.getInstance();
-            calUpper.setTime(dayEntry.date);
-            calUpper.add(Calendar.DAY_OF_YEAR, 1);
-            calUpper.set(Calendar.HOUR_OF_DAY, 12);
-            calUpper.set(Calendar.MINUTE, 0);
-            calUpper.set(Calendar.SECOND, 0);
-            calUpper.set(Calendar.MILLISECOND, 0);
+        //对特殊的地点做过滤
+        travelLoc = new ObjectId(DataFilter.localMapping(travelLoc.toString()));
+        AbstractRoute route = epDep ? searchOneWayRoutes(remoteLoc, travelLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE) :
+                searchOneWayRoutes(travelLoc, remoteLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE);
+
+        // 如果没有交通，就去掉时间过滤
+        if (route == null) {
+            route = epDep ? searchOneWayRoutes(remoteLoc, travelLoc, calLower, null, TrafficAPI.SortField.PRICE) :
+                    searchOneWayRoutes(travelLoc, remoteLoc, calLower, null, TrafficAPI.SortField.PRICE);
         }
-        timeLimits = Arrays.asList(calLower, calUpper);
+        //如果没有交通，就添加转乘交通
+        if (route == null) {
+            //取得中转站
+            Locality midLocality = GEOUtils.getInstance().getNearCap(travelLoc);
+            //取得转乘交通
+            List<AbstractRoute> twoRoutes = searchMoreWayRoutes(epDep, midLocality, remoteLoc, travelLoc, calLower, timeLimits);
+            if (twoRoutes.isEmpty()) {
+                return plan;
+            } else {
+                PlanItem depItem = DataFactory.createDepStop(twoRoutes.get(0));
+                PlanItem arrItem = DataFactory.createArrStop(twoRoutes.get(0));
+                PlanItem trafficInfo = DataFactory.createTrafficInfo(twoRoutes.get(0));
+                depItem.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
+                arrItem.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
+                trafficInfo.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
 
+                PlanItem depItemTwo = DataFactory.createDepStop(twoRoutes.get(1));
+                PlanItem arrItemTwo = DataFactory.createArrStop(twoRoutes.get(1));
+                PlanItem trafficInfoTwo = DataFactory.createTrafficInfo(twoRoutes.get(1));
+                depItemTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
+                arrItemTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
+                trafficInfoTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
 
-        RouteIterator it = (epDep ?
-                TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
-                :
-                TrafficAPI.searchAirRoutes(travelLoc, remoteLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1));
-        if (!it.hasNext()) {
-            it = (epDep ?
-                    TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.PRICE, -1, 0, 1)
-                    :
-                    TrafficAPI.searchTrainRoutes(travelLoc, remoteLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.ARR_TIME, 1, 0, 1));
+                if (epDep) {
+                    addTrafficItem(epDep, plan, arrItemTwo);
+                    addTrafficItem(epDep, plan, trafficInfoTwo);
+                    addTrafficItem(epDep, plan, depItemTwo);
+                    addTrafficItem(epDep, plan, arrItem);
+                    addTrafficItem(epDep, plan, trafficInfo);
+                    addTrafficItem(epDep, plan, depItem);
+                } else {
+                    addTrafficItem(epDep, plan, depItem);
+                    addTrafficItem(epDep, plan, trafficInfo);
+                    addTrafficItem(epDep, plan, arrItem);
+                    addTrafficItem(epDep, plan, depItemTwo);
+                    addTrafficItem(epDep, plan, trafficInfoTwo);
+                    addTrafficItem(epDep, plan, arrItemTwo);
+                }
+                return plan;
+            }
+
         }
-        if (!it.hasNext()) {
 
-            return plan;
-        }
-
-        AbstractRoute route = it.next();
-        Calendar depTime = Calendar.getInstance();
-        depTime.setTime(route.depTime);
-        Calendar firstDay = Calendar.getInstance();
-        firstDay.setTime(dayEntry.date);
 
         // 构造出发、到达和交通信息三个item
-
-        String subType;
-        if (route instanceof AirRoute)
-            subType = "airport";
-        else if (route instanceof TrainRoute)
-            subType = "trainStation";
-        else
-            subType = "";
-
-        PlanItem depItem = new PlanItem();
-        depItem.item = route.depStop;
-        depItem.loc = route.depLoc;
-        depItem.ts = route.depTime;
-        depItem.type = "traffic";
-        depItem.subType = subType;
-
-        PlanItem arrItem = new PlanItem();
-        arrItem.item = route.arrStop;
-        arrItem.loc = route.arrLoc;
-        arrItem.ts = route.arrTime;
-        arrItem.type = "traffic";
-        arrItem.subType = subType;
-
-        PlanItem trafficInfo = new PlanItem();
-        SimpleRef ref = new SimpleRef();
-        ref.id = route.id;
-        ref.zhName = route.code;
-        trafficInfo.item = ref;
-        trafficInfo.ts = route.depTime;
-        trafficInfo.extra = route;
-        trafficInfo.type = "traffic";
-        if (route instanceof AirRoute)
-            trafficInfo.subType = "airRoute";
-        else if (route instanceof TrainRoute)
-            trafficInfo.subType = "trainRoute";
-        else
-            trafficInfo.subType = "";
-
-        if (route instanceof AirRoute)
-            depItem.subType = "airport";
-        else if (route instanceof TrainRoute)
-            depItem.subType = "trainStation";
-        else
-            depItem.subType = "";
+        PlanItem depItem = DataFactory.createDepStop(route);
+        PlanItem arrItem = DataFactory.createArrStop(route);
+        PlanItem trafficInfo = DataFactory.createTrafficInfo(route);
+        depItem.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
+        arrItem.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
+        trafficInfo.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
 
         if (epDep) {
             addTrafficItem(true, plan, arrItem);
@@ -608,6 +568,70 @@ public class PlanAPI {
 
         return plan;
     }
+
+    private static AbstractRoute searchOneWayRoutes(ObjectId remoteLoc, ObjectId travelLoc, Calendar calLower, final List<Calendar> timeLimits, TrafficAPI.SortField sortField) throws TravelPiException {
+        RouteIterator it = TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
+        //次推火车
+        if (!it.hasNext()) {
+            it = TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
+        }
+        return it.hasNext() ? it.next() : null;
+    }
+
+
+    private static List<AbstractRoute> searchMoreWayRoutes(boolean epDep, Locality midLocality, ObjectId remoteLocPara, ObjectId travelLocPara, Calendar calLower, final List<Calendar> timeLimits) throws TravelPiException {
+
+        int MAX_ROUTES = 20;
+        ObjectId remoteLoc, travelLoc;
+        if (epDep) {
+            remoteLoc = remoteLocPara;
+            travelLoc = travelLocPara;
+        } else {
+            remoteLoc = travelLocPara;
+            travelLoc = remoteLocPara;
+        }
+
+        //先推飞机-飞机
+        RouteIterator firstAirIt = TrafficAPI.searchAirRoutes(remoteLoc, midLocality.id, calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+        List firstAirList = DataFactory.asList(firstAirIt);
+        RouteIterator nextAirIt = TrafficAPI.searchAirRoutes(midLocality.id, travelLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+        List nextAirList = DataFactory.asList(nextAirIt);
+
+        List<AbstractRoute> airAirRoutes = PlanUtils.getFitRoutes(firstAirList, nextAirList);
+        if (!airAirRoutes.isEmpty()) {
+            return airAirRoutes;
+        }
+
+        //再推飞机火车
+        RouteIterator nextTrainIt = TrafficAPI.searchTrainRoutes(midLocality.id, travelLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+        List nextTrainList = DataFactory.asList(nextTrainIt);
+
+        List<AbstractRoute> airTrainRoutes = PlanUtils.getFitRoutes(firstAirList, nextTrainList);
+        if (!airTrainRoutes.isEmpty()) {
+            return airTrainRoutes;
+        }
+
+        List firstTrainList = null;
+        //再推火车飞机
+        if (!nextAirList.isEmpty()) {
+            RouteIterator firstTrainIt = TrafficAPI.searchTrainRoutes(remoteLoc, midLocality.id, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+            firstTrainList = DataFactory.asList(firstTrainIt);
+
+            List<AbstractRoute> trainAirRoutes = PlanUtils.getFitRoutes(firstTrainList, nextAirList);
+            if (!airTrainRoutes.isEmpty()) {
+                return airTrainRoutes;
+            }
+        }
+        //再推火车火车
+        if (firstTrainList != null && (!firstTrainList.isEmpty()) && (!nextTrainList.isEmpty())) {
+            List<AbstractRoute> trainTrainRoutes = PlanUtils.getFitRoutes(firstTrainList, nextTrainList);
+            if (!trainTrainRoutes.isEmpty()) {
+                return trainTrainRoutes;
+            }
+        }
+        return Collections.emptyList();
+    }
+
 
     public static void saveUGCPlan(UgcPlan ugcPlan) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
@@ -628,7 +652,7 @@ public class PlanAPI {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
 
         UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
-        ops.set(filed, filedValue);
+        ops.set(filed,filed.equals("uid")? new ObjectId(filedValue):filedValue);
         ops.set("enabled", true);
         ops.set("updateTime", (new Date()).getTime());
         ds.update(query, ops, true);

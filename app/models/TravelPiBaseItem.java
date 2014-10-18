@@ -3,6 +3,8 @@ package models;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 
+import java.util.Map;
+
 /**
  * TravelPi基础数据基类。
  *
@@ -13,4 +15,6 @@ public abstract class TravelPiBaseItem {
     public ObjectId id;
 
     public boolean enabled;
+
+    public Map<String, Object> misc;
 }

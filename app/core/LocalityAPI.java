@@ -3,6 +3,7 @@ package core;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.geo.Country;
 import models.morphia.geo.Locality;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -17,6 +18,33 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 public class LocalityAPI {
+
+    /**
+     * 获得国家详情
+     *
+     * @param countryId
+     * @return
+     * @throws TravelPiException
+     */
+    public static Country countryDetails(String countryId) throws TravelPiException {
+        try {
+            return countryDetails(new ObjectId(countryId));
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid country ID: %s.", countryId));
+        }
+    }
+
+    /**
+     * 获得国家详情
+     *
+     * @param countryId
+     * @return
+     * @throws TravelPiException
+     */
+    public static Country countryDetails(ObjectId countryId) throws TravelPiException {
+        return MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
+                .createQuery(Country.class).field("_id").equal(countryId).get();
+    }
 
     /**
      * 获得城市详情。
@@ -79,7 +107,8 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord));
         query.field("relPlanCnt").greaterThan(0);
-        return query.retrievedFields(true, "zhName", "level", "superAdm").limit(pageSize).iterator();
+        return query.retrievedFields(true, "zhName", "enName", "country", "level", "superAdm", "abroad")
+                .limit(pageSize).iterator();
     }
 
 
@@ -91,11 +120,38 @@ public class LocalityAPI {
      * @param page     分页偏移量。
      * @param pageSize 页面大小。
      */
-    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException {
+    public static java.util.Iterator<Locality> searchLocalities(String keyword, ObjectId countryId,
+                                                                int scope, boolean prefix,
+                                                                int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Pattern pattern = Pattern.compile(prefix ? "^" + keyword : keyword);
-        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", pattern).order("level");
-        return query.offset(page * pageSize).limit(pageSize).iterator();
+
+        Query<Locality> query = ds.createQuery(Locality.class);
+        if (keyword != null && !keyword.isEmpty())
+            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
+        if (countryId != null)
+            query.filter("country.id", countryId);
+        switch (scope) {
+            case 1:
+                query.filter("abroad", false);
+                break;
+            case 2:
+                query.filter("abroad", true);
+                break;
+            default:
+        }
+
+        return query.order("level").offset(page * pageSize).limit(pageSize).iterator();
+    }
+
+    /**
+     * 获得城市信息。
+     *
+     * @param locId
+     * @return
+     */
+    public static Locality getLocality(ObjectId locId) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        return ds.createQuery(Locality.class).field("_id").equal(locId).field("enabled").equal(Boolean.TRUE).get();
     }
 
     /**
@@ -120,119 +176,59 @@ public class LocalityAPI {
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 
         return query.asList();
-
-//
-//        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("locality");
-//
-//        BasicDBObjectBuilder facetBuilder = BasicDBObjectBuilder.start("zhName", 1).add("ratings.score", 1);
-//        if (showDetails)
-//            facetBuilder.add("imageList", 1).add("tags", 1).add("desc", 1);
-//
-//        DBCursor cursor = col.find(QueryBuilder.start("level").is(2).get(),
-//                facetBuilder.get()).skip(page * pageSize).limit(pageSize)
-//                .sort(BasicDBObjectBuilder.start("ratings.score", -1).get());
-//
-//        BasicDBList results = new BasicDBList();
-//        while (cursor.hasNext()) {
-//            DBObject loc = cursor.next();
-//            results.add(loc);
-//        }
-//
-//        return results;
     }
 
+    /**
+     * 根据名称搜索国家。
+     *
+     * @param keyword
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws TravelPiException {
+        Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        query.or(
+                query.criteria("zhName").equal(keyword),
+                query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
+                query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
+        );
+        return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
+    }
 
-//    /**
-//     * 获得Json格式的城市详情。
-//     *
-//     * @param node
-//     * @param level
-//     * @return
-//     */
-//    public static ObjectNode getLocDetailsJson(DBObject node, int level) throws TravelPiException {
-//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start()
-//                .add("_id", node.get("_id").toString())
-//                .add("name", node.get("zhName"));
-//
-//        Object tmp;
-//        if (level >= 2) {
-//            tmp = node.get("tags");
-//            builder.add("tags", ((tmp == null || !(tmp instanceof BasicDBList)) ? new BasicDBList() : tmp));
-//            tmp = node.get("imageList");
-//            if (tmp == null || !(tmp instanceof BasicDBList))
-//                builder.add("imageList", new BasicDBList());
-//            else {
-//                BasicDBList imageList = new BasicDBList();
-//                for (Object tmp1 : (BasicDBList) tmp)
-//                    imageList.add(tmp1.toString());
-//                builder.add("imageList", imageList);
-//            }
-//
-//            if (level >= 3) {
-//                tmp = node.get("travelMonth");
-//                builder.add("travelMonth", ((tmp == null || !(tmp instanceof BasicDBList)) ? new BasicDBList() : tmp));
-//                tmp = node.get("country");
-//                builder.add("country", (tmp == null ? "" : tmp));
-//                tmp = node.get("parent");
-//
-//
-//                if (tmp == null)
-//                    builder.add("parent", new BasicDBList());
-//                else
-//                    builder.add("parent", getLocDetailsJson(locDetails(((DBObject) tmp).get("_id").toString()), 1));
-//
-//                tmp = node.get("level");
-//                builder.add("level", ((tmp == null || !(tmp instanceof Integer)) ? 0 : tmp));
-//                tmp = node.get("siblings");
-//                if (tmp == null || !(tmp instanceof BasicDBList))
-//                    builder.add("siblings", new BasicDBList());
-//                else {
-//                    BasicDBList siblings = new BasicDBList();
-//                    for (Object tmp1 : (BasicDBList) tmp)
-//                        siblings.add(getLocDetailsJson(locDetails(((DBObject) tmp1).get("_id").toString()), 1));
-//                    builder.add("siblings", siblings);
-//                }
-//                tmp = node.get("provCap");
-//                builder.add("provCap", ((tmp == null || !(tmp instanceof Boolean)) ? "" : (Boolean) tmp));
-//
-//                for (String coord : new String[]{"lat", "lng", "blat", "blng"}) {
-//                    tmp = node.get(coord);
-//                    Double val = null;
-//                    if (tmp != null && (tmp instanceof Double))
-//                        val = (Double) tmp;
-//                    builder.add(coord, (val == null ? "" : val));
-//                }
-//
-//                tmp = node.get("ratings");
-//                if (tmp == null || !(tmp instanceof DBObject))
-//                    tmp = new BasicDBObject();
-//                DBObject ratings = (DBObject) tmp;
-//                BasicDBObject ratingsNode = new BasicDBObject();
-//                for (String k : new String[]{"shoppingIndex", "dinningIndex"}) {
-//                    tmp = ratings.get(k);
-//                    if (tmp == null || !(tmp instanceof Integer))
-//                        ratingsNode.put(k, "");
-//                    else
-//                        ratingsNode.put(k, tmp);
-//                }
-//                builder.add("ratings", ratingsNode);
-//
-//                for (String k : new String[]{"voteCnt", "favorCnt"}) {
-//                    tmp = node.get(k);
-//                    if (tmp == null || !(tmp instanceof Integer))
-//                        builder.add(k, "");
-//                    else
-//                        builder.add(k, tmp);
-//                }
-//            }
-//        }
-//
-//        tmp = node.get("desc");
-//        if (level == 2)
-//            builder.add("desc", (tmp == null ? "" : StringUtils.abbreviate(tmp.toString(), Constants.ABBREVIATE_LEN)));
-//        else if (level == 3)
-//            builder.add("desc", (tmp == null ? "" : tmp.toString()));
-//
-//        return (ObjectNode) Json.toJson(builder.get());
-//    }
+    /**
+     * 根据国家代码搜索国家。
+     *
+     * @param keyword
+     * @return
+     */
+    public static List<Country> searchCountryByCode(String keyword, int page, int pageSize) throws TravelPiException {
+        Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        query.or(
+                query.criteria("code").equal(keyword),
+                query.criteria("code3").equal(keyword)
+        );
+        return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
+    }
+
+    /**
+     * 根据地区搜索国家。
+     *
+     * @param keyword
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static List<Country> searchCountryByRegion(String keyword, int page, int pageSize) throws TravelPiException {
+        Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        if (keyword != null && !keyword.isEmpty()) {
+            query.or(
+                    query.criteria("zhCont").equal(keyword),
+                    query.criteria("enCont").equal(keyword),
+                    query.criteria("zhRegion").equal(keyword),
+                    query.criteria("enRegion").equal(keyword)
+            );
+        }
+        query.field("enabled").equal(true);
+        return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
+    }
 }

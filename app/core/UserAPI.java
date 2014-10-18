@@ -2,18 +2,24 @@ package core;
 
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+import core.user.ValFormatterFactory;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.morphia.misc.Sequence;
+import models.morphia.misc.ValidationCode;
+import models.morphia.user.Credential;
 import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Http;
 import utils.Utils;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 用户相关API。
@@ -21,6 +27,13 @@ import java.util.ArrayList;
  * @author Zephyre
  */
 public class UserAPI {
+
+    /**
+     * 排序的字段。
+     */
+    public enum UserInfoField {
+        TEL, NICKNAME, OPENID,USERID
+    }
 
     public static UserInfo getUserById(ObjectId id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
@@ -33,6 +46,11 @@ public class UserAPI {
         } catch (IllegalArgumentException e) {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid user ID: %s.", id));
         }
+    }
+
+    public static UserInfo getUserByUserId(Integer id) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        return ds.createQuery(UserInfo.class).field("userId").equal(id).get();
     }
 
     /**
@@ -167,7 +185,7 @@ public class UserAPI {
         ops.set("platform", platform);
         ops.set("appVersion", appVersion);
         ops.set("udid", seq);
-        ops.set("enabled",true);
+        ops.set("enabled", true);
 
         dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.id), ops);
     }
@@ -197,4 +215,200 @@ public class UserAPI {
         }
         return true;
     }
+
+    /**
+     * 根据字段获得用户信息。
+     *
+     * @param
+     * @return
+     */
+    public static UserInfo getUserByField(UserInfoField field, String value) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        String stKey = null;
+        UserInfo userInfo = null;
+        switch (field) {
+            case TEL:
+                stKey = "tel";
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
+                break;
+            case NICKNAME:
+                stKey = "nickName";
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
+                break;
+            case OPENID:
+                stKey = "oauthList.oauthId";
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
+                break;
+            case USERID:
+                stKey = "userId";
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(Integer.valueOf(value)).get();
+                break;
+
+        }
+        return userInfo;
+    }
+
+    /**
+     * 储存用户信息。
+     *
+     * @param
+     * @return
+     */
+    public static void saveUserInfo(UserInfo u) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(u);
+    }
+
+
+
+    /**
+     * 根据手机号码完成用户注册。
+     *
+     * @param
+     * @return
+     */
+    public static UserInfo regByTel(String tel,Integer countryCode) throws TravelPiException {
+
+        UserInfo user = new UserInfo();
+        user.id = new ObjectId();
+        user.userId = getUserId();
+        user.avatar = "http://default";
+        user.oauthList = new ArrayList<>();
+        user.tel = tel;
+        user.nickName = "桃子_" + user.userId;
+        user.gender = "F";
+        user.countryCode = countryCode;
+        user.email = "";
+        user.secToken =Utils.getSecToken();
+        user.signature = "";
+        user.origin = "peach";
+        user.enabled = true;
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(user);
+        return user;
+    }
+
+    public static Integer getUserId() throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Sequence> query = ds.createQuery(Sequence.class);
+        query.field("column").equals(Sequence.USERID);
+        Integer uid = query.get().count;
+        //DBObject newDocument = new BasicDBObject();
+        //newDocument.put("$inc", new BasicDBObject().append("count", 1));
+        UpdateOperations<Sequence> ops = ds.createUpdateOperations(Sequence.class).inc("count");
+        ds.findAndModify(query, ops);
+        return uid;
+    }
+
+    /**
+     * 密码加密
+     *
+     * @param u
+     * @param pwd
+     * @return
+     */
+    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
+        Credential cre = new Credential();
+        cre.id = u.id;
+        cre.userId = u.userId;
+        cre.salt = Utils.getSalt();
+        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        cre.enabled = true;
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(cre);
+    }
+
+    /**
+     * 重设密码
+     *
+     * @param u
+     * @param pwd
+     * @throws TravelPiException
+     */
+    public static void resetPwd(UserInfo u,String pwd) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Credential> ceQuery = ds.createQuery(Credential.class);
+        Credential cre = ceQuery.field("userId").equal(u.userId).get();
+        cre.salt = Utils.getSalt();
+        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        ds.save(u);
+    }
+
+    /**
+     * 密码验证
+     *
+     * @param u
+     * @param pwd
+     * @return
+     */
+    public static boolean validCredential(UserInfo u, String pwd) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Credential> ceQuery = ds.createQuery(Credential.class);
+        Credential ce = ceQuery.field("userId").equal(u.userId).get();
+        if (ce == null)
+            return false;
+        else if (ce.pwdHash.equals(Utils.toSha1Hex(ce.salt + pwd)))
+            return true;
+        else
+            return false;
+    }
+
+    /**
+     * 发送手机验证码
+     *
+     * @param countryCode 国家代码
+     * @param tel         手机号码
+     * @param actionCode  动作代码，表示发送验证码的原因
+     * @param expireMs    多少豪秒以后过期
+     * @param resendMs    多少毫秒以后可以重新发送验证短信
+     */
+    public static void sendValCode(int countryCode, String tel, int actionCode, long expireMs, long resendMs)
+            throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
+                .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
+
+        if (valCode != null && System.currentTimeMillis() < valCode.resendTime)
+            throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
+
+        ValidationCode oldCode = valCode;
+        valCode = ValidationCode.newInstance(countryCode, tel, actionCode, expireMs);
+        if (oldCode != null)
+            valCode.id = oldCode.id;
+
+        List<String> recipients = new ArrayList<>();
+        recipients.add(tel);
+
+        String content = ValFormatterFactory.newInstance(actionCode).format(countryCode, tel, valCode.value, expireMs, null);
+        Utils.sendSms(recipients, content);
+
+        valCode.lastSendTime = System.currentTimeMillis();
+        valCode.resendTime = valCode.lastSendTime + resendMs;
+        ds.save(valCode);
+    }
+
+    /**
+     * 验证验证码
+     *
+     * @param countryCode 国家代码
+     * @param tel         手机号码
+     * @param actionCode  操作码
+     * @param valCode     验证码
+     * @return 验证码是否有效
+     */
+    public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode)
+            throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
+                .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
+        return !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
+    }
+
+
+
+
 }

@@ -21,4 +21,5 @@ public class OAuthInfo {
     public String avatar;
 
     public String token;
+
 }

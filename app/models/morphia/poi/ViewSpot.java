@@ -8,10 +8,8 @@ import org.mongodb.morphia.annotations.Embedded;
 import play.libs.Json;
 import utils.DataFilter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
+
 
 /**
  * 景点信息。
@@ -97,17 +95,18 @@ public class ViewSpot extends AbstractPOI {
 
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //标识描述的各项是否存在
-        Description flag = new Description();
+//        Description flag = new Description();
+        Map<String, Integer> flag = new HashMap<>();
         if (description != null) {
-            flag.traffic = description.traffic == null ? "0" : "1";
-            flag.desc = description.desc == null ? "0" : "1";
-            flag.details = description.details == null ? "0" : "1";
-            flag.tips = description.tips == null ? "0" : "1";
+            flag.put("traffic", description.traffic == null ? 0 : 1);
+            flag.put("desc", description.desc == null ? 0 : 1);
+            flag.put("details", description.details == null ? 0 : 1);
+            flag.put("tips", description.tips == null ? 0 : 1);
         } else {
-            flag.traffic = "0";
-            flag.desc = "0";
-            flag.details = "0";
-            flag.tips = "0";
+            flag.put("traffic", 0);
+            flag.put("desc", 0);
+            flag.put("details", 0);
+            flag.put("tips", 0);
         }
         builder.add("descriptionFlag", flag);
         //builder.add("description", description == null ? "" : description.toJson());

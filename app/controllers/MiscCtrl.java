@@ -12,11 +12,13 @@ import models.MorphiaFactory;
 import models.morphia.geo.Locality;
 import models.morphia.misc.Feedback;
 import models.morphia.misc.MiscInfo;
+import models.morphia.misc.Recommendation;
 import models.morphia.poi.AbstractPOI;
 import models.morphia.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -364,7 +366,7 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
 
-            //UserAPI.updateUserInfo(request());
+            UserAPI.updateUserInfo(request());
 
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();
@@ -385,13 +387,13 @@ public class MiscCtrl extends Controller {
     public static Result getWeatherInfo(String locId) {
         try {
 
-            //请求验证
-            String sign = request().getQueryString("sign");
-            String uid = request().getQueryString("uid");
-            String timestamp = request().getQueryString("timestamp");
-            boolean auth = UserAPI.authenticate(uid, timestamp, sign);
-            if (!auth)
-                return Utils.createResponse(ErrorCode.AUTHENTICATE_ERROR, "AUTHENTIFICATION FAILED.");
+//            //请求验证
+//            String sign = request().getQueryString("sign");
+//            String uid = request().getQueryString("uid");
+//            String timestamp = request().getQueryString("timestamp");
+//            boolean auth = UserAPI.authenticate(uid, timestamp, sign);
+//            if (!auth)
+//                return Utils.createResponse(ErrorCode.AUTHENTICATE_ERROR, "AUTHENTIFICATION FAILED.");
 
             DBCollection colLoc = Utils.getMongoClient().getDB("misc").getCollection("Weather");
             DBObject qb = QueryBuilder.start("loc.id").is(new ObjectId(locId)).get();
@@ -479,6 +481,124 @@ public class MiscCtrl extends Controller {
             result.put("weather", tmp != null ? tmp.toString() : "");
             tmp = entry.get("date");
             result.put("sampleTime", tmp != null ? tmp.toString() : "");
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static Result recommend(String type, int page, int pageSize) {
+        List<JsonNode> results = new ArrayList<JsonNode>();
+
+        Datastore ds = null;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            Query<Recommendation> query = ds.createQuery(Recommendation.class);
+
+            query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
+            query.order(type).offset(page * pageSize).limit(pageSize);
+
+            for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
+                results.add(it.next().toJson());
+            }
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
+    }
+
+    public static Result checkValidation() {
+        JsonNode data = request().body().asJson();
+
+        JsonNode tmp = data.get("tel");
+        String tel = null;
+        if (tmp != null)
+            tel = Utils.telParser(tmp.asText());
+
+        tmp = data.get("actionCode");
+        Integer actionCode = null;
+        try {
+            if (tmp != null)
+                actionCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        Integer countryCode = 86;
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                countryCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        String v = null;
+        tmp = data.get("validationCode");
+        if (tmp != null)
+            v = tmp.asText();
+
+        if (tel == null || actionCode == null || v == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+
+        try {
+            if (actionCode != 1)
+                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+
+            boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v);
+
+            ObjectNode result = Json.newObject();
+            result.put("isValid", valid);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static Result sendValidation() {
+        JsonNode data = request().body().asJson();
+
+        JsonNode tmp = data.get("tel");
+        String tel = null;
+        if (tmp != null)
+            tel = Utils.telParser(tmp.asText());
+
+        tmp = data.get("actionCode");
+        Integer actionCode = null;
+        try {
+            if (tmp != null)
+                actionCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        Integer countryCode = 86;
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                countryCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        if (tel == null || actionCode == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+
+        try {
+            if (actionCode != 1)
+                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+
+            // 确定过期时间
+            Map<String, Object> smsConf = Configuration.root().getConfig("sms").asMap();
+            long expireMs = Integer.parseInt(smsConf.get("signupExpire").toString()) * 1000L;
+            long resendMs = Integer.parseInt(smsConf.get("resendInterval").toString()) * 1000L;
+
+            UserAPI.sendValCode(countryCode, tel, actionCode, expireMs, resendMs);
+
+            ObjectNode result = Json.newObject();
+            result.put("coolDown", resendMs / 1000);
             return Utils.createResponse(ErrorCode.NORMAL, result);
 
         } catch (TravelPiException e) {

@@ -7,19 +7,30 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
+import org.dom4j.Document;
+import org.dom4j.DocumentException;
+import org.dom4j.io.SAXReader;
+import org.dom4j.tree.DefaultText;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Result;
 
 import java.lang.reflect.Field;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static play.mvc.Results.ok;
 
@@ -206,7 +217,7 @@ public class Utils {
      */
     public static String toSha1Hex(String msg) {
         try {
-            byte[] ret = MessageDigest.getInstance("SHA").digest(msg.getBytes());
+            byte[] ret = MessageDigest.getInstance("SHA-256").digest(msg.getBytes());
 
             StringBuilder sb = new StringBuilder();
             for (byte aB : ret) {
@@ -218,6 +229,90 @@ public class Utils {
             return sb.toString();
         } catch (NoSuchAlgorithmException ignored) {
             return null;
+        }
+    }
+
+    /**
+     * 生成随机字符串
+     *
+     * @param length 生成字符串的长度
+     * @return
+     */
+    public static String getRandomString(int length) {
+        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+        int size = base.length();
+        Random random = new Random();
+        StringBuffer sb = new StringBuffer();
+        int number;
+        for (int i = 0; i < length; i++) {
+            number = random.nextInt(size);
+            sb.append(base.charAt(number));
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 取得密盐
+     */
+    public static String getSalt() {
+        return getRandomString(32);
+    }
+
+    /**
+     * 解析电话号码字符串
+     *
+     * @param tel 输入的电话号码。
+     * @return 电话号码："13800138000"。如果不符合格式规范，则返回null。
+     */
+    public static String telParser(String tel) {
+        if (tel == null)
+            return null;
+
+        // 去掉所有的空格，横线，括号等
+        Pattern pattern = Pattern.compile("[\\s\\-\\(\\)]+");
+        String newTel = pattern.matcher(tel).replaceAll("");
+        Matcher matcher = Pattern.compile("\\d{11}").matcher(newTel);
+
+        // 如果电话号码不符合规范，则返回null。
+        return matcher.find() ? newTel : null;
+    }
+
+    /**
+     * 发送短信
+     *
+     * @param recipients 接受列表
+     * @param msg        短信内容
+     */
+    public static void sendSms(List<String> recipients, String msg) throws TravelPiException {
+        Configuration config = Configuration.root();
+        Map<String, Object> sms = config.getConfig("sms").asMap();
+        String host = sms.get("host").toString();
+        int port = Integer.parseInt(sms.get("port").toString());
+        String user = sms.get("user").toString();
+        String passwd = sms.get("passwd").toString();
+
+
+        SAXReader saxReader = new SAXReader();
+        try {
+            StringBuilder builder = new StringBuilder();
+            for (byte b : msg.getBytes(Charset.forName("GBK"))) {
+                builder.append("%");
+                builder.append(Integer.toHexString(b & 0xFF));
+            }
+            String url = String.format(
+                    "http://%s:%d/QxtSms/QxtFirewall?OperID=%s&OperPass=%s&DesMobile=%s&Content=%s&ContentType=15",
+                    host, port, user, passwd, StringUtils.join(recipients, ","), builder.toString());
+            Document document = saxReader.read(new URL(url));
+
+            String xpath = "/response/code/text()";
+            List l = document.selectNodes(xpath);
+            if (l.isEmpty())
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Cannot find any return codes.");
+            int code = Integer.parseInt(((DefaultText) l.get(0)).getText());
+            if (code != 3 && code != 1)
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, String.format("Error in sending sms. code: %d.", code));
+        } catch (DocumentException | MalformedURLException | IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in sending sms.");
         }
     }
 }
