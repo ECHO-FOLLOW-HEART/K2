@@ -62,6 +62,8 @@ public class DataFilter {
         Map<String, String> locMap = new HashMap<String, String>();
         //大兴安岭地区-映射到漠河县，key-value
         locMap.put("53aa9a6410114e3fd47836cf", "53aa9a6410114e3fd47836d2");
+        //湘西土家族苗族自治州-吉首市
+        locMap.put("53aa9a6510114e3fd4783b4e", "53aa9a6510114e3fd4783b4f");
         if (locMap.containsKey(key)) {
             return locMap.get(key);
         } else {

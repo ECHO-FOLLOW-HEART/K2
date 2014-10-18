@@ -652,7 +652,7 @@ public class PlanAPI {
             throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
 
         UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
-        ops.set(filed, new ObjectId(filedValue));
+        ops.set(filed,filed.equals("uid")? new ObjectId(filedValue):filedValue);
         ops.set("enabled", true);
         ops.set("updateTime", (new Date()).getTime());
         ds.update(query, ops, true);
