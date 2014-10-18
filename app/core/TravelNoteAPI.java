@@ -13,6 +13,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.bson.types.ObjectId;
+import play.Configuration;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -60,7 +61,10 @@ public class TravelNoteAPI {
 
         SolrDocumentList docs;
         try {
-            String url = "http://121.201.7.184:8983/solr";
+            Configuration config = Configuration.root().getConfig("solr");
+            String host = config.getString("host", "localhost");
+            Integer port = config.getInt("port", 8983);
+            String url = String.format("http://%s:%d/solr", host, port);
             /*
             HttpSolrServer is thread-safe and if you are using the following constructor,
             you *MUST* re-use the same instance for all requests.  If instances are created on
@@ -73,25 +77,31 @@ public class TravelNoteAPI {
 
             StringBuilder sb = new StringBuilder();
             for (String t : targets)
-                sb.append(String.format(" title:%s _to:%s", t, t));
+                sb.append(String.format(" title:%s toLoc:%s", t, t));
 
             for (String t : viewSpots)
                 sb.append(String.format(" contents:%s", t));
 
             query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("contents")
-                    .addField("url").addField("commentCnt").addField("viewCnt");
+                    .addField("url").addField("commentCnt").addField("viewCnt").addField("authorAvatar");
 
             docs = server.query(query).getResults();
 
             for (SolrDocument doc : docs) {
                 TravelNote note = new TravelNote();
+                Object tmp;
                 note.authorName = (String) doc.get("authorName");
-                note.title = ((List<String>) (doc.get("title"))).get(0);
-                note.contents = (List<String>) doc.get("contents");
+                note.title = (String) doc.get("title");
+                note.authorAvatar = (String) doc.get("authorAvatar");
+                tmp = doc.get("favorCnt");
+                note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+                note.contents = (List) doc.get("contents");
                 note.sourceUrl = (String) doc.get("url");
                 note.source = "baidu";
-                note.commentCnt = (Integer) doc.get("commentCnt");
-                note.viewCnt = (Integer) doc.get("viewCnt");
+                tmp = doc.get("commentCnt");
+                note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+                tmp = doc.get("viewCnt");
+                note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
                 note.publishDate = new Date();
 
                 if (note.contents.size() > 1) {
