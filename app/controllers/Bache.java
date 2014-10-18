@@ -113,6 +113,13 @@ public class Bache extends Controller {
      * @return
      */
     public static Double getTrafficBudget(String depId, String arrId) throws TravelPiException {
+        ObjectId depOid, arrOid;
+        try {
+            depOid = new ObjectId(depId);
+            arrOid = new ObjectId(arrId);
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, "Invalid locality ID.");
+        }
 
         //取得交通预算常量
         Configuration config = Configuration.root();
@@ -131,10 +138,8 @@ public class Bache extends Controller {
         // 根据里程数与预算比率，计算得出交通预算
         if (null != depId && (!depId.trim().equals(""))
                 && null != arrId && (!arrId.trim().equals(""))) {
-            ObjectId depOid = new ObjectId(depId);
-            ObjectId arrOid = new ObjectId(arrId);
-            Locality depLoc = null;
-            Locality arrLoc = null;
+            Locality depLoc;
+            Locality arrLoc;
             int kmMount = 0;
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
             Query<Locality> query = ds.createQuery(Locality.class);
