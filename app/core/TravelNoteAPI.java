@@ -13,6 +13,7 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.bson.types.ObjectId;
+import play.Configuration;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -60,7 +61,10 @@ public class TravelNoteAPI {
 
         SolrDocumentList docs;
         try {
-            String url = "http://121.201.7.184:8983/solr";
+            Configuration config = Configuration.root().getConfig("solr");
+            String host = config.getString("host", "localhost");
+            Integer port = config.getInt("port", 8983);
+            String url = String.format("http://%s:%d/solr", host, port);
             /*
             HttpSolrServer is thread-safe and if you are using the following constructor,
             you *MUST* re-use the same instance for all requests.  If instances are created on
