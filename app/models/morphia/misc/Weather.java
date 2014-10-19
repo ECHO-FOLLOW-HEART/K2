@@ -45,6 +45,7 @@ public class Weather extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public Date updateTime;
 
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();  //创建builder填充数据
