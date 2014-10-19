@@ -779,7 +779,7 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) {
         List<JsonNode> results = new ArrayList<>();
 
         if (locId != null && !locId.isEmpty()) {
@@ -847,33 +847,36 @@ public class PlanCtrl extends Controller {
                 poiId = poiIdMapping.get(poiId);
         }
 
-        Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
-        //取得预算常量
-        Configuration config = Configuration.root();
-        Map budget = (Map) config.getObject("budget");
-        int stayBudgetDefault = 0;
         try {
-            if (budget != null) {
-                stayBudgetDefault = Integer.valueOf(budget.get("stayBudgetDefault").toString());
+            Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
+
+            int stayBudgetDefault = 0;
+            try {
+                //取得预算常量
+                Map<String, Object> budget = Configuration.root().getConfig("budget").asMap();
+                if (budget != null)
+                    stayBudgetDefault = Integer.valueOf(budget.get("stayBudgetDefault").toString());
+            } catch (ClassCastException ignored) {
             }
-        } catch (ClassCastException e) {
-            stayBudgetDefault = 0;
+
+            for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, minDays, maxDays, page,
+                    pageSize, sortField); it.hasNext(); ) {
+                //加入交通预算,住宿预算
+                if (null != fromLoc && !fromLoc.trim().equals("")) {
+                    try {
+                        results.add(addTrafficBudget(it, trafficBudget, stayBudgetDefault));
+                    } catch (ClassCastException e) {
+                        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+                    }
+                } else {
+                    results.add(it.next().toJson(false));
+                }
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, minDays, maxDays, page, pageSize, sortField);
-             it.hasNext(); ) {
-            //加入交通预算,住宿预算
-            if (null != fromLoc && !fromLoc.trim().equals("")) {
-                try {
-                    results.add(addTrafficBudget(it, trafficBudget, stayBudgetDefault));
-                } catch (ClassCastException e) {
-                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-                }
-            } else {
-                results.add(it.next().toJson(false));
-            }
-        }
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
     }
 
     /**
