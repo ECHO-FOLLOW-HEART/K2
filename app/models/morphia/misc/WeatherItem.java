@@ -1,6 +1,10 @@
 package models.morphia.misc;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.mongodb.BasicDBObjectBuilder;
+import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
+import play.libs.Json;
 
 import java.util.Date;
 
@@ -10,7 +14,7 @@ import java.util.Date;
  * @author Zephyre
  */
 @Embedded
-public class WeatherItem {
+public class WeatherItem implements ITravelPiFormatter {
     /**
      * 最低温度
      */
@@ -35,4 +39,15 @@ public class WeatherItem {
      * 天气代码
      */
     public Integer code;
+
+
+    @Override
+    public JsonNode toJson() {
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+        builder.add("code", code).add("desc", (desc != null ? desc : "")).
+                add("currTemperature", currTemperature).
+                add("lowerTemperature", lowerTemperature).
+                add("upperTemperature", upperTemperature);
+        return Json.toJson(builder.get());
+    }
 }

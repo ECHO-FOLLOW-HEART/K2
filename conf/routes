@@ -102,8 +102,8 @@ POST          /app/misc/send-validation                          controllers.Mis
 POST          /app/misc/check-validation                         controllers.MiscCtrl.checkValidation()
 GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
 GET           /misc/notes/search                                 controllers.TravelNoteCtrl.searchNotes()
-
-
+#天气情况
+GET          /misc/weather:id                                    controllers.WeatherCtrl.getWeatherDetail(id:Long)
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
 
@@ -214,5 +214,7 @@ POST          /app/users/:uid                                    peachController
 POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
 #验证验证码，重设密码
 POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
+
+
 
 
