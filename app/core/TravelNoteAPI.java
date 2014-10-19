@@ -83,7 +83,7 @@ public class TravelNoteAPI {
                 sb.append(String.format(" contents:%s", t));
 
             query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("contents")
-                    .addField("url").addField("commentCnt").addField("viewCnt").addField("authorAvatar");
+                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar");
 
             docs = server.query(query).getResults();
 
@@ -92,7 +92,10 @@ public class TravelNoteAPI {
                 Object tmp;
                 note.authorName = (String) doc.get("authorName");
                 note.title = (String) doc.get("title");
-                note.authorAvatar = (String) doc.get("authorAvatar");
+                tmp = doc.get("authorAvatar");
+                note.authorAvatar = (tmp != null ? (String) tmp : "");
+                if (!note.authorAvatar.startsWith("http://"))
+                    note.authorAvatar = "http://" + note.authorAvatar;
                 tmp = doc.get("favorCnt");
                 note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
                 note.contents = (List) doc.get("contents");
@@ -103,6 +106,8 @@ public class TravelNoteAPI {
                 tmp = doc.get("viewCnt");
                 note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
                 note.publishDate = new Date();
+                tmp = doc.get("sourceUrl");
+                note.sourceUrl = (tmp != null ? (String) tmp : "");
 
                 if (note.contents.size() > 1) {
                     sb = new StringBuilder();
