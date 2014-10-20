@@ -17,3 +17,5 @@ dist
 doc
 conf/mongodb.conf
 *.jar
+credential.conf
+generated.keystore
