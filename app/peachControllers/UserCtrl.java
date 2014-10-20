@@ -52,7 +52,7 @@ public class UserCtrl extends Controller {
 
             //验证用户是否存在
             if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
-                return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG);
+                return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
             }
 
             UserInfo userInfo;
@@ -61,10 +61,8 @@ public class UserCtrl extends Controller {
                 // 生成用户
                 userInfo = UserAPI.regByTel(tel, countryCode);
                 UserAPI.regCredential(userInfo, pwd);
-
-            } else {
-                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
-            }
+            } else
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
             if (userInfo != null)
                 return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
@@ -96,15 +94,14 @@ public class UserCtrl extends Controller {
             if (UserAPI.checkValidation(countryCode, tel, 1, captcha)) {
                 //验证用户是否存在
                 if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
-                    return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG);
+                    return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
                 }
                 userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
-            }
-            else{
-                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
+            } else {
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
             }
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -132,7 +129,7 @@ public class UserCtrl extends Controller {
         try {
             UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
             if (userInfo == null)
-                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG);
+                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
             //验证密码
             if (UserAPI.validCredential(userInfo, oldPwd)) {
@@ -140,7 +137,7 @@ public class UserCtrl extends Controller {
                 UserAPI.resetPwd(userInfo, newPwd);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else
-                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG);
+                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -165,7 +162,7 @@ public class UserCtrl extends Controller {
 
         //验证密码格式
         if (!validityPwd(pwd)) {
-            return Utils.createResponse(MsgConstants.PWD_FORMAT_ERROR, MsgConstants.PWD_FORMAT_ERROR_MSG);
+            return Utils.createResponse(MsgConstants.PWD_FORMAT_ERROR, MsgConstants.PWD_FORMAT_ERROR_MSG, true);
         }
         //验证验证码
         try {
@@ -175,7 +172,7 @@ public class UserCtrl extends Controller {
                 UserAPI.resetPwd(userInfo, pwd);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else
-                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG);
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -205,7 +202,7 @@ public class UserCtrl extends Controller {
         //验证用户是否存在
         try {
             if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
-                return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG);
+                return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
             }
             Configuration config = Configuration.root();
             Map sms = (Map) config.getObject("sms");
@@ -216,7 +213,6 @@ public class UserCtrl extends Controller {
             //注册发送短信
             UserAPI.sendValCode(countryCode, tel, actionCode, expireMs * 1000, resendMs * 1000);
             builder.add("coolDown", resendMs);
-
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
         } catch (TravelPiException e) {
@@ -245,13 +241,13 @@ public class UserCtrl extends Controller {
             //验证用户是否存在-用户ID
             //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, loginName);
             if (userInfo == null)
-                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG);
+                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
             //验证密码
             if (UserAPI.validCredential(userInfo, pwd))
                 return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
             else
-                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG);
+                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -313,7 +309,7 @@ public class UserCtrl extends Controller {
 
             //如果请求失败
             if (rootNode.has("errcode"))
-                return Utils.createResponse(ErrorCode.WEIXIN_CODE_ERROR, "Wei Xin invalid code ");
+                return Utils.createResponse(ErrorCode.WEIXIN_CODE_ERROR, MsgConstants.WEIXIN_ACESS_ERROR_MSG, true);
             //获取access_token
             access_token = rootNode.get("access_token").asText();
             openId = rootNode.get("openid").asText();
@@ -328,7 +324,7 @@ public class UserCtrl extends Controller {
             UserInfo us;
 
             if (!infoNode.has("openid")) {
-                return Utils.createResponse(ErrorCode.WEIXIN_CODE_ERROR, "Wei Xin invalid access token ");
+                return Utils.createResponse(ErrorCode.WEIXIN_CODE_ERROR, MsgConstants.WEIXIN_ACESS_ERROR_MSG, true);
             }
 
             //如果第三方用户已存在,视为第二次登录
@@ -442,7 +438,7 @@ public class UserCtrl extends Controller {
                 if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, nickName) == null)
                     userInfor.nickName = nickName;
                 else
-                    return Utils.createResponse(MsgConstants.NICKNAME_EXIST, MsgConstants.NICKNAME_EXIST_MSG);
+                    return Utils.createResponse(MsgConstants.NICKNAME_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
             }
             //修改签名
             if (req.has("signature"))

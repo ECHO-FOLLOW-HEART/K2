@@ -84,7 +84,7 @@ public class Utils {
 
     public static Result createResponse(int errCode, String msg) {
         ObjectNode jsonObj = Json.newObject();
-        jsonObj.put("msg", msg);
+        jsonObj.put("debug", msg);
         return createResponse(errCode, jsonObj);
     }
 
@@ -103,6 +103,18 @@ public class Utils {
         return ok(response);
     }
 
+    /**
+     *
+     * @param errCode 错误码
+     * @param msg 提示信息
+     * @param isGotByApp  标识Message是否被手机端直接获得并显示出来
+     * @return
+     */
+    public static Result createResponse(int errCode, String msg,boolean isGotByApp) {
+        ObjectNode jsonObj = Json.newObject();
+        jsonObj.put("message", msg);
+        return createResponse(errCode, jsonObj);
+    }
     /**
      * 获得默认的MongoDB客户端对象。
      *
