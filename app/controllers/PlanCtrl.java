@@ -848,7 +848,9 @@ public class PlanCtrl extends Controller {
         }
 
         try {
-            Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
+            Double trafficBudget = 0.0;
+            if (fromLoc != null && !fromLoc.isEmpty())
+                trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
 
             int stayBudgetDefault = 0;
             try {
