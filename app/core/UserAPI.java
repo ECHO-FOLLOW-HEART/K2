@@ -44,7 +44,7 @@ public class UserAPI {
         try {
             return getUserById(new ObjectId(id));
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid user ID: %s.", id));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user ID: %s.", id));
         }
     }
 

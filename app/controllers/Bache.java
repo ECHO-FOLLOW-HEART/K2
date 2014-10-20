@@ -117,7 +117,7 @@ public class Bache extends Controller {
             depOid = new ObjectId(depId);
             arrOid = new ObjectId(arrId);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, "Invalid locality ID.");
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid locality ID.");
         }
 
         //取得交通预算常量

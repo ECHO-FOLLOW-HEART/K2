@@ -114,7 +114,7 @@ public class GeoCtrl extends Controller {
             try {
                 countryId = new ObjectId(country);
             } catch (IllegalArgumentException e) {
-                return Utils.createResponse(ErrorCode.INVALID_OBJECTID, String.format("Invalid ObjectId: %s", country));
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid ObjectId: %s", country));
             }
         }
 

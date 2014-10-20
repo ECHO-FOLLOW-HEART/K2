@@ -65,7 +65,7 @@ public class PlanCtrl extends Controller {
             if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);
                 if (plan == null)
-                    throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId.toString()));
+                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId.toString()));
                 return Utils.createResponse(ErrorCode.NORMAL, plan.toJson());
             }
             Calendar cal = Calendar.getInstance();
@@ -123,7 +123,7 @@ public class PlanCtrl extends Controller {
 
         Plan plan = PlanAPI.getPlan(templateId, false);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", templateId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
         UgcPlan ugcPlan = new UgcPlan(plan);
 
         PlanDayEntry planDayEntry = null;
@@ -653,7 +653,7 @@ public class PlanCtrl extends Controller {
         Plan plan = PlanAPI.getPlan(templateId, false);
         UgcPlan ugcPlan = new UgcPlan(plan);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", templateId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
 
         //补全信息
         List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, false);
@@ -1320,7 +1320,7 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getUGCPlans(String userId, String ugcPlanId, String updateTime, int page, int pageSize) {
+    public static Result getUGCPlans(String userId, String ugcPlanId, Long updateTime, int page, int pageSize) {
 
         try {
             //根据ID取得UGC路线
@@ -1330,8 +1330,7 @@ public class PlanCtrl extends Controller {
                 //如果不需要更新，只返回一个标识，以节省流量
                 long updateTimeInDB = ugcPlan.updateTime;
                 if (!updateTime.equals("")) {
-                    Long appTimeStamp = Long.parseLong(updateTime);
-                    if (appTimeStamp.longValue() == updateTimeInDB) {
+                    if (updateTime.longValue() == updateTimeInDB) {
                         return Utils.createResponse(ErrorCode.DONOTNEED_UPDATE, "DO NOT NEED UPDATE");
                     }
                 }

@@ -30,7 +30,7 @@ public class TravelNoteAPI {
         if (plan == null)
             plan = PlanAPI.getPlan(planId, true);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("INVALID OBJECT ID: %s", planId.toString()));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("INVALID OBJECT ID: %s", planId.toString()));
 
         Map<String, String> tMap = new HashMap<>();
         List<String> viewSpots = new ArrayList<>();
