@@ -1328,12 +1328,9 @@ public class PlanCtrl extends Controller {
                 UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
                 //根据ID取用户路线时，先判断时间戳，是否需要更新
                 //如果不需要更新，只返回一个标识，以节省流量
-                long updateTimeInDB = ugcPlan.updateTime;
-                if (!updateTime.equals("")) {
-                    if (updateTime.longValue() == updateTimeInDB) {
-                        return Utils.createResponse(ErrorCode.DONOTNEED_UPDATE, "DO NOT NEED UPDATE");
-                    }
-                }
+                if (updateTime == ugcPlan.updateTime)
+                    return Utils.createResponse(ErrorCode.DONOTNEED_UPDATE, "DO NOT NEED UPDATE");
+
                 //取详细信息
                 JsonNode planJson = ugcPlan.toJson(true);
                 planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
