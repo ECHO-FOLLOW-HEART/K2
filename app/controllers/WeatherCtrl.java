@@ -13,8 +13,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,30 +21,30 @@ import java.util.List;
 public class WeatherCtrl extends Controller {
 
     public static JsonNode getLocProfile(SimpleRef loc) {
-        ObjectNode response = Json.newObject();
-        response.put("id", loc.id.toString());
+        ObjectNode locNode = Json.newObject();
+        locNode.put("id", loc.id.toString());
         String enName = loc.enName;
         if (enName != null)
-            response.put("enName", enName);
+            locNode.put("enName", enName);
         String zhName = loc.zhName;
         if (zhName != null)
-            response.put("zhName", zhName);
-        return response;
+            locNode.put("zhName", zhName);
+        return locNode;
     }
 
-    public static JsonNode getWeatherProfile(WeatherItem weather) {
-        ObjectNode response = Json.newObject();
-        response.put("code", weather.code);
-        Double currentTemperature = weather.currTemperature;
-        Double lowerTemperature = weather.lowerTemperature;
-        Double upperTemperature = weather.upperTemperature;
+    public static JsonNode getWeatherProfile(WeatherItem weatheritem) {
+        ObjectNode currNode = Json.newObject();
+        currNode.put("code", weatheritem.code);
+        Double currentTemperature = weatheritem.currTemperature;
+        Double lowerTemperature = weatheritem.lowerTemperature;
+        Double upperTemperature = weatheritem.upperTemperature;
         if (currentTemperature != null)
-            response.put("currentTemperature", currentTemperature);
+            currNode.put("currentTemperature", currentTemperature);
         if (lowerTemperature != null)
-            response.put("lowerTemperature", lowerTemperature);
+            currNode.put("lowerTemperature", lowerTemperature);
         if (upperTemperature != null)
-            response.put("upperTemperature", upperTemperature);
-        return response;
+            currNode.put("upperTemperature", upperTemperature);
+        return currNode;
     }
 
     public static Result getWeatherDetail(long id) throws TravelPiException {
@@ -60,7 +58,7 @@ public class WeatherCtrl extends Controller {
 
         for (WeatherItem weatheritem:weathernodelist) {
             ObjectNode node = (ObjectNode) getWeatherProfile(weatheritem);
-
+            response.put("forecast",node);
         }
         response.put("updateTime",weather.updateTime.toString());
         return Utils.createResponse(ErrorCode.NORMAL, response);
