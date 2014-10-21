@@ -40,6 +40,9 @@ public class ApplicationTest {
         assertThat(contentType(html)).isEqualTo("text/html");
         assertThat(contentAsString(html)).contains("Your new application is ready.");
     }
-
+    /*@Test
+    public void testWeather(){
+        Http.Response response=
+    }*/
 
 }
