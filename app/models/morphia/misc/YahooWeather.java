@@ -1,12 +1,12 @@
 package models.morphia.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
+import play.data.validation.Constraints;
 import play.libs.Json;
 
 import java.text.DateFormat;
@@ -27,12 +27,14 @@ public class YahooWeather extends TravelPiBaseItem implements ITravelPiFormatter
      * 地点
      */
     @Embedded
+    @Constraints.Required
     public SimpleRef loc;
 
     /**
      * 当前天气
      */
     @Embedded
+    @Constraints.Required
     public WeatherItem current;
 
     /**
@@ -43,37 +45,26 @@ public class YahooWeather extends TravelPiBaseItem implements ITravelPiFormatter
     /**
      * 更新时间
      */
+    @Constraints.Required
     public Date updateTime;
-
 
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();  //创建builder填充数据
-        //builder.add("_id", id.toString());      //文档id
 
         DateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         builder.add("updateTime", timeformat.format(updateTime));
 
-        if (loc != null) {
-            builder.add("loc", loc.toJson());
-        } else
-            builder.add("loc", new BasicDBObject());
+        builder.add("loc", loc.toJson()).add("current", current.toJson());
 
-        if (current != null) {
-            builder.add("current", current.toJson());
-        } else
-            builder.add("current", new BasicDBObject());
-
-        List<JsonNode> nodelist = new ArrayList<>(4);
+        List<JsonNode> nodelist = new ArrayList<>();
         if (forecast != null && !(forecast.isEmpty())) {
-            for (WeatherItem item : forecast) {
+            for (WeatherItem item : forecast)
                 nodelist.add(item.toJson());
-            }
             builder.add("forecast", nodelist);
         } else
-            builder.add("forecast", new BasicDBObject());
+            builder.add("forecast", new ArrayList<>());
 
         return Json.toJson(builder.get());
-
     }
 }
