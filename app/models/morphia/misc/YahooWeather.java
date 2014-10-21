@@ -21,7 +21,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class Weather extends TravelPiBaseItem implements ITravelPiFormatter {
+public class YahooWeather extends TravelPiBaseItem implements ITravelPiFormatter {
 
     /**
      * 地点
@@ -49,7 +49,7 @@ public class Weather extends TravelPiBaseItem implements ITravelPiFormatter {
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();  //创建builder填充数据
-        builder.add("_id", id.toString());      //文档id
+        //builder.add("_id", id.toString());      //文档id
 
         DateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         builder.add("updateTime", timeformat.format(updateTime));

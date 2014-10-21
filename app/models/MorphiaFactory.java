@@ -117,8 +117,6 @@ public class MorphiaFactory {
             case TRAFFIC:
                 ds = morphia.createDatastore(client, "traffic");
                 break;
-            case YAHOOWEATHER:
-                ds=morphia.createDatastore(client,"yahooweather");
         }
         try {
             if (ds != null) {
@@ -140,7 +138,6 @@ public class MorphiaFactory {
         PLAN_UGC,
         USER,
         MISC,
-        TRAFFIC,
-        YAHOOWEATHER
+        TRAFFIC
     }
 }
