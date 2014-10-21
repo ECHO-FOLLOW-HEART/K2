@@ -597,7 +597,12 @@ public class PlanCtrl extends Controller {
             ObjectId oid = ugcPlanId == null ? new ObjectId() : new ObjectId(ugcPlanId);
             //只更新标题
             if (actionFlag.equals("updateTitle")) {
+
                 updateField = data.get("title").asText();
+                //记录日志
+                LogUtils.info(Plan.class,"UpdateTitle:" + updateField);
+                LogUtils.info(Plan.class,request());
+
                 PlanAPI.updateUGCPlanByFiled(oid, "title", updateField);
             }
             //只更新用户ID：web用
