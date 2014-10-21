@@ -51,8 +51,8 @@ public class Weather extends TravelPiBaseItem implements ITravelPiFormatter {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();  //创建builder填充数据
         builder.add("_id", id.toString());      //文档id
 
-        DateFormat formattime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
-        builder.add("updateTime", formattime.format(updateTime));
+        DateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+        builder.add("updateTime", timeformat.format(updateTime));
 
         if (loc != null) {
             builder.add("loc", loc.toJson());

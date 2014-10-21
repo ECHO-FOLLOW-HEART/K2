@@ -23,7 +23,7 @@ public class SimpleRef implements ITravelPiFormatter {
     public JsonNode toJson() {
         return Json.toJson(BasicDBObjectBuilder.start().
                  add("_id", id.toString())
-                .add("name", (zhName != null ? StringUtils.capitalize(zhName) : ""))
+                .add("zhName", (zhName != null ? StringUtils.capitalize(zhName) : ""))
                 .add("enName", (enName != null ? StringUtils.capitalize(enName) : ""))
                 .get());
     }
