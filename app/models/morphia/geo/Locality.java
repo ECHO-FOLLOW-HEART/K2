@@ -56,12 +56,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     @Embedded
     public Ratings ratings;
 
-//    public String countryId;
-//
-//    public String countryEnName;
-//
-//    public String countryZhName;
-
     @Embedded
     public SimpleRef superAdm;
 
