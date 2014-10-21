@@ -1,9 +1,14 @@
 package utils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import core.TrafficAPI;
+import models.morphia.traffic.RouteIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import play.libs.Json;
 import play.mvc.Http;
 
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -69,8 +74,22 @@ public class LogUtils {
     }
 
     private static String getPost(Http.Request request){
+        JsonNode json = request.body().asJson();
+        if(json == null){
+            return "";
+        }
+        StringBuffer sb = new StringBuffer();
+        sb.append("---Header---");
+        sb.append("\r\n");
+        for (Iterator<Map.Entry<String, JsonNode>> it = json.fields(); it.hasNext(); ) {
+            Map.Entry<String, JsonNode> n = it.next();
+            sb.append(n.getKey());
+            sb.append(":");
+            sb.append(n.getValue().asText());
+            sb.append("\r\n");
+        }
 
-        return "---POST---"+"\r\n"+(request.body().asJson() == null?"":request.body().asJson().toString());
+        return "---POST---"+"\r\n"+(request.body().asJson() == null?"": sb.toString());
 
     }
 }
