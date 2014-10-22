@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   javaEbean,
   cache,
   javaWs,
-  "mysql" % "mysql-connector-java" % "latest.integration",
+  //"mysql" % "mysql-connector-java" % "latest.integration",
   "org.mongodb" % "mongo-java-driver" % "latest.integration",
   "org.mongodb.morphia" % "morphia" % "latest.integration",
   "org.mongodb.morphia" % "morphia-validation" % "latest.integration",
