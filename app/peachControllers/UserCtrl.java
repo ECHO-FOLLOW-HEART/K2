@@ -6,9 +6,14 @@ import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.user.Credential;
+import models.morphia.misc.Token;
+import models.morphia.plan.Plan;
 import models.morphia.user.UserInfo;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.DataConvert.UserConvert;
+import utils.LogUtils;
+import utils.MsgConstants;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
@@ -211,6 +216,8 @@ public class UserCtrl extends Controller {
             //修改昵称
             if (req.has("nickName")) {
                 String nickName = req.get("nickName").asText();
+                // TODO 跟踪乱码问题
+                LogUtils.info(Plan.class, "NickName in POST:" + nickName);
                 //如果昵称不存在
                 if (UserAPI.getUserByNickName(nickName) == null) {
                     userInfor.nickName = nickName;
@@ -223,6 +230,9 @@ public class UserCtrl extends Controller {
             if (req.has("gender"))
                 userInfor.gender = req.get("gender").asText();
             UserAPI.saveUserInfo(userInfor);
+            // TODO 跟踪乱码问题
+            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserByUserId(userInfor.userId).nickName);
+            LogUtils.info(Plan.class,request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
