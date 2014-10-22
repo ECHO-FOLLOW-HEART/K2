@@ -7,8 +7,6 @@ import org.mongodb.morphia.annotations.Embedded;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
-import java.util.Date;
-
 /**
  * 单项天气信息
  *
@@ -37,19 +35,25 @@ public class WeatherItem implements ITravelPiFormatter {
     public String desc;
 
     /**
+     * 详细天气描述
+     */
+    public String details;
+
+    /**
      * 天气代码
      */
     @Constraints.Required
     public Integer code;
 
-
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("code", code).add("desc", (desc != null ? desc : "")).
-                add("currTemperature", currTemperature).
-                add("lowerTemperature", lowerTemperature).
-                add("upperTemperature", upperTemperature);
+        builder.add("code", code)
+                .add("desc", (desc != null ? desc : ""))
+                .add("details", (details != null ? details : ""))
+                .add("curTemp", currTemperature)
+                .add("lowerTemp", lowerTemperature)
+                .add("upperTemp", upperTemperature);
         return Json.toJson(builder.get());
     }
 }

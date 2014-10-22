@@ -103,7 +103,7 @@ POST          /app/misc/check-validation                         controllers.Mis
 GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
 GET           /misc/notes/search                                 controllers.TravelNoteCtrl.searchNotes()
 #天气情况
-GET           /misc/yahooweather/:id                             controllers.WeatherCtrl.getWeatherDetail(id:String)
+GET           /app/misc/weather/:id                             controllers.WeatherCtrl.getWeatherDetail(id:String)
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
 
