@@ -20,6 +20,7 @@ import utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 用户相关API。
@@ -51,6 +52,24 @@ public class UserAPI {
     public static UserInfo getUserByUserId(Integer id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         return ds.createQuery(UserInfo.class).field("userId").equal(id).get();
+    }
+
+    /**
+     * 修改用户备注
+     * */
+    public static void setUserMemo(Integer selfId,Integer id,String memo) throws TravelPiException {
+        UserInfo userInfo=getUserByUserId(selfId);
+        Map<Integer, UserInfo> friends=userInfo.friends;
+        boolean flag=friends.containsKey(id);   //查看是否存在好友
+        if (flag){
+            Map<Integer,String> friendRemark=userInfo.remark;
+            friendRemark.put(id,memo);
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            ds.save(userInfo);
+        }
+        else
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT,"参数异常");
+                   //更新用户信息
     }
 
     /**

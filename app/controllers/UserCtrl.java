@@ -208,4 +208,19 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
+
+    public static Result putUserMemo(Integer id, String memo) throws TravelPiException {
+        String selfId = request().getHeader("userId");
+        try{
+            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("登陆成功"));
+        }catch (TravelPiException e){
+            return Utils.createResponse(e.errCode,Json.toJson(e.getMessage()));
+        }
+
+
+
+
+
+    }
 }
