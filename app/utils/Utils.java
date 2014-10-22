@@ -254,12 +254,9 @@ public class Utils {
         String base = "abcdefghijklmnopqrstuvwxyz0123456789";
         int size = base.length();
         Random random = new Random();
-        StringBuffer sb = new StringBuffer();
-        int number;
-        for (int i = 0; i < length; i++) {
-            number = random.nextInt(size);
-            sb.append(base.charAt(number));
-        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++)
+            sb.append(base.charAt(random.nextInt(size)));
         return sb.toString();
     }
 

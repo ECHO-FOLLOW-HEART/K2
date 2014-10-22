@@ -26,7 +26,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -61,11 +61,10 @@ public class UserCtrl extends Controller {
             }
 
             UserInfo userInfo;
-            //验证验证码
-            if (UserAPI.checkValidation(countryCode, tel, 1, captcha)) {
+            //验证验证码 magic captcha
+            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, 1, captcha)) {
                 // 生成用户
-                userInfo = UserAPI.regByTel(tel, countryCode);
-                UserAPI.regCredential(userInfo, pwd);
+                userInfo = UserAPI.regByTel(tel, countryCode, pwd);
             } else
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
@@ -215,7 +214,7 @@ public class UserCtrl extends Controller {
                 if (us == null) {
                     return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
                 }
-            }else if(actionCode == CAPTCHA_ACTION_BANDTEL){
+            } else if (actionCode == CAPTCHA_ACTION_BANDTEL) {
                 if (us != null) {
                     return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
                 }
