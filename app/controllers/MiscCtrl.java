@@ -566,15 +566,24 @@ public class MiscCtrl extends Controller {
         if (tmp != null)
             tel = Utils.telParser(tmp.asText());
 
-        tmp = data.get("actionCode");
-        Integer actionCode = null;
-        Integer userId = Integer.valueOf(data.get("userId").asText());
+        Integer userId = null;
+        tmp = data.get("userId");
         try {
-            if (tmp != null)
-                actionCode = Integer.parseInt(tmp.asText());
-        } catch (IllegalArgumentException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+            userId = (tmp != null ? Integer.valueOf(data.get("userId").asText()) : null);
+        } catch (NumberFormatException ignore) {
         }
+
+        Integer actionCode;
+        tmp = data.get("actionCode");
+        try {
+            actionCode = (tmp != null ? Integer.parseInt(tmp.asText()) : null);
+        } catch (NumberFormatException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid action code.");
+        }
+
+        // 如果不提供userId，则只允许actionCode=1，即注册的情形。
+        if (tel == null || actionCode == null || (actionCode != 1 && userId == null))
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
 
         Integer countryCode = 86;
         try {
@@ -584,9 +593,6 @@ public class MiscCtrl extends Controller {
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
         }
-
-        if (tel == null || actionCode == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
 
         try {
             if (actionCode != 1)

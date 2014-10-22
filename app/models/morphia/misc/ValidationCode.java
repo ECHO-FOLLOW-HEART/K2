@@ -28,7 +28,7 @@ public class ValidationCode extends Token {
      * @param actionCode  操作码
      * @return 一个新的验证码对象
      */
-    public static ValidationCode newInstance(int countryCode, String tel, int actionCode,int userId ,long expireMs) {
+    public static ValidationCode newInstance(int countryCode, String tel, int actionCode, Integer userId, long expireMs) {
         ValidationCode code = new ValidationCode();
 
         code.key = calcKey(countryCode, tel, actionCode);
@@ -37,7 +37,7 @@ public class ValidationCode extends Token {
         code.expireTime = code.createTime + expireMs;
         code.countryCode = 86;
         code.tel = tel;
-        List<Integer> pList =  new ArrayList<Integer>();
+        List<Integer> pList = new ArrayList<Integer>();
         pList.add(actionCode);
         code.permissionList = pList;
         code.failCnt = 0;

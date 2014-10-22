@@ -29,7 +29,6 @@ public class Token {
     /**
      * 验证码的内容
      */
-    @Constraints.Required
     public Integer userId;
 
     /**

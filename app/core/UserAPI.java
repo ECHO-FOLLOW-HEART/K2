@@ -423,7 +423,7 @@ public class UserAPI {
      * @param expireMs    多少豪秒以后过期
      * @param resendMs    多少毫秒以后可以重新发送验证短信
      */
-    public static void sendValCode(int countryCode, String tel, int actionCode, int userId, long expireMs, long resendMs)
+    public static void sendValCode(int countryCode, String tel, int actionCode, Integer userId, long expireMs, long resendMs)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
@@ -465,7 +465,7 @@ public class UserAPI {
 
         // 如果actionCode == 1,是注册,不需要验证userId
         boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime
-                || (actionCode == 1 ? false : entry.userId != userId));
+                || (actionCode != 1 && entry.userId != userId));
 
         // 避免暴力攻击。验证失效次数超过5次，验证码就会失效。
         if (!ret && entry != null) {
