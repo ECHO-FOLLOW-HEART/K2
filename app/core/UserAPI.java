@@ -331,7 +331,8 @@ public class UserAPI {
         cre.id = u.id;
         cre.userId = u.userId;
         cre.salt = Utils.getSalt();
-        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        if (!pwd.equals(""))
+            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
 
         // 环信注册
         String base = "abcdefghijklmnopqrstuvwxyz0123456789";

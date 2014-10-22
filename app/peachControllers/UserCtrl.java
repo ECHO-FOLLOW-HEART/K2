@@ -284,6 +284,9 @@ public class UserCtrl extends Controller {
             UserInfo userInfo = null;
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
+            //如果密码为空,视为密码错误
+            if (pwd.equals(""))
+                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
             //验证用户是否存在-手机号
             userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
             //if (userInfo == null)
@@ -296,7 +299,7 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
             //验证密码
-            if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd))
+            if (UserAPI.validCredential(userInfo, pwd))
                 return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
             else
                 return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
@@ -391,8 +394,9 @@ public class UserCtrl extends Controller {
             if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, us.nickName) != null) {
                 nickDuplicateRemoval(us);
             }
-
             UserAPI.saveUserInfo(us);
+            // 第三方注册时,注册环信
+            UserAPI.regCredential(us, "");
             return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
 
 
@@ -511,7 +515,7 @@ public class UserCtrl extends Controller {
             UserAPI.saveUserInfo(userInfor);
             // TODO 跟踪乱码问题
             LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserByUserId(userInfor.userId).nickName);
-            LogUtils.info(Plan.class,request());
+            LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
