@@ -1320,16 +1320,11 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getUGCPlans(String userId, String ugcPlanId, Long updateTime, int page, int pageSize) {
-
+    public static Result getUGCPlans(String userId, String ugcPlanId, int page, int pageSize) {
         try {
             //根据ID取得UGC路线
             if (!ugcPlanId.equals("")) {
                 UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-                //根据ID取用户路线时，先判断时间戳，是否需要更新
-                //如果不需要更新，只返回一个标识，以节省流量
-                if (updateTime == ugcPlan.updateTime)
-                    return Utils.createResponse(ErrorCode.DONOTNEED_UPDATE, "DO NOT NEED UPDATE");
 
                 //取详细信息
                 JsonNode planJson = ugcPlan.toJson(true);
@@ -1421,6 +1416,34 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
         } catch (TravelPiException | NoSuchFieldException | InstantiationException | ParseException | IllegalAccessException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        }
+    }
+
+    public static Result getUGCPlans1(String userId, String ugcPlanId, int page, int pageSize) {
+        try {
+            //根据ID取得UGC路线
+            if (!ugcPlanId.equals("")) {
+                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
+
+                //取详细信息
+                JsonNode planJson = ugcPlan.toJson(true);
+                planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC));
+            }
+            //根据用户ID取得UGC路线列表
+            if (!userId.equals("")) {
+                List<JsonNode> results = new ArrayList<JsonNode>();
+                for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
+                    //取粗略信息
+                    results.add(it.next().toJson(false));
+                }
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
+            }
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
+        } catch (ClassCastException ec) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 }
