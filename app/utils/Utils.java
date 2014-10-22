@@ -7,6 +7,8 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.dom4j.Document;
@@ -104,17 +106,17 @@ public class Utils {
     }
 
     /**
-     *
-     * @param errCode 错误码
-     * @param msg 提示信息
-     * @param isGotByApp  标识Message是否被手机端直接获得并显示出来
+     * @param errCode    错误码
+     * @param msg        提示信息
+     * @param isGotByApp 标识Message是否被手机端直接获得并显示出来
      * @return
      */
-    public static Result createResponse(int errCode, String msg,boolean isGotByApp) {
+    public static Result createResponse(int errCode, String msg, boolean isGotByApp) {
         ObjectNode jsonObj = Json.newObject();
         jsonObj.put("message", msg);
         return createResponse(errCode, jsonObj);
     }
+
     /**
      * 获得默认的MongoDB客户端对象。
      *
@@ -241,6 +243,18 @@ public class Utils {
             return sb.toString();
         } catch (NoSuchAlgorithmException ignored) {
             return null;
+        }
+    }
+    /**
+     * 生成token
+     * @return
+     */
+    public static String createToken() {
+        String ram = ((Integer) (new Random()).nextInt(Integer.MAX_VALUE)).toString();
+        try {
+            return Base64.encodeBase64String(MessageDigest.getInstance("SHA-256").digest(ram.getBytes()));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException();
         }
     }
 

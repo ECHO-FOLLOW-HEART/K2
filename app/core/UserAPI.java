@@ -10,6 +10,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Sequence;
+import models.morphia.misc.Token;
 import models.morphia.misc.ValidationCode;
 import models.morphia.user.Credential;
 import models.morphia.user.OAuthInfo;
@@ -282,6 +283,7 @@ public class UserAPI {
      */
     public static UserInfo regByTel(String tel, Integer countryCode, String pwd) throws TravelPiException {
 
+
         UserInfo user = new UserInfo();
         user.id = new ObjectId();
         user.userId = getUserId();
@@ -294,7 +296,7 @@ public class UserAPI {
         user.email = "";
         user.secToken = Utils.getSecToken();
         user.signature = "";
-        user.origin = "peach";
+        user.origin = "peach-telUser";
         user.enabled = true;
 
         // 注册私密信息
@@ -420,7 +422,7 @@ public class UserAPI {
      * @param expireMs    多少豪秒以后过期
      * @param resendMs    多少毫秒以后可以重新发送验证短信
      */
-    public static void sendValCode(int countryCode, String tel, int actionCode, long expireMs, long resendMs)
+    public static void sendValCode(int countryCode, String tel, int actionCode, int userId, long expireMs, long resendMs)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
@@ -430,7 +432,7 @@ public class UserAPI {
             throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
 
         ValidationCode oldCode = valCode;
-        valCode = ValidationCode.newInstance(countryCode, tel, actionCode, expireMs);
+        valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
         if (oldCode != null)
             valCode.id = oldCode.id;
 
@@ -454,12 +456,15 @@ public class UserAPI {
      * @param valCode     验证码
      * @return 验证码是否有效
      */
-    public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode)
+    public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode, int userId)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
-        boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
+
+        // 如果actionCode == 1,是注册,不需要验证userId
+        boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime
+                || (actionCode == 1 ? false : entry.userId != userId));
 
         // 避免暴力攻击。验证失效次数超过5次，验证码就会失效。
         if (!ret && entry != null) {
@@ -522,6 +527,29 @@ public class UserAPI {
         }
 
         return info.easemobToken;
+    }
+
+    public static Token valCodetoToken(Integer countryCode, String tel, int actionCode, int userId, long expireMs) throws TravelPiException {
+        ValidationCode valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Token token = Token.newInstance(valCode, expireMs);
+
+        Token uniq = ds.createQuery(Token.class).field("value")
+                .equal(token.value).field("userId").equal(token.userId).get();
+        if (uniq != null) {
+            throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "Token out of quota.");
+        }
+        ds.save(token);
+        return token;
+    }
+
+    public static boolean checkToken(String token, int userId, int actionCode) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Token uniq = ds.createQuery(Token.class).field("value").equal(token).
+                field("userId").equal(userId).get();
+        boolean ret = !(uniq == null || !uniq.value.equals(token) || System.currentTimeMillis() > uniq.expireTime ||
+                !uniq.permissionList.contains(actionCode));
+        return ret;
     }
 
     /**

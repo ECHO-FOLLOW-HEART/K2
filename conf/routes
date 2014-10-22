@@ -207,16 +207,19 @@ GET           /app/users/validity                                peachController
 POST          /app/users/signin                                  peachControllers.UserCtrl.signin()
 #发送手机验证码
 POST          /app/users/send-validation                         peachControllers.UserCtrl.sendCaptcha()
-#获取用户信息
-GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
-#编辑用户信息，修改密码
-POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
 #修改密码
 POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
 #验证验证码，重设密码
 POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
 #绑定手机
-POST          /app/users/band-tel                                peachControllers.UserCtrl.bandTel()
+POST          /app/users/bind                                    peachControllers.UserCtrl.bindTel()
+#验证验证码,返回token,绑定手机时用
+POST          /app/users/check-validation                        peachControllers.UserCtrl.checkCaptcha()
+#获取用户信息
+GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
+#编辑用户信息，修改密码
+POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
+
 
 
 

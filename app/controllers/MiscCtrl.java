@@ -527,6 +527,7 @@ public class MiscCtrl extends Controller {
         }
 
         Integer countryCode = 86;
+        Integer userId = Integer.valueOf(data.get("userId").asText());
         try {
             tmp = data.get("code");
             if (tmp != null)
@@ -547,7 +548,7 @@ public class MiscCtrl extends Controller {
             if (actionCode != 1)
                 throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
 
-            boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v);
+            boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v, userId);
 
             ObjectNode result = Json.newObject();
             result.put("isValid", valid);
@@ -567,6 +568,7 @@ public class MiscCtrl extends Controller {
 
         tmp = data.get("actionCode");
         Integer actionCode = null;
+        Integer userId = Integer.valueOf(data.get("userId").asText());
         try {
             if (tmp != null)
                 actionCode = Integer.parseInt(tmp.asText());
@@ -595,7 +597,7 @@ public class MiscCtrl extends Controller {
             long expireMs = Integer.parseInt(smsConf.get("signupExpire").toString()) * 1000L;
             long resendMs = Integer.parseInt(smsConf.get("resendInterval").toString()) * 1000L;
 
-            UserAPI.sendValCode(countryCode, tel, actionCode, expireMs, resendMs);
+            UserAPI.sendValCode(countryCode, tel, actionCode, userId, expireMs, resendMs);
 
             ObjectNode result = Json.newObject();
             result.put("coolDown", resendMs / 1000);
