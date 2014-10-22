@@ -321,6 +321,28 @@ public class UserAPI {
     }
 
     /**
+     * 判断是否有密码
+     *
+     * @param
+     * @param
+     * @return
+     */
+    public static boolean hasPwd(UserInfo u) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Credential> ceQuery = ds.createQuery(Credential.class);
+        if(u.userId == null){
+            return false;
+        }
+        Credential cre = ceQuery.field("userId").equal(u.userId).get();
+        if(cre == null||cre.pwdHash == null){
+            return false;
+        }
+        return true;
+
+    }
+
+    /**
      * 重设密码
      *
      * @param u

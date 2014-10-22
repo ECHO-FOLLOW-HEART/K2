@@ -32,6 +32,11 @@ import java.util.regex.Pattern;
 public class UserCtrl extends Controller {
 
 
+    public static int CAPTCHA_ACTION_SIGNUP = 1;
+    public static int CAPTCHA_ACTION_MODPWD = 2;
+    public static int CAPTCHA_ACTION_BANDTEL = 3;
+    public static int CAPTCHA_ACTION_RESET_BANDTEL = 4;
+
     /**
      * 手机注册
      *
@@ -91,8 +96,8 @@ public class UserCtrl extends Controller {
         }
         //验证验证码
         try {
-            if (UserAPI.checkValidation(countryCode, tel, 1, captcha)) {
-                //验证用户是否存在
+            if (UserAPI.checkValidation(countryCode, tel, CAPTCHA_ACTION_SIGNUP, captcha)) {
+                //如果手机已存在，则绑定无效
                 if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
                     return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
                 }
@@ -115,7 +120,7 @@ public class UserCtrl extends Controller {
      */
     public static Result modPassword() {
         JsonNode req = request().body().asJson();
-        String tel = req.get("tel").asText();
+        String userId = req.get("userId").asText();
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
         Integer countryCode;
@@ -127,7 +132,7 @@ public class UserCtrl extends Controller {
 
         //验证用户是否存在-手机号
         try {
-            UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
+            UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
             if (userInfo == null)
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
@@ -201,9 +206,21 @@ public class UserCtrl extends Controller {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //验证用户是否存在
         try {
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
-                return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
+            UserInfo us = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
+            if (actionCode == CAPTCHA_ACTION_SIGNUP) {
+                if (us != null) {
+                    return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
+                }
+            } else if (actionCode == CAPTCHA_ACTION_MODPWD) {
+                if (us == null) {
+                    return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
+                }
+            }else if(actionCode == CAPTCHA_ACTION_BANDTEL){
+                if (us != null) {
+                    return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
+                }
             }
+
             Configuration config = Configuration.root();
             Map sms = (Map) config.getObject("sms");
             long expireMs = Long.valueOf(sms.get("signupExpire").toString());

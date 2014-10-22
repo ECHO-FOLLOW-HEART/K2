@@ -214,6 +214,8 @@ POST          /app/users/:uid                                    peachController
 POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
 #验证验证码，重设密码
 POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
+#绑定手机
+POST          /app/users/band-tel                                peachControllers.UserCtrl.bandTel()
 
 
 

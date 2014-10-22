@@ -13,6 +13,10 @@ public class ValFormatterFactory {
         switch (actionCode) {
             case 1:
                 return new SignupValFormatter();
+            case 2:
+                return new ModPwdValFormatter();
+            case 3:
+                return new BindTelValFormatter();
             default:
                 throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid sms action code: %d.",
                         actionCode));
