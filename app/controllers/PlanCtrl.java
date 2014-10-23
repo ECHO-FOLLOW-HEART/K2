@@ -235,6 +235,7 @@ public class PlanCtrl extends Controller {
         if (!uid.equals("")) {
             ugcPlan.uid = new ObjectId(uid);
             ugcPlan.persisted = true;
+
         } else {
             ugcPlan.persisted = false;
         }

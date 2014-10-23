@@ -5,7 +5,6 @@ import com.mongodb.DBObject;
 import core.user.ValFormatterFactory;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import javafx.scene.effect.SepiaTone;
 import models.MorphiaFactory;
 import models.morphia.misc.Sequence;
 import models.morphia.misc.ValidationCode;
@@ -17,13 +16,11 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Http;
-import scala.Int;
 import utils.Utils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * 用户相关API。
@@ -83,7 +80,7 @@ public class UserAPI {
      * @param selfId
      * @param id
      */
-    public static boolean checkBlackList(Integer selfId,Integer id) throws TravelPiException {
+   /* public static boolean checkBlackList(Integer selfId,Integer id) throws TravelPiException {
         UserInfo userInfo=getUserByUserId(selfId);
         Map<Integer,UserInfo> blacklist= userInfo.blackList;
         if (blacklist.containsKey(id)){
@@ -91,7 +88,7 @@ public class UserAPI {
         }
         else
             return false;
-    }
+    }*/
     /**
      * 将用户添加/移除黑名单
      *

@@ -106,10 +106,6 @@ GET           /misc/notes/search                                 controllers.Tra
 GET           /misc/yahooweather/:id                             controllers.WeatherCtrl.getWeatherDetail(id:String)
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
-#添加用户备注
-POST          /app/users/:id/:memo                               controllers.UserCtrl.putUserMemo(id:Integer,memo:String)
-#将用户添加或移除到黑名单
-#POST         /app/users/blacklist                                #controllers.UserCtrl.putUserBlacklist(list:List<Integer>,operation:String)
 # 用户
 
 # 用户登录
@@ -217,7 +213,12 @@ POST          /app/users/:uid                                    peachController
 POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
 #验证验证码，重设密码
 POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
-
+#添加用户备注
+POST          /app/users/:id/:memo                               controllers.UserCtrl.putUserMemo(id:Integer,memo:String)
+#将用户添加或移除到黑名单
+POST         /app/users/blacklist                                controllers.UserCtrl.putUserBlacklist()
+#返回用户的黑名单
+GET          /app/users/blacklist                                controllers.UserCtrl.getUserBlackList()
 
 
 
