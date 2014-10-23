@@ -1,14 +1,14 @@
 package controllers;
 
+import aizou.core.TrafficAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.morphia.traffic.AirRoute;
-import models.morphia.traffic.RouteIterator;
-import models.morphia.traffic.TrainRoute;
+import models.traffic.AirRoute;
+import models.traffic.RouteIterator;
+import models.traffic.TrainRoute;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;

@@ -1,16 +1,15 @@
 package peachControllers;
 
+import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
-import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.morphia.misc.Token;
-import models.morphia.user.Credential;
-import models.morphia.plan.Plan;
-import models.morphia.user.UserInfo;
+import models.misc.Token;
+import models.plan.Plan;
+import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
 import play.Configuration;
 import play.libs.Json;
@@ -19,7 +18,6 @@ import play.mvc.Result;
 import utils.DataConvert.UserConvert;
 import utils.LogUtils;
 import utils.MsgConstants;
-import utils.LogUtils;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
@@ -32,7 +30,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -513,7 +511,7 @@ public class UserCtrl extends Controller {
             UserAPI.saveUserInfo(userInfor);
             // TODO 跟踪乱码问题
             LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserByUserId(userInfor.userId).nickName);
-            LogUtils.info(Plan.class,request());
+            LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));

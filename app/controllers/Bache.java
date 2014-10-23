@@ -3,12 +3,15 @@ package controllers;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.geo.Locality;
-import models.morphia.misc.*;
-import models.morphia.plan.Plan;
-import models.morphia.plan.PlanDayEntry;
-import models.morphia.plan.PlanItem;
-import models.morphia.poi.ViewSpot;
+import models.geo.Locality;
+import models.misc.Description;
+import models.misc.Recommendation;
+import models.misc.Sequence;
+import models.misc.SimpleRef;
+import models.plan.Plan;
+import models.plan.PlanDayEntry;
+import models.plan.PlanItem;
+import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -25,6 +28,23 @@ import java.util.*;
  * Created by topy on 2014/8/3.
  */
 public class Bache extends Controller {
+
+    public static String[] cap = new String[]{"北京市", "天津市", "上海市", "重庆市", "哈尔滨市",
+            "长春市", "沈阳市", "呼和浩特市", "石家庄市", "乌鲁木齐市", "兰州市", "西宁市",
+            "西安市", "银川市", "郑州市", "济南市", "太原市", "合肥市", "武汉市", "长沙市",
+            "南京市", "成都市", "贵阳市", "昆明市", "南宁市", "拉萨市", "杭州市", "南昌市",
+            "广州市", "福州市", "台北市", "海口市"};
+    public static String[] vsList = new String[]{"火石寨", "黄梁梦吕仙祠", "景洪曼听公园", "中国竹艺城", "神木臭柏自然保护区",
+            "寒山寺", "罗锅箐―大羊场", "景洪曼听公园", "大连星海国际会展中心", "兴光朝鲜族民族村", "梅城故城址", "布托湖", "朗豪坊商场", "高岭山", "蒲花暗河景区", "石象寺"};
+    public static String[] plListNew = new String[]{"高句丽云峰湖之旅", "桂林激情之旅", "别样武汉走透透", "老上海徒步路线六", "苏杭天堂自由行"};
+    public static String[] plListEdit = new String[]{"穿梭石头古堡间", "桂林激情之旅", "穿越历史之行", "古村风情", "古国森林胜景"};
+    public static String[] plListMust = new String[]{"神农架新奇之旅", "神农之上", "神农之上千奇百怪", "桂林激情之旅"};
+    public static String[] plListPopular = new String[]{"张家界全景之旅", "张家界休闲游", "桂林激情之旅", "张家界自然氧吧之旅"};
+    public static String[] EDITOR_AVATAR = new String[]{"http://q.qlogo.cn/qqapp/1101717903/F4CE6A45B977464B9EB28EA856024170/100",
+            "http://tp1.sinaimg.cn/1449136544/180/5700214805/0", "http://tp2.sinaimg.cn/1988161053/180/5649844519/1",
+            "http://tp2.sinaimg.cn/1350968733/180/5622387392/1"};
+    public static String[] EDITOR_NICKNAME = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
+    public static String[] EDITOR_DATE = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
 
     /**
      * Need
@@ -153,7 +173,6 @@ public class Bache extends Controller {
         return trafficBudget;
     }
 
-
     /**
      * 生成景点价格
      *
@@ -200,12 +219,6 @@ public class Bache extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
-
-    public static String[] cap = new String[]{"北京市", "天津市", "上海市", "重庆市", "哈尔滨市",
-            "长春市", "沈阳市", "呼和浩特市", "石家庄市", "乌鲁木齐市", "兰州市", "西宁市",
-            "西安市", "银川市", "郑州市", "济南市", "太原市", "合肥市", "武汉市", "长沙市",
-            "南京市", "成都市", "贵阳市", "昆明市", "南宁市", "拉萨市", "杭州市", "南昌市",
-            "广州市", "福州市", "台北市", "海口市"};
     /**
      * 添加推荐城市
      *
@@ -246,9 +259,6 @@ public class Bache extends Controller {
         return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
     }
 
-    public static String[] vsList = new String[]{"火石寨", "黄梁梦吕仙祠", "景洪曼听公园", "中国竹艺城", "神木臭柏自然保护区",
-            "寒山寺", "罗锅箐―大羊场", "景洪曼听公园", "大连星海国际会展中心", "兴光朝鲜族民族村", "梅城故城址", "布托湖", "朗豪坊商场", "高岭山", "蒲花暗河景区", "石象寺"};
-
     /**
      * 添加推荐景点
      *
@@ -286,18 +296,6 @@ public class Bache extends Controller {
 
         return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
     }
-
-    public static String[] plListNew = new String[]{"高句丽云峰湖之旅", "桂林激情之旅", "别样武汉走透透", "老上海徒步路线六", "苏杭天堂自由行"};
-    public static String[] plListEdit = new String[]{"穿梭石头古堡间", "桂林激情之旅", "穿越历史之行", "古村风情", "古国森林胜景"};
-    public static String[] plListMust = new String[]{"神农架新奇之旅", "神农之上", "神农之上千奇百怪", "桂林激情之旅"};
-    public static String[] plListPopular = new String[]{"张家界全景之旅", "张家界休闲游", "桂林激情之旅", "张家界自然氧吧之旅"};
-    public static String[] EDITOR_AVATAR = new String[]{"http://q.qlogo.cn/qqapp/1101717903/F4CE6A45B977464B9EB28EA856024170/100",
-            "http://tp1.sinaimg.cn/1449136544/180/5700214805/0", "http://tp2.sinaimg.cn/1988161053/180/5649844519/1",
-            "http://tp2.sinaimg.cn/1350968733/180/5622387392/1"};
-
-    public static String[] EDITOR_NICKNAME = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
-
-    public static String[] EDITOR_DATE = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
 
     /**
      * 添加推荐计划
@@ -431,6 +429,7 @@ public class Bache extends Controller {
 
     /**
      * 查找一个城市所在省的省会
+     *
      * @param oid
      * @return
      */
@@ -471,7 +470,7 @@ public class Bache extends Controller {
     /**
      * 设置自增序列，用于记录用户自增ID
      */
-    public static Result addUserIdSequence(){
+    public static Result addUserIdSequence() {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             Sequence info = new Sequence();
@@ -482,7 +481,7 @@ public class Bache extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL,"Success");
+        return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
 }

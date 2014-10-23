@@ -1,10 +1,10 @@
 package controllers;
 
+import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
-import core.TravelNoteAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.morphia.misc.TravelNote;
+import models.misc.TravelNote;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
