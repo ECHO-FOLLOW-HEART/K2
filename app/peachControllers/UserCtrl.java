@@ -8,6 +8,7 @@ import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.misc.Token;
+import models.morphia.user.Credential;
 import models.morphia.plan.Plan;
 import models.morphia.user.UserInfo;
 import org.apache.commons.io.IOUtils;
@@ -18,6 +19,7 @@ import play.mvc.Result;
 import utils.DataConvert.UserConvert;
 import utils.LogUtils;
 import utils.MsgConstants;
+import utils.LogUtils;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
