@@ -123,28 +123,22 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
         UserInfo userInfo;
         String tel = req.get("tel").asText();
-        String captcha = req.get("captcha").asText();
-        Integer countryCode;
+        String token = req.get("token").asText();
         String pwd = req.has("pwd") ? req.get("pwd").asText() : "";
         String userId = req.get("userId").asText();
-        if (req.has("countryCode")) {
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
-        } else {
-            countryCode = 86;
-        }
-        //验证验证码
+        //验证token
         try {
-            if (UserAPI.checkValidation(countryCode, tel, CAPTCHA_ACTION_BANDTEL, captcha, Integer.valueOf(userId))) {
+            if (UserAPI.checkToken(token, Integer.valueOf(userId), CAPTCHA_ACTION_BANDTEL)) {
                 //如果手机已存在，则绑定无效
-                if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
+                if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null)
                     return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
-                }
+
                 userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
                 if (!pwd.equals(""))
                     UserAPI.regCredential(userInfo, pwd);
-                return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_2));
             } else {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
             }
@@ -163,12 +157,6 @@ public class UserCtrl extends Controller {
         String userId = req.get("userId").asText();
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
-        Integer countryCode;
-        if (req.has("countryCode")) {
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
-        } else {
-            countryCode = 86;
-        }
 
         //验证用户是否存在-手机号
         try {
@@ -180,7 +168,7 @@ public class UserCtrl extends Controller {
             if (UserAPI.validCredential(userInfo, oldPwd)) {
                 //重设密码
                 UserAPI.resetPwd(userInfo, newPwd);
-                return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_2));
             } else
                 return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
@@ -198,9 +186,6 @@ public class UserCtrl extends Controller {
         String pwd = req.get("pwd").asText();
         String token = req.get("token").asText();
         String tel = req.get("tel").asText();
-        Integer countryCode = 86;
-        if (req.has("countryCode"))
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
         //验证密码格式
         if (!validityPwd(pwd)) {
             return Utils.createResponse(MsgConstants.PWD_FORMAT_ERROR, MsgConstants.PWD_FORMAT_ERROR_MSG, true);
@@ -236,10 +221,15 @@ public class UserCtrl extends Controller {
     public static Result sendCaptcha() {
 
         JsonNode req = request().body().asJson();
-
+        if (!req.has("tel") || (!req.has("actionCode"))) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
         String tel = req.get("tel").asText();
         Integer countryCode = req.has("countryCode") ? Integer.valueOf(req.get("countryCode").asText()) : 86;
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
+        if (actionCode != CAPTCHA_ACTION_SIGNUP && !req.has("userId")) {
+
+        }
         Integer userId = Integer.valueOf(req.get("userId").asText());
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //验证用户是否存在
@@ -519,5 +509,9 @@ public class UserCtrl extends Controller {
         } catch (NullPointerException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
+    }
+
+    private static void checkArgument() {
+
     }
 }
