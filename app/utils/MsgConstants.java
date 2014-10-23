@@ -62,7 +62,7 @@ public class MsgConstants {
     /**
      * 新设密码格式不正确
      */
-    public static String PWD_FORMAT_ERROR_MSG = "请设置6-10位字母或数字.";
+    public static String PWD_FORMAT_ERROR_MSG = "请设置6-10位字母或数字。";
 
     /**
      * 密码设置失败
@@ -72,7 +72,35 @@ public class MsgConstants {
     /**
      * 密码设置失败
      */
-    public static String PWD_RESET_ERROR_MSG = "密码设置失败.";
+    public static String PWD_RESET_ERROR_MSG = "密码设置失败。";
 
+    /**
+     * 用户已存在
+     */
+    public static int USER_TEL_EXIST  = 411;
 
+    /**
+     * 用户已存在
+     */
+    public static String USER_TEL_EXIST_MSG  = "您输入的手机号码已存在。";
+
+    /**
+     * 用户已存在
+     */
+    public static int USER_TEL_NOT_EXIST  = 412;
+
+    /**
+     * 用户已存在
+     */
+    public static String USER_TEL_NOT_EXIST_MSG  = "您输入的手机号码不是注册用户.";
+
+    /**
+     * 微信注册时请求access_token失败
+     */
+    public static int WEIXIN_ACESS_ERROR = 404;
+
+    /**
+     * 微信注册时请求用户信息失败
+     */
+    public static String WEIXIN_ACESS_ERROR_MSG = "请求微信账号信息失败。";
 }

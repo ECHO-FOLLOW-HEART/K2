@@ -8,9 +8,11 @@ import play.data.validation.Constraints;
 import java.util.Date;
 
 /**
- * Created by topy on 2014/10/10.
+ * 涉及用户的秘密数据
+ *
+ * @author Zephyre
  */
-public class Credential extends TravelPiBaseItem {
+public class Credential {
 
     @Id
     public ObjectId id;
@@ -24,11 +26,13 @@ public class Credential extends TravelPiBaseItem {
     @Constraints.Required
     public String salt;
 
-    public String testCode;
+    /**
+     * 环信账号
+     */
+    public String easemobUser;
 
-
-
-
-
-
+    /**
+     * 环信密码
+     */
+    public String easemobPwd;
 }

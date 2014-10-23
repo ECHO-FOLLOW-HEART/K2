@@ -24,6 +24,9 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Id
     public ObjectId id;
 
+    /**
+     * 昵称
+     */
     @Constraints.Required
     public String nickName;
 

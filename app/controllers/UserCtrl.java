@@ -213,14 +213,15 @@ public class UserCtrl extends Controller {
 
     /**
      * 添加用户的备注信息
+     *
      * @param id
-     * @param memo
      * @return
      * @throws TravelPiException
      */
-    public static Result putUserMemo(Integer id, String memo) throws TravelPiException {
+    public static Result putUserMemo(Integer id) throws TravelPiException {
         try {
             String selfId = request().getHeader("userId");
+            String memo = request().body().asJson().get("memo").asText();
             UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
         } catch (TravelPiException e) {
@@ -252,47 +253,51 @@ public class UserCtrl extends Controller {
     }*/
 
     /**
-     *
      * @return
      */
-    public static Result putUserBlacklist(){
-        try{
-            String selfId= request().getHeader("userId");
-            JsonNode req=request().body().asJson();
-            //List<Integer> list= (List<Integer>) req.get("userList").iterator();
-            Iterator<JsonNode> iterator =  req.get("userList").iterator();
+    public static Result putUserBlacklist() {
+        try {
+            String selfId = request().getHeader("userId");
+            JsonNode req = request().body().asJson();
+            List<Integer> list = (List<Integer>) req.get("userList").iterator();
+            /*Iterator<JsonNode> iterator =  req.get("userList").iterator();
             List<Integer> list =new ArrayList<>();
             while(iterator.hasNext()){
                JsonNode node=iterator.next();
                list.add(node.get("userList").asInt());
-            }
-            String operation=req.get("action").asText();
+            }*/
+            String operation = req.get("action").asText();
 
             UserAPI.setUserBlacklist(Integer.parseInt(selfId), list, operation);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        }catch (Exception e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("failed"));
+        } catch (NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
+        } catch (ClassCastException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
     }
 
     /**
-     *获得用户的黑名单列表
+     * 获得用户的黑名单列表
+     *
      * @param
      * @return backlist
      */
-    public static Result getUserBlackList(){
+    public static Result getUserBlackList() {
         try {
-            String userId=request().getHeader("userId");
-            List<Integer> list=UserAPI.getBlackList(Integer.parseInt(userId));
-            Map<String,List<Integer>> map=new HashMap<>();
-            map.put("blacklist",list);
-            return Utils.createResponse(ErrorCode.NORMAL,Json.toJson(map));
+            String userId = request().getHeader("userId");
+            List<Integer> list = UserAPI.getBlackList(Integer.parseInt(userId));
+            Map<String, List<Integer>> map = new HashMap<>();
+            map.put("blacklist", list);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
         } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("INVALID_ARGUMENT"));
-        }catch (Exception e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("INVALID_ARGUMENT"));
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("INVALID_ARGUMENT"));
+        } catch (NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
+        } catch (ClassCastException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
     }
 

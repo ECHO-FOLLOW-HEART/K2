@@ -2,6 +2,9 @@ package utils.builder;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import core.UserAPI;
+import exception.TravelPiException;
+import models.morphia.user.Credential;
 import models.morphia.user.UserInfo;
 import play.libs.Json;
 
@@ -16,13 +19,14 @@ public class UserBuilder {
 
     public static int DETAILS_LEVEL_2 = 2;
 
-    public static JsonNode buildUserInfo(UserInfo u, int level) {
+    public static JsonNode buildUserInfo(UserInfo u, int level) throws TravelPiException {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
         builder.add("userId", u.userId == null ? "" : u.userId).add("nickName", u.nickName == null ? "" : u.nickName)
                 .add("avatar", u.avatar == null ? "" : u.avatar).add("gender", u.gender == null ? "" : u.gender)
                 .add("signature", u.signature == null ? "" : u.signature).add("tel", u.tel == null ? "" : u.tel)
-                .add("secToken", u.secToken == null ? "" : u.secToken);
+                .add("secToken", u.secToken == null ? "" : u.secToken)
+                .add("hasPwd",UserAPI.hasPwd(u));
         if (level == DETAILS_LEVEL_2) {
             JsonNode friends = UserBuilder.buildUserFriends(u.friends);
             JsonNode remark = UserBuilder.buildRemark(u.remark);
@@ -34,7 +38,7 @@ public class UserBuilder {
         return Json.toJson(builder.get());
     }
 
-    public static JsonNode buildUserFriends(Map<Integer, UserInfo> u) {
+    public static JsonNode buildUserFriends(Map<Integer, UserInfo> u) throws TravelPiException {
         if (u == null)
             return null;
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
