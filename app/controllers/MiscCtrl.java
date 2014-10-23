@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import core.LocalityAPI;
 import core.PoiAPI;
-import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -346,14 +345,15 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result updateUserInfo() {
-        try {
-
-            UserAPI.updateUserInfo(request());
-
-            return Utils.createResponse(ErrorCode.NORMAL, "Update UserInfo Success");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
+//        try {
+//
+//            UserAPI.updateUserInfo(request());
+//
+//            return Utils.createResponse(ErrorCode.NORMAL, "Update UserInfo Success");
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+        return Utils.createResponse(ErrorCode.NORMAL, "");
     }
 
     /**
@@ -366,7 +366,7 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
 
-            UserAPI.updateUserInfo(request());
+//            UserAPI.updateUserInfo(request());
 
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();

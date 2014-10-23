@@ -7,6 +7,7 @@ import com.mongodb.DBObject;
 import core.user.ValFormatterFactory;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import javafx.scene.effect.SepiaTone;
 import models.MorphiaFactory;
 import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Sequence;
@@ -24,6 +25,7 @@ import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http;
+import scala.Int;
 import utils.Utils;
 
 import javax.crypto.KeyGenerator;
@@ -34,6 +36,8 @@ import java.net.URLConnection;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.Random;
 
 /**
@@ -66,6 +70,103 @@ public class UserAPI {
     public static UserInfo getUserByUserId(Integer id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         return ds.createQuery(UserInfo.class).field("userId").equal(id).get();
+    }
+
+    /**
+     * 修改用户备注
+     * @param selfId
+     * @param id
+     * @param memo
+     * @throws TravelPiException
+     */
+    public static void setUserMemo(Integer selfId, Integer id, String memo) throws TravelPiException {
+        UserInfo userInfo = getUserByUserId(selfId);
+        Map<Integer, UserInfo> friends = userInfo.friends;
+        boolean flag = friends.containsKey(id);   //查看是否存在好友
+        if (flag) {
+            Map<Integer, String> friendRemark = userInfo.remark;
+            friendRemark.put(id, memo);
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            ds.save(userInfo);
+        } else
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+
+    }
+
+    /**
+     * 检查用户是否在黑名单中
+     * @param selfId
+     * @param id
+     */
+    public static boolean checkBlackList(Integer selfId,Integer id) throws TravelPiException {
+        UserInfo userInfo=getUserByUserId(selfId);
+        Map<Integer,UserInfo> blacklist= userInfo.blackList;
+        if (blacklist.containsKey(id)){
+            return true;
+        }
+        else
+            return false;
+    }
+    /**
+     * 将用户添加/移除黑名单
+     *
+     * @param selfId
+     * @param list
+     * @param operation
+     * @throws TravelPiException
+     */
+    public static void setUserBlacklist(Integer selfId, List<Integer> list, String operation) throws TravelPiException {
+        UserInfo userInfo = getUserByUserId(selfId);
+        Map<Integer, UserInfo> blackList = userInfo.blackList;  //用户的黑名单列表
+        Map<Integer, UserInfo> friends = userInfo.friends;     //用户的朋友圈列表
+        switch (operation) {
+            case "add":         //用户加入到黑名单
+                for (Integer id : list) {
+                    if (blackList.containsKey(id)) {         //黑名单中存在用户已经
+                        continue;
+                    }
+                    UserInfo user = getUserByUserId(id);
+                    blackList.put(id, user);            //添加用户到黑名单
+                    friends.remove(id);                 //将用户从朋友圈中删除
+                }
+                break;
+            case "remove":                                  //用户移除黑名单
+                if (list.isEmpty()) {                        //黑名单空的话，抛出异常
+                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+                } else {
+                    for (Integer id : list) {
+                        if (!blackList.containsKey(id)) {        //用户不再黑名单中
+                            continue;
+                        }
+                        UserInfo user = getUserByUserId(id);
+                        blackList.remove(id);                 //添加用户到朋友圈
+                        friends.put(id, user);
+                    }
+                    break;
+                }
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);    //更新用户的信息
+        ds.save(userInfo);
+    }
+
+    /**
+     * 获得用户的黑名单列表
+     * @param userId
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Integer> getBlackList(Integer userId) throws TravelPiException {
+        UserInfo userInfo = getUserByUserId(userId);
+        Map<Integer, UserInfo> blackList = userInfo.blackList;
+        List<Integer> list = new ArrayList<>();
+        if (!blackList.isEmpty()) {          //黑名单不为空
+            for (Integer i : blackList.keySet()) {
+                list.add(i);
+            }
+        }
+        return list;
     }
 
     /**
@@ -282,8 +383,6 @@ public class UserAPI {
      * @return
      */
     public static UserInfo regByTel(String tel, Integer countryCode, String pwd) throws TravelPiException {
-
-
         UserInfo user = new UserInfo();
         user.id = new ObjectId();
         user.userId = getUserId();

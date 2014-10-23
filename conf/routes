@@ -107,7 +107,10 @@ GET           /misc/notes/search                                 controllers.Tra
 GET           /app/misc/weather/:id                             controllers.WeatherCtrl.getWeatherDetail(id:String)
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
-
+#添加用户备注
+POST          /app/users/:id/:memo                               controllers.UserCtrl.putUserMemo(id:Integer,memo:String)
+#将用户添加或移除到黑名单
+#POST         /app/users/blacklist                                #controllers.UserCtrl.putUserBlacklist(list:List<Integer>,operation:String)
 # 用户
 
 # 用户登录
