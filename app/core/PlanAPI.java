@@ -80,7 +80,7 @@ public class PlanAPI {
                     poiId != null && !poiId.isEmpty() ? new ObjectId(poiId) : null,
                     sort, tag != null && !tag.isEmpty() ? tag : null, minDays, maxDays, page, pageSize, sortField);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
         }
     }
 
@@ -108,7 +108,7 @@ public class PlanAPI {
         try {
             return getPlan(new ObjectId(planId), ugc);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
         }
     }
 
@@ -142,7 +142,7 @@ public class PlanAPI {
         ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
         query.field("_id").equal(ugcOPlanId).field("enabled").equal(Boolean.TRUE);
         if (!query.iterator().hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", ugcPlanId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", ugcPlanId));
         return query.get();
     }
 
@@ -158,7 +158,7 @@ public class PlanAPI {
         ObjectId sharePlanPlanId = new ObjectId(planId);
         query.field("_id").equal(sharePlanPlanId).field("enabled").equal(Boolean.TRUE);
         if (!query.iterator().hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid sharePlan ID: %s.", planId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid sharePlan ID: %s.", planId));
         return query.get();
     }
 
@@ -176,7 +176,7 @@ public class PlanAPI {
                 backLoc = fromLoc;
             return doPlanner(new ObjectId(planId), new ObjectId(fromLoc), new ObjectId(backLoc), firstDate, req);
         } catch (IllegalArgumentException | NoSuchFieldException | IllegalAccessException e) {
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
         }
     }
 
@@ -192,7 +192,7 @@ public class PlanAPI {
         // 获取模板路线信息
         Plan plan = getPlan(planId, false);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId.toString()));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId.toString()));
 
         // TODO 景点需要照片、描述等内容。
 
@@ -649,7 +649,7 @@ public class PlanAPI {
         query.field("_id").equal(ugcPlanId);
         Iterator<UgcPlan> it = query.iterator();
         if (!it.hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
 
         UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
         ops.set(filed,filed.equals("uid")? new ObjectId(filedValue):filedValue);

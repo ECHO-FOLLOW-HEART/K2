@@ -1,5 +1,7 @@
 package core;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import core.user.ValFormatterFactory;
@@ -7,23 +9,36 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import javafx.scene.effect.SepiaTone;
 import models.MorphiaFactory;
+import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Sequence;
+import models.morphia.misc.Token;
 import models.morphia.misc.ValidationCode;
 import models.morphia.user.Credential;
 import models.morphia.user.OAuthInfo;
 import models.morphia.user.UserInfo;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import play.Configuration;
+import play.libs.Json;
 import play.mvc.Http;
 import scala.Int;
 import utils.Utils;
 
+import javax.crypto.KeyGenerator;
+import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.net.URL;
+import java.net.URLConnection;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Random;
 
 /**
  * 用户相关API。
@@ -48,7 +63,7 @@ public class UserAPI {
         try {
             return getUserById(new ObjectId(id));
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid user ID: %s.", id));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user ID: %s.", id));
         }
     }
 
@@ -367,8 +382,7 @@ public class UserAPI {
      * @param
      * @return
      */
-    public static UserInfo regByTel(String tel, Integer countryCode) throws TravelPiException {
-
+    public static UserInfo regByTel(String tel, Integer countryCode, String pwd) throws TravelPiException {
         UserInfo user = new UserInfo();
         user.id = new ObjectId();
         user.userId = getUserId();
@@ -381,11 +395,14 @@ public class UserAPI {
         user.email = "";
         user.secToken = Utils.getSecToken();
         user.signature = "";
-        user.origin = "peach";
+        user.origin = "peach-telUser";
         user.enabled = true;
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        ds.save(user);
+        // 注册私密信息
+        regCredential(user, pwd);
+
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
+
         return user;
     }
 
@@ -414,10 +431,48 @@ public class UserAPI {
         cre.userId = u.userId;
         cre.salt = Utils.getSalt();
         cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-        cre.enabled = true;
+
+        // 环信注册
+        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+        int size = base.length();
+        Random random = new Random();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 32; i++)
+            sb.append(base.charAt(random.nextInt(size)));
+        cre.easemobUser = sb.toString();
+        String passwd = null;
+        try {
+            passwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+        } catch (NoSuchAlgorithmException ignored) {
+        }
+        assert passwd != null;
+        cre.easemobPwd = passwd;
+
+        regEaseMob(cre.easemobUser, cre.easemobPwd);
+
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+    }
+
+    /**
+     * 判断是否有密码
+     *
+     * @param
+     * @param
+     * @return
+     */
+    public static boolean hasPwd(UserInfo u) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        ds.save(cre);
+        Query<Credential> ceQuery = ds.createQuery(Credential.class);
+        if (u.userId == null) {
+            return false;
+        }
+        Credential cre = ceQuery.field("userId").equal(u.userId).get();
+        if (cre == null || cre.pwdHash == null) {
+            return false;
+        }
+        return true;
+
     }
 
     /**
@@ -466,7 +521,7 @@ public class UserAPI {
      * @param expireMs    多少豪秒以后过期
      * @param resendMs    多少毫秒以后可以重新发送验证短信
      */
-    public static void sendValCode(int countryCode, String tel, int actionCode, long expireMs, long resendMs)
+    public static void sendValCode(int countryCode, String tel, int actionCode, int userId, long expireMs, long resendMs)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
@@ -476,7 +531,7 @@ public class UserAPI {
             throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
 
         ValidationCode oldCode = valCode;
-        valCode = ValidationCode.newInstance(countryCode, tel, actionCode, expireMs);
+        valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
         if (oldCode != null)
             valCode.id = oldCode.id;
 
@@ -500,13 +555,139 @@ public class UserAPI {
      * @param valCode     验证码
      * @return 验证码是否有效
      */
-    public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode)
+    public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode, int userId)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
-        return !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime);
+
+        // 如果actionCode == 1,是注册,不需要验证userId
+        boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime
+                || (actionCode == 1 ? false : entry.userId != userId));
+
+        // 避免暴力攻击。验证失效次数超过5次，验证码就会失效。
+        if (!ret && entry != null) {
+            entry.failCnt++;
+            if (entry.failCnt > 5)
+                entry.expireTime = 0L;
+            ds.save(entry);
+        }
+
+        return ret;
     }
 
+    /**
+     * 获取环信系统的token。如果已经过期，则重新申请一个。
+     */
+    private static String getEaseMobToken() throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        MiscInfo info = ds.createQuery(MiscInfo.class).get();
 
+        String token = info.easemobToken;
+        Long tokenExp = info.easemobTokenExpire;
+        long cur = System.currentTimeMillis();
+
+        if (token == null || tokenExp == null || cur + 3600 > tokenExp) {
+            // 重新获取token
+            Configuration config = Configuration.root().getConfig("easemob");
+            String orgName = config.getString("org");
+            String appName = config.getString("app");
+            String clientId = config.getString("client_id");
+            String clientSecret = config.getString("client_key");
+
+            ObjectNode data = Json.newObject();
+            data.put("grant_type", "client_credentials");
+            data.put("client_id", clientId);
+            data.put("client_secret", clientSecret);
+
+            String href = String.format("https://a1.easemob.com/%s/%s/token", orgName, appName);
+            try {
+                URL url = new URL(href);
+                URLConnection conn = url.openConnection();
+                conn.setDoOutput(true);
+                conn.setDoInput(true);
+                conn.setRequestProperty("Content-Type", "application/json");
+                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+                out.write(data.toString());
+                out.flush();
+                out.close();
+
+                InputStream in = conn.getInputStream();
+                String body = IOUtils.toString(in, conn.getContentEncoding());
+
+                JsonNode tokenData = Json.parse(body);
+                info.easemobToken = tokenData.get("access_token").asText();
+                info.easemobUUID = tokenData.get("application").asText();
+                info.easemobTokenExpire = System.currentTimeMillis() + tokenData.get("expires_in").asLong() * 1000;
+                ds.save(info);
+            } catch (java.io.IOException e) {
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in retrieving token.");
+            }
+        }
+
+        return info.easemobToken;
+    }
+
+    public static Token valCodetoToken(Integer countryCode, String tel, int actionCode, int userId, long expireMs) throws TravelPiException {
+        ValidationCode valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Token token = Token.newInstance(valCode, expireMs);
+
+        Token uniq = ds.createQuery(Token.class).field("value")
+                .equal(token.value).field("userId").equal(token.userId).get();
+        if (uniq != null) {
+            throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "Token out of quota.");
+        }
+        ds.save(token);
+        return token;
+    }
+
+    public static boolean checkToken(String token, int userId, int actionCode) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Token uniq = ds.createQuery(Token.class).field("value").equal(token).
+                field("userId").equal(userId).get();
+        boolean ret = !(uniq == null || !uniq.value.equals(token) || System.currentTimeMillis() > uniq.expireTime ||
+                !uniq.permissionList.contains(actionCode));
+        return ret;
+    }
+
+    /**
+     * 注册环信用户
+     *
+     * @param userName
+     * @param pwd
+     */
+    private static void regEaseMob(String userName, String pwd) throws TravelPiException {
+        // 重新获取token
+        Configuration config = Configuration.root().getConfig("easemob");
+        String orgName = config.getString("org");
+        String appName = config.getString("app");
+
+        ObjectNode data = Json.newObject();
+        data.put("username", userName);
+        data.put("password", pwd);
+
+        String href = String.format("https://a1.easemob.com/%s/%s/users", orgName, appName);
+        try {
+            URL url = new URL(href);
+            URLConnection conn = url.openConnection();
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            out.write(data.toString());
+            out.flush();
+            out.close();
+
+            InputStream in = conn.getInputStream();
+            String body = IOUtils.toString(in, conn.getContentEncoding());
+
+            JsonNode tokenData = Json.parse(body);
+            if (tokenData.has("error"))
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+        } catch (java.io.IOException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+        }
+    }
 }

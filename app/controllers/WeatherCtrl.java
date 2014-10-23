@@ -20,7 +20,7 @@ public class WeatherCtrl extends Controller {
         try {
             cityOid = new ObjectId(cityId);
         } catch (IllegalArgumentException e) {
-            return Utils.createResponse(ErrorCode.INVALID_OBJECTID, String.format("Invalid locality id: %s", cityId));
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality id: %s", cityId));
         }
         YahooWeather yahooWeather = WeatherAPI.weatherDetails(cityOid);
         if (yahooWeather == null)

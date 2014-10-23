@@ -18,11 +18,12 @@ import utils.Utils;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.PatternSyntaxException;
 
 
 /**
  * 地理相关
- * <p/>
+ * <p>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
@@ -85,10 +86,10 @@ public class GeoCtrl extends Controller {
      *
      * @param searchWord 搜索关键词。
      * @param country    限定国家或地区的ID。//要求为国家ISO 3166代码，如CN或CHN。如果为null或""，则不限定国家。
-     * @param scope     搜索国外城市还是国内城市。1：国内，2：国外，3：both。
+     * @param scope      搜索国外城市还是国内城市。1：国内，2：国外，3：both。
      * @param prefix     是否为前缀搜索。
      */
-    public static Result searchLocality(String searchWord, String country, int scope, int prefix) throws TravelPiException {
+    public static Result searchLocality(String searchWord, String country, int scope, int prefix) {
         if (scope < 1 || scope > 3)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search scope: %d", scope));
 
@@ -114,15 +115,21 @@ public class GeoCtrl extends Controller {
             try {
                 countryId = new ObjectId(country);
             } catch (IllegalArgumentException e) {
-                return Utils.createResponse(ErrorCode.INVALID_OBJECTID, String.format("Invalid ObjectId: %s", country));
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid ObjectId: %s", country));
             }
         }
 
         List<JsonNode> results = new ArrayList<>();
-        for (Iterator<models.morphia.geo.Locality> it =
-                     LocalityAPI.searchLocalities(searchWord, countryId, scope, (prefix != 0), page, pageSize);
-             it.hasNext(); )
-            results.add(it.next().toJson(1));
+        try {
+            for (Iterator<models.morphia.geo.Locality> it =
+                         LocalityAPI.searchLocalities(searchWord, countryId, scope, (prefix != 0), page, pageSize);
+                 it.hasNext(); )
+                results.add(it.next().toJson(1));
+        } catch (PatternSyntaxException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "KeyWord Pattern Error.");
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }

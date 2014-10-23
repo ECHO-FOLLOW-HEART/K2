@@ -11,6 +11,7 @@ import org.mongodb.morphia.query.Query;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 /**
  * Locality相关的核心接口。
@@ -122,7 +123,7 @@ public class LocalityAPI {
      */
     public static java.util.Iterator<Locality> searchLocalities(String keyword, ObjectId countryId,
                                                                 int scope, boolean prefix,
-                                                                int page, int pageSize) throws TravelPiException {
+                                                                int page, int pageSize) throws TravelPiException,PatternSyntaxException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
         Query<Locality> query = ds.createQuery(Locality.class);

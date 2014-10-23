@@ -222,7 +222,7 @@ public class PoiAPI {
         try {
             id = new ObjectId(poiId);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid POI ID: %s.",
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.",
                     poiId != null ? poiId : "NULL"));
         }
         return getPOIInfo(id, poiType, showDetails);

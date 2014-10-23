@@ -1,3 +1,5 @@
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import play.Application;
 import play.GlobalSettings;
 import play.api.mvc.EssentialFilter;
@@ -16,8 +18,10 @@ public class Global extends GlobalSettings {
 
     @Override
     public void onStart(Application app) {
-
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
+        Log logger = LogFactory.getLog("com.travelpi");
+        logger.info("Application started");
+        logger.info("北京爱走天下网络科技有限责任公司");
     }
 
     public Action onRequest(Http.Request request, Method actionMethod) {

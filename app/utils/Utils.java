@@ -7,6 +7,8 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import org.apache.commons.codec.binary.*;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.dom4j.Document;
@@ -84,7 +86,7 @@ public class Utils {
 
     public static Result createResponse(int errCode, String msg) {
         ObjectNode jsonObj = Json.newObject();
-        jsonObj.put("msg", msg);
+        jsonObj.put("debug", msg);
         return createResponse(errCode, jsonObj);
     }
 
@@ -101,6 +103,18 @@ public class Utils {
                 response.put("err", result);
         }
         return ok(response);
+    }
+
+    /**
+     * @param errCode    错误码
+     * @param msg        提示信息
+     * @param isGotByApp 标识Message是否被手机端直接获得并显示出来
+     * @return
+     */
+    public static Result createResponse(int errCode, String msg, boolean isGotByApp) {
+        ObjectNode jsonObj = Json.newObject();
+        jsonObj.put("message", msg);
+        return createResponse(errCode, jsonObj);
     }
 
     /**
@@ -231,6 +245,18 @@ public class Utils {
             return null;
         }
     }
+    /**
+     * 生成token
+     * @return
+     */
+    public static String createToken() {
+        String ram = ((Integer) (new Random()).nextInt(Integer.MAX_VALUE)).toString();
+        try {
+            return Base64.encodeBase64String(MessageDigest.getInstance("SHA-256").digest(ram.getBytes()));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalArgumentException();
+        }
+    }
 
     /**
      * 生成随机字符串
@@ -242,12 +268,9 @@ public class Utils {
         String base = "abcdefghijklmnopqrstuvwxyz0123456789";
         int size = base.length();
         Random random = new Random();
-        StringBuffer sb = new StringBuffer();
-        int number;
-        for (int i = 0; i < length; i++) {
-            number = random.nextInt(size);
-            sb.append(base.charAt(number));
-        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < length; i++)
+            sb.append(base.charAt(random.nextInt(size)));
         return sb.toString();
     }
 

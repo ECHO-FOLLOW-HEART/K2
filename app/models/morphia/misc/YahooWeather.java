@@ -55,15 +55,17 @@ public class YahooWeather extends TravelPiBaseItem implements ITravelPiFormatter
         DateFormat timeformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         builder.add("updateTime", timeformat.format(updateTime));
 
-        builder.add("loc", loc.toJson()).add("current", current.toJson());
+        builder.add("enLocName", (loc.enName != null ? loc.enName : ""))
+                .add("zhLocName", (loc.zhName != null ? loc.zhName : ""));
+
+        builder.add("current", current.toJson());
 
         List<JsonNode> nodelist = new ArrayList<>();
-        if (forecast != null && !(forecast.isEmpty())) {
+        if (forecast != null) {
             for (WeatherItem item : forecast)
                 nodelist.add(item.toJson());
-            builder.add("forecast", nodelist);
-        } else
-            builder.add("forecast", new ArrayList<>());
+        }
+        builder.add("forecast", nodelist);
 
         return Json.toJson(builder.get());
     }

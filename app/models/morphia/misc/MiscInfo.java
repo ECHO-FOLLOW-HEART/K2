@@ -25,6 +25,21 @@ public class MiscInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public String appHomeImage;
 
+    /**
+     * 环信token
+     */
+    public String easemobToken;
+
+    /**
+     * 环信token的过期时间
+     */
+    public Long easemobTokenExpire;
+
+    /**
+     * 环信UUID
+     */
+    public String easemobUUID;
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("appHomeImage", appHomeImage);

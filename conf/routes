@@ -38,9 +38,10 @@ POST          /plans/optimizers                                  controllers.Pla
 
 # ugc路线接口
 # 根据用户查看UGC路线列表
-GET           /ugc-plans/users/:userId                           controllers.PlanCtrl.getUGCPlans(userId: String,ugcPlanId: String?="", updateTime:String?="",page: Int?=0, pageSize: Int?=20)
-#查看UGC路线详情
-GET           /ugc-plans/:ugcPlanId                              controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, updateTime:String?="", page: Int?=0, pageSize: Int?=1)
+#GET           /ugc-plans/users/:userId                           controllers.PlanCtrl.getUGCPlans(userId: String, ugcPlanId: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /ugc-plans/users/:userId                           controllers.PlanCtrl.getUGCPlans1(userId: String, ugcPlanId: String?="", page: Int, pageSize: Int)
+##查看UGC路线详情
+GET           /ugc-plans/:ugcPlanId                              controllers.PlanCtrl.getUGCPlans1(userId: String?="", ugcPlanId: String, page: Int?=0, pageSize: Int?=1)
 #查看分享路线详情
 GET           /share-plans/:sharePlanId                          controllers.PlanCtrl.getSharePlans(sharePlanId: String)
 # 保存UGC路线
@@ -96,14 +97,14 @@ POST          /sys/feedback                                      controllers.Mis
 GET           /sys/updates/:platform                             controllers.MiscCtrl.getUpdateInfo(platform: String)
 GET           /sys/updates                                       controllers.MiscCtrl.getUpdates()
 GET           /suggestions                                       controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
-GET           /misc/weather                                      controllers.MiscCtrl.getWeatherInfo(locId :String)
+GET           /misc/weather/:locId                               controllers.MiscCtrl.getWeatherInfo(locId :String)
 
 POST          /app/misc/send-validation                          controllers.MiscCtrl.sendValidation()
 POST          /app/misc/check-validation                         controllers.MiscCtrl.checkValidation()
 GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
 GET           /misc/notes/search                                 controllers.TravelNoteCtrl.searchNotes()
 #天气情况
-GET           /misc/yahooweather/:id                             controllers.WeatherCtrl.getWeatherDetail(id:String)
+GET           /app/misc/weather/:id                             controllers.WeatherCtrl.getWeatherDetail(id:String)
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
 #添加用户备注
@@ -137,9 +138,9 @@ GET           /batch/refrechUid                                  controllers.Bac
 #复制路线：生成一条UGC路线
 GET           /web/ugc-plans/templates/:planId                   controllers.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="",webFlag: Int=1,uid: String?="")
 #查看UGC路线详情
-GET           /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, updateTime:String?="", page: Int?=0, pageSize: Int?=1)
+GET           /web/ugc-plans/:ugcPlanId                          controllers.PlanCtrl.getUGCPlans(userId: String?="",ugcPlanId: String, page: Int?=0, pageSize: Int?=1)
 #根据用户获得UGC路线列表
-GET           /web/ugc-plans/users/:userId                       controllers.PlanCtrl.getUGCPlans(userId: String,ugcPlanId: String?="", updateTime:String?="",page: Int?=0, pageSize: Int?=20)
+GET           /web/ugc-plans/users/:userId                       controllers.PlanCtrl.getUGCPlans(userId: String,ugcPlanId: String?="", page: Int?=0, pageSize: Int?=20)
 #根据目的地查看模板路线列表
 GET           /web/plans/explore                                 controllers.PlanCtrl.explorePlans(fromLoc: String?="", loc: String?="", poi: String?="", sortField: String?="", sort: String?="asc", tag: String?="", minDays:Int?=0 ,maxDays:Int?=999, page: Int?=0, pageSize: Int?=20)
 #根据ID查看模板路线详情
@@ -209,14 +210,19 @@ GET           /app/users/validity                                peachController
 POST          /app/users/signin                                  peachControllers.UserCtrl.signin()
 #发送手机验证码
 POST          /app/users/send-validation                         peachControllers.UserCtrl.sendCaptcha()
-#获取用户信息
-GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
-#编辑用户信息，修改密码
-POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
 #修改密码
 POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
 #验证验证码，重设密码
 POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
+#绑定手机
+POST          /app/users/bind                                    peachControllers.UserCtrl.bindTel()
+#验证验证码,返回token,绑定手机时用
+POST          /app/users/check-validation                        peachControllers.UserCtrl.checkCaptcha()
+#获取用户信息
+GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
+#编辑用户信息，修改密码
+POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
+
 
 
 

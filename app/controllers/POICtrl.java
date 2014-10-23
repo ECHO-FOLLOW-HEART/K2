@@ -63,7 +63,7 @@ public class POICtrl extends Controller {
         boolean details = (showDetails != 0);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
         if (poiInfo == null)
-            return Utils.createResponse(ErrorCode.INVALID_OBJECTID, String.format("Invalid POI ID: %s.", spotId));
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
 
         ObjectNode results = (ObjectNode) poiInfo.toJson(details ? 3 : 2);
 

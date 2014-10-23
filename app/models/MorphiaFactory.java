@@ -56,8 +56,6 @@ public class MorphiaFactory {
         morphia = new Morphia();
         new ValidationExtension(morphia);
 
-        morphia.map(ValidationCode.class);
-
 //        morphia.map(MiscInfo.class);
 //        morphia.map(Locality.class);
 //        morphia.map(Country.class);
