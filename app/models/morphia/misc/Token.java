@@ -49,6 +49,11 @@ public class Token {
     @Constraints.Required
     public Long createTime;
 
+    /**
+     * 已经使用
+     */
+    public boolean used;
+
 
     /**
      * 实例化一个令牌对象。

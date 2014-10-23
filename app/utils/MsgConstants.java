@@ -23,7 +23,7 @@ public class MsgConstants {
     /**
      * 用户不已存在
      */
-    public static String USER_NOT_EXIST_MSG  = "该用户不存在.";
+        public static String USER_NOT_EXIST_MSG  = "该用户不存在.";
 
     /**
      * 注册时验证码错误

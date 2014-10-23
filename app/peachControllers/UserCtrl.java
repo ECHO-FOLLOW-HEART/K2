@@ -8,7 +8,6 @@ import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.misc.Token;
-import models.morphia.user.Credential;
 import models.morphia.plan.Plan;
 import models.morphia.user.UserInfo;
 import org.apache.commons.io.IOUtils;
@@ -19,7 +18,6 @@ import play.mvc.Result;
 import utils.DataConvert.UserConvert;
 import utils.LogUtils;
 import utils.MsgConstants;
-import utils.LogUtils;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
@@ -95,15 +93,17 @@ public class UserCtrl extends Controller {
         String tel = req.get("tel").asText();
         String captcha = req.get("captcha").asText();
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
-        Integer userId = Integer.valueOf(req.get("userId").asText());
-        int countryCode = 86;
-        if (req.has("countryCode"))
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
-
+        Integer userId = 0;
+        if (actionCode == CAPTCHA_ACTION_BANDTEL) {
+            userId = Integer.valueOf(req.get("userId").asText());
+        }
+        int countryCode = req.has("countryCode") ? Integer.valueOf(req.get("countryCode").asText()) : 86;
         ObjectNode result = Json.newObject();
         try {
-            if (UserAPI.checkValidation(countryCode, tel, actionCode, captcha, userId)) {
-                Token token = UserAPI.valCodetoToken(countryCode, tel, actionCode, userId, 600 * 1000);
+
+            // TODO Debug特殊验证码
+            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, actionCode, captcha, userId)) {
+                Token token = UserAPI.valCodetoToken(countryCode, tel, actionCode, userId, 30 * 1000);
                 result.put("token", token.value);
                 result.put("isValid", true);
             } else
@@ -154,13 +154,14 @@ public class UserCtrl extends Controller {
      */
     public static Result modPassword() {
         JsonNode req = request().body().asJson();
-        String userId = req.get("userId").asText();
+        Integer userId = Integer.valueOf(req.get("userId").asText());
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
 
         //验证用户是否存在-手机号
         try {
             UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
+            //如果用户不存在
             if (userInfo == null)
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
@@ -177,7 +178,7 @@ public class UserCtrl extends Controller {
     }
 
     /**
-     * 重新设密码
+     * 忘记设密码
      *
      * @return
      */
@@ -194,6 +195,10 @@ public class UserCtrl extends Controller {
         //验证Token
         try {
             UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
+            //如果用户不存在
+            if (userInfo == null)
+                Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
+
             if (UserAPI.checkToken(token, userInfo.userId, CAPTCHA_ACTION_MODPWD)) {
 
                 UserAPI.resetPwd(userInfo, pwd);
@@ -227,10 +232,13 @@ public class UserCtrl extends Controller {
         String tel = req.get("tel").asText();
         Integer countryCode = req.has("countryCode") ? Integer.valueOf(req.get("countryCode").asText()) : 86;
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
-        if (actionCode != CAPTCHA_ACTION_SIGNUP && !req.has("userId")) {
-
+        Integer userId = null;
+        // 注册-无userId,改密码-有userId,绑定-有userId
+        if (req.has("userId")) {
+            userId = Integer.valueOf(req.get("userId").asText());
+        } else if (!req.has("userId") && actionCode != CAPTCHA_ACTION_SIGNUP && actionCode != CAPTCHA_ACTION_MODPWD) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
         }
-        Integer userId = Integer.valueOf(req.get("userId").asText());
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //验证用户是否存在
         try {
@@ -248,7 +256,6 @@ public class UserCtrl extends Controller {
                     return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
                 }
             }
-
             Configuration config = Configuration.root();
             Map sms = (Map) config.getObject("sms");
             long expireMs = Long.valueOf(sms.get("signupExpire").toString());

@@ -7,7 +7,6 @@ import com.mongodb.DBObject;
 import core.user.ValFormatterFactory;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import javafx.scene.effect.SepiaTone;
 import models.MorphiaFactory;
 import models.morphia.misc.MiscInfo;
 import models.morphia.misc.Sequence;
@@ -25,7 +24,6 @@ import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http;
-import scala.Int;
 import utils.Utils;
 
 import javax.crypto.KeyGenerator;
@@ -37,7 +35,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Random;
 
 /**
@@ -74,6 +71,7 @@ public class UserAPI {
 
     /**
      * 修改用户备注
+     *
      * @param selfId
      * @param id
      * @param memo
@@ -95,18 +93,19 @@ public class UserAPI {
 
     /**
      * 检查用户是否在黑名单中
+     *
      * @param selfId
      * @param id
      */
-    public static boolean checkBlackList(Integer selfId,Integer id) throws TravelPiException {
-        UserInfo userInfo=getUserByUserId(selfId);
-        Map<Integer,UserInfo> blacklist= userInfo.blackList;
-        if (blacklist.containsKey(id)){
+    public static boolean checkBlackList(Integer selfId, Integer id) throws TravelPiException {
+        UserInfo userInfo = getUserByUserId(selfId);
+        Map<Integer, UserInfo> blacklist = userInfo.blackList;
+        if (blacklist.containsKey(id)) {
             return true;
-        }
-        else
+        } else
             return false;
     }
+
     /**
      * 将用户添加/移除黑名单
      *
@@ -153,6 +152,7 @@ public class UserAPI {
 
     /**
      * 获得用户的黑名单列表
+     *
      * @param userId
      * @return
      * @throws TravelPiException
@@ -340,7 +340,7 @@ public class UserAPI {
      */
     public static UserInfo getUserByField(UserInfoField field, String value) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        String stKey = null;
+        String stKey;
         UserInfo userInfo = null;
         switch (field) {
             case TEL:
@@ -355,9 +355,25 @@ public class UserAPI {
                 stKey = "oauthList.oauthId";
                 userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
                 break;
+
+        }
+        return userInfo;
+    }
+
+    /**
+     * 根据字段获得用户信息。
+     *
+     * @param
+     * @return
+     */
+    public static UserInfo getUserByField(UserInfoField field, int value) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        String stKey ;
+        UserInfo userInfo = null;
+        switch (field) {
             case USERID:
                 stKey = "userId";
-                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(Integer.valueOf(value)).get();
+                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
                 break;
 
         }
@@ -488,7 +504,7 @@ public class UserAPI {
         Credential cre = ceQuery.field("userId").equal(u.userId).get();
         cre.salt = Utils.getSalt();
         cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-        ds.save(u);
+        ds.save(cre);
     }
 
     /**
@@ -560,9 +576,9 @@ public class UserAPI {
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
 
-        // 如果actionCode == 1,是注册,不需要验证userId
+        // 如果actionCode == 1或2,是注册,不需要验证userId
         boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime
-                || (actionCode != 1 && entry.userId != userId));
+                || (isNeedCheckUserId(actionCode) && entry.userId != userId));
 
         // 避免暴力攻击。验证失效次数超过5次，验证码就会失效。
         if (!ret && entry != null) {
@@ -643,13 +659,27 @@ public class UserAPI {
 
     public static boolean checkToken(String token, int userId, int actionCode) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        Token uniq = ds.createQuery(Token.class).field("value").equal(token).
-                field("userId").equal(userId).get();
+        Token uniq = ds.createQuery(Token.class).field("value").equal(token).field("used").equal(false).get();
+        //设置已使用过
+        uniq.used = false;
+        ds.save(uniq);
         boolean ret = !(uniq == null || !uniq.value.equals(token) || System.currentTimeMillis() > uniq.expireTime ||
-                !uniq.permissionList.contains(actionCode));
+                !uniq.permissionList.contains(actionCode)||(isNeedCheckUserId(actionCode)&& uniq.userId != userId));
         return ret;
     }
 
+    /**
+     * 根据actionCode,
+     *
+     * @param actionCode
+     * @return
+     */
+    private static boolean isNeedCheckUserId(int actionCode){
+        if(actionCode == 1 || actionCode == 2){
+            return false;
+        }
+        return true;
+    }
     /**
      * 注册环信用户
      *
