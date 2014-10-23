@@ -270,11 +270,7 @@ public class UserCtrl extends Controller {
 
             UserAPI.setUserBlacklist(Integer.parseInt(selfId), list, operation);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        } catch (NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        } catch (ClassCastException e) {
+        } catch (TravelPiException | NullPointerException | ClassCastException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
     }
@@ -292,11 +288,7 @@ public class UserCtrl extends Controller {
             Map<String, List<Integer>> map = new HashMap<>();
             map.put("blacklist", list);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("INVALID_ARGUMENT"));
-        } catch (NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        } catch (ClassCastException e) {
+        } catch (TravelPiException | NullPointerException | ClassCastException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
     }
