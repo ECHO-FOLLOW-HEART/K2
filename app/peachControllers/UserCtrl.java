@@ -6,14 +6,11 @@ import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.morphia.user.Credential;
-import models.morphia.misc.Token;
 import models.morphia.plan.Plan;
 import models.morphia.user.UserInfo;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.DataConvert.UserConvert;
 import utils.LogUtils;
-import utils.MsgConstants;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
