@@ -76,7 +76,7 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
             if (userInfo != null)
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
+                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_2));
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -105,7 +105,7 @@ public class UserCtrl extends Controller {
                 result.put("token", token.value);
                 result.put("isValid", true);
             } else
-                result.put("isValid", false);
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -195,19 +195,20 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
         String pwd = req.get("pwd").asText();
         String token = req.get("token").asText();
-        String userId = req.get("userId").asText();
+        String tel = req.get("tel").asText();
         Integer countryCode = 86;
         if (req.has("countryCode"))
             countryCode = Integer.valueOf(req.get("countryCode").asText());
-
         //验证密码格式
         if (!validityPwd(pwd)) {
             return Utils.createResponse(MsgConstants.PWD_FORMAT_ERROR, MsgConstants.PWD_FORMAT_ERROR_MSG, true);
         }
+
         //验证Token
         try {
-            if (UserAPI.checkToken(token, Integer.valueOf(userId), CAPTCHA_ACTION_MODPWD)) {
-                UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
+            UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
+            if (UserAPI.checkToken(token, userInfo.userId, CAPTCHA_ACTION_MODPWD)) {
+
                 UserAPI.resetPwd(userInfo, pwd);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else
@@ -300,7 +301,7 @@ public class UserCtrl extends Controller {
 
             //验证密码
             if (UserAPI.validCredential(userInfo, pwd))
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
+                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_2));
             else
                 return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
@@ -377,17 +378,14 @@ public class UserCtrl extends Controller {
             infoNode = m.readTree(json);
 
             UserInfo us;
-
             if (!infoNode.has("openid")) {
                 return Utils.createResponse(ErrorCode.WEIXIN_CODE_ERROR, MsgConstants.WEIXIN_ACESS_ERROR_MSG, true);
             }
-
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserAPI.UserInfoField.OPENID, infoNode.get("openid").asText());
             if (us != null) {
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
+                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_2));
             }
-
             //JSON转化为userInfo
             us = UserConvert.oauthToUserInfoForWX(infoNode);
             //如果第三方昵称已被其他用户使用，则添加后缀
@@ -397,8 +395,7 @@ public class UserCtrl extends Controller {
             UserAPI.saveUserInfo(us);
             // 第三方注册时,注册环信
             UserAPI.regCredential(us, "");
-            return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
-
+            return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_2));
 
         } catch (IOException | NullPointerException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());

@@ -19,15 +19,23 @@ public class UserBuilder {
 
     public static int DETAILS_LEVEL_2 = 2;
 
+    public static int DETAILS_LEVEL_3 = 3;
+
     public static JsonNode buildUserInfo(UserInfo u, int level) throws TravelPiException {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
         builder.add("userId", u.userId == null ? "" : u.userId).add("nickName", u.nickName == null ? "" : u.nickName)
                 .add("avatar", u.avatar == null ? "" : u.avatar).add("gender", u.gender == null ? "" : u.gender)
                 .add("signature", u.signature == null ? "" : u.signature).add("tel", u.tel == null ? "" : u.tel)
-                .add("secToken", u.secToken == null ? "" : u.secToken)
-                .add("hasPwd",UserAPI.hasPwd(u));
-        if (level == DETAILS_LEVEL_2) {
+                .add("secToken", u.secToken == null ? "" : u.secToken);
+        Credential ce = UserAPI.getPwd(u);
+//         if(ce != null){
+//             builder.add("hasPwd",ce == null?false:(ce.pwdHash == null?true:false));
+//         }
+        if (level == DETAILS_LEVEL_2 && ce != null)
+            builder.add("easemobPwd", ce.easemobPwd == null ? "" : ce.easemobPwd)
+                    .add("easemobUser", ce.easemobUser == null ? "" : ce.easemobUser);
+        if (level == DETAILS_LEVEL_3) {
             JsonNode friends = UserBuilder.buildUserFriends(u.friends);
             JsonNode remark = UserBuilder.buildRemark(u.remark);
             builder.add("countryCode", u.countryCode == null ? "" : u.countryCode)
