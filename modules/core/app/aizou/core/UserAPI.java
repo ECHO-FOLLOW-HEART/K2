@@ -398,10 +398,14 @@ public class UserAPI {
         user.oauthList = new ArrayList<>();
         user.tel = tel;
         user.nickName = "桃子_" + user.userId;
-        user.gender = "F";
+        user.gender = "";
         user.countryCode = countryCode;
         user.email = "";
-        user.secToken = Utils.getSecToken();
+        try {
+            user.secToken = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+        } catch (NoSuchAlgorithmException ignored) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+        }
         user.signature = "";
         user.origin = "peach-telUser";
         user.enabled = true;
@@ -417,13 +421,12 @@ public class UserAPI {
     public static Integer getUserId() throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Sequence> query = ds.createQuery(Sequence.class);
-        query.field("column").equals(Sequence.USERID);
-        Integer uid = query.get().count;
-        //DBObject newDocument = new BasicDBObject();
-        //newDocument.put("$inc", new BasicDBObject().append("count", 1));
+        query.field("column").equal(Sequence.USERID);
         UpdateOperations<Sequence> ops = ds.createUpdateOperations(Sequence.class).inc("count");
-        ds.findAndModify(query, ops);
-        return uid;
+        Sequence ret = ds.findAndModify(query, ops);
+        if (ret==null)
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Unable to generate UserId sequences.");
+        return ret.count;
     }
 
     /**

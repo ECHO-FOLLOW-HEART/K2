@@ -1,4 +1,4 @@
-name := """com.lvxingpai.api"""
+name := """aizou"""
 
 version := "1.3"
 
@@ -11,8 +11,7 @@ lazy val travelpi = (project in file("modules/travelpi")).enablePlugins(PlayJava
 lazy val taozi = (project in file("modules/taozi")).enablePlugins(PlayJava).dependsOn(core)
 
 lazy val root = (project in file(".")).enablePlugins(PlayJava)
-  .dependsOn(core)
-  .dependsOn(web).dependsOn(travelpi).dependsOn(taozi)
+  .dependsOn(core).dependsOn(web).dependsOn(travelpi).dependsOn(taozi)
   .aggregate(core, web, taozi, travelpi)
 
 scalaVersion := "2.10.3"
