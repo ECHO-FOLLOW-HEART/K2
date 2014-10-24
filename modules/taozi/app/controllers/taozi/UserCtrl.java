@@ -1,4 +1,4 @@
-package peachControllers;
+package controllers.taozi;
 
 import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;

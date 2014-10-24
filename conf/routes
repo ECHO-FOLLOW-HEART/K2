@@ -5,6 +5,8 @@
 # Home page
 GET           /                                                  controllers.Application.index()
 
+->            /taozi                                             taozi.Routes
+
 # Map static resources from the /public folder to the /assets URL path
 GET           /assets/*file                                      controllers.Assets.at(path="/public", file)
 
@@ -104,7 +106,7 @@ POST          /app/misc/check-validation                         controllers.Mis
 GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
 GET           /misc/notes/search                                 controllers.TravelNoteCtrl.searchNotes()
 #天气情况
-GET           /app/misc/weather/:id                             controllers.WeatherCtrl.getWeatherDetail(id:String)
+GET           /app/misc/weather/:id                              controllers.WeatherCtrl.getWeatherDetail(id:String)
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
 
@@ -195,30 +197,30 @@ GET           /web/recommend/mustgo                              controllers.Mis
 #人气之旅
 GET           /web/recommend/popularity                          controllers.MiscCtrl.recommend(sortType: String = "popularityWeight", page: Int?=0, pageSize: Int?=20)
 
-#-------------------------------------
-#用户
-#手机注册
-POST          /app/users/signup                                  peachControllers.UserCtrl.register()
-#第三方注册、登录
-POST          /app/users/auth-signup                             peachControllers.UserCtrl.authRegister()
-#检验用户信息的有效性(手机号)
-GET           /app/users/validity                                peachControllers.UserCtrl.validityInfo(tel:String?="",nick:String?="")
-#手机号登录
-POST          /app/users/signin                                  peachControllers.UserCtrl.signin()
-#发送手机验证码
-POST          /app/users/send-validation                         peachControllers.UserCtrl.sendCaptcha()
-#修改密码
-POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
-#验证验证码，重设密码
-POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
-#绑定手机
-POST          /app/users/bind                                    peachControllers.UserCtrl.bindTel()
-#验证验证码,返回token,绑定手机时用
-POST          /app/users/check-validation                        peachControllers.UserCtrl.checkCaptcha()
-#获取用户信息
-GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
-#编辑用户信息，修改密码
-POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
+##-------------------------------------
+##用户
+##手机注册
+#POST          /app/users/signup                                  peachControllers.UserCtrl.register()
+##第三方注册、登录
+#POST          /app/users/auth-signup                             peachControllers.UserCtrl.authRegister()
+##检验用户信息的有效性(手机号)
+#GET           /app/users/validity                                peachControllers.UserCtrl.validityInfo(tel:String?="",nick:String?="")
+##手机号登录
+#POST          /app/users/signin                                  peachControllers.UserCtrl.signin()
+##发送手机验证码
+#POST          /app/users/send-validation                         peachControllers.UserCtrl.sendCaptcha()
+##修改密码
+#POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
+##验证验证码，重设密码
+#POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
+##绑定手机
+#POST          /app/users/bind                                    peachControllers.UserCtrl.bindTel()
+##验证验证码,返回token,绑定手机时用
+#POST          /app/users/check-validation                        peachControllers.UserCtrl.checkCaptcha()
+##获取用户信息
+#GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
+##编辑用户信息，修改密码
+#POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
 
 
 
