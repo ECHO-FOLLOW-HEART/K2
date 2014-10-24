@@ -11,6 +11,7 @@ import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import scala.Int;
 import utils.Utils;
 
 import javax.servlet.annotation.ServletSecurity;
@@ -212,14 +213,15 @@ public class UserCtrl extends Controller {
 
     /**
      * 添加用户的备注信息
+     *
      * @param id
-     * @param memo
      * @return
      * @throws TravelPiException
      */
-    public static Result putUserMemo(Integer id, String memo) throws TravelPiException {
+    public static Result putUserMemo(Integer id) throws TravelPiException {
         try {
             String selfId = request().getHeader("userId");
+            String memo = request().body().asJson().get("memo").asText();
             UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
         } catch (TravelPiException e) {
@@ -231,51 +233,63 @@ public class UserCtrl extends Controller {
         }
     }
 
-
-    public static Result confirUserInBlackList(Integer id) throws TravelPiException {
+    /**
+     * 判断用户在黑名单中
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
+    /*public static Result confirUserInBlackList(Integer id) throws TravelPiException {
         try{
         String userId=request().getHeader("userId");
         boolean flag=UserAPI.checkBlackList(Integer.parseInt(userId),id);
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(flag));
         }catch (TravelPiException e){
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("INVALID_ARGUMENT"));
+        }catch (Exception e){
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("INVALID_ARGUMENT"));
         }
 
-    }
+    }*/
 
     /**
-     * 从黑名单添加/移除用户
-     * @param list
-     * @param operation
      * @return
      */
-    public static Result putUserBlacklist(List<Integer> list,String operation){
-        try{
-            String selfId= request().getHeader("userId");
+    public static Result putUserBlacklist() {
+        try {
+            String selfId = request().getHeader("userId");
+            JsonNode req = request().body().asJson();
+            List<Integer> list = (List<Integer>) req.get("userList").iterator();
+            /*Iterator<JsonNode> iterator =  req.get("userList").iterator();
+            List<Integer> list =new ArrayList<>();
+            while(iterator.hasNext()){
+               JsonNode node=iterator.next();
+               list.add(node.get("userList").asInt());
+            }*/
+            String operation = req.get("action").asText();
+
             UserAPI.setUserBlacklist(Integer.parseInt(selfId), list, operation);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-        } catch (TravelPiException e) {
+        } catch (TravelPiException | NullPointerException | ClassCastException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        }catch (Exception e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("failed"));
         }
     }
 
     /**
-     *获得用户的黑名单列表
-     * @param userId
+     * 获得用户的黑名单列表
+     *
+     * @param
      * @return backlist
      */
-    public static Result getUserBlackList(Integer userId){
+    public static Result getUserBlackList() {
         try {
-            List<Integer> list=UserAPI.getBlackList(userId);
-            Map<String,List<Integer>> map=new HashMap<>();
-            map.put("blacklist",list);
-            return Utils.createResponse(ErrorCode.NORMAL,Json.toJson(map));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("INVALID_ARGUMENT"));
-        }catch (Exception e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("INVALID_ARGUMENT"));
+            String userId = request().getHeader("userId");
+            List<Integer> list = UserAPI.getBlackList(Integer.parseInt(userId));
+            Map<String, List<Integer>> map = new HashMap<>();
+            map.put("blacklist", list);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
+        } catch (TravelPiException | NullPointerException | ClassCastException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
     }
 

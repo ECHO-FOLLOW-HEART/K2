@@ -104,13 +104,9 @@ POST          /app/misc/check-validation                         controllers.Mis
 GET           /sys/register                                      controllers.MiscCtrl.updateUserInfo()
 GET           /misc/notes/search                                 controllers.TravelNoteCtrl.searchNotes()
 #天气情况
-GET           /app/misc/weather/:id                             controllers.WeatherCtrl.getWeatherDetail(id:String)
+GET           /app/misc/weather/:id                              controllers.WeatherCtrl.getWeatherDetail(id:String)
 # 发现目的地（推荐机制）
 GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, page: Int?=0, pageSize: Int?=20)
-#添加用户备注
-POST          /app/users/:id/:memo                               controllers.UserCtrl.putUserMemo(id:Integer,memo:String)
-#将用户添加或移除到黑名单
-#POST         /app/users/blacklist                                #controllers.UserCtrl.putUserBlacklist(list:List<Integer>,operation:String)
 # 用户
 
 # 用户登录
@@ -214,6 +210,7 @@ POST          /app/users/send-validation                         peachController
 POST          /app/users/pwd                                     peachControllers.UserCtrl.modPassword()
 #验证验证码，重设密码
 POST          /app/users/reset-pwd                               peachControllers.UserCtrl.newPassword()
+
 #绑定手机
 POST          /app/users/bind                                    peachControllers.UserCtrl.bindTel()
 #验证验证码,返回token,绑定手机时用
@@ -222,7 +219,12 @@ POST          /app/users/check-validation                        peachController
 GET           /app/users/:uid                                    peachControllers.UserCtrl.getUserProfileById(uid: String)
 #编辑用户信息，修改密码
 POST          /app/users/:uid                                    peachControllers.UserCtrl.editorUserInfo(uid: String)
-
+#添加用户备注
+POST          /app/users/:id/memo                                controllers.UserCtrl.putUserMemo(id:Integer)
+#将用户添加或移除到黑名单
+POST          /app/users/blacklist                               controllers.UserCtrl.putUserBlacklist()
+#返回用户的黑名单
+GET           /app/users/blacklist                               controllers.UserCtrl.getUserBlackList()
 
 
 

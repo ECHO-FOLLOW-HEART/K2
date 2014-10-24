@@ -97,14 +97,14 @@ public class UserAPI {
      * @param selfId
      * @param id
      */
-    public static boolean checkBlackList(Integer selfId, Integer id) throws TravelPiException {
-        UserInfo userInfo = getUserByUserId(selfId);
-        Map<Integer, UserInfo> blacklist = userInfo.blackList;
-        if (blacklist.containsKey(id)) {
+   /* public static boolean checkBlackList(Integer selfId,Integer id) throws TravelPiException {
+        UserInfo userInfo=getUserByUserId(selfId);
+        Map<Integer,UserInfo> blacklist= userInfo.blackList;
+        if (blacklist.containsKey(id)){
             return true;
         } else
             return false;
-    }
+    }*/
 
     /**
      * 将用户添加/移除黑名单
