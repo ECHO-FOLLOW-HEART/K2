@@ -29,12 +29,9 @@ public class UserBuilder {
                 .add("signature", u.signature == null ? "" : u.signature).add("tel", u.tel == null ? "" : u.tel)
                 .add("secToken", u.secToken == null ? "" : u.secToken);
         Credential ce = UserAPI.getPwd(u);
-//         if(ce != null){
-//             builder.add("hasPwd",ce == null?false:(ce.pwdHash == null?true:false));
-//         }
-        if (level == DETAILS_LEVEL_2 && ce != null)
-            builder.add("easemobPwd", ce.easemobPwd == null ? "" : ce.easemobPwd)
-                    .add("easemobUser", ce.easemobUser == null ? "" : ce.easemobUser);
+        if (level == DETAILS_LEVEL_2)
+            builder.add("easemobPwd", (ce == null || ce.easemobPwd == null) ? "" : ce.easemobPwd)
+                    .add("easemobUser", (ce == null || ce.easemobUser == null) ? "" : ce.easemobUser);
         if (level == DETAILS_LEVEL_3) {
             JsonNode friends = UserBuilder.buildUserFriends(u.friends);
             JsonNode remark = UserBuilder.buildRemark(u.remark);

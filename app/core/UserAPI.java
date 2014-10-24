@@ -368,7 +368,7 @@ public class UserAPI {
      */
     public static UserInfo getUserByField(UserInfoField field, int value) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        String stKey ;
+        String stKey;
         UserInfo userInfo = null;
         switch (field) {
             case USERID:
@@ -415,7 +415,7 @@ public class UserAPI {
         user.enabled = true;
 
         // 注册私密信息
-        regCredential(user, pwd);
+        regCredential(user, pwd, true);
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
@@ -441,31 +441,33 @@ public class UserAPI {
      * @param pwd
      * @return
      */
-    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
+    public static void regCredential(UserInfo u, String pwd, boolean regHUanXin) throws TravelPiException {
         Credential cre = new Credential();
         cre.id = u.id;
         cre.userId = u.userId;
         cre.salt = Utils.getSalt();
         if (!pwd.equals(""))
             cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        if (regHUanXin) {
 
-        // 环信注册
-        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
-        int size = base.length();
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 32; i++)
-            sb.append(base.charAt(random.nextInt(size)));
-        cre.easemobUser = sb.toString();
-        String passwd = null;
-        try {
-            passwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
-        } catch (NoSuchAlgorithmException ignored) {
+            // 环信注册
+            String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+            int size = base.length();
+            Random random = new Random();
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < 32; i++)
+                sb.append(base.charAt(random.nextInt(size)));
+            cre.easemobUser = sb.toString();
+            String passwd = null;
+            try {
+                passwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+            } catch (NoSuchAlgorithmException ignored) {
+            }
+            assert passwd != null;
+            cre.easemobPwd = passwd;
+
+            regEaseMob(cre.easemobUser, cre.easemobPwd);
         }
-        assert passwd != null;
-        cre.easemobPwd = passwd;
-
-        regEaseMob(cre.easemobUser, cre.easemobPwd);
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
     }
@@ -576,7 +578,7 @@ public class UserAPI {
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
 
-        // 如果actionCode == 1或2,是注册,不需要验证userId
+        // 如果actionCode == 1或2,即注册或忘记密码,不需要验证userId
         boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime
                 || (isNeedCheckUserId(actionCode) && entry.userId != userId));
 
@@ -659,27 +661,29 @@ public class UserAPI {
 
     public static boolean checkToken(String token, int userId, int actionCode) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        Token uniq = ds.createQuery(Token.class).field("value").equal(token).field("used").equal(false).get();
+        Token uniq = ds.createQuery(Token.class).field("value").equal(token).field("used").notEqual(true).get();
         //设置已使用过
-        uniq.used = false;
+        if (uniq != null)
+            uniq.used = Boolean.TRUE;
         ds.save(uniq);
-        boolean ret = !(uniq == null || !uniq.value.equals(token) || System.currentTimeMillis() > uniq.expireTime ||
-                !uniq.permissionList.contains(actionCode)||(isNeedCheckUserId(actionCode)&& uniq.userId != userId));
+        boolean ret = !(uniq == null || !uniq.value.equals(token) ||
+                !uniq.permissionList.contains(actionCode) || (isNeedCheckUserId(actionCode) && uniq.userId != userId));
         return ret;
     }
 
     /**
-     * 根据actionCode,
+     * 根据actionCode,判断是否要在验证验证码时,验证userID
      *
      * @param actionCode
      * @return
      */
-    private static boolean isNeedCheckUserId(int actionCode){
-        if(actionCode == 1 || actionCode == 2){
+    private static boolean isNeedCheckUserId(int actionCode) {
+        if (actionCode == 1 || actionCode == 2) {
             return false;
         }
         return true;
     }
+
     /**
      * 注册环信用户
      *

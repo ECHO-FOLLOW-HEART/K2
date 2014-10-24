@@ -103,4 +103,14 @@ public class MsgConstants {
      * 微信注册时请求用户信息失败
      */
     public static String WEIXIN_ACESS_ERROR_MSG = "请求微信账号信息失败。";
+
+    /**
+     * 注册时验证码错误
+     */
+    public static int TOKEN_ERROR = 413;
+
+    /**
+     * 注册时验证码错误
+     */
+    public static String TOKEN_ERROR_MSG = "Token错误，请重新发送.";
 }
