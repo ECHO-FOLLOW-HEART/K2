@@ -25,6 +25,6 @@ POST        /users/:uid                    controllers.taozi.UserCtrl.editorUser
 #添加好友
 GET         /users/friends/:id             controllers.taozi.UserCtrl.addUser(id:Integer)
 #删除好友
-GET         /users/friends/:id             controllers.taozi.UserCtrl.deleteUser(id:Integer)
+DELETE      /users/friends/:id             controllers.taozi.UserCtrl.deleteUser(id:Integer)
 #获得好友列表
 GET        /users/friends                  controllers.taozi.UserCtrl.getUserFriendList()
