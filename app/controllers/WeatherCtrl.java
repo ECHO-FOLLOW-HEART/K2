@@ -1,10 +1,10 @@
 package controllers;
 
 
-import core.WeatherAPI;
+import aizou.core.WeatherAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.morphia.misc.YahooWeather;
+import models.misc.YahooWeather;
 import org.bson.types.ObjectId;
 import play.mvc.Controller;
 import play.mvc.Result;

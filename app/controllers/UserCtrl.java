@@ -1,24 +1,22 @@
 package controllers;
 
+import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.*;
-import com.mongodb.util.JSON;
-import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.morphia.user.UserInfo;
+import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import scala.Int;
 import utils.Utils;
 
-import javax.servlet.annotation.ServletSecurity;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * 用户相关的Controller。
@@ -210,88 +208,4 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
-
-    /**
-     * 添加用户的备注信息
-     *
-     * @param id
-     * @return
-     * @throws TravelPiException
-     */
-    public static Result putUserMemo(Integer id) throws TravelPiException {
-        try {
-            String selfId = request().getHeader("userId");
-            String memo = request().body().asJson().get("memo").asText();
-            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, Json.toJson(e.getMessage()));
-        } catch (NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        } catch (NumberFormatException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        }
-    }
-
-    /**
-     * 判断用户在黑名单中
-     * @param id
-     * @return
-     * @throws TravelPiException
-     */
-    /*public static Result confirUserInBlackList(Integer id) throws TravelPiException {
-        try{
-        String userId=request().getHeader("userId");
-        boolean flag=UserAPI.checkBlackList(Integer.parseInt(userId),id);
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(flag));
-        }catch (TravelPiException e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("INVALID_ARGUMENT"));
-        }catch (Exception e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("INVALID_ARGUMENT"));
-        }
-
-    }*/
-
-    /**
-     * @return
-     */
-    public static Result putUserBlacklist() {
-        try {
-            String selfId = request().getHeader("userId");
-            JsonNode req = request().body().asJson();
-            List<Integer> list = (List<Integer>) req.get("userList").iterator();
-            /*Iterator<JsonNode> iterator =  req.get("userList").iterator();
-            List<Integer> list =new ArrayList<>();
-            while(iterator.hasNext()){
-               JsonNode node=iterator.next();
-               list.add(node.get("userList").asInt());
-            }*/
-            String operation = req.get("action").asText();
-
-            UserAPI.setUserBlacklist(Integer.parseInt(selfId), list, operation);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-        } catch (TravelPiException | NullPointerException | ClassCastException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        }
-    }
-
-    /**
-     * 获得用户的黑名单列表
-     *
-     * @param
-     * @return backlist
-     */
-    public static Result getUserBlackList() {
-        try {
-            String userId = request().getHeader("userId");
-            List<Integer> list = UserAPI.getBlackList(Integer.parseInt(userId));
-            Map<String, List<Integer>> map = new HashMap<>();
-            map.put("blacklist", list);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
-        } catch (TravelPiException | NullPointerException | ClassCastException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        }
-    }
-
-
 }

@@ -1,14 +1,14 @@
 package controllers;
 
+import aizou.core.LocalityAPI;
+import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import core.LocalityAPI;
-import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.geos.Locality;
-import models.morphia.geo.Country;
-import models.morphia.poi.AbstractPOI;
+import models.backup.geos.Locality;
+import models.geo.Country;
+import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -23,7 +23,7 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  * 地理相关
- * <p>
+ * <p/>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
@@ -121,7 +121,7 @@ public class GeoCtrl extends Controller {
 
         List<JsonNode> results = new ArrayList<>();
         try {
-            for (Iterator<models.morphia.geo.Locality> it =
+            for (Iterator<models.geo.Locality> it =
                          LocalityAPI.searchLocalities(searchWord, countryId, scope, (prefix != 0), page, pageSize);
                  it.hasNext(); )
                 results.add(it.next().toJson(1));
@@ -165,7 +165,7 @@ public class GeoCtrl extends Controller {
     }
 
     public static Result lookupLocality(int baiduId) throws TravelPiException {
-        models.morphia.geo.Locality loc = LocalityAPI.locDetailsBaiduId(baiduId);
+        models.geo.Locality loc = LocalityAPI.locDetailsBaiduId(baiduId);
         if (loc == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
         else
@@ -179,7 +179,7 @@ public class GeoCtrl extends Controller {
      * @return
      */
     public static Result getLocalityBaiduId(int baiduId) {
-        models.morphia.geo.Locality loc = null;
+        models.geo.Locality loc = null;
         try {
             loc = LocalityAPI.locDetailsBaiduId(baiduId);
             if (loc == null)

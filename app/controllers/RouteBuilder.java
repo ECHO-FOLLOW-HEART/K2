@@ -1,6 +1,6 @@
 package controllers;
 
-import models.morphia.traffic.AbstractRoute;
+import models.traffic.AbstractRoute;
 
 import java.util.List;
 
@@ -12,12 +12,6 @@ public class RouteBuilder {
     private List<? extends AbstractRoute> firstRoute = null;
 
     private List<? extends AbstractRoute> secondRoute = null;
-
-
-
-
-
-
 
 
 }

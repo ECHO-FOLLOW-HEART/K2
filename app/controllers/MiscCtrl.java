@@ -1,20 +1,20 @@
 package controllers;
 
+import aizou.core.LocalityAPI;
+import aizou.core.PoiAPI;
+import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import core.LocalityAPI;
-import core.PoiAPI;
-import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.geo.Locality;
-import models.morphia.misc.Feedback;
-import models.morphia.misc.MiscInfo;
-import models.morphia.misc.Recommendation;
-import models.morphia.poi.AbstractPOI;
-import models.morphia.user.UserInfo;
+import models.geo.Locality;
+import models.misc.Feedback;
+import models.misc.MiscInfo;
+import models.misc.Recommendation;
+import models.poi.AbstractPOI;
+import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -567,24 +567,15 @@ public class MiscCtrl extends Controller {
         if (tmp != null)
             tel = Utils.telParser(tmp.asText());
 
-        Integer userId = null;
-        tmp = data.get("userId");
-        try {
-            userId = (tmp != null ? Integer.valueOf(data.get("userId").asText()) : null);
-        } catch (NumberFormatException ignore) {
-        }
-
-        Integer actionCode;
         tmp = data.get("actionCode");
+        Integer actionCode = null;
+        Integer userId = Integer.valueOf(data.get("userId").asText());
         try {
-            actionCode = (tmp != null ? Integer.parseInt(tmp.asText()) : null);
-        } catch (NumberFormatException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid action code.");
-        }
-
-        // 如果不提供userId，则只允许actionCode=1，即注册的情形。
-        if (tel == null || actionCode == null || (actionCode != 1 && userId == null))
+            if (tmp != null)
+                actionCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
 
         Integer countryCode = 86;
         try {
@@ -594,6 +585,9 @@ public class MiscCtrl extends Controller {
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
         }
+
+        if (tel == null || actionCode == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
 
         try {
             if (actionCode != 1)

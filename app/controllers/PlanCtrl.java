@@ -1,28 +1,28 @@
 package controllers;
 
+import aizou.core.PlanAPI;
+import aizou.core.PlanAPIOld;
+import aizou.core.PoiAPI;
+import aizou.core.TrafficAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
-import core.PlanAPI;
-import core.PlanAPIOld;
-import core.PoiAPI;
-import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.misc.Share;
-import models.morphia.misc.SimpleRef;
-import models.morphia.plan.*;
-import models.morphia.poi.AbstractPOI;
-import models.morphia.poi.Hotel;
-import models.morphia.poi.Restaurant;
-import models.morphia.poi.ViewSpot;
-import models.morphia.traffic.AirRoute;
-import models.morphia.traffic.Airport;
-import models.morphia.traffic.TrainRoute;
-import models.morphia.traffic.TrainStation;
+import models.misc.Share;
+import models.misc.SimpleRef;
+import models.plan.*;
+import models.poi.AbstractPOI;
+import models.poi.Hotel;
+import models.poi.Restaurant;
+import models.poi.ViewSpot;
+import models.traffic.AirRoute;
+import models.traffic.Airport;
+import models.traffic.TrainRoute;
+import models.traffic.TrainStation;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
@@ -601,8 +601,8 @@ public class PlanCtrl extends Controller {
 
                 updateField = data.get("title").asText();
                 //记录日志
-                LogUtils.info(Plan.class,"UpdateTitle:" + updateField);
-                LogUtils.info(Plan.class,request());
+                LogUtils.info(Plan.class, "UpdateTitle:" + updateField);
+                LogUtils.info(Plan.class, request());
 
                 PlanAPI.updateUGCPlanByFiled(oid, "title", updateField);
             }
