@@ -11,6 +11,7 @@ import models.misc.Token;
 import models.plan.Plan;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.apache.solr.common.util.Hash;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -21,9 +22,13 @@ import utils.MsgConstants;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
+import javax.servlet.annotation.ServletSecurity;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -516,6 +521,67 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
+        }
+    }
+
+    /**
+     * 添加好友
+     *
+     * @param id
+     * @return
+     */
+    public static Result addUser(Integer id) {
+        try {
+            String selfId = request().getHeader("userId");
+            UserAPI.addFriend(Integer.parseInt(selfId), id);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("add friend successful "));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (NumberFormatException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("add friend failed"));
+        }
+    }
+
+    /**
+     * 删除好友
+     *
+     * @param id
+     * @return
+     */
+    public static Result deleteUser(Integer id) {
+        try {
+            String selfId = request().getHeader("userId");
+            UserAPI.deleteFriend(Integer.parseInt(selfId), id);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("delete friend successful "));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (NumberFormatException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("delete friend failed"));
+        }
+    }
+
+    public static Result getUserFriendList() {
+        String userId = request().getHeader("userId");
+        try {
+            List<UserInfo> list = UserAPI.getFriendList(Integer.parseInt(userId));
+            List<JsonNode> nodelist = new ArrayList<>();
+            if (!list.isEmpty()) {
+                for (UserInfo userInfo : list) {
+                    BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();      //构建JsonNode
+                    builder.add("nickName", userInfo.nickName).add("avatar", userInfo.avatar).add("gender", userInfo.gender).
+                            add("signature", userInfo.signature);
+                    JsonNode node = Json.toJson(builder.get());
+                    nodelist.add(node);
+                }
+                Map<String, List<JsonNode>> map = new HashMap<>();
+                map.put("userList", nodelist);
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
+            } else {
+                return Utils.createResponse(ErrorCode.NORMAL, Json.newObject());
+            }
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("return list failed"));
         }
     }
 }
