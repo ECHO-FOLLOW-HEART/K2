@@ -141,7 +141,8 @@ public class UserCtrl extends Controller {
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
                 if (!pwd.equals(""))
-                    UserAPI.regCredential(userInfo, pwd);
+                    // TODO 此处有bug
+                    UserAPI.regCredential(userInfo, pwd, false);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
