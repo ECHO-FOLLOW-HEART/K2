@@ -407,7 +407,7 @@ public class UserAPI {
         user.enabled = true;
 
         // 注册私密信息
-        regCredential(user, pwd, true);
+        regCredential(user, pwd);
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
@@ -427,20 +427,19 @@ public class UserAPI {
     }
 
     /**
-     * 密码加密
+     * 注册密码
      *
      * @param u
      * @param pwd
      * @return
      */
-    public static void regCredential(UserInfo u, String pwd, boolean regHUanXin) throws TravelPiException {
+    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
         Credential cre = new Credential();
         cre.id = u.id;
         cre.userId = u.userId;
         cre.salt = Utils.getSalt();
         if (!pwd.equals(""))
             cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-        if (regHUanXin) {
 
             // 环信注册
             String base = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -459,7 +458,6 @@ public class UserAPI {
             cre.easemobPwd = passwd;
 
             regEaseMob(cre.easemobUser, cre.easemobPwd);
-        }
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
     }

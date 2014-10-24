@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -68,8 +68,8 @@ public class UserCtrl extends Controller {
             }
 
             UserInfo userInfo;
-            //验证验证码 magic captcha
-            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, 1, captcha, userId)) {
+            //验证验证码
+            if (UserAPI.checkValidation(countryCode, tel, 1, captcha, userId)) {
                 // 生成用户
                 userInfo = UserAPI.regByTel(tel, countryCode, pwd);
             } else
@@ -140,9 +140,9 @@ public class UserCtrl extends Controller {
                 userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
+                //第一次绑定手机时,需要设置密码
                 if (!pwd.equals(""))
-                    // TODO 此处有bug
-                    UserAPI.regCredential(userInfo, pwd, false);
+                    UserAPI.resetPwd(userInfo, pwd);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
