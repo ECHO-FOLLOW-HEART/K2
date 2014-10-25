@@ -1,0 +1,1 @@
+GET        /misc/proxies        controllers.core.MiscCtrl.getProxies(latency: Float?=0, page: Int?=0, pageSize: Int?=10)
