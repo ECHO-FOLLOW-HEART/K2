@@ -458,6 +458,23 @@ public class UserAPI {
         cre.salt = Utils.getSalt();
         if (!pwd.equals(""))
             cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+    }
+
+    /**
+     * 注册密码和环信
+     *
+     * @param u
+     * @param pwd
+     * @return
+     */
+    public static void regCredentialAndHunanXin(UserInfo u, String pwd) throws TravelPiException {
+        Credential cre = new Credential();
+        cre.id = new ObjectId();
+        cre.userId = u.userId;
+        cre.salt = Utils.getSalt();
+        if (!pwd.equals(""))
+            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
 
         // 环信注册
         String base = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -540,9 +557,17 @@ public class UserAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
         Credential cre = ceQuery.field("userId").equal(u.userId).get();
-        cre.salt = Utils.getSalt();
-        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-        ds.save(cre);
+        if (cre == null){
+            regCredential(u,pwd);
+        }else{
+            cre = new Credential();
+            cre.id = new ObjectId();
+            cre.userId = u.userId;
+            cre.salt = Utils.getSalt();
+            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+            ds.save(cre);
+        }
+
     }
 
     /**
@@ -701,6 +726,8 @@ public class UserAPI {
         //设置已使用过
         if (uniq != null)
             uniq.used = Boolean.TRUE;
+        else
+            return false;
         ds.save(uniq);
         boolean ret = !(uniq == null || !uniq.value.equals(token) ||
                 !uniq.permissionList.contains(actionCode) || (isNeedCheckUserId(actionCode) && uniq.userId != userId));

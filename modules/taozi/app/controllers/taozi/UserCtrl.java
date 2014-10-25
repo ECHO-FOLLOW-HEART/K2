@@ -136,12 +136,10 @@ public class UserCtrl extends Controller {
                 //如果手机已存在，则绑定无效
                 if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null)
                     return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
-
                 userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
                 if (!pwd.equals(""))
-                    // 绑定时不注册环信
                     UserAPI.resetPwd(userInfo, pwd);
                 return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_2));
             } else {
@@ -395,7 +393,7 @@ public class UserCtrl extends Controller {
             UserAPI.saveUserInfo(us);
             // TODO
             // 第三方注册时,注册环信
-            //UserAPI.regCredential(us, "");
+            UserAPI.regCredentialAndHunanXin(us, "");
             return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_2));
 
         } catch (NullPointerException | NumberFormatException e) {
