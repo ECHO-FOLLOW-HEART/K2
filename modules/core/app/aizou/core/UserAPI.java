@@ -1,6 +1,7 @@
 package aizou.core;
 
 import aizou.core.user.ValFormatterFactory;
+import akka.io.Inet;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
@@ -33,10 +34,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 
 /**
  * 用户相关API。
@@ -936,5 +934,74 @@ public class UserAPI {
      */
     public enum UserInfoField {
         TEL, NICKNAME, OPENID, USERID
+    }
+
+    /**
+     * 提出好友申请
+     *
+     * @param selfId
+     * @param otherid
+     * @param reason
+     */
+    public static void sendFriendReq(Integer selfId, Integer otherid, String reason) throws TravelPiException {
+        UserInfo userInfo = getUserByUserId(selfId);
+
+    }
+
+    /**
+     * 添加好友
+     *
+     * @param selfId
+     * @param id
+     * @throws TravelPiException
+     */
+    public static void addFriend(Integer selfId, Integer id) throws TravelPiException {
+        UserInfo userInfo = getUserByUserId(selfId);  //取得用户实体
+        UserInfo friend = getUserByUserId(id);        //取得好友的实体
+        Map<Integer, UserInfo> friends = userInfo.friends;
+        if (friends.containsKey(id)) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "user_exits");
+        } else
+            friends.put(id, friend);             //向朋友圈中添加好友
+        //保存用户信息
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(userInfo);
+    }
+
+    /**
+     * 删除好友
+     *
+     * @param selfId
+     * @param id
+     */
+    public static void deleteFriend(Integer selfId, Integer id) throws TravelPiException {
+        UserInfo userInfo = getUserByUserId(selfId);  //取得用户实体
+        Map<Integer, UserInfo> friends = userInfo.friends;
+        if (friends.containsKey(id)) {
+            friends.remove(id);                     //删除好友
+        } else
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "user_exits");
+        //保存用户信息
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(userInfo);
+    }
+
+    /**
+     * api 获得用户的好友列表
+     * @param selfId
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<UserInfo> getFriendList (Integer selfId) throws TravelPiException {
+        UserInfo userInfo=getUserByUserId(selfId);
+        Map<Integer,UserInfo> friends=userInfo.friends;
+        List<UserInfo> list=new ArrayList<>();
+        if (!friends.isEmpty()){
+            Set<Integer> set=friends.keySet();
+            for (Integer i:set){
+                list.add(friends.get(i));
+            }
+        }
+        return list;
     }
 }
