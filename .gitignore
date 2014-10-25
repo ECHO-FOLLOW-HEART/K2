@@ -20,3 +20,4 @@ conf/mongodb.conf
 credential.conf
 SandboxCtrl.java
 generated.keystore
+*.keystore
