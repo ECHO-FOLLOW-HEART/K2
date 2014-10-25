@@ -134,6 +134,7 @@ public class UserAPI {
                     blackList.put(id, user);            //添加用户到黑名单
                     friends.remove(id);                 //将用户从朋友圈中删除
                 }
+                addEaseMobBlocks(selfId,list);          //向环信中注册
                 break;
             case "remove":                                  //用户移除黑名单
                 if (list.isEmpty()) {                        //黑名单空的话，抛出异常
@@ -146,6 +147,9 @@ public class UserAPI {
                         UserInfo user = getUserByUserId(id);
                         blackList.remove(id);                 //添加用户到朋友圈
                         friends.put(id, user);
+                    }
+                    for (Integer id:list){
+                        delEaseMobBlocks(selfId,id);
                     }
                     break;
                 }
@@ -963,6 +967,8 @@ public class UserAPI {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "user_exits");
         } else
             friends.put(id, friend);             //向朋友圈中添加好友
+        //环信注册
+        modEaseMobContacts(selfId,id,true);
         //保存用户信息
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(userInfo);
@@ -981,6 +987,8 @@ public class UserAPI {
             friends.remove(id);                     //删除好友
         } else
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "user_exits");
+        //向环信注册
+        modEaseMobContacts(selfId,id,false);
         //保存用户信息
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(userInfo);

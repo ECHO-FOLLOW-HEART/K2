@@ -147,7 +147,7 @@ public class UserCtrl extends Controller {
                 UserAPI.saveUserInfo(userInfo);
                 if (!pwd.equals(""))
                     // TODO 此处有bug
-                    UserAPI.regCredential(userInfo, pwd, false);
+                    UserAPI.regCredential(userInfo, pwd);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
@@ -582,6 +582,66 @@ public class UserCtrl extends Controller {
 
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("return list failed"));
+        }
+    }
+
+    /**
+     * 添加用户的备注信息
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
+    public static Result setUserMemo(Integer id) throws TravelPiException {
+        try {
+            String selfId = request().getHeader("userId");
+            String memo = request().body().asJson().get("memo").asText();
+            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, Json.toJson(e.getMessage()));
+        } catch (NullPointerException | NumberFormatException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
+        }
+    }
+    /**
+     * 获得用户的黑名单列表
+     *
+     * @param
+     * @return backlist
+     */
+    public static Result getUserBlackList() {
+        try {
+            String userId = request().getHeader("userId");
+            List<Integer> list = UserAPI.getBlackList(Integer.parseInt(userId));
+            Map<String, List<Integer>> map = new HashMap<>();
+            map.put("blacklist", list);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
+        } catch (TravelPiException | NullPointerException | ClassCastException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
+        }
+    }
+
+    /**
+     *将用户加入/移除黑名单
+     * @return
+     */
+    public static Result setUserBlacklist() {
+        try {
+            String selfId = request().getHeader("userId");
+            JsonNode req = request().body().asJson();
+            List<Integer> list = (List<Integer>) req.get("userList").iterator();
+            /*Iterator<JsonNode> iterator =  req.get("userList").iterator();
+            List<Integer> list =new ArrayList<>();
+            while(iterator.hasNext()){
+               JsonNode node=iterator.next();
+               list.add(node.get("userList").asInt());
+            }*/
+            String operation = req.get("action").asText();
+
+            UserAPI.setUserBlacklist(Integer.parseInt(selfId), list, operation);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
+        } catch (TravelPiException | NullPointerException | ClassCastException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
     }
 }

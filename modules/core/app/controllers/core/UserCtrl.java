@@ -3,6 +3,7 @@ package controllers.core;
 import aizou.core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
@@ -44,4 +45,8 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
+
+
+
+
 }
