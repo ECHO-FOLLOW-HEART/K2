@@ -36,6 +36,21 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnUserId = "userId";
 
+    @Transient
+    public static String fnSignature = "signature";
+
+    @Transient
+    public static String fnTel = "tel";
+
+    @Transient
+    public static String fnTelCountryCode = "countryCode";
+
+    @Transient
+    public static String fnBlockList = "blackList";
+
+    @Transient
+    public static String fnEmail = "email";
+
     @Id
     public ObjectId id;
 

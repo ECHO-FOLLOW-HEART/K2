@@ -23,16 +23,13 @@ import utils.builder.UserBuilder;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -48,7 +45,7 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result register() {
+    public static Result signup() {
         JsonNode req = request().body().asJson();
         try {
             String tel = req.get("tel").asText();
@@ -60,18 +57,15 @@ public class UserCtrl extends Controller {
             } else {
                 countryCode = 86;
             }
-            int userId = 0;
-            if (req.has("userId"))
-                userId = Integer.valueOf(req.get("userId").asText());
 
             //验证用户是否存在
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
+            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel, Arrays.asList(UserInfo.fnUserId)) != null) {
                 return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
             }
 
             UserInfo userInfo;
             //验证验证码 magic captcha
-            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, 1, captcha, userId)) {
+            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, 1, captcha, null)) {
                 // 生成用户
                 userInfo = UserAPI.regByTel(tel, countryCode, pwd);
             } else
@@ -284,17 +278,18 @@ public class UserCtrl extends Controller {
 
         JsonNode req = request().body().asJson();
         try {
-            UserInfo userInfo = null;
+            UserInfo userInfo;
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
-            //验证用户是否存在-手机号
-            userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
-            //if (userInfo == null)
-            //验证用户是否存在-昵称
-            //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, loginName);
-            //if (userInfo == null)
-            //验证用户是否存在-用户ID
-            //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, loginName);
+
+            //验证用户是否存在
+//            userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
+
+            List<UserAPI.UserInfoField> fieldDesc = new ArrayList<>();
+            fieldDesc.add(UserAPI.UserInfoField.TEL);
+            fieldDesc.add(UserAPI.UserInfoField.USERID);
+            userInfo = UserAPI.getUserByField(fieldDesc, loginName, null);
+
             if (userInfo == null)
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
@@ -305,6 +300,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
 
     }
@@ -460,10 +457,13 @@ public class UserCtrl extends Controller {
      */
     public static Result getUserProfileById(Integer userId) {
         try {
-            UserInfo userInfor = UserAPI.getUserByUserId(userId);
+            UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
-            return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfor, UserBuilder.DETAILS_LEVEL_1));
+            ObjectNode ret = (ObjectNode) UserBuilder.buildUserInfo(userInfor, UserBuilder.DETAILS_LEVEL_1);
+            ret.put("memo", "");
+
+            return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
         }
@@ -479,7 +479,7 @@ public class UserCtrl extends Controller {
         try {
             JsonNode req = request().body().asJson();
 
-            UserInfo userInfor = UserAPI.getUserByUserId(userId);
+            UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null) {
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %d.", userId));
             }
@@ -510,7 +510,7 @@ public class UserCtrl extends Controller {
                 userInfor.avatar = req.get("avatar").asText();
             UserAPI.saveUserInfo(userInfor);
             // TODO 跟踪乱码问题
-            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserByUserId(userInfor.userId).nickName);
+            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.userId).nickName);
             LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | TravelPiException e) {
