@@ -11,7 +11,6 @@ import models.misc.Token;
 import models.plan.Plan;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.common.util.Hash;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -22,7 +21,6 @@ import utils.MsgConstants;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
-import javax.servlet.annotation.ServletSecurity;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;

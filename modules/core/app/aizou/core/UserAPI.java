@@ -678,7 +678,7 @@ public class UserAPI {
             ObjectNode data = Json.newObject();
             data.put("grant_type", "client_credentials");
             data.put("client_id", clientId);
-            data.put("client_secret", clientSecret);
+            data.put("clihttps://a1.easemob.com/easemob-demo/chatdemo/tokenent_secret", clientSecret);
 
             String href = String.format("https://a1.easemob.com/%s/%s/token", orgName, appName);
             try {
