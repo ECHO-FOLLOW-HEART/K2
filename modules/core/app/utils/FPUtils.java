@@ -22,4 +22,10 @@ public class FPUtils {
 
         return retval;
     }
+
+    public interface IFunc {
+        Object func0();
+
+        Object funcv(Object... v);
+    }
 }

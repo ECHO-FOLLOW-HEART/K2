@@ -24,6 +24,7 @@ import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http;
+import utils.FPUtils;
 import utils.Utils;
 
 import javax.crypto.KeyGenerator;
@@ -41,13 +42,6 @@ import java.util.*;
  * @author Zephyre
  */
 public class UserAPI {
-
-    /**
-     * 排序的字段。
-     */
-    public enum UserInfoField {
-        TEL, NICKNAME, OPENID, USERID
-    }
 
     public static UserInfo getUserById(ObjectId id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
@@ -91,15 +85,13 @@ public class UserAPI {
      */
     public static void setUserMemo(Integer selfId, Integer id, String memo) throws TravelPiException {
         UserInfo userInfo = getUserByUserId(selfId);
-        Map<Integer, UserInfo> friends = userInfo.friends;
-        boolean flag = friends.containsKey(id);   //查看是否存在好友
-        if (flag) {
-            Map<Integer, String> friendRemark = userInfo.remark;
-            friendRemark.put(id, memo);
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-            ds.save(userInfo);
-        } else
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+//        Map<Integer, UserInfo> friends = userInfo.friends;
+//        boolean flag = friends.containsKey(id);   //查看是否存在好友
+
+        Map<Integer, String> friendRemark = userInfo.remark;
+        friendRemark.put(id, memo);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        ds.save(userInfo);
 
     }
 
@@ -129,7 +121,7 @@ public class UserAPI {
     public static void setUserBlacklist(Integer selfId, List<Integer> list, String operation) throws TravelPiException {
         UserInfo userInfo = getUserByUserId(selfId);
         Map<Integer, UserInfo> blackList = userInfo.blackList;  //用户的黑名单列表
-        Map<Integer, UserInfo> friends = userInfo.friends;     //用户的朋友圈列表
+//        Map<Integer, UserInfo> friends = userInfo.friends;     //用户的朋友圈列表
         switch (operation) {
             case "add":         //用户加入到黑名单
                 for (Integer id : list) {
@@ -138,7 +130,7 @@ public class UserAPI {
                     }
                     UserInfo user = getUserByUserId(id);
                     blackList.put(id, user);            //添加用户到黑名单
-                    friends.remove(id);                 //将用户从朋友圈中删除
+//                    friends.remove(id);                 //将用户从朋友圈中删除
                 }
                 addEaseMobBlocks(selfId, list);          //向环信中注册
                 break;
@@ -152,7 +144,7 @@ public class UserAPI {
                         }
                         UserInfo user = getUserByUserId(id);
                         blackList.remove(id);                 //添加用户到朋友圈
-                        friends.put(id, user);
+//                        friends.put(id, user);
                     }
                     for (Integer id : list) {
                         delEaseMobBlocks(selfId, id);
@@ -349,10 +341,9 @@ public class UserAPI {
     }
 
     /**
-     * 根据字段获得用户信息,字段为String类型。
+     * 根据字段获得用户信息。
      *
-     * @param field 字段名称
-     * @param value 字段值
+     * @param
      * @return
      */
     public static UserInfo getUserByField(UserInfoField field, String value) throws TravelPiException {
@@ -372,15 +363,15 @@ public class UserAPI {
                 stKey = "oauthList.oauthId";
                 userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
                 break;
+
         }
         return userInfo;
     }
 
     /**
-     * 根据字段获得用户信息,字段为int类型。
+     * 根据字段获得用户信息。
      *
-     * @param field 字段名称
-     * @param value 字段值
+     * @param
      * @return
      */
     public static UserInfo getUserByField(UserInfoField field, int value) throws TravelPiException {
@@ -392,6 +383,7 @@ public class UserAPI {
                 stKey = "userId";
                 userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
                 break;
+
         }
         return userInfo;
     }
@@ -399,7 +391,7 @@ public class UserAPI {
     /**
      * 储存用户信息。
      *
-     * @param u 用户信息
+     * @param
      * @return
      */
     public static void saveUserInfo(UserInfo u) throws TravelPiException {
@@ -410,12 +402,10 @@ public class UserAPI {
     /**
      * 根据手机号码完成用户注册。
      *
-     * @param tel         电话号码
-     * @param countryCode 区号
-     * @param pwd         密码
+     * @param
      * @return
      */
-    public static UserInfo regByTel(String tel, int countryCode, String pwd) throws TravelPiException {
+    public static UserInfo regByTel(String tel, Integer countryCode, String pwd) throws TravelPiException {
         UserInfo user = new UserInfo();
         user.id = new ObjectId();
         user.userId = getUserId();
@@ -429,26 +419,20 @@ public class UserAPI {
         try {
             user.secToken = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
         } catch (NoSuchAlgorithmException ignored) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Get secToken Error.");
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
         }
         user.signature = "";
         user.origin = "peach-telUser";
         user.enabled = true;
 
         // 注册私密信息
-        regCredentialAndHunanXin(user, pwd);
+        regCredential(user, pwd);
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
         return user;
     }
 
-    /**
-     * 生成新的用户ID
-     *
-     * @return
-     * @throws TravelPiException
-     */
     public static Integer getUserId() throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Sequence> query = ds.createQuery(Sequence.class);
@@ -463,8 +447,8 @@ public class UserAPI {
     /**
      * 注册密码
      *
-     * @param u   用户信息
-     * @param pwd 密码
+     * @param u
+     * @param pwd
      * @return
      */
     public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
@@ -480,8 +464,8 @@ public class UserAPI {
     /**
      * 注册密码和环信
      *
-     * @param u   用户信息
-     * @param pwd 用户密码
+     * @param u
+     * @param pwd
      * @return
      */
     public static void regCredentialAndHunanXin(UserInfo u, String pwd) throws TravelPiException {
@@ -511,6 +495,26 @@ public class UserAPI {
         regEaseMob(cre.easemobUser, cre.easemobPwd);
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+    }
+
+    /**
+     * 判断是否有密码
+     *
+     * @param
+     * @param
+     * @return
+     */
+    public static Credential getPwd(UserInfo u) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Credential> ceQuery = ds.createQuery(Credential.class);
+        if (u.userId == null)
+            return null;
+        Credential cre = ceQuery.field("userId").equal(u.userId).get();
+        if (cre == null || cre.pwdHash == null)
+            return null;
+        return cre;
+
     }
 
     /**
@@ -702,61 +706,44 @@ public class UserAPI {
         return info.easemobToken;
     }
 
-    /**
-     * 依据验证码生成Token
-     *
-     * @param countryCode
-     * @param tel
-     * @param actionCode
-     * @param userId
-     * @param expireMs
-     * @return
-     * @throws TravelPiException
-     */
     public static Token valCodetoToken(Integer countryCode, String tel, int actionCode, int userId, long expireMs) throws TravelPiException {
         ValidationCode valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Token token = Token.newInstance(valCode, expireMs);
 
-        Token uniqueToken = ds.createQuery(Token.class).field("value")
+        Token uniq = ds.createQuery(Token.class).field("value")
                 .equal(token.value).field("userId").equal(token.userId).get();
-        if (uniqueToken != null)
+        if (uniq != null) {
             throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "Token out of quota.");
+        }
         ds.save(token);
         return token;
     }
 
-    /**
-     * 检查Token
-     *
-     * @param token
-     * @param userId
-     * @param actionCode
-     * @return
-     * @throws TravelPiException
-     */
     public static boolean checkToken(String token, int userId, int actionCode) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        Token unique = ds.createQuery(Token.class).field("value").equal(token).field("used").notEqual(true).get();
+        Token uniq = ds.createQuery(Token.class).field("value").equal(token).field("used").notEqual(true).get();
         //设置已使用过
-        if (unique == null)
+        if (uniq != null)
+            uniq.used = Boolean.TRUE;
+        else
             return false;
-        unique.used = Boolean.TRUE;
-        ds.save(unique);
-        boolean ret = !(unique == null || !unique.value.equals(token) ||
-                !unique.permissionList.contains(actionCode) || (isNeedCheckUserId(actionCode) && unique.userId != userId));
+        ds.save(uniq);
+        boolean ret = !(uniq == null || !uniq.value.equals(token) ||
+                !uniq.permissionList.contains(actionCode) || (isNeedCheckUserId(actionCode) && uniq.userId != userId));
         return ret;
     }
 
     /**
-     * 根据actionCode,判断是否要在验证验证码时:验证userID
+     * 根据actionCode,判断是否要在验证验证码时,验证userID
      *
-     * @param actionCode 1-手机注册,2-忘记密码,3-绑定手机
+     * @param actionCode
      * @return
      */
     private static boolean isNeedCheckUserId(int actionCode) {
-        if (actionCode == 1 || actionCode == 2)
+        if (actionCode == 1 || actionCode == 2) {
             return false;
+        }
         return true;
     }
 
@@ -944,6 +931,12 @@ public class UserAPI {
         }
     }
 
+    /**
+     * 排序的字段。
+     */
+    public enum UserInfoField {
+        TEL, NICKNAME, OPENID, USERID
+    }
 
     /**
      * 提出好友申请
@@ -961,42 +954,143 @@ public class UserAPI {
      * 添加好友
      *
      * @param selfId
-     * @param id
+     * @param targetId
      * @throws TravelPiException
      */
-    public static void addFriend(Integer selfId, Integer id) throws TravelPiException {
-        UserInfo userInfo = getUserByUserId(selfId);  //取得用户实体
-        UserInfo friend = getUserByUserId(id);        //取得好友的实体
-        Map<Integer, UserInfo> friends = userInfo.friends;
-        if (friends.containsKey(id)) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "user_exits");
-        } else
-            friends.put(id, friend);             //向朋友圈中添加好友
+    public static void addContact(Integer selfId, Integer targetId) throws TravelPiException {
+        if (selfId.equals(targetId))
+            return;
+
+        UserInfo selfInfo = getUserByUserId(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));  //取得用户实体
+        //取得好友的实体
+        UserInfo targetInfo = getUserByUserId(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));
+
+        if (selfInfo == null || targetInfo == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
+
+        List<UserInfo> selfContacts = selfInfo.friends;
+        if (selfContacts == null)
+            selfContacts = new ArrayList<>();
+        List<UserInfo> targetContacts = targetInfo.friends;
+        if (targetContacts == null)
+            targetContacts = new ArrayList<>();
+
         //环信注册
-        modEaseMobContacts(selfId, id, true);
-        //保存用户信息
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        ds.save(userInfo);
+        modEaseMobContacts(selfId, targetId, true);
+
+        //保存
+        final Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+
+        FPUtils.IFunc func = new FPUtils.IFunc() {
+
+            @Override
+            public Object func0() {
+                return null;
+            }
+
+            @Override
+            public Object funcv(Object... val) {
+                UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
+
+                Integer sid = (Integer) val[0];
+                @SuppressWarnings("unchecked")
+                List<UserInfo> sc = (List<UserInfo>) val[1];
+                UserInfo tinfo = (UserInfo) val[2];
+
+                Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(sid);
+                if (sc == null || sc.isEmpty()) {
+                    ops.set(UserInfo.fnContacts, Arrays.asList(tinfo));
+                    ds.updateFirst(query, ops);
+                } else {
+                    Set<Integer> userIdSet = new HashSet<>();
+                    for (UserInfo u : sc)
+                        userIdSet.add(u.userId);
+                    if (!userIdSet.contains(tinfo.userId)) {
+                        ops.add(UserInfo.fnContacts, tinfo);
+                        ds.updateFirst(query, ops);
+                    }
+                }
+
+                return null;
+            }
+        };
+
+        // 需要互相加对方为好友
+        for (Object obj : Arrays.asList(new Object[]{
+                new Object[]{selfId, selfContacts, targetInfo},
+                new Object[]{targetId, targetContacts, selfInfo}
+        })) {
+            func.funcv((Object[]) obj);
+        }
     }
 
     /**
      * 删除好友
      *
      * @param selfId
-     * @param id
+     * @param targetId
      */
-    public static void deleteFriend(Integer selfId, Integer id) throws TravelPiException {
-        UserInfo userInfo = getUserByUserId(selfId);  //取得用户实体
-        Map<Integer, UserInfo> friends = userInfo.friends;
-        if (friends.containsKey(id)) {
-            friends.remove(id);                     //删除好友
-        } else
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "user_exits");
+    public static void delContact(Integer selfId, Integer targetId) throws TravelPiException {
+        if (selfId.equals(targetId))
+            return;
+
+        //取得用户实体
+        UserInfo selfInfo = getUserByUserId(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo targetInfo = getUserByUserId(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        if (selfInfo == null || targetInfo == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
+
         //向环信注册
-        modEaseMobContacts(selfId, id, false);
-        //保存用户信息
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        ds.save(userInfo);
+        modEaseMobContacts(selfId, targetId, false);
+
+        final Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+
+        FPUtils.IFunc func = new FPUtils.IFunc() {
+
+            @Override
+            public Object func0() {
+                return null;
+            }
+
+            @Override
+            public Object funcv(Object... val) {
+                UserInfo sinfo = (UserInfo) val[0];
+                Integer tid = (Integer) val[1];
+
+                List<UserInfo> contactList = sinfo.friends;
+                if (contactList == null || contactList.isEmpty())
+                    return null;
+
+                int idx = -1;
+                for (int i = 0; i < contactList.size(); i++) {
+                    if (contactList.get(i).userId.equals(tid)) {
+                        idx = i;
+                        break;
+                    }
+                }
+                if (idx != -1) {
+                    // 更新数据库
+                    contactList.remove(idx);
+
+                    Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(sinfo.userId);
+                    UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
+                    ops.set(UserInfo.fnContacts, contactList);
+                    ds.updateFirst(query, ops);
+                }
+
+                return null;
+            }
+        };
+
+        // 需要互相删除好友
+        for (Object obj : Arrays.asList(new Object[]{
+                new Object[]{selfInfo, targetId},
+                new Object[]{targetInfo, selfId}
+        })) {
+            func.funcv((Object[]) obj);
+        }
     }
 
     /**
@@ -1006,16 +1100,13 @@ public class UserAPI {
      * @return
      * @throws TravelPiException
      */
-    public static List<UserInfo> getFriendList(Integer selfId) throws TravelPiException {
-        UserInfo userInfo = getUserByUserId(selfId);
-        Map<Integer, UserInfo> friends = userInfo.friends;
-        List<UserInfo> list = new ArrayList<>();
-        if (!friends.isEmpty()) {
-            Set<Integer> set = friends.keySet();
-            for (Integer i : set) {
-                list.add(friends.get(i));
-            }
-        }
-        return list;
+    public static List<UserInfo> getContactList(Integer selfId) throws TravelPiException {
+        List<String> fieldList = Arrays.asList(UserInfo.fnContacts);
+
+        List<UserInfo> friends = getUserByUserId(selfId, fieldList).friends;
+        if (friends == null)
+            friends = new ArrayList<>();
+
+        return friends;
     }
 }
