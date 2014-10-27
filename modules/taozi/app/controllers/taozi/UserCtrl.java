@@ -11,7 +11,6 @@ import models.misc.Token;
 import models.plan.Plan;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
-import org.apache.solr.common.util.Hash;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -22,7 +21,6 @@ import utils.MsgConstants;
 import utils.Utils;
 import utils.builder.UserBuilder;
 
-import javax.servlet.annotation.ServletSecurity;
 import java.io.IOException;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -35,7 +33,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -56,33 +54,22 @@ public class UserCtrl extends Controller {
         try {
             String tel = req.get("tel").asText();
             String pwd = req.get("pwd").asText();
-            Integer countryCode;
+            Integer countryCode = req.has("countryCode") ? req.get("countryCode").asInt() : 86;
             String captcha = req.get("captcha").asText();
-            if (req.has("countryCode")) {
-                countryCode = Integer.valueOf(req.get("countryCode").asText());
-            } else {
-                countryCode = 86;
-            }
-            int userId = 0;
-            if (req.has("userId"))
-                userId = Integer.valueOf(req.get("userId").asText());
+            int userId = req.has("userId") ? Integer.valueOf(req.get("userId").asText()) : 0;
 
             //验证用户是否存在
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
+            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null)
                 return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
-            }
-
             UserInfo userInfo;
-            //验证验证码 magic captcha
-            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, 1, captcha, userId)) {
-                // 生成用户
+            //验证验证码  TODO magic captcha
+            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, CAPTCHA_ACTION_SIGNUP, captcha, userId))
                 userInfo = UserAPI.regByTel(tel, countryCode, pwd);
-            } else
+            else
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
-
             if (userInfo != null)
                 return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Save userInfo error.");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -99,9 +86,7 @@ public class UserCtrl extends Controller {
         String captcha = req.get("captcha").asText();
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
         Integer userId = Integer.valueOf(req.get("userId").asText());
-        int countryCode = 86;
-        if (req.has("countryCode"))
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        Integer countryCode = req.has("countryCode") ? req.get("countryCode").asInt() : 86;
 
         ObjectNode result = Json.newObject();
         try {
@@ -127,14 +112,9 @@ public class UserCtrl extends Controller {
         UserInfo userInfo;
         String tel = req.get("tel").asText();
         String captcha = req.get("captcha").asText();
-        Integer countryCode;
+        Integer countryCode = req.has("countryCode") ? req.get("countryCode").asInt() : 86;
         String pwd = req.has("pwd") ? req.get("pwd").asText() : "";
         String userId = req.get("userId").asText();
-        if (req.has("countryCode")) {
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
-        } else {
-            countryCode = 86;
-        }
         //验证验证码
         try {
             if (UserAPI.checkValidation(countryCode, tel, CAPTCHA_ACTION_BANDTEL, captcha, Integer.valueOf(userId))) {
@@ -146,7 +126,6 @@ public class UserCtrl extends Controller {
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
                 if (!pwd.equals(""))
-                    // TODO 此处有bug
                     UserAPI.regCredential(userInfo, pwd);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else {
@@ -167,12 +146,6 @@ public class UserCtrl extends Controller {
         String userId = req.get("userId").asText();
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
-        Integer countryCode;
-        if (req.has("countryCode")) {
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
-        } else {
-            countryCode = 86;
-        }
 
         //验证用户是否存在-手机号
         try {
@@ -202,9 +175,6 @@ public class UserCtrl extends Controller {
         String pwd = req.get("pwd").asText();
         String token = req.get("token").asText();
         String userId = req.get("userId").asText();
-        Integer countryCode = 86;
-        if (req.has("countryCode"))
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
 
         //验证密码格式
         if (!validityPwd(pwd)) {
@@ -249,17 +219,14 @@ public class UserCtrl extends Controller {
         try {
             UserInfo us = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
             if (actionCode == CAPTCHA_ACTION_SIGNUP) {
-                if (us != null) {
+                if (us != null)
                     return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
-                }
             } else if (actionCode == CAPTCHA_ACTION_MODPWD) {
-                if (us == null) {
+                if (us == null)
                     return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
-                }
             } else if (actionCode == CAPTCHA_ACTION_BANDTEL) {
-                if (us != null) {
+                if (us != null)
                     return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
-                }
             }
 
             Configuration config = Configuration.root();
@@ -267,8 +234,6 @@ public class UserCtrl extends Controller {
             long expireMs = Long.valueOf(sms.get("signupExpire").toString());
             long resendMs = Long.valueOf(sms.get("resendInterval").toString());
             //注册发验证码-1，找回密码-2，绑定手机-3
-
-            //注册发送短信
             UserAPI.sendValCode(countryCode, tel, actionCode, userId, expireMs * 1000, resendMs * 1000);
             builder.add("coolDown", resendMs);
 
@@ -287,21 +252,13 @@ public class UserCtrl extends Controller {
 
         JsonNode req = request().body().asJson();
         try {
-            UserInfo userInfo = null;
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
             //验证用户是否存在-手机号
-            userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
-            //if (userInfo == null)
-            //验证用户是否存在-昵称
-            //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, loginName);
-            //if (userInfo == null)
-            //验证用户是否存在-用户ID
-            //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, loginName);
+            UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
             if (userInfo == null)
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
-
-            //验证密码
+            //验证密码,密码不能为空
             if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd))
                 return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
             else
@@ -322,9 +279,8 @@ public class UserCtrl extends Controller {
         try {
             if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null)
                 return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, nick) != null) {
+            if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, nick) != null)
                 return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
-            }
 
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -380,27 +336,22 @@ public class UserCtrl extends Controller {
             infoNode = m.readTree(json);
 
             UserInfo us;
-
-            if (!infoNode.has("openid")) {
+            if (!infoNode.has("openid"))
                 return Utils.createResponse(ErrorCode.WEIXIN_CODE_ERROR, MsgConstants.WEIXIN_ACESS_ERROR_MSG, true);
-            }
 
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserAPI.UserInfoField.OPENID, infoNode.get("openid").asText());
-            if (us != null) {
+            if (us != null)
                 return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
-            }
 
             //JSON转化为userInfo
             us = UserConvert.oauthToUserInfoForWX(infoNode);
             //如果第三方昵称已被其他用户使用，则添加后缀
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, us.nickName) != null) {
+            if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, us.nickName) != null)
                 nickDuplicateRemoval(us);
-            }
 
             UserAPI.saveUserInfo(us);
             return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
-
 
         } catch (IOException | NullPointerException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
@@ -464,12 +415,10 @@ public class UserCtrl extends Controller {
     public static Result getUserProfileById(String userId) throws UnknownHostException {
 
         try {
-
             UserInfo userInfor = UserAPI.getUserByUserId(Integer.valueOf(userId));
             if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
             return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfor, UserBuilder.DETAILS_LEVEL_1));
-
         } catch (TravelPiException | ClassCastException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
@@ -486,9 +435,8 @@ public class UserCtrl extends Controller {
             JsonNode req = request().body().asJson();
 
             UserInfo userInfor = UserAPI.getUserByUserId(Integer.valueOf(userId));
-            if (userInfor == null) {
+            if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %s.", userId));
-            }
             //修改昵称
             if (req.has("nickName")) {
                 String nickName = req.get("nickName").asText();
@@ -587,6 +535,7 @@ public class UserCtrl extends Controller {
 
     /**
      * 添加用户的备注信息
+     *
      * @param id
      * @return
      * @throws TravelPiException
@@ -603,6 +552,7 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
     }
+
     /**
      * 获得用户的黑名单列表
      *
@@ -622,7 +572,8 @@ public class UserCtrl extends Controller {
     }
 
     /**
-     *将用户加入/移除黑名单
+     * 将用户加入/移除黑名单
+     *
      * @return
      */
     public static Result setUserBlacklist() {

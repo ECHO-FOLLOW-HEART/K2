@@ -28,7 +28,7 @@ public class UserBuilder {
                 .add("avatar", u.avatar == null ? "" : u.avatar).add("gender", u.gender == null ? "" : u.gender)
                 .add("signature", u.signature == null ? "" : u.signature).add("tel", u.tel == null ? "" : u.tel)
                 .add("secToken", u.secToken == null ? "" : u.secToken);
-        Credential ce = UserAPI.getPwd(u);
+        Credential ce = UserAPI.getCredentialByUserId(u.userId);
         if (level == DETAILS_LEVEL_2)
             builder.add("easemobPwd", (ce == null || ce.easemobPwd == null) ? "" : ce.easemobPwd)
                     .add("easemobUser", (ce == null || ce.easemobUser == null) ? "" : ce.easemobUser);
