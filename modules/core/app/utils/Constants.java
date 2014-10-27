@@ -8,6 +8,16 @@ package utils;
 public class Constants {
     // 如果长字符串需要截取，默认截取64个字符。
     public static int ABBREVIATE_LEN = 64;
+
+    /**
+     * 标识不同的应用
+     *
+     */
+    public static String APP_FLAG_TRAVEL = "travelpai-app";
+    public static String APP_FLAG_PEACH = "peach-app";
+    public static String APP_FLAG_WEB = "travelpai-web";
+
+
     // 一个大数
     public static int MAX_COUNT = 99999;
     // 标识web请求

@@ -29,8 +29,14 @@ POST          /users/contacts                    controllers.taozi.UserCtrl.addC
 DELETE        /users/contacts/$id<[0-9]+>        controllers.taozi.UserCtrl.delContact(id: Integer)
 #获得好友列表
 GET           /users/contacts                    controllers.taozi.UserCtrl.getContactList()
-
-#添加用户备注
-POST          /app/users/:id/memo                controllers.taozi.UserCtrl.setUserMemo(id:Integer)
+POST          /users/:id/memo                    controllers.taozi.UserCtrl.setUserMemo(id:Integer)
 #添加/删除用户到好友列表
-POST          /app/users/blacklist               controllers.taozi.UserCtrl.setUserBlacklist()
+POST          /users/blacklist                   controllers.taozi.UserCtrl.setUserBlacklist()
+
+#其他
+#获得封面故事
+GET           /misc/cover-stories                controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
+
+#添加数据脚本
+#添加首页图片
+GET           /bache/addHomeImage                controllers.taozi.BacheCtrl.addHomeImage()
