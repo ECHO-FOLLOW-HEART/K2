@@ -8,6 +8,8 @@ import models.user.Credential;
 import models.user.UserInfo;
 import play.libs.Json;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,7 +30,9 @@ public class UserBuilder {
                 .add("avatar", u.avatar == null ? "" : u.avatar).add("gender", u.gender == null ? "" : u.gender)
                 .add("signature", u.signature == null ? "" : u.signature).add("tel", u.tel == null ? "" : u.tel)
                 .add("secToken", u.secToken == null ? "" : u.secToken);
-        Credential ce = UserAPI.getPwd(u);
+
+        Credential ce = UserAPI.getCredentialByUserId(u.userId);
+
         if (level == DETAILS_LEVEL_2)
             builder.add("easemobPwd", (ce == null || ce.easemobPwd == null) ? "" : ce.easemobPwd)
                     .add("easemobUser", (ce == null || ce.easemobUser == null) ? "" : ce.easemobUser);
@@ -37,7 +41,7 @@ public class UserBuilder {
             JsonNode remark = UserBuilder.buildRemark(u.remark);
             builder.add("countryCode", u.countryCode == null ? "" : u.countryCode)
                     .add("email", u.email == null ? "" : u.email)
-                    .add("friends", friends == null ? "" : friends).add("remark", remark == null ? "" : remark);
+                    .add("remark", remark == null ? "" : remark);
         }
 
         return Json.toJson(builder.get());
@@ -51,6 +55,18 @@ public class UserBuilder {
             builder.add(entry.getKey().toString(), UserBuilder.buildUserInfo(entry.getValue(), DETAILS_LEVEL_1));
         }
         return Json.toJson(builder.get());
+    }
+
+    public static JsonNode buildUserFriends(List<UserInfo> u) throws TravelPiException {
+        if (u == null)
+            return null;
+
+        List<JsonNode> results = new ArrayList<>();
+        for (UserInfo user : u) {
+            results.add(UserBuilder.buildUserInfo(user, DETAILS_LEVEL_1));
+        }
+
+        return Json.toJson(results);
     }
 
     public static JsonNode buildRemark(Map<Integer, String> remark) {

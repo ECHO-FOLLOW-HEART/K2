@@ -7,6 +7,7 @@ import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
@@ -20,6 +21,35 @@ import java.util.Map;
  */
 @Entity
 public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
+    @Transient
+    public static String fnContacts = "friends";
+
+    @Transient
+    public static String fnNickName = "nickName";
+
+    @Transient
+    public static String fnAvatar = "avatar";
+
+    @Transient
+    public static String fnGender = "gender";
+
+    @Transient
+    public static String fnUserId = "userId";
+
+    @Transient
+    public static String fnSignature = "signature";
+
+    @Transient
+    public static String fnTel = "tel";
+
+    @Transient
+    public static String fnTelCountryCode = "countryCode";
+
+    @Transient
+    public static String fnBlockList = "blackList";
+
+    @Transient
+    public static String fnEmail = "email";
 
     @Id
     public ObjectId id;
@@ -60,7 +90,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 好友列表:用户ID-用户简要信息
      */
-    public Map<Integer, UserInfo> friends;
+    public List<UserInfo> friends;
 
     /**
      * 好友备注:用户ID-备注信息

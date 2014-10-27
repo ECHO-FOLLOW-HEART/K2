@@ -23,17 +23,13 @@ import utils.builder.UserBuilder;
 
 import java.io.IOException;
 import java.net.URL;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -49,7 +45,7 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result register() {
+    public static Result signup() {
         JsonNode req = request().body().asJson();
         try {
             String tel = req.get("tel").asText();
@@ -61,18 +57,15 @@ public class UserCtrl extends Controller {
             } else {
                 countryCode = 86;
             }
-            int userId = 0;
-            if (req.has("userId"))
-                userId = Integer.valueOf(req.get("userId").asText());
 
             //验证用户是否存在
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
+            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel, Arrays.asList(UserInfo.fnUserId)) != null) {
                 return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
             }
 
             UserInfo userInfo;
             //验证验证码 magic captcha
-            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, 1, captcha, userId)) {
+            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, 1, captcha, null)) {
                 // 生成用户
                 userInfo = UserAPI.regByTel(tel, countryCode, pwd);
             } else
@@ -285,17 +278,18 @@ public class UserCtrl extends Controller {
 
         JsonNode req = request().body().asJson();
         try {
-            UserInfo userInfo = null;
+            UserInfo userInfo;
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
-            //验证用户是否存在-手机号
-            userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
-            //if (userInfo == null)
-            //验证用户是否存在-昵称
-            //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, loginName);
-            //if (userInfo == null)
-            //验证用户是否存在-用户ID
-            //userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, loginName);
+
+            //验证用户是否存在
+//            userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
+
+            List<UserAPI.UserInfoField> fieldDesc = new ArrayList<>();
+            fieldDesc.add(UserAPI.UserInfoField.TEL);
+            fieldDesc.add(UserAPI.UserInfoField.USERID);
+            userInfo = UserAPI.getUserByField(fieldDesc, loginName, null);
+
             if (userInfo == null)
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
@@ -306,6 +300,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
 
     }
@@ -459,17 +455,17 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static Result getUserProfileById(String userId) throws UnknownHostException {
-
+    public static Result getUserProfileById(Integer userId) {
         try {
-
-            UserInfo userInfor = UserAPI.getUserByUserId(Integer.valueOf(userId));
+            UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
-            return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfor, UserBuilder.DETAILS_LEVEL_1));
+            ObjectNode ret = (ObjectNode) UserBuilder.buildUserInfo(userInfor, UserBuilder.DETAILS_LEVEL_1);
+            ret.put("memo", "");
 
-        } catch (TravelPiException | ClassCastException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
+            return Utils.createResponse(ErrorCode.NORMAL, ret);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
         }
     }
 
@@ -479,13 +475,13 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static Result editorUserInfo(String userId) throws UnknownHostException {
+    public static Result editorUserInfo(Integer userId) {
         try {
             JsonNode req = request().body().asJson();
 
-            UserInfo userInfor = UserAPI.getUserByUserId(Integer.valueOf(userId));
+            UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null) {
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %s.", userId));
+                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %d.", userId));
             }
             //修改昵称
             if (req.has("nickName")) {
@@ -514,29 +510,33 @@ public class UserCtrl extends Controller {
                 userInfor.avatar = req.get("avatar").asText();
             UserAPI.saveUserInfo(userInfor);
             // TODO 跟踪乱码问题
-            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserByUserId(userInfor.userId).nickName);
+            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.userId).nickName);
             LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
         }
     }
 
     /**
      * 添加好友
      *
-     * @param id
      * @return
      */
-    public static Result addUser(Integer id) {
+    public static Result addContact() {
+        int userId, contactId;
         try {
-            String selfId = request().getHeader("userId");
-            UserAPI.addFriend(Integer.parseInt(selfId), id);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("add friend successful "));
+            userId = Integer.parseInt(request().getHeader("UserId"));
+            contactId = Integer.parseInt(request().body().asJson().get("userId").asText());
+        } catch (NumberFormatException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+        }
+
+        try {
+            UserAPI.addContact(userId, contactId);
+            return Utils.createResponse(ErrorCode.NORMAL, "");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
-        } catch (NumberFormatException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("add friend failed"));
         }
     }
 
@@ -546,22 +546,37 @@ public class UserCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result deleteUser(Integer id) {
+    public static Result delContact(Integer id) {
+        int userId;
         try {
-            String selfId = request().getHeader("userId");
-            UserAPI.deleteFriend(Integer.parseInt(selfId), id);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("delete friend successful "));
+            userId = Integer.parseInt(request().getHeader("UserId"));
+        } catch (NumberFormatException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+        }
+
+        try {
+            UserAPI.delContact(userId, id);
+            return Utils.createResponse(ErrorCode.NORMAL, "");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
-        } catch (NumberFormatException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("delete friend failed"));
         }
     }
 
-    public static Result getUserFriendList() {
-        String userId = request().getHeader("userId");
+    /**
+     * 获得好友列表
+     *
+     * @return
+     */
+    public static Result getContactList() {
+        int userId;
         try {
-            List<UserInfo> list = UserAPI.getFriendList(Integer.parseInt(userId));
+            userId = Integer.parseInt(request().getHeader("UserId"));
+        } catch (NumberFormatException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+        }
+
+        try {
+            List<UserInfo> list = UserAPI.getContactList(userId);
             List<JsonNode> nodelist = new ArrayList<>();
             if (!list.isEmpty()) {
                 for (UserInfo userInfo : list) {
@@ -585,6 +600,7 @@ public class UserCtrl extends Controller {
 
     /**
      * 添加用户的备注信息
+     *
      * @param id
      * @return
      * @throws TravelPiException
@@ -601,6 +617,7 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
     }
+
     /**
      * 获得用户的黑名单列表
      *
@@ -620,7 +637,8 @@ public class UserCtrl extends Controller {
     }
 
     /**
-     *将用户加入/移除黑名单
+     * 将用户加入/移除黑名单
+     *
      * @return
      */
     public static Result setUserBlacklist() {
