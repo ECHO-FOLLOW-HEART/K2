@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -35,51 +36,44 @@ public class UserGroupApI {
     }
 
     /**
-     * 通过groupId返回群的实体
+     * 发送rest请求,获取response工具
      */
-    public static UserGroup getChatGroupById(Integer id) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        return ds.createQuery(UserGroup.class).field("groupId").equal(id).get();
+    public static String setUrlConnection(String href, JsonNode node) throws IOException {
+        URL url = new URL(href);
+        URLConnection conn = url.openConnection();
+        conn.setDoOutput(true);
+        conn.setDoInput(true);
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Authorization", String.format("Bearer %s", UserAPI.getEaseMobToken()));
+        OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+        out.write(node.toString());
+        out.flush();
+        out.close();
 
+        InputStream in = conn.getInputStream();
+        String body = IOUtils.toString(in, conn.getContentEncoding());
+        return body;
     }
 
     /**
+     * 通过调用环信接口创建一个群组
      *
+     * @param ownnerId
+     * @param groupName
+     * @param desc
+     * @param isGroupPublic
+     * @param maxusers
+     * @return
+     * @throws TravelPiException
      */
-    public static String setUrlConnection(String url) {
-        String href = String.format("https://a1.easemob.com/%s/%s/users", orgName, appName);
-        try {
-            URL url = new URL(href);
-            URLConnection conn = url.openConnection();
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Authorization", String.format("Bearer %s", UserAPI.getEaseMobToken()));
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
-            out.write(data.toString());
-            out.flush();
-            out.close();
-
-            InputStream in = conn.getInputStream();
-            String body = IOUtils.toString(in, conn.getContentEncoding());
-        }
-        /**
-         * 通过调用环信接口创建一个群组
-         * @param ownnerId
-         * @param groupName
-         * @param desc
-         * @param isGroupPublic
-         * @param maxusers
-         * @return
-         * @throws TravelPiException
-         */
 
     public static String createGroup(Integer ownnerId, String groupName, String desc, boolean isGroupPublic, Integer maxusers) throws TravelPiException {
         Configuration configuration = Configuration.root().getConfig("easemob");
         String orgName = configuration.getString("org");
         String appName = configuration.getString("app");
 
-        UserInfo ownner = UserAPI.getUserByUserId(ownnerId);  //拿到群主信息
+        UserInfo ownner = UserAPI.getUserByUserId(ownnerId, Arrays.asList(UserInfo.fnNickName,UserInfo.fnAvatar,
+                                                            UserInfo.fnSignature));  //拿到群主信息,bug
         JsonNode ownnerNode = Json.toJson(ownner);
         ObjectNode data = Json.newObject();
         data.put("ownner", ownnerNode);
@@ -91,19 +85,7 @@ public class UserGroupApI {
         //'https://a1.easemob.com/easemob-demo/4d7e4ba0-dc4a-11e3-90d5-e1ffbaacdaf5/chatgroups'
         String href = String.format("https://a1.easemob.com/%s/%s/users", orgName, appName);
         try {
-            URL url = new URL(href);
-            URLConnection conn = url.openConnection();
-            conn.setDoOutput(true);
-            conn.setDoInput(true);
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Authorization", String.format("Bearer %s", UserAPI.getEaseMobToken()));
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
-            out.write(data.toString());
-            out.flush();
-            out.close();
-
-            InputStream in = conn.getInputStream();
-            String body = IOUtils.toString(in, conn.getContentEncoding());
+            String body=setUrlConnection(href,data);
             JsonNode dataNode = Json.parse(body);
             String groupId = dataNode.get("data").get("groupid").asText();
             return groupId;
