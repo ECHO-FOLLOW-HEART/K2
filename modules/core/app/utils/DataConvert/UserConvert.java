@@ -25,7 +25,7 @@ public class UserConvert {
         userInfo.gender = json.get("sex").asText().equals("1") ? "M" : "F";
         userInfo.oauthList = new ArrayList<>();
         userInfo.userId = UserAPI.populateUserId();
-        userInfo.secToken = Utils.getSecToken();
+//        userInfo.secToken = Utils.getSecToken();
 
         OAuthInfo oauthInfo = new OAuthInfo();
         oauthInfo.provider = "weixin";

@@ -244,7 +244,7 @@ public class UserAPI {
         if (user != null) {
             //更新签名
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-            user.secToken = secToken;
+//            user.secToken = secToken;
             ds.save(user);
 
             return user;
@@ -273,7 +273,7 @@ public class UserAPI {
         user.avatar = avatar;
         user.udid = udid;
         user.oauthList = new ArrayList<>();
-        user.secToken = secToken;
+//        user.secToken = secToken;
 
         OAuthInfo oauthInfo = new OAuthInfo();
         oauthInfo.provider = provider;
@@ -329,20 +329,21 @@ public class UserAPI {
      * @throws TravelPiException
      */
     public static boolean authenticate(String uid, String timestamp, String sign) throws TravelPiException {
-        if (uid == null || uid.isEmpty() || timestamp == null || timestamp.isEmpty() || sign == null || sign.isEmpty())
-            return false;
-
-        try {
-            UserInfo userInfo = UserAPI.getUserById(uid);
-            if (userInfo == null || userInfo.secToken == null)
-                return false;
-            String serverSign = Utils.toSha1Hex(timestamp + userInfo.secToken);
-            if (!sign.equals(serverSign))
-                return false;
-        } catch (NullPointerException e) {
-            return false;
-        }
         return true;
+//        if (uid == null || uid.isEmpty() || timestamp == null || timestamp.isEmpty() || sign == null || sign.isEmpty())
+//            return false;
+//
+//        try {
+//            UserInfo userInfo = UserAPI.getUserById(uid);
+//            if (userInfo == null || userInfo.secToken == null)
+//                return false;
+//            String serverSign = Utils.toSha1Hex(timestamp + userInfo.secToken);
+//            if (!sign.equals(serverSign))
+//                return false;
+//        } catch (NullPointerException e) {
+//            return false;
+//        }
+//        return true;
     }
 
 
@@ -434,11 +435,6 @@ public class UserAPI {
         user.gender = "";
         user.dialCode = countryCode;
         user.email = "";
-        try {
-            user.secToken = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
-        } catch (NoSuchAlgorithmException ignored) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
-        }
         user.signature = "";
         user.origin = "peach-telUser";
         user.enabled = true;
@@ -458,6 +454,12 @@ public class UserAPI {
         if (!pwd.equals(""))
             cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
         cre.easemobPwd = easemobPwd;
+        try {
+            cre.secKey = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+        } catch (NoSuchAlgorithmException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
+        }
+
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
 
         return user;

@@ -23,6 +23,7 @@ import utils.DataConvert.UserConvert;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
+import utils.formatter.taozi.CredentialFormatter;
 import utils.formatter.taozi.SelfUserFormatter;
 import utils.formatter.taozi.SideUserFormatter;
 import utils.formatter.taozi.SimpleUserFormatter;
@@ -475,17 +476,24 @@ public class UserCtrl extends Controller {
                 selfId = Integer.parseInt(tmp);
 
             UserInfo userInfor = UserAPI.getUserInfo(userId);
+            Credential cre = UserAPI.getCredentialByUserId(userId, Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
             if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
 
-            JsonNode info;
-            if (userId.equals(selfId))
-                info = new SelfUserFormatter().format(userInfor);
-            else
-                info = new SideUserFormatter().format(userInfor);
-            ObjectNode ret = (ObjectNode) info;
-            ret.put("memo", "");
-            return Utils.createResponse(ErrorCode.NORMAL, ret);
+            ObjectNode info;
+            if (userId.equals(selfId)) {
+                info = (ObjectNode) new SelfUserFormatter().format(userInfor);
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+            } else
+                info = (ObjectNode) new SideUserFormatter().format(userInfor);
+
+            info.put("memo", "");
+            return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
         } catch (NumberFormatException e) {

@@ -136,10 +136,11 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      * @return
      */
     public String appVersion;
-    /**
-     * 用户令牌
-     */
-    public String secToken;
+
+//    /**
+//     * 用户令牌
+//     */
+//    public String secToken;
 
     public String getGender() {
         return (gender != null ? gender : "");
@@ -182,7 +183,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("nickName", nickName).add("avatar", avatar).add("secToken", secToken);
+        builder.add("_id", id.toString()).add("nickName", nickName).add("avatar", avatar).add("secToken", "");
 
         return Json.toJson(builder.get());
     }
