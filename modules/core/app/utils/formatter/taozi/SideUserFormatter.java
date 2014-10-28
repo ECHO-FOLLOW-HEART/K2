@@ -52,6 +52,7 @@ public class SideUserFormatter implements JsonFormatter {
                 includedFields.add(UserInfo.fnGender);
                 includedFields.add(UserInfo.fnSignature);
                 includedFields.add(UserInfo.fnMemo);
+                includedFields.add(UserInfo.fnEasemobName);
 
                 return (includedFields.contains(writer.getName()));
             }

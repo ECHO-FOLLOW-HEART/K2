@@ -52,6 +52,9 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnMemo = "memo";
 
+    @Transient
+    public static String fnEasemobName = "easemobName";
+
     /**
      * 昵称
      */
@@ -91,7 +94,6 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
         return (tel != null ? tel : "");
     }
 
-
     /**
      * 国家编码
      */
@@ -121,7 +123,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     public String memo;
 
     public String getMemo() {
-        return (memo!=null?memo:"");
+        return (memo != null ? memo : "");
     }
 
     /**
@@ -153,6 +155,15 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
             return new ArrayList<>();
         else
             return oauthList;
+    }
+
+    /**
+     * 环信的账号
+     */
+    public String easemobName;
+
+    public String getEasemobName() {
+        return (easemobName != null ? easemobName : "");
     }
 
     /**

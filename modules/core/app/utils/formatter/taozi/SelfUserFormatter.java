@@ -53,6 +53,7 @@ public class SelfUserFormatter implements JsonFormatter {
                 includedFields.add(UserInfo.fnTel);
                 includedFields.add(UserInfo.fnDialCode);
                 includedFields.add(UserInfo.fnEmail);
+                includedFields.add(UserInfo.fnEasemobName);
 
                 return (includedFields.contains(writer.getName()));
             }

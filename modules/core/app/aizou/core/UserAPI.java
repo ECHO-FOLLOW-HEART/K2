@@ -479,41 +479,41 @@ public class UserAPI {
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
     }
 
-    /**
-     * 注册密码和环信
-     *
-     * @param u
-     * @param pwd
-     * @return
-     */
-    public static void regCredentialAndHunanXin(UserInfo u, String pwd) throws TravelPiException {
-        Credential cre = new Credential();
-        cre.id = new ObjectId();
-        cre.userId = u.userId;
-        cre.salt = Utils.getSalt();
-        if (!pwd.equals(""))
-            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-
-        // 环信注册
-        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
-        int size = base.length();
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 32; i++)
-            sb.append(base.charAt(random.nextInt(size)));
-        cre.easemobUser = sb.toString();
-        String passwd = null;
-        try {
-            passwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
-        } catch (NoSuchAlgorithmException ignored) {
-        }
-        assert passwd != null;
-        cre.easemobPwd = passwd;
-
-        regEaseMob(cre.easemobUser, cre.easemobPwd);
-
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
-    }
+//    /**
+//     * 注册密码和环信
+//     *
+//     * @param u
+//     * @param pwd
+//     * @return
+//     */
+//    public static void regCredentialAndHunanXin(UserInfo u, String pwd) throws TravelPiException {
+//        Credential cre = new Credential();
+//        cre.id = new ObjectId();
+//        cre.userId = u.userId;
+//        cre.salt = Utils.getSalt();
+//        if (!pwd.equals(""))
+//            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+//
+//        // 环信注册
+//        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+//        int size = base.length();
+//        Random random = new Random();
+//        StringBuilder sb = new StringBuilder();
+//        for (int i = 0; i < 32; i++)
+//            sb.append(base.charAt(random.nextInt(size)));
+//        cre.easemobUser = sb.toString();
+//        String passwd = null;
+//        try {
+//            passwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+//        } catch (NoSuchAlgorithmException ignored) {
+//        }
+//        assert passwd != null;
+//        cre.easemobPwd = passwd;
+//
+//        regEaseMob(cre.easemobUser, cre.easemobPwd);
+//
+//        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+//    }
 
     /**
      * 判断是否有密码
@@ -809,14 +809,13 @@ public class UserAPI {
      * @param userIdB
      */
     public static void modEaseMobContacts(Integer userIdA, Integer userIdB, boolean actionAdd) throws TravelPiException {
-        List<String> fieldList = new ArrayList<>();
-        fieldList.add("easemobUser");
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobName);
         String userA, userB;
         try {
-            Credential creA = UserAPI.getCredentialByUserId(userIdA, fieldList);
-            userA = creA.easemobUser;
-            Credential creB = UserAPI.getCredentialByUserId(userIdB, fieldList);
-            userB = creB.easemobUser;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobName;
+            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobName;
+            if (userA == null || userB == null)
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         } catch (NullPointerException e) {
             throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
         }
@@ -851,17 +850,22 @@ public class UserAPI {
      * 在环信用户系统中添加用户的黑名单关系
      */
     public static void addEaseMobBlocks(Integer userIdA, List<Integer> blockIds) throws TravelPiException {
-        List<String> fieldList = new ArrayList<>();
-        fieldList.add("easemobUser");
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobName);
         String userA;
+        if (blockIds == null || blockIds.isEmpty())
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "");
+
         List<String> blockNames = new ArrayList<>();
         try {
-            Credential creA = UserAPI.getCredentialByUserId(userIdA, fieldList);
-            userA = creA.easemobUser;
-            if (blockIds != null) {
-                for (Integer i : blockIds) {
-                    blockNames.add(UserAPI.getCredentialByUserId(i, fieldList).easemobUser);
-                }
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobName;
+            if (userA == null)
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+
+            for (Integer i : blockIds) {
+                String easemobName = UserAPI.getUserInfo(i, fieldList).easemobName;
+                if (easemobName == null)
+                    throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+                blockNames.add(easemobName);
             }
         } catch (NullPointerException e) {
             throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
@@ -908,14 +912,11 @@ public class UserAPI {
      * @param userIdB
      */
     public static void delEaseMobBlocks(Integer userIdA, Integer userIdB) throws TravelPiException {
-        List<String> fieldList = new ArrayList<>();
-        fieldList.add("easemobUser");
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobName);
         String userA, userB;
         try {
-            Credential creA = UserAPI.getCredentialByUserId(userIdA, fieldList);
-            userA = creA.easemobUser;
-            Credential creB = UserAPI.getCredentialByUserId(userIdB, fieldList);
-            userB = creB.easemobUser;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobName;
+            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobName;
         } catch (NullPointerException e) {
             throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
         }

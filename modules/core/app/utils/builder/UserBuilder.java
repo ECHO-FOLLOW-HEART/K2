@@ -33,9 +33,9 @@ public class UserBuilder {
 
         Credential ce = UserAPI.getCredentialByUserId(u.userId);
 
-        if (level == DETAILS_LEVEL_2)
-            builder.add("easemobPwd", (ce == null || ce.easemobPwd == null) ? "" : ce.easemobPwd)
-                    .add("easemobUser", (ce == null || ce.easemobUser == null) ? "" : ce.easemobUser);
+//        if (level == DETAILS_LEVEL_2)
+//            builder.add("easemobPwd", (ce == null || ce.easemobPwd == null) ? "" : ce.easemobPwd)
+//                    .add("easemobUser", (ce == null || ce.easemobUser == null) ? "" : ce.easemobUser);
         if (level == DETAILS_LEVEL_3) {
             JsonNode friends = UserBuilder.buildUserFriends(u.friends);
             JsonNode remark = UserBuilder.buildRemark(u.remark);

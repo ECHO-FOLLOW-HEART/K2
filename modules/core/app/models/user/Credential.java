@@ -23,11 +23,6 @@ public class Credential {
     public String salt;
 
     /**
-     * 环信账号
-     */
-    public String easemobUser;
-
-    /**
      * 环信密码
      */
     public String easemobPwd;
