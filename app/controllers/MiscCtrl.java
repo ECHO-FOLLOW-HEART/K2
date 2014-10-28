@@ -394,7 +394,7 @@ public class MiscCtrl extends Controller {
 //            String timestamp = request().getQueryString("timestamp");
 //            boolean auth = UserAPI.authenticate(uid, timestamp, sign);
 //            if (!auth)
-//                return Utils.createResponse(ErrorCode.AUTHENTICATE_ERROR, "AUTHENTIFICATION FAILED.");
+//                return Utils.createResponse(ErrorCode.AUTH_ERROR, "AUTHENTIFICATION FAILED.");
 
             DBCollection colLoc = Utils.getMongoClient().getDB("misc").getCollection("Weather");
             DBObject qb = QueryBuilder.start("loc.id").is(new ObjectId(locId)).get();

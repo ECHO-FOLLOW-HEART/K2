@@ -17,7 +17,6 @@ public class Credential {
     @Constraints.Required
     public Integer userId;
 
-    @Constraints.Required
     public String pwdHash;
 
     @Constraints.Required
