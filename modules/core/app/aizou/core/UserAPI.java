@@ -948,13 +948,6 @@ public class UserAPI {
     }
 
     /**
-     * 排序的字段。
-     */
-    public enum UserInfoField {
-        TEL, NICKNAME, OPENID, USERID
-    }
-
-    /**
      * 提出好友申请
      *
      * @param selfId
@@ -1124,5 +1117,12 @@ public class UserAPI {
             friends = new ArrayList<>();
 
         return friends;
+    }
+
+    /**
+     * 排序的字段。
+     */
+    public enum UserInfoField {
+        TEL, NICKNAME, OPENID, USERID
     }
 }
