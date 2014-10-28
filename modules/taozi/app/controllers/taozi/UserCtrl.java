@@ -20,7 +20,6 @@ import utils.DataConvert.UserConvert;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
-import utils.builder.UserBuilder;
 import utils.formatter.taozi.SelfUserFormatter;
 import utils.formatter.taozi.SideUserFormatter;
 import utils.formatter.taozi.SimpleUserFormatter;
@@ -76,7 +75,7 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
             if (userInfo != null)
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
+                return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(userInfo));
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -299,7 +298,7 @@ public class UserCtrl extends Controller {
 
             //验证密码
             if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd))
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
+                return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(userInfo));
             else
                 return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
@@ -386,7 +385,7 @@ public class UserCtrl extends Controller {
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserAPI.UserInfoField.OPENID, infoNode.get("openid").asText());
             if (us != null) {
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
+                return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(us));
             }
 
             //JSON转化为userInfo
@@ -397,7 +396,7 @@ public class UserCtrl extends Controller {
             }
 
             UserAPI.saveUserInfo(us);
-            return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
+            return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(us));
 
 
         } catch (IOException | NullPointerException | TravelPiException e) {

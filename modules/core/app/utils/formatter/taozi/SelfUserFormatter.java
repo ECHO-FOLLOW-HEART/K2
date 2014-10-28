@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class SelfUserFormatter implements JsonFormatter {
     @Override
-    public JsonNode format(TravelPiBaseItem item) throws JsonProcessingException {
+    public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
