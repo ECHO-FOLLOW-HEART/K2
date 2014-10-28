@@ -1,7 +1,10 @@
 package models.user;
 
+import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 
 /**
@@ -9,10 +12,19 @@ import play.data.validation.Constraints;
  *
  * @author Zephyre
  */
-public class Credential {
+@Entity
+public class Credential extends TravelPiBaseItem {
+    @Transient
+    public static String fnUserId = "userId";
 
-    @Id
-    public ObjectId id;
+    @Transient
+    public static String fnPwdHash = "pwdHash";
+
+    @Transient
+    public static String fnSalt = "salt";
+
+    @Transient
+    public static String fnEasemobPwd = "easemobPwd";
 
     @Constraints.Required
     public Integer userId;

@@ -8,10 +8,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
+import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -139,9 +142,15 @@ public class UserCtrl extends Controller {
                 userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
-                if (!pwd.equals(""))
-                    // TODO 此处有bug
-                    UserAPI.regCredential(userInfo, pwd);
+
+                if (!pwd.equals("")) {
+                    Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+                    Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(userInfo.userId).get();
+                    cre.salt = Utils.getSalt();
+                    cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+
+                    MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+                }
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);

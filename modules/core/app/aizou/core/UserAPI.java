@@ -443,10 +443,22 @@ public class UserAPI {
         user.origin = "peach-telUser";
         user.enabled = true;
 
-        // 注册私密信息
-        regCredential(user, pwd);
+        // 注册环信
+        String[] ret = regEasemob();
+        String easemobPwd = ret[1];
 
+        user.easemobName = ret[0];
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
+
+        // 注册机密信息
+        Credential cre = new Credential();
+        cre.id = user.id;
+        cre.userId = user.userId;
+        cre.salt = Utils.getSalt();
+        if (!pwd.equals(""))
+            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        cre.easemobPwd = easemobPwd;
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
 
         return user;
     }
@@ -462,58 +474,63 @@ public class UserAPI {
         return ret.count;
     }
 
-    /**
-     * 注册密码
-     *
-     * @param u
-     * @param pwd
-     * @return
-     */
-    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
-        Credential cre = new Credential();
-        cre.id = u.id;
-        cre.userId = u.userId;
-        cre.salt = Utils.getSalt();
-        if (!pwd.equals(""))
-            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
-    }
-
 //    /**
-//     * 注册密码和环信
+//     * 注册密码
 //     *
 //     * @param u
 //     * @param pwd
 //     * @return
 //     */
-//    public static void regCredentialAndHunanXin(UserInfo u, String pwd) throws TravelPiException {
+//    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
 //        Credential cre = new Credential();
-//        cre.id = new ObjectId();
+//        cre.id = u.id;
 //        cre.userId = u.userId;
 //        cre.salt = Utils.getSalt();
 //        if (!pwd.equals(""))
 //            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-//
-//        // 环信注册
-//        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
-//        int size = base.length();
-//        Random random = new Random();
-//        StringBuilder sb = new StringBuilder();
-//        for (int i = 0; i < 32; i++)
-//            sb.append(base.charAt(random.nextInt(size)));
-//        cre.easemobUser = sb.toString();
-//        String passwd = null;
-//        try {
-//            passwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
-//        } catch (NoSuchAlgorithmException ignored) {
-//        }
-//        assert passwd != null;
-//        cre.easemobPwd = passwd;
-//
-//        regEaseMob(cre.easemobUser, cre.easemobPwd);
-//
 //        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
 //    }
+
+    /**
+     * 注册密码和环信
+     *
+     * @return 返回环信的用户名和密码
+     */
+    public static String[] regEasemob() throws TravelPiException {
+        String easemobPwd;
+        try {
+            easemobPwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+        } catch (NoSuchAlgorithmException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
+        }
+
+        String easemobName = null;
+        boolean flag = false;
+        for (int i = 0; i < 5; i++) {
+            // 环信注册
+            String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+            int size = base.length();
+            Random random = new Random();
+            StringBuilder sb = new StringBuilder();
+            for (int j = 0; j < 32; j++)
+                sb.append(base.charAt(random.nextInt(size)));
+            easemobName = sb.toString();
+
+            try {
+                regEasemobReq(easemobName, easemobPwd);
+                flag = true;
+                break;
+            } catch (TravelPiException e) {
+                if (e.errCode != ErrorCode.USER_EXIST)
+                    throw e;
+            }
+        }
+
+        if (flag)
+            return new String[]{easemobName, easemobPwd};
+        else
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+    }
 
     /**
      * 判断是否有密码
@@ -571,21 +588,15 @@ public class UserAPI {
      * @throws TravelPiException
      */
     public static void resetPwd(UserInfo u, String pwd) throws TravelPiException {
+        if (pwd == null || pwd.isEmpty() || u == null || u.userId == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        Query<Credential> ceQuery = ds.createQuery(Credential.class);
-        Credential cre = ceQuery.field("userId").equal(u.userId).get();
-        if (cre == null) {
-            regCredential(u, pwd);
-        } else {
-            cre = new Credential();
-            cre.id = new ObjectId();
-            cre.userId = u.userId;
-            cre.salt = Utils.getSalt();
-            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-            ds.save(cre);
-        }
+        Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(u.userId).get();
+        cre.salt = Utils.getSalt();
+        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
 
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
     }
 
     /**
@@ -768,7 +779,7 @@ public class UserAPI {
      * @param userName
      * @param pwd
      */
-    private static void regEaseMob(String userName, String pwd) throws TravelPiException {
+    private static void regEasemobReq(String userName, String pwd) throws TravelPiException {
         // 重新获取token
         Configuration config = Configuration.root().getConfig("easemob");
         String orgName = config.getString("org");
@@ -795,8 +806,12 @@ public class UserAPI {
             String body = IOUtils.toString(in, conn.getContentEncoding());
 
             JsonNode tokenData = Json.parse(body);
-            if (tokenData.has("error"))
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+            if (tokenData.has("error")) {
+                if (tokenData.get("error").asText().equals("duplicate_unique_property_exists"))
+                    throw new TravelPiException(ErrorCode.USER_EXIST, String.format("Easemob user %s exists.", userName));
+                else
+                    throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+            }
         } catch (java.io.IOException e) {
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
         }
