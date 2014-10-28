@@ -57,9 +57,13 @@ public class UserAPI {
         }
     }
 
+    /**
+     * 获取用户信息
+     *
+     * @throws TravelPiException
+     */
     public static UserInfo getUserInfo(Integer id) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        return ds.createQuery(UserInfo.class).field("userId").equal(id).get();
+        return getUserInfo(id, null);
     }
 
     /**
@@ -67,9 +71,9 @@ public class UserAPI {
      *
      * @throws TravelPiException
      */
-    public static UserInfo getUserByUserId(Integer id, List<String> fieldList) throws TravelPiException {
+    public static UserInfo getUserInfo(Integer id, List<String> fieldList) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        Query<UserInfo> query = ds.createQuery(UserInfo.class).field("userId").equal(id);
+        Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(id);
         if (fieldList != null && !fieldList.isEmpty()) {
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         }
@@ -972,10 +976,10 @@ public class UserAPI {
         if (selfId.equals(targetId))
             return;
 
-        UserInfo selfInfo = getUserByUserId(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));  //取得用户实体
         //取得好友的实体
-        UserInfo targetInfo = getUserByUserId(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));
 
         if (selfInfo == null || targetInfo == null)
@@ -1048,8 +1052,8 @@ public class UserAPI {
             return;
 
         //取得用户实体
-        UserInfo selfInfo = getUserByUserId(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
-        UserInfo targetInfo = getUserByUserId(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
         if (selfInfo == null || targetInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
@@ -1114,7 +1118,7 @@ public class UserAPI {
     public static List<UserInfo> getContactList(Integer selfId) throws TravelPiException {
         List<String> fieldList = Arrays.asList(UserInfo.fnContacts);
 
-        List<UserInfo> friends = getUserByUserId(selfId, fieldList).friends;
+        List<UserInfo> friends = getUserInfo(selfId, fieldList).friends;
         if (friends == null)
             friends = new ArrayList<>();
 

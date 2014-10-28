@@ -23,6 +23,7 @@ import utils.Utils;
 import utils.builder.UserBuilder;
 import utils.formatter.taozi.SelfUserFormatter;
 import utils.formatter.taozi.SideUserFormatter;
+import utils.formatter.taozi.SimpleUserFormatter;
 
 import java.io.IOException;
 import java.net.URL;
@@ -471,9 +472,9 @@ public class UserCtrl extends Controller {
 
             JsonNode info;
             if (userId.equals(selfId))
-                info = new SideUserFormatter().format(userInfor);
-            else
                 info = new SelfUserFormatter().format(userInfor);
+            else
+                info = new SideUserFormatter().format(userInfor);
             ObjectNode ret = (ObjectNode) info;
             ret.put("memo", "");
             return Utils.createResponse(ErrorCode.NORMAL, ret);
@@ -495,6 +496,13 @@ public class UserCtrl extends Controller {
     public static Result editorUserInfo(Integer userId) {
         try {
             JsonNode req = request().body().asJson();
+
+            String tmp = request().getHeader("UserId");
+            Integer selfId = null;
+            if (tmp != null)
+                selfId = Integer.parseInt(tmp);
+            if (!userId.equals(selfId))
+                return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
 
             UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null) {
@@ -594,21 +602,20 @@ public class UserCtrl extends Controller {
 
         try {
             List<UserInfo> list = UserAPI.getContactList(userId);
+            if (list == null)
+                list = new ArrayList<>();
+
             List<JsonNode> nodelist = new ArrayList<>();
-            if (!list.isEmpty()) {
-                for (UserInfo userInfo : list) {
-                    BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();      //构建JsonNode
-                    builder.add("nickName", userInfo.nickName).add("avatar", userInfo.avatar).add("gender", userInfo.gender).
-                            add("signature", userInfo.signature);
-                    JsonNode node = Json.toJson(builder.get());
-                    nodelist.add(node);
+            for (UserInfo userInfo : list) {
+                try {
+                    nodelist.add(new SimpleUserFormatter().format(userInfo));
+                } catch (JsonProcessingException ignored) {
                 }
-                Map<String, List<JsonNode>> map = new HashMap<>();
-                map.put("userList", nodelist);
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
-            } else {
-                return Utils.createResponse(ErrorCode.NORMAL, Json.newObject());
             }
+
+            ObjectNode node = Json.newObject();
+            node.put("contacts", Json.toJson(nodelist));
+            return Utils.createResponse(ErrorCode.NORMAL, node);
 
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("return list failed"));

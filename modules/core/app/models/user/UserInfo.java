@@ -49,6 +49,9 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnEmail = "email";
 
+    @Transient
+    public static String fnMemo = "memo";
+
     /**
      * 昵称
      */
@@ -112,6 +115,16 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     }
 
     /**
+     * 备注信息。这个字段比较特殊：每个用户的备注信息，是由其它用户决定的，而不会跟随自身这个UserInfo存放在数据库中。
+     */
+    @Transient
+    public String memo;
+
+    public String getMemo() {
+        return (memo!=null?memo:"");
+    }
+
+    /**
      * 好友备注:用户ID-备注信息
      */
     public Map<Integer, String> remark;
@@ -170,7 +183,6 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      * 用户令牌
      */
     public String secToken;
-
 
     @Override
     public JsonNode toJson() {

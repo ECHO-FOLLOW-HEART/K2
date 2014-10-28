@@ -20,11 +20,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回用户的详细信息（即：查看自己的用户信息时使用）
- * <p>
+ * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
+ *
  * Created by zephyre on 10/28/14.
  */
-public class SelfUserFormatter implements JsonFormatter {
+public class SimpleUserFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
@@ -49,10 +49,7 @@ public class SelfUserFormatter implements JsonFormatter {
                 includedFields.add(UserInfo.fnAvatar);
                 includedFields.add(UserInfo.fnUserId);
                 includedFields.add(UserInfo.fnGender);
-                includedFields.add(UserInfo.fnSignature);
-                includedFields.add(UserInfo.fnTel);
-                includedFields.add(UserInfo.fnDialCode);
-                includedFields.add(UserInfo.fnEmail);
+                includedFields.add(UserInfo.fnMemo);
 
                 return (includedFields.contains(writer.getName()));
             }
