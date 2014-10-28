@@ -39,7 +39,7 @@ public class ErrorCode {
      */
     public static int UNKOWN_ERROR = 900;
 
-    public static int AUTHENTICATE_ERROR = 300;
+    public static int AUTH_ERROR = 300;
 
     /**
      * 数据已存在的错误

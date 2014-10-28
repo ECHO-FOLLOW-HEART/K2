@@ -24,7 +24,7 @@ public class UserConvert {
         userInfo.avatar = headimgurl;
         userInfo.gender = json.get("sex").asText().equals("1") ? "M" : "F";
         userInfo.oauthList = new ArrayList<>();
-        userInfo.userId = UserAPI.getUserId();
+        userInfo.userId = UserAPI.populateUserId();
         userInfo.secToken = Utils.getSecToken();
 
         OAuthInfo oauthInfo = new OAuthInfo();

@@ -39,7 +39,7 @@ public class UserBuilder {
         if (level == DETAILS_LEVEL_3) {
             JsonNode friends = UserBuilder.buildUserFriends(u.friends);
             JsonNode remark = UserBuilder.buildRemark(u.remark);
-            builder.add("countryCode", u.countryCode == null ? "" : u.countryCode)
+            builder.add("dialCode", u.dialCode == null ? "" : u.dialCode)
                     .add("email", u.email == null ? "" : u.email)
                     .add("remark", remark == null ? "" : remark);
         }

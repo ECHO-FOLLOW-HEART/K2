@@ -19,6 +19,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
@@ -56,9 +57,13 @@ public class UserAPI {
         }
     }
 
-    public static UserInfo getUserByUserId(Integer id) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        return ds.createQuery(UserInfo.class).field("userId").equal(id).get();
+    /**
+     * 获取用户信息
+     *
+     * @throws TravelPiException
+     */
+    public static UserInfo getUserInfo(Integer id) throws TravelPiException {
+        return getUserInfo(id, null);
     }
 
     /**
@@ -66,9 +71,9 @@ public class UserAPI {
      *
      * @throws TravelPiException
      */
-    public static UserInfo getUserByUserId(Integer id, List<String> fieldList) throws TravelPiException {
+    public static UserInfo getUserInfo(Integer id, List<String> fieldList) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        Query<UserInfo> query = ds.createQuery(UserInfo.class).field("userId").equal(id);
+        Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(id);
         if (fieldList != null && !fieldList.isEmpty()) {
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         }
@@ -84,7 +89,7 @@ public class UserAPI {
      * @throws TravelPiException
      */
     public static void setUserMemo(Integer selfId, Integer id, String memo) throws TravelPiException {
-        UserInfo userInfo = getUserByUserId(selfId);
+        UserInfo userInfo = getUserInfo(selfId);
 //        Map<Integer, UserInfo> friends = userInfo.friends;
 //        boolean flag = friends.containsKey(id);   //查看是否存在好友
 
@@ -102,7 +107,7 @@ public class UserAPI {
      * @param id
      */
    /* public static boolean checkBlackList(Integer selfId,Integer id) throws TravelPiException {
-        UserInfo userInfo=getUserByUserId(selfId);
+        UserInfo userInfo=getUserInfo(selfId);
         Map<Integer,UserInfo> blacklist= userInfo.blackList;
         if (blacklist.containsKey(id)){
             return true;
@@ -119,7 +124,7 @@ public class UserAPI {
      * @throws TravelPiException
      */
     public static void setUserBlacklist(Integer selfId, List<Integer> list, String operation) throws TravelPiException {
-        UserInfo userInfo = getUserByUserId(selfId);
+        UserInfo userInfo = getUserInfo(selfId);
         Map<Integer, UserInfo> blackList = userInfo.blackList;  //用户的黑名单列表
 //        Map<Integer, UserInfo> friends = userInfo.friends;     //用户的朋友圈列表
         switch (operation) {
@@ -128,7 +133,7 @@ public class UserAPI {
                     if (blackList.containsKey(id)) {         //黑名单中存在用户已经
                         continue;
                     }
-                    UserInfo user = getUserByUserId(id);
+                    UserInfo user = getUserInfo(id);
                     blackList.put(id, user);            //添加用户到黑名单
 //                    friends.remove(id);                 //将用户从朋友圈中删除
                 }
@@ -142,7 +147,7 @@ public class UserAPI {
                         if (!blackList.containsKey(id)) {        //用户不再黑名单中
                             continue;
                         }
-                        UserInfo user = getUserByUserId(id);
+                        UserInfo user = getUserInfo(id);
                         blackList.remove(id);                 //添加用户到朋友圈
 //                        friends.put(id, user);
                     }
@@ -166,7 +171,7 @@ public class UserAPI {
      * @throws TravelPiException
      */
     public static List<Integer> getBlackList(Integer userId) throws TravelPiException {
-        UserInfo userInfo = getUserByUserId(userId);
+        UserInfo userInfo = getUserInfo(userId);
         Map<Integer, UserInfo> blackList = userInfo.blackList;
         List<Integer> list = new ArrayList<>();
         if (!blackList.isEmpty()) {          //黑名单不为空
@@ -340,53 +345,66 @@ public class UserAPI {
         return true;
     }
 
+
     /**
      * 根据字段获得用户信息。
-     *
-     * @param
-     * @return
      */
-    public static UserInfo getUserByField(UserInfoField field, String value) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        String stKey;
-        UserInfo userInfo = null;
-        switch (field) {
-            case TEL:
-                stKey = "tel";
-                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
-                break;
-            case NICKNAME:
-                stKey = "nickName";
-                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
-                break;
-            case OPENID:
-                stKey = "oauthList.oauthId";
-                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
-                break;
+    public static UserInfo getUserByField(UserInfoField fieldDesc, String value) throws TravelPiException {
+        return getUserByField(Arrays.asList(fieldDesc), value, null);
+    }
 
-        }
-        return userInfo;
+    /**
+     * 根据字段获得用户信息。
+     */
+    public static UserInfo getUserByField(UserInfoField fieldDesc, String value, List<String> fieldList) throws TravelPiException {
+        return getUserByField(Arrays.asList(fieldDesc), value, fieldList);
     }
 
     /**
      * 根据字段获得用户信息。
      *
-     * @param
-     * @return
+     * @param fieldDesc 哪些字段为查询目标？
+     * @param fieldList 返回结果包含哪些字段？
      */
-    public static UserInfo getUserByField(UserInfoField field, int value) throws TravelPiException {
+    public static UserInfo getUserByField(List<UserInfoField> fieldDesc, String value, List<String> fieldList)
+            throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        String stKey;
-        UserInfo userInfo = null;
-        switch (field) {
-            case USERID:
-                stKey = "userId";
-                userInfo = ds.createQuery(UserInfo.class).field(stKey).equal(value).get();
-                break;
+        Query<UserInfo> query = ds.createQuery(UserInfo.class);
 
+        if (fieldDesc == null || fieldDesc.isEmpty())
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
+
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (UserInfoField fd : fieldDesc) {
+            switch (fd) {
+                case TEL:
+                    criList.add(query.criteria(UserInfo.fnTel).equal(value));
+                    break;
+                case NICKNAME:
+                    criList.add(query.criteria(UserInfo.fnNickName).equal(value));
+                    break;
+                case OPENID:
+                    criList.add(query.criteria("oauthList.oauthId").equal(value));
+                    break;
+                case USERID:
+                    try {
+                        criList.add(query.criteria(UserInfo.fnUserId).equal(Integer.parseInt(value)));
+                    } catch (NumberFormatException ignore) {
+                    }
+                    break;
+                default:
+                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid field name: %s.",
+                            fieldDesc));
+            }
         }
-        return userInfo;
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+
+        return query.get();
     }
+
 
     /**
      * 储存用户信息。
@@ -408,13 +426,13 @@ public class UserAPI {
     public static UserInfo regByTel(String tel, Integer countryCode, String pwd) throws TravelPiException {
         UserInfo user = new UserInfo();
         user.id = new ObjectId();
-        user.userId = getUserId();
+        user.userId = populateUserId();
         user.avatar = "http://default";
         user.oauthList = new ArrayList<>();
         user.tel = tel;
         user.nickName = "桃子_" + user.userId;
         user.gender = "";
-        user.countryCode = countryCode;
+        user.dialCode = countryCode;
         user.email = "";
         try {
             user.secToken = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
@@ -433,7 +451,7 @@ public class UserAPI {
         return user;
     }
 
-    public static Integer getUserId() throws TravelPiException {
+    public static Integer populateUserId() throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Sequence> query = ds.createQuery(Sequence.class);
         query.field("column").equal(Sequence.USERID);
@@ -633,7 +651,7 @@ public class UserAPI {
      * @param valCode     验证码
      * @return 验证码是否有效
      */
-    public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode, int userId)
+    public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode, Integer userId)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
@@ -641,7 +659,7 @@ public class UserAPI {
 
         // 如果actionCode == 1或2,即注册或忘记密码,不需要验证userId
         boolean ret = !(entry == null || !entry.value.equals(valCode) || System.currentTimeMillis() > entry.expireTime
-                || (isNeedCheckUserId(actionCode) && entry.userId != userId));
+                || (isNeedCheckUserId(actionCode) && !entry.userId.equals(userId)));
 
         // 避免暴力攻击。验证失效次数超过5次，验证码就会失效。
         if (!ret && entry != null) {
@@ -741,10 +759,7 @@ public class UserAPI {
      * @return
      */
     private static boolean isNeedCheckUserId(int actionCode) {
-        if (actionCode == 1 || actionCode == 2) {
-            return false;
-        }
-        return true;
+        return !(actionCode == 1 || actionCode == 2);
     }
 
     /**
@@ -946,7 +961,7 @@ public class UserAPI {
      * @param reason
      */
     public static void sendFriendReq(Integer selfId, Integer otherid, String reason) throws TravelPiException {
-        UserInfo userInfo = getUserByUserId(selfId);
+        UserInfo userInfo = getUserInfo(selfId);
 
     }
 
@@ -961,10 +976,10 @@ public class UserAPI {
         if (selfId.equals(targetId))
             return;
 
-        UserInfo selfInfo = getUserByUserId(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));  //取得用户实体
         //取得好友的实体
-        UserInfo targetInfo = getUserByUserId(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));
 
         if (selfInfo == null || targetInfo == null)
@@ -1037,8 +1052,8 @@ public class UserAPI {
             return;
 
         //取得用户实体
-        UserInfo selfInfo = getUserByUserId(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
-        UserInfo targetInfo = getUserByUserId(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
         if (selfInfo == null || targetInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
@@ -1103,7 +1118,7 @@ public class UserAPI {
     public static List<UserInfo> getContactList(Integer selfId) throws TravelPiException {
         List<String> fieldList = Arrays.asList(UserInfo.fnContacts);
 
-        List<UserInfo> friends = getUserByUserId(selfId, fieldList).friends;
+        List<UserInfo> friends = getUserInfo(selfId, fieldList).friends;
         if (friends == null)
             friends = new ArrayList<>();
 

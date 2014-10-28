@@ -1,7 +1,7 @@
 #-------------------------------------
 #用户
 #手机注册
-POST          /users/signup                      controllers.taozi.UserCtrl.register()
+POST          /users/signup                      controllers.taozi.UserCtrl.signup()
 #第三方注册、登录
 POST          /users/auth-signup                 controllers.taozi.UserCtrl.authRegister()
 #检验用户信息的有效性(手机号)
