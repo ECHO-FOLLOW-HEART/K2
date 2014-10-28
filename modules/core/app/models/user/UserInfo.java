@@ -1,16 +1,16 @@
 package models.user;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -20,6 +20,7 @@ import java.util.Map;
  * @author Zephyre
  */
 @Entity
+@JsonFilter("userInfoFilter")
 public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnContacts = "friends";
@@ -43,16 +44,10 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String fnTel = "tel";
 
     @Transient
-    public static String fnTelCountryCode = "countryCode";
-
-    @Transient
-    public static String fnBlockList = "blackList";
+    public static String fnDialCode = "dialCode";
 
     @Transient
     public static String fnEmail = "email";
-
-    @Id
-    public ObjectId id;
 
     /**
      * 昵称
@@ -70,18 +65,35 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      * 性别： F\M
      */
     public String gender;
+
+    public String getGender() {
+        return (gender != null ? gender : "");
+    }
+
     /**
      * 签名
      */
     public String signature;
+
+    public String getSignature() {
+        return (signature != null ? signature : "");
+    }
+
     /**
      * 手机号
      */
     public String tel;
+
+    public String getTel() {
+        return (tel != null ? tel : "");
+    }
+
+
     /**
      * 国家编码
      */
-    public Integer countryCode;
+    public Integer dialCode;
+
     /**
      * 用户ID
      */
@@ -91,6 +103,13 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      * 好友列表:用户ID-用户简要信息
      */
     public List<UserInfo> friends;
+
+    public List<UserInfo> getFriends() {
+        if (friends == null)
+            return new ArrayList<>();
+        else
+            return friends;
+    }
 
     /**
      * 好友备注:用户ID-备注信息
@@ -107,10 +126,21 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public String email;
 
+    public String getEmail() {
+        return (email != null ? email : "");
+    }
+
     /**
      * 第三方OAuth登录信息
      */
     public List<OAuthInfo> oauthList;
+
+    public List<OAuthInfo> getOauthList() {
+        if (oauthList == null)
+            return new ArrayList<>();
+        else
+            return oauthList;
+    }
 
     /**
      * 来源

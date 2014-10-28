@@ -1,6 +1,7 @@
 package controllers.taozi;
 
 import aizou.core.UserAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -20,6 +21,8 @@ import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
 import utils.builder.UserBuilder;
+import utils.formatter.taozi.SelfUserFormatter;
+import utils.formatter.taozi.SideUserFormatter;
 
 import java.io.IOException;
 import java.net.URL;
@@ -52,8 +55,8 @@ public class UserCtrl extends Controller {
             String pwd = req.get("pwd").asText();
             Integer countryCode;
             String captcha = req.get("captcha").asText();
-            if (req.has("countryCode")) {
-                countryCode = Integer.valueOf(req.get("countryCode").asText());
+            if (req.has("dialCode")) {
+                countryCode = Integer.valueOf(req.get("dialCode").asText());
             } else {
                 countryCode = 86;
             }
@@ -91,8 +94,8 @@ public class UserCtrl extends Controller {
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
         Integer userId = Integer.valueOf(req.get("userId").asText());
         int countryCode = 86;
-        if (req.has("countryCode"))
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        if (req.has("dialCode"))
+            countryCode = Integer.valueOf(req.get("dialCode").asText());
 
         ObjectNode result = Json.newObject();
         try {
@@ -121,8 +124,8 @@ public class UserCtrl extends Controller {
         Integer countryCode;
         String pwd = req.has("pwd") ? req.get("pwd").asText() : "";
         String userId = req.get("userId").asText();
-        if (req.has("countryCode")) {
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        if (req.has("dialCode")) {
+            countryCode = Integer.valueOf(req.get("dialCode").asText());
         } else {
             countryCode = 86;
         }
@@ -159,8 +162,8 @@ public class UserCtrl extends Controller {
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
         Integer countryCode;
-        if (req.has("countryCode")) {
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        if (req.has("dialCode")) {
+            countryCode = Integer.valueOf(req.get("dialCode").asText());
         } else {
             countryCode = 86;
         }
@@ -194,8 +197,8 @@ public class UserCtrl extends Controller {
         String token = req.get("token").asText();
         String userId = req.get("userId").asText();
         Integer countryCode = 86;
-        if (req.has("countryCode"))
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        if (req.has("dialCode"))
+            countryCode = Integer.valueOf(req.get("dialCode").asText());
 
         //验证密码格式
         if (!validityPwd(pwd)) {
@@ -232,7 +235,7 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
 
         String tel = req.get("tel").asText();
-        Integer countryCode = req.has("countryCode") ? Integer.valueOf(req.get("countryCode").asText()) : 86;
+        Integer countryCode = req.has("dialCode") ? Integer.valueOf(req.get("dialCode").asText()) : 86;
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
         Integer userId = Integer.valueOf(req.get("userId").asText());
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
@@ -457,15 +460,29 @@ public class UserCtrl extends Controller {
      */
     public static Result getUserProfileById(Integer userId) {
         try {
+            String tmp = request().getHeader("UserId");
+            Integer selfId = null;
+            if (tmp != null)
+                selfId = Integer.parseInt(tmp);
+
             UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
-            ObjectNode ret = (ObjectNode) UserBuilder.buildUserInfo(userInfor, UserBuilder.DETAILS_LEVEL_1);
-            ret.put("memo", "");
 
+            JsonNode info;
+            if (userId.equals(selfId))
+                info = new SideUserFormatter().format(userInfor);
+            else
+                info = new SelfUserFormatter().format(userInfor);
+            ObjectNode ret = (ObjectNode) info;
+            ret.put("memo", "");
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
+        } catch (NumberFormatException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
+        } catch (JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "");
         }
     }
 

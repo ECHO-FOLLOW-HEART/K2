@@ -1,12 +1,13 @@
 package utils.builder;
 
-import aizou.core.UserAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import exception.ErrorCode;
 import exception.TravelPiException;
-import models.user.Credential;
 import models.user.UserInfo;
 import play.libs.Json;
+import utils.formatter.taozi.SelfUserFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,27 +25,34 @@ public class UserBuilder {
     public static int DETAILS_LEVEL_3 = 3;
 
     public static JsonNode buildUserInfo(UserInfo u, int level) throws TravelPiException {
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-
-        builder.add("userId", u.userId == null ? "" : u.userId).add("nickName", u.nickName == null ? "" : u.nickName)
-                .add("avatar", u.avatar == null ? "" : u.avatar).add("gender", u.gender == null ? "" : u.gender)
-                .add("signature", u.signature == null ? "" : u.signature).add("tel", u.tel == null ? "" : u.tel)
-                .add("secToken", u.secToken == null ? "" : u.secToken);
-
-        Credential ce = UserAPI.getCredentialByUserId(u.userId);
-
-        if (level == DETAILS_LEVEL_2)
-            builder.add("easemobPwd", (ce == null || ce.easemobPwd == null) ? "" : ce.easemobPwd)
-                    .add("easemobUser", (ce == null || ce.easemobUser == null) ? "" : ce.easemobUser);
-        if (level == DETAILS_LEVEL_3) {
-            JsonNode friends = UserBuilder.buildUserFriends(u.friends);
-            JsonNode remark = UserBuilder.buildRemark(u.remark);
-            builder.add("countryCode", u.countryCode == null ? "" : u.countryCode)
-                    .add("email", u.email == null ? "" : u.email)
-                    .add("remark", remark == null ? "" : remark);
+        try {
+            JsonNode node = new SelfUserFormatter().format(u);
+            return node;
+        } catch (JsonProcessingException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in processing JSON objects.", e);
         }
-
-        return Json.toJson(builder.get());
+//
+//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+//
+//        builder.add("userId", u.userId == null ? "" : u.userId).add("nickName", u.nickName == null ? "" : u.nickName)
+//                .add("avatar", u.avatar == null ? "" : u.avatar).add("gender", u.gender == null ? "" : u.gender)
+//                .add("signature", u.signature == null ? "" : u.signature).add("tel", u.tel == null ? "" : u.tel)
+//                .add("secToken", u.secToken == null ? "" : u.secToken);
+//
+//        Credential ce = UserAPI.getCredentialByUserId(u.userId);
+//
+//        if (level == DETAILS_LEVEL_2)
+//            builder.add("easemobPwd", (ce == null || ce.easemobPwd == null) ? "" : ce.easemobPwd)
+//                    .add("easemobUser", (ce == null || ce.easemobUser == null) ? "" : ce.easemobUser);
+//        if (level == DETAILS_LEVEL_3) {
+//            JsonNode friends = UserBuilder.buildUserFriends(u.friends);
+//            JsonNode remark = UserBuilder.buildRemark(u.remark);
+//            builder.add("dialCode", u.dialCode == null ? "" : u.dialCode)
+//                    .add("email", u.email == null ? "" : u.email)
+//                    .add("remark", remark == null ? "" : remark);
+//        }
+//
+//        return Json.toJson(builder.get());
     }
 
     public static JsonNode buildUserFriends(Map<Integer, UserInfo> u) throws TravelPiException {

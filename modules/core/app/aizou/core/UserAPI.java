@@ -428,7 +428,7 @@ public class UserAPI {
         user.tel = tel;
         user.nickName = "桃子_" + user.userId;
         user.gender = "";
-        user.countryCode = countryCode;
+        user.dialCode = countryCode;
         user.email = "";
         try {
             user.secToken = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
