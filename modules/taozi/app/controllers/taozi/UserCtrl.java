@@ -483,12 +483,12 @@ public class UserCtrl extends Controller {
             ObjectNode info;
             if (userId.equals(selfId)) {
                 info = (ObjectNode) new SelfUserFormatter().format(userInfor);
-                // 机密数据
-                JsonNode creNode = new CredentialFormatter().format(cre);
-                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                    Map.Entry<String, JsonNode> entry = it.next();
-                    info.put(entry.getKey(), entry.getValue());
-                }
+//                // 机密数据
+//                JsonNode creNode = new CredentialFormatter().format(cre);
+//                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+//                    Map.Entry<String, JsonNode> entry = it.next();
+//                    info.put(entry.getKey(), entry.getValue());
+//                }
             } else
                 info = (ObjectNode) new SideUserFormatter().format(userInfor);
 
