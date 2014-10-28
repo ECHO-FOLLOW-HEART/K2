@@ -1128,8 +1128,10 @@ public class UserAPI {
      */
     public static List<UserInfo> getContactList(Integer selfId) throws TravelPiException {
         List<String> fieldList = Arrays.asList(UserInfo.fnContacts);
-
-        List<UserInfo> friends = getUserInfo(selfId, fieldList).friends;
+        UserInfo userInfo = getUserInfo(selfId, fieldList);
+        if (userInfo == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
+        List<UserInfo> friends = userInfo.friends;
         if (friends == null)
             friends = new ArrayList<>();
 

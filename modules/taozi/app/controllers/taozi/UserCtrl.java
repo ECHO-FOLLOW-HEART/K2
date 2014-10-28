@@ -634,7 +634,7 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, node);
 
         } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("return list failed"));
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 
