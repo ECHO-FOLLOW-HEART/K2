@@ -23,10 +23,10 @@ import utils.DataConvert.UserConvert;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
-import utils.formatter.taozi.CredentialFormatter;
-import utils.formatter.taozi.SelfUserFormatter;
-import utils.formatter.taozi.SideUserFormatter;
-import utils.formatter.taozi.SimpleUserFormatter;
+import utils.formatter.taozi.user.CredentialFormatter;
+import utils.formatter.taozi.user.SelfUserFormatter;
+import utils.formatter.taozi.user.SideUserFormatter;
+import utils.formatter.taozi.user.SimpleUserFormatter;
 
 import java.io.IOException;
 import java.net.URL;
@@ -78,8 +78,23 @@ public class UserCtrl extends Controller {
             } else
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
-            if (userInfo != null)
-                return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(userInfo));
+            if (userInfo != null) {
+                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.userId,
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
+            }
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -307,9 +322,23 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
             //验证密码
-            if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd))
-                return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(userInfo));
-            else
+            if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd)) {
+                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.userId,
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
+            } else
                 return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -395,7 +424,21 @@ public class UserCtrl extends Controller {
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserAPI.UserInfoField.OPENID, infoNode.get("openid").asText());
             if (us != null) {
-                return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(us));
+                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(us);
+
+                Credential cre = UserAPI.getCredentialByUserId(us.userId,
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
             }
 
             //JSON转化为userInfo
@@ -476,19 +519,12 @@ public class UserCtrl extends Controller {
                 selfId = Integer.parseInt(tmp);
 
             UserInfo userInfor = UserAPI.getUserInfo(userId);
-            Credential cre = UserAPI.getCredentialByUserId(userId, Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
             if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
 
             ObjectNode info;
             if (userId.equals(selfId)) {
                 info = (ObjectNode) new SelfUserFormatter().format(userInfor);
-//                // 机密数据
-//                JsonNode creNode = new CredentialFormatter().format(cre);
-//                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-//                    Map.Entry<String, JsonNode> entry = it.next();
-//                    info.put(entry.getKey(), entry.getValue());
-//                }
             } else
                 info = (ObjectNode) new SideUserFormatter().format(userInfor);
 

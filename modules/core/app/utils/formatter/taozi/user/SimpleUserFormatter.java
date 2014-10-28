@@ -1,4 +1,4 @@
-package utils.formatter.taozi;
+package utils.formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -50,7 +50,7 @@ public class SimpleUserFormatter implements JsonFormatter {
                 includedFields.add(UserInfo.fnUserId);
                 includedFields.add(UserInfo.fnGender);
                 includedFields.add(UserInfo.fnMemo);
-                includedFields.add(UserInfo.fnEasemobName);
+                includedFields.add(UserInfo.fnEasemobUser);
 
                 return (includedFields.contains(writer.getName()));
             }

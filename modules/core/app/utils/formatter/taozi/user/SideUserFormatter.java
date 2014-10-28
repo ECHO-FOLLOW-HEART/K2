@@ -1,6 +1,7 @@
-package utils.formatter.taozi;
+package utils.formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -19,13 +20,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回用户的详细信息（即：查看自己的用户信息时使用）
+ * 返回用户的简要信息（即：查看别人的用户信息时使用）
  * <p>
  * Created by zephyre on 10/28/14.
  */
-public class SelfUserFormatter implements JsonFormatter {
+public class SideUserFormatter implements JsonFormatter {
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(TravelPiBaseItem item) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -49,10 +50,8 @@ public class SelfUserFormatter implements JsonFormatter {
                 includedFields.add(UserInfo.fnUserId);
                 includedFields.add(UserInfo.fnGender);
                 includedFields.add(UserInfo.fnSignature);
-                includedFields.add(UserInfo.fnTel);
-                includedFields.add(UserInfo.fnDialCode);
-                includedFields.add(UserInfo.fnEmail);
-                includedFields.add(UserInfo.fnEasemobName);
+                includedFields.add(UserInfo.fnMemo);
+                includedFields.add(UserInfo.fnEasemobUser);
 
                 return (includedFields.contains(writer.getName()));
             }

@@ -443,7 +443,7 @@ public class UserAPI {
         String[] ret = regEasemob();
         String easemobPwd = ret[1];
 
-        user.easemobName = ret[0];
+        user.easemobUser = ret[0];
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
         // 注册机密信息
@@ -826,11 +826,11 @@ public class UserAPI {
      * @param userIdB
      */
     public static void modEaseMobContacts(Integer userIdA, Integer userIdB, boolean actionAdd) throws TravelPiException {
-        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobName);
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
-            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobName;
-            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobName;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
+            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobUser;
             if (userA == null || userB == null)
                 throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         } catch (NullPointerException e) {
@@ -867,19 +867,19 @@ public class UserAPI {
      * 在环信用户系统中添加用户的黑名单关系
      */
     public static void addEaseMobBlocks(Integer userIdA, List<Integer> blockIds) throws TravelPiException {
-        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobName);
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA;
         if (blockIds == null || blockIds.isEmpty())
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "");
 
         List<String> blockNames = new ArrayList<>();
         try {
-            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobName;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
             if (userA == null)
                 throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
 
             for (Integer i : blockIds) {
-                String easemobName = UserAPI.getUserInfo(i, fieldList).easemobName;
+                String easemobName = UserAPI.getUserInfo(i, fieldList).easemobUser;
                 if (easemobName == null)
                     throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
                 blockNames.add(easemobName);
@@ -929,11 +929,11 @@ public class UserAPI {
      * @param userIdB
      */
     public static void delEaseMobBlocks(Integer userIdA, Integer userIdB) throws TravelPiException {
-        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobName);
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
-            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobName;
-            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobName;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
+            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobUser;
         } catch (NullPointerException e) {
             throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
         }
