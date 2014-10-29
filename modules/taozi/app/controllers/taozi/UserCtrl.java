@@ -442,13 +442,13 @@ public class UserCtrl extends Controller {
             }
 
             //JSON转化为userInfo
-            us = UserConvert.oauthToUserInfoForWX(infoNode);
+            us = UserAPI.oauthToUserInfoForWX(infoNode);
             //如果第三方昵称已被其他用户使用，则添加后缀
             if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, us.nickName) != null) {
                 nickDuplicateRemoval(us);
             }
 
-            UserAPI.saveUserInfo(us);
+            UserAPI.regByWeiXin(us);
             return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(us));
 
 

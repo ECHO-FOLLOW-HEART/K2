@@ -465,6 +465,59 @@ public class UserAPI {
         return user;
     }
 
+    /**
+     * 根据微信完成用户注册。
+     *
+     * @param
+     * @return
+     */
+    public static UserInfo regByWeiXin(UserInfo user) throws TravelPiException {
+
+        // 注册环信
+        String[] ret = regEasemob();
+        String easemobPwd = ret[1];
+
+        user.easemobUser = ret[0];
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
+
+        // 注册机密信息
+        Credential cre = new Credential();
+        cre.id = user.id;
+        cre.userId = user.userId;
+        cre.salt = Utils.getSalt();
+        cre.easemobPwd = easemobPwd;
+        try {
+            cre.secKey = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+        } catch (NoSuchAlgorithmException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
+        }
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+
+        return user;
+    }
+
+    public static UserInfo oauthToUserInfoForWX(JsonNode json) throws NullPointerException, TravelPiException {
+        String nickname = json.get("nickname").asText();
+        String headimgurl = json.get("headimgurl").asText();
+        UserInfo userInfo = new UserInfo();
+        userInfo.id = new ObjectId();
+        userInfo.nickName = nickname;
+        userInfo.avatar = headimgurl;
+        userInfo.gender = json.get("sex").asText().equals("1") ? "M" : "F";
+        userInfo.oauthList = new ArrayList<>();
+        userInfo.userId = UserAPI.populateUserId();
+//        userInfo.secToken = Utils.getSecToken();
+
+        OAuthInfo oauthInfo = new OAuthInfo();
+        oauthInfo.provider = "weixin";
+        oauthInfo.oauthId = json.get("openid").asText();
+        oauthInfo.nickName = nickname;
+        oauthInfo.avatar = headimgurl;
+        userInfo.oauthList.add(oauthInfo);
+
+        return userInfo;
+    }
+
     public static Integer populateUserId() throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Sequence> query = ds.createQuery(Sequence.class);
