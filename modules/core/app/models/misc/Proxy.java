@@ -1,19 +1,23 @@
 package models.misc;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import play.data.validation.Constraints;
 
 import java.util.Date;
+import java.util.Map;
 
 /**
  * Created by zephyre on 10/25/14.
  */
 @Entity
-public class Proxy {
-    @Id
-    public ObjectId id;
+@JsonFilter("proxyFilter")
+public class Proxy extends TravelPiBaseItem {
+    @Constraints.Required
+    public String scheme;
 
     @Constraints.Required
     public String host;
@@ -21,11 +25,15 @@ public class Proxy {
     @Constraints.Required
     public Integer port;
 
-    @Constraints.Required
-    public Float latency;
+    public String user;
+
+    public String passwd;
 
     @Constraints.Required
-    public Boolean verified;
+    public Map<String, Float> latency;
+
+    @Constraints.Required
+    public Map<String, Boolean> verified;
 
     @Constraints.Required
     public Date verifiedTime;

@@ -1,4 +1,4 @@
-package utils.formatter.taozi.user;
+package utils.formatter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -13,18 +13,17 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.user.UserInfo;
-import utils.formatter.JsonFormatter;
 
+import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p>
- * Created by zephyre on 10/28/14.
+ * 获得代理服务器信息
+ * <p/>
+ * Created by zephyre on 10/29/14.
  */
-public class SimpleUserFormatter implements JsonFormatter {
+public class ProxyFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -43,30 +42,26 @@ public class SimpleUserFormatter implements JsonFormatter {
                 }
             }
 
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(UserInfo.fnNickName);
-                includedFields.add(UserInfo.fnAvatar);
-                includedFields.add(UserInfo.fnUserId);
-                includedFields.add(UserInfo.fnGender);
-                includedFields.add(UserInfo.fnMemo);
-                includedFields.add(UserInfo.fnEasemobUser);
+            private boolean excludeImpl(PropertyWriter writer) {
+                Set<String> excludedFields = new HashSet<>();
+                excludedFields.add("id");
 
-                return (includedFields.contains(writer.getName()));
+                return (excludedFields.contains(writer.getName()));
             }
 
             @Override
             protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
+                return !excludeImpl(beanPropertyWriter);
             }
 
             @Override
             protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
+                return !excludeImpl(writer);
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("userInfoFilter", theFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("proxyFilter", theFilter);
+        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ"));
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

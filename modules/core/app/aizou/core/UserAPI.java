@@ -666,12 +666,7 @@ public class UserAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
         Credential ce = ceQuery.field("userId").equal(u.userId).get();
-        if (ce == null)
-            return false;
-        else if (ce.pwdHash.equals(Utils.toSha1Hex(ce.salt + pwd)))
-            return true;
-        else
-            return false;
+        return ce != null && ce.pwdHash.equals(Utils.toSha1Hex(ce.salt + pwd));
     }
 
     /**

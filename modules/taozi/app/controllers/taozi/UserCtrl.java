@@ -1,7 +1,6 @@
 package controllers.taozi;
 
 import aizou.core.UserAPI;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -35,7 +34,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -547,8 +546,6 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
         } catch (NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
-        } catch (JsonProcessingException e) {
-            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "");
         }
     }
 
@@ -672,10 +669,7 @@ public class UserCtrl extends Controller {
 
             List<JsonNode> nodelist = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                try {
-                    nodelist.add(new SimpleUserFormatter().format(userInfo));
-                } catch (JsonProcessingException ignored) {
-                }
+                nodelist.add(new SimpleUserFormatter().format(userInfo));
             }
 
             ObjectNode node = Json.newObject();
