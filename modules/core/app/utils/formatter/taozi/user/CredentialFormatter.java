@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
 import models.user.Credential;
-import models.user.UserInfo;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;

@@ -19,7 +19,6 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.DataConvert.UserConvert;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
@@ -448,10 +447,24 @@ public class UserCtrl extends Controller {
                 nickDuplicateRemoval(us);
             }
 
-            UserAPI.regByWeiXin(us);
-            return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(us));
+            //注册信息
+            UserInfo userInfo = UserAPI.regByWeiXin(us);
 
+            //返回注册信息
+            ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
 
+            Credential cre = UserAPI.getCredentialByUserId(userInfo.userId,
+                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+            if (cre == null)
+                throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "Credential info is null.");
+
+            // 返回机密数据
+            JsonNode creNode = new CredentialFormatter().format(cre);
+            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                Map.Entry<String, JsonNode> entry = it.next();
+                info.put(entry.getKey(), entry.getValue());
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (IOException | NullPointerException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
