@@ -557,23 +557,17 @@ public class UserCtrl extends Controller {
     /**
      * 获得用户信息
      *
-     * @param field
      * @param userInfo
      * @return
      */
-    public static Result getUserProfile(String field,String userInfo,Integer code) {
+    public static Result getUserProfile(String userInfo,Integer code) {
         try {
 
-            UserAPI.UserInfoField userField = null;
-            switch (field) {
-                case "nickName":
-                    userField = UserAPI.UserInfoField.NICKNAME;
-                    break;
-                case "tel":
-                    userField = UserAPI.UserInfoField.TEL;
-                    break;
-            }
-            UserInfo userInfor = UserAPI.getUserByField(userField,userInfo);
+            List<UserAPI.UserInfoField> userInfoFieldList = new ArrayList<UserAPI.UserInfoField>();
+            userInfoFieldList.add(UserAPI.UserInfoField.NICKNAME);
+            userInfoFieldList.add( UserAPI.UserInfoField.TEL);
+
+            UserInfo userInfor = UserAPI.getUserByField(userInfoFieldList,userInfo,null);
             if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
             ObjectNode info= (ObjectNode) new SideUserFormatter().format(userInfor);

@@ -21,7 +21,7 @@ POST          /users/check-validation                controllers.taozi.UserCtrl.
 #获取用户信息
 GET           /users/$uid<[0-9]+>                    controllers.taozi.UserCtrl.getUserProfileById(uid: Integer)
 #搜索用户信息
-GET           /users/search                          controllers.taozi.UserCtrl.getUserProfile(field:String?="",info:String?="",countryCode:Integer?=86)
+GET           /users/search                          controllers.taozi.UserCtrl.getUserProfile(info:String?="",countryCode:Integer?=86)
 #编辑用户信息，修改密码
 POST          /users/$uid<[0-9]+>                    controllers.taozi.UserCtrl.editorUserInfo(uid: Integer)
 
