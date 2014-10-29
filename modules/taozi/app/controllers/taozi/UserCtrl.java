@@ -261,7 +261,7 @@ public class UserCtrl extends Controller {
         String tel = req.get("tel").asText();
         Integer countryCode = req.has("dialCode") ? Integer.valueOf(req.get("dialCode").asText()) : 86;
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
-        Integer userId = Integer.valueOf(req.get("userId").asText());
+        Integer userId = req.has("userId")?Integer.valueOf(req.get("userId").asText()):null;
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //验证用户是否存在
         try {
