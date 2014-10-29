@@ -988,10 +988,10 @@ public class UserAPI {
             return;
 
         UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
-                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));  //取得用户实体
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));  //取得用户实体
         //取得好友的实体
         UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
-                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));
 
         if (selfInfo == null || targetInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
