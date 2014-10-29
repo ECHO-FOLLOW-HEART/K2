@@ -581,8 +581,6 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user : %d.", userInfo));
         } catch (NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
-        } catch (JsonProcessingException e) {
-            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "");
         }
     }
 

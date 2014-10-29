@@ -1,7 +1,6 @@
 package utils.formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -14,9 +13,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
 import models.poi.AbstractPOI;
-import models.user.Credential;
 import models.user.Favorite;
-import models.user.UserInfo;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
@@ -29,7 +26,7 @@ import java.util.Set;
  */
 public class SelfFavoriteFormatter implements JsonFormatter {
     @Override
-    public JsonNode format(TravelPiBaseItem item) throws JsonProcessingException {
+    public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -94,7 +91,7 @@ public class SelfFavoriteFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("abstractPOIFilter",poiFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("abstractPOIFilter", poiFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

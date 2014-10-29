@@ -202,7 +202,7 @@ public class MiscCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, ret);
             } else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userID));
-        } catch (JsonProcessingException | NullPointerException | IllegalArgumentException | TravelPiException e) {
+        } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
