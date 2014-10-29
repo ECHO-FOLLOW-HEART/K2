@@ -1,6 +1,5 @@
 package controllers.taozi;
 
-import aizou.core.PoiAPI;
 import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,7 +10,6 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
-import models.plan.PlanDayEntry;
 import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
@@ -262,7 +260,7 @@ public class UserCtrl extends Controller {
         String tel = req.get("tel").asText();
         Integer countryCode = req.has("dialCode") ? Integer.valueOf(req.get("dialCode").asText()) : 86;
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
-        Integer userId = req.has("userId")?Integer.valueOf(req.get("userId").asText()):null;
+        Integer userId = req.has("userId") ? Integer.valueOf(req.get("userId").asText()) : null;
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //验证用户是否存在
         try {
@@ -554,31 +552,26 @@ public class UserCtrl extends Controller {
     /**
      * 获得用户信息
      *
-     * @param userInfo
+     * @param keyword
      * @return
      */
-    public static Result getUserProfile(String userInfo,Integer code) {
+    public static Result searchUser(String keyword) {
         try {
 
-            List<UserAPI.UserInfoField> userInfoFieldList = new ArrayList<UserAPI.UserInfoField>();
+            List<UserAPI.UserInfoField> userInfoFieldList = new ArrayList<>();
             userInfoFieldList.add(UserAPI.UserInfoField.NICKNAME);
-            userInfoFieldList.add( UserAPI.UserInfoField.TEL);
+            userInfoFieldList.add(UserAPI.UserInfoField.TEL);
+            userInfoFieldList.add(UserAPI.UserInfoField.EASEMOB);
 
-            UserInfo userInfor = UserAPI.getUserByField(userInfoFieldList,userInfo,null);
+            UserInfo userInfor = UserAPI.getUserByField(userInfoFieldList, keyword, null);
             if (userInfor == null)
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
-            ObjectNode info= (ObjectNode) new SideUserFormatter().format(userInfor);
-
+            ObjectNode info = (ObjectNode) new SideUserFormatter().format(userInfor);
             info.put("memo", "");
 
-            List<ObjectNode> userList = new ArrayList<>();
-            userList.add(info);
-
-            ObjectNode uNode = Json.newObject();
-            uNode.put("userList",Json.toJson(userList) );
-            return Utils.createResponse(ErrorCode.NORMAL, uNode);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(Arrays.asList(info)));
         } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user : %d.", userInfo));
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user : %s.", keyword));
         } catch (NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
         }

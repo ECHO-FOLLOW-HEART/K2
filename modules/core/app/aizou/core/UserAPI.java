@@ -387,6 +387,9 @@ public class UserAPI {
                 case OPENID:
                     criList.add(query.criteria("oauthList.oauthId").equal(value));
                     break;
+                case EASEMOB:
+                    criList.add(query.criteria(UserInfo.fnEasemobUser).equal(value));
+                    break;
                 case USERID:
                     try {
                         criList.add(query.criteria(UserInfo.fnUserId).equal(Integer.parseInt(value)));
@@ -1190,6 +1193,6 @@ public class UserAPI {
      * 排序的字段。
      */
     public enum UserInfoField {
-        TEL, NICKNAME, OPENID, USERID
+        TEL, NICKNAME, OPENID, USERID, EASEMOB
     }
 }
