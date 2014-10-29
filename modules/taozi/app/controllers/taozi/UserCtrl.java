@@ -566,7 +566,7 @@ public class UserCtrl extends Controller {
 
             UserInfo userInfor = UserAPI.getUserByField(userInfoFieldList,userInfo,null);
             if (userInfor == null)
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
+                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
             ObjectNode info= (ObjectNode) new SideUserFormatter().format(userInfor);
 
             info.put("memo", "");
