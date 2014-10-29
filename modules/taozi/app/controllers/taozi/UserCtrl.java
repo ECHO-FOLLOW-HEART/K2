@@ -1,5 +1,6 @@
 package controllers.taozi;
 
+import aizou.core.PoiAPI;
 import aizou.core.UserAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,6 +12,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
+import models.plan.PlanDayEntry;
 import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
@@ -545,6 +547,47 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
+        } catch (NumberFormatException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
+        } catch (JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "");
+        }
+    }
+
+    /**
+     * 获得用户信息
+     *
+     * @param field
+     * @param userInfo
+     * @return
+     */
+    public static Result getUserProfile(String field,String userInfo,Integer code) {
+        try {
+
+            UserAPI.UserInfoField userField = null;
+            switch (field) {
+                case "nickName":
+                    userField = UserAPI.UserInfoField.NICKNAME;
+                    break;
+                case "tel":
+                    userField = UserAPI.UserInfoField.TEL;
+                    break;
+            }
+            UserInfo userInfor = UserAPI.getUserByField(userField,userInfo);
+            if (userInfor == null)
+                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
+            ObjectNode info= (ObjectNode) new SideUserFormatter().format(userInfor);
+
+            info.put("memo", "");
+
+            List<ObjectNode> userList = new ArrayList<>();
+            userList.add(info);
+
+            ObjectNode uNode = Json.newObject();
+            uNode.put("userList",Json.toJson(userList) );
+            return Utils.createResponse(ErrorCode.NORMAL, uNode);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user : %d.", userInfo));
         } catch (NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
         } catch (JsonProcessingException e) {
