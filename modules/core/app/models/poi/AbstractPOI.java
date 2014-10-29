@@ -1,5 +1,6 @@
 package models.poi;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
@@ -13,6 +14,7 @@ import models.misc.ImageItem;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 import utils.Constants;
 import utils.DataFilter;
@@ -26,7 +28,15 @@ import java.util.*;
  * @author Zephyre
  *         Created by zephyre on 7/16/14.
  */
+@JsonFilter("abstractPOIFilter")
 public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
+
+    @Transient
+    public static String simpID = "id";
+
+    @Transient
+    public static String simpName = "name";
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -131,7 +141,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             }
 
             if (images != null) {
-                ArrayList<String> tmpList = new ArrayList<>();
+                ArrayList<String> tmpList = new ArrayList<String>();
                 for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
                     tmpList.add(img.url);
                 builder.add("imageList", tmpList);

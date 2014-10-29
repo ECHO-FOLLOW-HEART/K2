@@ -9,6 +9,8 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
 
+import java.util.Map;
+
 /**
  * 其它杂项信息。
  *
@@ -39,6 +41,17 @@ public class MiscInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      * 环信UUID
      */
     public String easemobUUID;
+
+    /**
+     *封面故事
+     */
+    public Map<String, String> coverStory;
+    /**
+     * 用于哪个应用
+     */
+    public String application;
+
+
 
     @Override
     public JsonNode toJson() {

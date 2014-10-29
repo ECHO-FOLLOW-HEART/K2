@@ -161,6 +161,10 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
             return friends;
     }
 
+    public Integer getDialCode() {
+        return (dialCode != null ? dialCode : 0);
+    }
+
     public String getMemo() {
         return (memo != null ? memo : "");
     }
