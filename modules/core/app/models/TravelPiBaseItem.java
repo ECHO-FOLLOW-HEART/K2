@@ -13,12 +13,10 @@ import java.util.Map;
 public abstract class TravelPiBaseItem {
     @Id
     public ObjectId id;
+    public boolean enabled;
+    public Map<String, Object> misc;
 
     public String getId() {
         return id.toString();
     }
-
-    public boolean enabled;
-
-    public Map<String, Object> misc;
 }

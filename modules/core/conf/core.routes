@@ -1,5 +1,6 @@
+GET           /misc/proxies                        controllers.core.MiscCtrl.getProxies(latency: Float?=0, page: Int?=0, pageSize: Int?=10)
 POST          /users/:userA/contacts/:userB        controllers.core.UserCtrl.addEaseMobContacts(userA: Integer, userB: Integer, actionAdd: Boolean = true)
 DELETE        /users/:userA/contacts/:userB        controllers.core.UserCtrl.addEaseMobContacts(userA: Integer, userB: Integer, actionAdd: Boolean = false)
 
-POST          /users/:userA/blocks/:userB        controllers.core.UserCtrl.modEaseMobBlocks(userA: Integer, userB: Integer, actionAdd: Boolean = true)
-DELETE        /users/:userA/blocks/:userB        controllers.core.UserCtrl.modEaseMobBlocks(userA: Integer, userB: Integer, actionAdd: Boolean = false)
+POST          /users/:userA/blocks/:userB          controllers.core.UserCtrl.modEaseMobBlocks(userA: Integer, userB: Integer, actionAdd: Boolean = true)
+DELETE        /users/:userA/blocks/:userB          controllers.core.UserCtrl.modEaseMobBlocks(userA: Integer, userB: Integer, actionAdd: Boolean = false)

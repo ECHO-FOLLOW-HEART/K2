@@ -52,6 +52,9 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnMemo = "memo";
 
+    @Transient
+    public static String fnEasemobUser = "easemobUser";
+
     /**
      * 昵称
      */
@@ -68,44 +71,88 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      * 性别： F\M
      */
     public String gender;
+    /**
+     * 签名
+     */
+    public String signature;
+    /**
+     * 手机号
+     */
+    public String tel;
+    /**
+     * 国家编码
+     */
+    public Integer dialCode;
+    /**
+     * 用户ID
+     */
+    public Integer userId;
+    /**
+     * 好友列表:用户ID-用户简要信息
+     */
+    public List<UserInfo> friends;
+    /**
+     * 备注信息。这个字段比较特殊：每个用户的备注信息，是由其它用户决定的，而不会跟随自身这个UserInfo存放在数据库中。
+     */
+    @Transient
+    public String memo;
+    /**
+     * 好友备注:用户ID-备注信息
+     */
+    public Map<Integer, String> remark;
+    /**
+     * 黑名单：用户ID-用户简要信息
+     */
+    public Map<Integer, UserInfo> blackList;
+    /**
+     * 邮箱
+     */
+    public String email;
+    /**
+     * 第三方OAuth登录信息
+     */
+    public List<OAuthInfo> oauthList;
+    /**
+     * 环信的账号
+     */
+    public String easemobUser;
+    /**
+     * 来源
+     */
+    public String origin;
+    /**
+     * 唯一设备号。
+     */
+    public String udid;
+    /**
+     * 用户手机系统及版本
+     *
+     * @return
+     */
+    public String platform;
+    /**
+     * 用户App版本
+     *
+     * @return
+     */
+    public String appVersion;
+
+//    /**
+//     * 用户令牌
+//     */
+//    public String secToken;
 
     public String getGender() {
         return (gender != null ? gender : "");
     }
 
-    /**
-     * 签名
-     */
-    public String signature;
-
     public String getSignature() {
         return (signature != null ? signature : "");
     }
 
-    /**
-     * 手机号
-     */
-    public String tel;
-
     public String getTel() {
         return (tel != null ? tel : "");
     }
-
-
-    /**
-     * 国家编码
-     */
-    public Integer dialCode;
-
-    /**
-     * 用户ID
-     */
-    public Integer userId;
-
-    /**
-     * 好友列表:用户ID-用户简要信息
-     */
-    public List<UserInfo> friends;
 
     public List<UserInfo> getFriends() {
         if (friends == null)
@@ -114,39 +161,13 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
             return friends;
     }
 
-    /**
-     * 备注信息。这个字段比较特殊：每个用户的备注信息，是由其它用户决定的，而不会跟随自身这个UserInfo存放在数据库中。
-     */
-    @Transient
-    public String memo;
-
     public String getMemo() {
-        return (memo!=null?memo:"");
+        return (memo != null ? memo : "");
     }
-
-    /**
-     * 好友备注:用户ID-备注信息
-     */
-    public Map<Integer, String> remark;
-
-    /**
-     * 黑名单：用户ID-用户简要信息
-     */
-    public Map<Integer, UserInfo> blackList;
-
-    /**
-     * 邮箱
-     */
-    public String email;
 
     public String getEmail() {
         return (email != null ? email : "");
     }
-
-    /**
-     * 第三方OAuth登录信息
-     */
-    public List<OAuthInfo> oauthList;
 
     public List<OAuthInfo> getOauthList() {
         if (oauthList == null)
@@ -155,39 +176,14 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
             return oauthList;
     }
 
-    /**
-     * 来源
-     */
-    public String origin;
-
-    /**
-     * 唯一设备号。
-     */
-    public String udid;
-
-    /**
-     * 用户手机系统及版本
-     *
-     * @return
-     */
-    public String platform;
-
-    /**
-     * 用户App版本
-     *
-     * @return
-     */
-    public String appVersion;
-
-    /**
-     * 用户令牌
-     */
-    public String secToken;
+    public String getEasemobUser() {
+        return (easemobUser != null ? easemobUser : "");
+    }
 
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("nickName", nickName).add("avatar", avatar).add("secToken", secToken);
+        builder.add("_id", id.toString()).add("nickName", nickName).add("avatar", avatar).add("secToken", "");
 
         return Json.toJson(builder.get());
     }

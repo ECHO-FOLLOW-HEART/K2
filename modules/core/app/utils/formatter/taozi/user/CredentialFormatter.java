@@ -1,7 +1,6 @@
-package utils.formatter.taozi;
+package utils.formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -13,20 +12,18 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.user.UserInfo;
+import models.user.Credential;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- *
  * Created by zephyre on 10/28/14.
  */
-public class SimpleUserFormatter implements JsonFormatter {
+public class CredentialFormatter implements JsonFormatter {
     @Override
-    public JsonNode format(TravelPiBaseItem item) throws JsonProcessingException {
+    public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -45,11 +42,8 @@ public class SimpleUserFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(UserInfo.fnNickName);
-                includedFields.add(UserInfo.fnAvatar);
-                includedFields.add(UserInfo.fnUserId);
-                includedFields.add(UserInfo.fnGender);
-                includedFields.add(UserInfo.fnMemo);
+                includedFields.add(Credential.fnSecKey);
+                includedFields.add(Credential.fnEasemobPwd);
 
                 return (includedFields.contains(writer.getName()));
             }
@@ -65,7 +59,7 @@ public class SimpleUserFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("userInfoFilter", theFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("credentialFilter", theFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);
