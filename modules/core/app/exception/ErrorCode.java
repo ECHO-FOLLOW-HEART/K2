@@ -39,8 +39,6 @@ public class ErrorCode {
      */
     public static int UNKOWN_ERROR = 900;
 
-    public static int AUTH_ERROR = 300;
-
     /**
      * 数据已存在的错误
      */
@@ -67,6 +65,11 @@ public class ErrorCode {
      * 用户不已存在
      */
     public static int USER_NOT_EXIST = 406;
+
+    /**
+     * 登录验证失败
+     */
+    public static int AUTH_ERROR = 407;
 
     /**
      * 短信发送超过配额

@@ -38,11 +38,6 @@ public class MsgConstants {
     /**
      * 注册时验证码错误
      */
-    public static int PWD_ERROR = 407;
-
-    /**
-     * 注册时验证码错误
-     */
     public static String PWD_ERROR_MSG = "密码不正确，请重新填写.";
     /**
      * 昵称已存在

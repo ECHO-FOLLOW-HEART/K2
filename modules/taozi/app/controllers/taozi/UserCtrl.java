@@ -203,7 +203,7 @@ public class UserCtrl extends Controller {
                 UserAPI.resetPwd(userInfo, newPwd);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else
-                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
+                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -308,16 +308,13 @@ public class UserCtrl extends Controller {
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
 
-            //验证用户是否存在
-//            userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, loginName);
-
             List<UserAPI.UserInfoField> fieldDesc = new ArrayList<>();
             fieldDesc.add(UserAPI.UserInfoField.TEL);
             fieldDesc.add(UserAPI.UserInfoField.USERID);
             userInfo = UserAPI.getUserByField(fieldDesc, loginName, null);
 
             if (userInfo == null)
-                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
+                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.USER_NOT_EXIST_MSG, true);
 
             //验证密码
             if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd)) {
@@ -337,7 +334,7 @@ public class UserCtrl extends Controller {
 
                 return Utils.createResponse(ErrorCode.NORMAL, info);
             } else
-                return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
+                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         } catch (NullPointerException e) {
