@@ -1,10 +1,12 @@
 package models.misc;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 import java.text.SimpleDateFormat;
@@ -17,8 +19,16 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
+@JsonFilter("travelNoteFilter")
 public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
 
+
+    @Transient
+    public static String simpId = "id";
+
+
+    @Transient
+    public static String simpTitle = "title";
     /**
      * 游记标题
      */

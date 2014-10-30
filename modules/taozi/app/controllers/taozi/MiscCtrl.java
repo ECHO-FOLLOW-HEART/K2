@@ -1,6 +1,5 @@
 package controllers.taozi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
@@ -10,6 +9,7 @@ import models.misc.Feedback;
 import models.misc.MiscInfo;
 import models.misc.Recommendation;
 import models.misc.TravelNote;
+import models.poi.AbstractPOI;
 import models.poi.Hotel;
 import models.poi.Restaurant;
 import models.poi.ViewSpot;
@@ -17,11 +17,13 @@ import models.user.Favorite;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
+import utils.MsgConstants;
 import utils.Utils;
 import utils.formatter.taozi.user.SelfFavoriteFormatter;
 
@@ -124,37 +126,36 @@ public class MiscCtrl extends Controller {
 
         JsonNode collection = request().body().asJson();
         try {
+
             String itemId = collection.get("itemId").asText();
             ObjectId oid = new ObjectId(itemId);
             String type = collection.get("type").asText();
             String name = collection.get("name").asText();
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-            Favorite fa = ds.createQuery(Favorite.class).field("userId").equal(userID).get();
-            // TODO 还用判断用户么?
+            Query<Favorite> query = ds.createQuery(Favorite.class).field("userId").equal(userID);
+            Favorite fa = query.get();
+            UpdateOperations<Favorite> ops = null;
             if (fa == null)
                 fa = createFavorite(userID);
+            ds.save(fa);
             switch (type) {
                 case "vs":
                     ViewSpot poi = new ViewSpot();
                     poi.id = oid;
                     poi.name = name;
-
-                    fa.vs.add(poi);
+                    ops = ds.createUpdateOperations(Favorite.class).add(type, poi);
                     break;
                 case "hotel":
-
                     Hotel hotel = new Hotel();
                     hotel.id = oid;
                     hotel.name = name;
-
-                    fa.hotel.add(hotel);
+                    ops = ds.createUpdateOperations(Favorite.class).add(type, hotel);
                     break;
                 case "restaurant":
                     Restaurant res = new Restaurant();
                     res.id = oid;
                     res.name = name;
-
-                    fa.restaurant.add(res);
+                    ops = ds.createUpdateOperations(Favorite.class).add(type, res);
                     break;
                 case "shopping":
 
@@ -167,26 +168,27 @@ public class MiscCtrl extends Controller {
                     TravelNote tn = new TravelNote();
                     tn.id = oid;
                     tn.title = name;
-
-                    fa.travelNote.add(tn);
+                    ops = ds.createUpdateOperations(Favorite.class).add(type, tn);
                     break;
+                default:
+                    return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Error favorite type : %s", type));
             }
-            ds.save(fa);
+
+            ds.update(query, ops);
+
         } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
 
-    private static Favorite createFavorite(Integer userID){
+    private static Favorite createFavorite(Integer userID) {
         Favorite fa = new Favorite();
         fa.id = new ObjectId();
         fa.userId = userID;
-        fa.vs = new ArrayList<>();
-        fa.hotel = new ArrayList<>();
-        fa.restaurant = new ArrayList<>();
         return fa;
     }
+
     /**
      * 取得收藏
      *
@@ -195,13 +197,14 @@ public class MiscCtrl extends Controller {
     public static Result getFavorite(Integer userID) {
 
         try {
-            Favorite fa = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).createQuery(Favorite.class).get();
+            Favorite fa = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).createQuery(Favorite.class)
+                    .field("userId").equal(userID).get();
             if (fa != null) {
                 JsonNode info = new SelfFavoriteFormatter().format(fa);
                 ObjectNode ret = (ObjectNode) info;
                 return Utils.createResponse(ErrorCode.NORMAL, ret);
             } else
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userID));
+                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, MsgConstants.FAVORITE_NOT_EXIT_MSG, true);
         } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
@@ -219,33 +222,34 @@ public class MiscCtrl extends Controller {
             String itemId = fav.get("itemId").asText();
             ObjectId oid = new ObjectId(itemId);
             String type = fav.get("type").asText();
-            String name = fav.get("name").asText();
+            // String name = fav.get("name").asText();
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-            Favorite fa = ds.createQuery(Favorite.class).field("userId").equal(userID).get();
+            Query<Favorite> query = ds.createQuery(Favorite.class).field("userId").equal(userID);
+            Favorite fa = query.get();
             if (fa == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userID));
-            Query<Favorite> query = ds.createQuery(Favorite.class);
+            UpdateOperations<Favorite> ops = null;
+            AbstractPOI poi;
             switch (type) {
                 case "vs":
-                    ViewSpot poi = new ViewSpot();
+                    poi = new ViewSpot();
                     poi.id = oid;
-                    poi.name = name;
-
-                    fa.vs.add(poi);
+                    //poi.name = name;
+                    ops = ds.createUpdateOperations(Favorite.class).removeAll(type, poi);
                     break;
                 case "hotel":
-                    Hotel hotel = new Hotel();
-                    hotel.id = oid;
-                    hotel.name = name;
+                    poi = new Hotel();
+                    poi.id = oid;
+                    // hotel.name = name;
 
-                    fa.hotel.add(hotel);
+                    ops = ds.createUpdateOperations(Favorite.class).removeAll(type, poi);
                     break;
                 case "restaurant":
-                    Restaurant res = new Restaurant();
-                    res.id = oid;
-                    res.name = name;
+                    poi = new Restaurant();
+                    poi.id = oid;
+                    // res.name = name;
 
-                    fa.restaurant.add(res);
+                    ops = ds.createUpdateOperations(Favorite.class).removeAll(type, poi);
                     break;
                 case "shopping":
 
@@ -257,18 +261,16 @@ public class MiscCtrl extends Controller {
                 case "travelNote":
                     TravelNote tn = new TravelNote();
                     tn.id = oid;
-                    tn.title = name;
+                    // tn.title = name;
 
-                    fa.travelNote.add(tn);
+                    ops = ds.createUpdateOperations(Favorite.class).removeAll(type, tn);
                     break;
             }
-            if (query.iterator().hasNext()) {
-                ds.delete(query);
-                return Utils.createResponse(ErrorCode.NORMAL, "Success.");
-            } else
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Favorite id: %s.", oid));
+            ds.update(query, ops);
         } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
+        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
+
 }
