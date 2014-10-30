@@ -330,44 +330,9 @@ public class UserAPI {
      */
     public static boolean authenticate(String uid, String timestamp, String sign) throws TravelPiException {
         return true;
-//        if (uid == null || uid.isEmpty() || timestamp == null || timestamp.isEmpty() || sign == null || sign.isEmpty())
-//            return false;
-//
-//        try {
-//            UserInfo userInfo = UserAPI.getUserById(uid);
-//            if (userInfo == null || userInfo.secToken == null)
-//                return false;
-//            String serverSign = Utils.toSha1Hex(timestamp + userInfo.secToken);
-//            if (!sign.equals(serverSign))
-//                return false;
-//        } catch (NullPointerException e) {
-//            return false;
-//        }
-//        return true;
     }
 
-
-    /**
-     * 根据字段获得用户信息。
-     */
-    public static UserInfo getUserByField(UserInfoField fieldDesc, String value) throws TravelPiException {
-        return getUserByField(Arrays.asList(fieldDesc), value, null);
-    }
-
-    /**
-     * 根据字段获得用户信息。
-     */
-    public static UserInfo getUserByField(UserInfoField fieldDesc, String value, List<String> fieldList) throws TravelPiException {
-        return getUserByField(Arrays.asList(fieldDesc), value, fieldList);
-    }
-
-    /**
-     * 根据字段获得用户信息。
-     *
-     * @param fieldDesc 哪些字段为查询目标？
-     * @param fieldList 返回结果包含哪些字段？
-     */
-    public static UserInfo getUserByField(List<UserInfoField> fieldDesc, String value, List<String> fieldList)
+    public static Iterator<UserInfo> searchUser(List<String> fieldDesc, Object value, List<String> fieldList, int page, int pageSize)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<UserInfo> query = ds.createQuery(UserInfo.class);
@@ -376,39 +341,52 @@ public class UserAPI {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
 
         List<CriteriaContainerImpl> criList = new ArrayList<>();
-        for (UserInfoField fd : fieldDesc) {
-            switch (fd) {
-                case TEL:
-                    criList.add(query.criteria(UserInfo.fnTel).equal(value));
-                    break;
-                case NICKNAME:
-                    criList.add(query.criteria(UserInfo.fnNickName).equal(value));
-                    break;
-                case OPENID:
-                    criList.add(query.criteria("oauthList.oauthId").equal(value));
-                    break;
-                case EASEMOB:
-                    criList.add(query.criteria(UserInfo.fnEasemobUser).equal(value));
-                    break;
-                case USERID:
-                    try {
-                        criList.add(query.criteria(UserInfo.fnUserId).equal(Integer.parseInt(value)));
-                    } catch (NumberFormatException ignore) {
-                    }
-                    break;
-                default:
-                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid field name: %s.",
-                            fieldDesc));
-            }
-        }
+        for (String fd : fieldDesc)
+            criList.add(query.criteria(fd).equal(value));
+
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
 
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
 
-        return query.get();
+        return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
+
+    /**
+     * 根据字段获得用户信息。
+     *
+     * @param fieldDesc 哪些字段为查询目标？
+     * @param fieldList 返回结果包含哪些字段？
+     */
+    public static UserInfo getUserByField(List<String> fieldDesc, String value, List<String> fieldList)
+            throws TravelPiException {
+        Iterator<UserInfo> itr = searchUser(fieldDesc, value, fieldList, 0, 1);
+        if (itr!=null && itr.hasNext())
+            return itr.next();
+        else
+            return null;
+    }
+
+    /**
+     * 根据字段获得用户信息。
+     *
+     * @param fieldDesc 哪些字段为查询目标？
+     */
+    public static UserInfo getUserByField(String fieldDesc, String value)
+            throws TravelPiException {
+        return getUserByField(Arrays.asList(fieldDesc), value, null);
+    }
+
+    /**
+     * 根据字段获得用户信息。
+     *
+     * @param fieldDesc 哪些字段为查询目标？
+     */
+    public static UserInfo getUserByField(String fieldDesc, String value, List<String> fieldFilter)
+            throws TravelPiException {
+        return getUserByField(Arrays.asList(fieldDesc), value, fieldFilter);
+    }
 
     /**
      * 储存用户信息。

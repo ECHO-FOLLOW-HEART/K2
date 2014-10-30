@@ -55,6 +55,9 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnEasemobUser = "easemobUser";
 
+    @Transient
+    public static String fnOauthId = "oauthList.oauthId";
+
     /**
      * 昵称
      */

@@ -64,7 +64,7 @@ public class UserCtrl extends Controller {
             }
 
             //验证用户是否存在
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel, Arrays.asList(UserInfo.fnUserId)) != null) {
+            if (UserAPI.getUserByField(UserInfo.fnTel, tel, Arrays.asList(UserInfo.fnUserId)) != null) {
                 return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
             }
 
@@ -150,10 +150,10 @@ public class UserCtrl extends Controller {
         try {
             if (UserAPI.checkValidation(countryCode, tel, CAPTCHA_ACTION_BANDTEL, captcha, Integer.valueOf(userId))) {
                 //如果手机已存在，则绑定无效
-                if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null) {
+                if (UserAPI.getUserByField(UserInfo.fnTel, tel) != null) {
                     return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
                 }
-                userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
+                userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
 
@@ -193,7 +193,7 @@ public class UserCtrl extends Controller {
 
         //验证用户是否存在-手机号
         try {
-            UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
+            UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
             if (userInfo == null)
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
@@ -230,7 +230,7 @@ public class UserCtrl extends Controller {
         //验证Token
         try {
             if (UserAPI.checkToken(token, Integer.valueOf(userId), CAPTCHA_ACTION_MODPWD)) {
-                UserInfo userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
+                UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
                 UserAPI.resetPwd(userInfo, pwd);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else
@@ -264,7 +264,7 @@ public class UserCtrl extends Controller {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //验证用户是否存在
         try {
-            UserInfo us = UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel);
+            UserInfo us = UserAPI.getUserByField(UserInfo.fnTel, tel);
             if (actionCode == CAPTCHA_ACTION_SIGNUP) {
                 if (us != null) {
                     return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
@@ -308,10 +308,8 @@ public class UserCtrl extends Controller {
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
 
-            List<UserAPI.UserInfoField> fieldDesc = new ArrayList<>();
-            fieldDesc.add(UserAPI.UserInfoField.TEL);
-            fieldDesc.add(UserAPI.UserInfoField.USERID);
-            userInfo = UserAPI.getUserByField(fieldDesc, loginName, null);
+            userInfo = UserAPI.getUserByField(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName),
+                    loginName, null);
 
             if (userInfo == null)
                 return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.USER_NOT_EXIST_MSG, true);
@@ -351,9 +349,9 @@ public class UserCtrl extends Controller {
     public static Result validityInfo(String tel, String nick) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         try {
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.TEL, tel) != null)
+            if (UserAPI.getUserByField(UserInfo.fnTel, tel) != null)
                 return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, nick) != null) {
+            if (UserAPI.getUserByField(UserInfo.fnNickName, nick) != null) {
                 return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
             }
 
@@ -417,7 +415,7 @@ public class UserCtrl extends Controller {
             }
 
             //如果第三方用户已存在,视为第二次登录
-            us = UserAPI.getUserByField(UserAPI.UserInfoField.OPENID, infoNode.get("openid").asText());
+            us = UserAPI.getUserByField(UserInfo.fnOauthId, infoNode.get("openid").asText());
             if (us != null) {
                 ObjectNode info = (ObjectNode) new SelfUserFormatter().format(us);
 
@@ -439,7 +437,7 @@ public class UserCtrl extends Controller {
             //JSON转化为userInfo
             us = UserAPI.oauthToUserInfoForWX(infoNode);
             //如果第三方昵称已被其他用户使用，则添加后缀
-            if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, us.nickName) != null) {
+            if (UserAPI.getUserByField(UserInfo.fnNickName, us.nickName) != null) {
                 nickDuplicateRemoval(us);
             }
 
@@ -554,19 +552,17 @@ public class UserCtrl extends Controller {
      */
     public static Result searchUser(String keyword) {
         try {
+            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnNickName, UserInfo.fnTel,
+                    UserInfo.fnEasemobUser), keyword, null, 0, 20);
 
-            List<UserAPI.UserInfoField> userInfoFieldList = new ArrayList<>();
-            userInfoFieldList.add(UserAPI.UserInfoField.NICKNAME);
-            userInfoFieldList.add(UserAPI.UserInfoField.TEL);
-            userInfoFieldList.add(UserAPI.UserInfoField.EASEMOB);
-
-            UserInfo userInfor = UserAPI.getUserByField(userInfoFieldList, keyword, null);
-            if (userInfor == null)
-                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
-            ObjectNode info = (ObjectNode) new SideUserFormatter().format(userInfor);
-            info.put("memo", "");
-
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(Arrays.asList(info)));
+            List<JsonNode> result = new ArrayList<>();
+            while (itr.hasNext()) {
+                UserInfo user = itr.next();
+                ObjectNode node = (ObjectNode) new SideUserFormatter().format(user);
+                node.put("memo", "");
+                result.add(node);
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user : %s.", keyword));
         } catch (NumberFormatException e) {
@@ -601,7 +597,7 @@ public class UserCtrl extends Controller {
                 // TODO 跟踪乱码问题
                 LogUtils.info(Plan.class, "NickName in POST:" + nickName);
                 //如果昵称不存在
-                if (UserAPI.getUserByField(UserAPI.UserInfoField.NICKNAME, nickName) == null)
+                if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
                     userInfor.nickName = nickName;
                 else
                     return Utils.createResponse(MsgConstants.NICKNAME_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
