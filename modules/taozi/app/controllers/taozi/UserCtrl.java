@@ -25,6 +25,8 @@ import utils.formatter.taozi.user.CredentialFormatter;
 import utils.formatter.taozi.user.SelfUserFormatter;
 import utils.formatter.taozi.user.SideUserFormatter;
 import utils.formatter.taozi.user.SimpleUserFormatter;
+import utils.phone.PhoneEntity;
+import utils.phone.PhoneParserFactory;
 
 import java.io.IOException;
 import java.net.URL;
@@ -53,26 +55,23 @@ public class UserCtrl extends Controller {
     public static Result signup() {
         JsonNode req = request().body().asJson();
         try {
-            String tel = req.get("tel").asText();
             String pwd = req.get("pwd").asText();
-            Integer countryCode;
             String captcha = req.get("captcha").asText();
-            if (req.has("dialCode")) {
-                countryCode = Integer.valueOf(req.get("dialCode").asText());
-            } else {
-                countryCode = 86;
-            }
+
+            PhoneEntity telEntry = PhoneParserFactory.newInstance().parse(req.get("tel").asText());
 
             //验证用户是否存在
-            if (UserAPI.getUserByField(UserInfo.fnTel, tel, Arrays.asList(UserInfo.fnUserId)) != null) {
+            if (UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber(),
+                    Arrays.asList(UserInfo.fnUserId)) != null) {
                 return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
             }
 
             UserInfo userInfo;
             //验证验证码 magic captcha
-            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, 1, captcha, null)) {
+            if (captcha.equals("85438734") || UserAPI.checkValidation(telEntry.getDialCode(), telEntry.getPhoneNumber()
+                    , 1, captcha, null)) {
                 // 生成用户
-                userInfo = UserAPI.regByTel(tel, countryCode, pwd);
+                userInfo = UserAPI.regByTel(telEntry.getPhoneNumber(), telEntry.getDialCode(), pwd);
             } else
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
@@ -96,6 +95,8 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }
 
@@ -308,8 +309,16 @@ public class UserCtrl extends Controller {
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
 
+            PhoneEntity telEntry = null;
+            try {
+                telEntry = PhoneParserFactory.newInstance().parse(loginName);
+            } catch (IllegalArgumentException ignore) {
+            }
+
             userInfo = UserAPI.getUserByField(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName),
                     loginName, null);
+            if (userInfo == null && telEntry != null)
+                userInfo = UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber());
 
             if (userInfo == null)
                 return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.USER_NOT_EXIST_MSG, true);
