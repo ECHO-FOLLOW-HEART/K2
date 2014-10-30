@@ -561,12 +561,22 @@ public class UserCtrl extends Controller {
      * @return
      */
     public static Result searchUser(String keyword) {
+        PhoneEntity telEntry = null;
         try {
-            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnNickName, UserInfo.fnTel,
-                    UserInfo.fnEasemobUser), keyword, null, 0, 20);
+            telEntry = PhoneParserFactory.newInstance().parse(keyword);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        try {
+            Iterator<UserInfo> itr = null;
+            if (telEntry != null)
+                itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel), telEntry.getPhoneNumber(), null, 0, 20);
+            if (itr == null || !itr.hasNext())
+                itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnNickName, UserInfo.fnTel, UserInfo.fnEasemobUser),
+                        keyword, null, 0, 20);
 
             List<JsonNode> result = new ArrayList<>();
-            while (itr.hasNext()) {
+            while (itr != null && itr.hasNext()) {
                 UserInfo user = itr.next();
                 ObjectNode node = (ObjectNode) new SideUserFormatter().format(user);
                 node.put("memo", "");
