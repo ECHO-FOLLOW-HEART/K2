@@ -305,7 +305,6 @@ public class UserCtrl extends Controller {
 
         JsonNode req = request().body().asJson();
         try {
-            UserInfo userInfo;
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
 
@@ -315,10 +314,12 @@ public class UserCtrl extends Controller {
             } catch (IllegalArgumentException ignore) {
             }
 
-            userInfo = UserAPI.getUserByField(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName),
-                    loginName, null);
-            if (userInfo == null && telEntry != null)
+            UserInfo userInfo = null;
+            if (telEntry != null)
                 userInfo = UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber());
+            if (userInfo == null)
+                userInfo = UserAPI.getUserByField(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName),
+                        loginName, null);
 
             if (userInfo == null)
                 return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.USER_NOT_EXIST_MSG, true);
