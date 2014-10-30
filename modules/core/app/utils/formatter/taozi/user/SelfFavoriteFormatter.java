@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
+import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.AbstractPOI;
 import models.user.Favorite;
@@ -33,6 +34,7 @@ public class SelfFavoriteFormatter implements JsonFormatter {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
+        //收藏字段
         PropertyFilter theFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
@@ -50,6 +52,7 @@ public class SelfFavoriteFormatter implements JsonFormatter {
                 includedFields.add(Favorite.TYPE_HOTEL);
                 includedFields.add(Favorite.TYPE_RESTAURANT);
                 includedFields.add(Favorite.TYPE_TRAVELNOTE);
+                includedFields.add(Favorite.TYPE_LOCALITY);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -63,6 +66,8 @@ public class SelfFavoriteFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
+
+        //POI字段
         PropertyFilter poiFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
@@ -91,6 +96,8 @@ public class SelfFavoriteFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
+
+        //游记字段
         PropertyFilter travelFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
@@ -120,7 +127,37 @@ public class SelfFavoriteFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("abstractPOIFilter", poiFilter).addFilter("travelNoteFilter",travelFilter);
+        //城市字段
+        PropertyFilter localityFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(Locality.simpId);
+                includedFields.add(Locality.simpZhName);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+        FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("abstractPOIFilter", poiFilter)
+                .addFilter("travelNoteFilter", travelFilter).addFilter("localityFilter", localityFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

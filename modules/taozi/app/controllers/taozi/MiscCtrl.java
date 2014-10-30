@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.geo.Locality;
 import models.misc.Feedback;
 import models.misc.MiscInfo;
 import models.misc.Recommendation;
@@ -73,8 +74,8 @@ public class MiscCtrl extends Controller {
         try {
             Integer uid = feedback.has("userId") ? feedback.get("userId").asInt() : null;
             String body = feedback.has("body") ? feedback.get("body").asText().trim() : null;
-            if (body == null || body.equals(""))
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "No body found.");
+            if (body == null || body.equals("")||uid == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid feedback content.");
             Feedback feedBack = new Feedback();
             Datastore dsSave = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             feedBack.uid = uid;
@@ -169,6 +170,12 @@ public class MiscCtrl extends Controller {
                     tn.id = oid;
                     tn.title = name;
                     ops = ds.createUpdateOperations(Favorite.class).add(type, tn);
+                    break;
+                case "locality":
+                    Locality loc = new Locality();
+                    loc.id = oid;
+                    loc.zhName = name;
+                    ops = ds.createUpdateOperations(Favorite.class).add(type, loc);
                     break;
                 default:
                     return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Error favorite type : %s", type));
@@ -265,6 +272,14 @@ public class MiscCtrl extends Controller {
 
                     ops = ds.createUpdateOperations(Favorite.class).removeAll(type, tn);
                     break;
+                case "locality":
+                    Locality loc = new Locality();
+                    loc.id = oid;
+                    //loc.zhName = name;
+                    ops = ds.createUpdateOperations(Favorite.class).removeAll(type, loc);
+                    break;
+                default:
+                    return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Error favorite type : %s", type));
             }
             ds.update(query, ops);
         } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {

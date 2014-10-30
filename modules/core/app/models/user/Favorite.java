@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
+import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.Hotel;
 import models.poi.Restaurant;
@@ -36,6 +37,9 @@ public class Favorite extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String TYPE_TRAVELNOTE = "travelNote";
+
+    @Transient
+    public static String TYPE_LOCALITY = "locality";
 
     @Id
     public ObjectId id;
@@ -70,6 +74,13 @@ public class Favorite extends TravelPiBaseItem implements ITravelPiFormatter {
     @Embedded
     public List<TravelNote> travelNote;
 
+    /**
+     * 收藏城市
+     */
+    @Embedded
+    public List<Locality> locality;
+
+
     public List<ViewSpot> getVs() {
         if (vs == null)
             return new ArrayList<>();
@@ -96,6 +107,13 @@ public class Favorite extends TravelPiBaseItem implements ITravelPiFormatter {
             return new ArrayList<>();
         else
             return travelNote;
+    }
+
+    public List<Locality> getLocality() {
+        if (locality == null)
+            return new ArrayList<>();
+        else
+            return locality;
     }
 
     @Override

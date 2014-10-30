@@ -1,5 +1,6 @@
 package models.geo;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
@@ -14,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
@@ -28,7 +30,15 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 @Entity
+@JsonFilter("localityFilter")
 public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
+
+    @Transient
+    public static String simpId = "id";
+
+
+    @Transient
+    public static String simpZhName = "zhName";
     @Indexed()
     public String zhName;
 
