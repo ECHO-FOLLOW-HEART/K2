@@ -18,6 +18,7 @@ import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
+import utils.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,9 +37,14 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String simpId = "id";
 
+    @Transient
+    public static String simpZhName = "name";
+    @Transient
+    public static String simpDesc = "desc";
 
     @Transient
-    public static String simpZhName = "zhName";
+    public static String simpImg = "images";
+
     @Indexed()
     public String zhName;
 
@@ -101,6 +107,28 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
      * 该locality对应路线的
      */
     public Integer relPlanCnt;
+
+    public String getName() {
+        if (zhName == null)
+            return "";
+        else
+            return stripLocName(zhName);
+    }
+
+    public List<String> getImages() {
+        if (imageList == null)
+            return new ArrayList();
+        else {
+            return imageList;
+        }
+    }
+
+    public String getDesc() {
+        if (desc == null)
+            return "";
+        else
+            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+    }
 
     /**
      * 去掉末尾的省市县等名字。

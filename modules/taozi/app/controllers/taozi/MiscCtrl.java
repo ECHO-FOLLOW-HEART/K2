@@ -1,5 +1,7 @@
 package controllers.taozi;
 
+import aizou.core.LocalityAPI;
+import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
@@ -74,7 +76,7 @@ public class MiscCtrl extends Controller {
         try {
             Integer uid = feedback.has("userId") ? feedback.get("userId").asInt() : null;
             String body = feedback.has("body") ? feedback.get("body").asText().trim() : null;
-            if (body == null || body.equals("")||uid == null)
+            if (body == null || body.equals("") || uid == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid feedback content.");
             Feedback feedBack = new Feedback();
             Datastore dsSave = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
@@ -99,7 +101,6 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result recommend(String type, int page, int pageSize) {
-        JsonNode feedback = request().body().asJson();
         List<JsonNode> results = new ArrayList<>();
         Datastore ds;
         try {
@@ -131,7 +132,6 @@ public class MiscCtrl extends Controller {
             String itemId = collection.get("itemId").asText();
             ObjectId oid = new ObjectId(itemId);
             String type = collection.get("type").asText();
-            String name = collection.get("name").asText();
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
             Query<Favorite> query = ds.createQuery(Favorite.class).field("userId").equal(userID);
             Favorite fa = query.get();
@@ -143,19 +143,16 @@ public class MiscCtrl extends Controller {
                 case "vs":
                     ViewSpot poi = new ViewSpot();
                     poi.id = oid;
-                    poi.name = name;
                     ops = ds.createUpdateOperations(Favorite.class).add(type, poi);
                     break;
                 case "hotel":
                     Hotel hotel = new Hotel();
                     hotel.id = oid;
-                    hotel.name = name;
                     ops = ds.createUpdateOperations(Favorite.class).add(type, hotel);
                     break;
                 case "restaurant":
                     Restaurant res = new Restaurant();
                     res.id = oid;
-                    res.name = name;
                     ops = ds.createUpdateOperations(Favorite.class).add(type, res);
                     break;
                 case "shopping":
@@ -168,21 +165,17 @@ public class MiscCtrl extends Controller {
                 case "travelNote":
                     TravelNote tn = new TravelNote();
                     tn.id = oid;
-                    tn.title = name;
                     ops = ds.createUpdateOperations(Favorite.class).add(type, tn);
                     break;
                 case "locality":
                     Locality loc = new Locality();
                     loc.id = oid;
-                    loc.zhName = name;
                     ops = ds.createUpdateOperations(Favorite.class).add(type, loc);
                     break;
                 default:
                     return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Error favorite type : %s", type));
             }
-
             ds.update(query, ops);
-
         } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
@@ -196,18 +189,71 @@ public class MiscCtrl extends Controller {
         return fa;
     }
 
+    private static Favorite createFavorite(Favorite fa) {
+        Favorite result = new Favorite();
+        result.id = fa.id;
+        result.userId = fa.userId;
+        return result;
+    }
+
     /**
      * 取得收藏
      *
      * @return
      */
-    public static Result getFavorite(Integer userID) {
+    public static Result getFavorite(Integer userID, String faType, int page, int pageSize) {
 
         try {
             Favorite fa = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).createQuery(Favorite.class)
                     .field("userId").equal(userID).get();
+            Favorite retFa = createFavorite(fa);
+            List<? extends AbstractPOI> pois;
+            List<String> fields = Arrays.asList("id", "name", "description", "images", "desc", "imageList");
+            List<String> tnFields = Arrays.asList("id", "title", "summary");
+            List<String> locFields = Arrays.asList("id", "zhName", "imageList", "desc");
+            switch (faType) {
+                case "vs":
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.vs, faType, fields, page, pageSize);
+                    retFa.vs = (List<ViewSpot>) pois;
+
+                    break;
+                case "hotel":
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.hotel, faType, fields, page, pageSize);
+                    retFa.hotel = (List<Hotel>) pois;
+                    break;
+                case "restaurant":
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.restaurant, faType, fields, page, pageSize);
+                    retFa.restaurant = (List<Restaurant>) pois;
+                    break;
+                case "shopping":
+
+                    // TODO 缺少购物
+                    break;
+                case "entertainment":
+                    // TODO 缺少美食
+                    break;
+                case "travelNote":
+                    // TODO 游记缺少图片
+                    retFa.travelNote = fa.travelNote;
+                    break;
+                case "locality":
+                    retFa.locality = LocalityAPI.getLocalityListByLoc(fa.locality, faType, locFields, page, pageSize);
+                    break;
+                case "all":
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.vs, "vs", fields, page, pageSize);
+                    retFa.vs = (List<ViewSpot>) pois;
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.hotel, "hotel", fields, page, pageSize);
+                    retFa.hotel = (List<Hotel>) pois;
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.restaurant, "restaurant", fields, page, pageSize);
+                    retFa.restaurant = (List<Restaurant>) pois;
+
+                    retFa.locality = LocalityAPI.getLocalityListByLoc(fa.locality, "locality", locFields, page, pageSize);
+                    break;
+                default:
+                    return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Error favorite type : %s", faType));
+            }
             if (fa != null) {
-                JsonNode info = new SelfFavoriteFormatter().format(fa);
+                JsonNode info = new SelfFavoriteFormatter().format(retFa);
                 ObjectNode ret = (ObjectNode) info;
                 return Utils.createResponse(ErrorCode.NORMAL, ret);
             } else
@@ -229,7 +275,6 @@ public class MiscCtrl extends Controller {
             String itemId = fav.get("itemId").asText();
             ObjectId oid = new ObjectId(itemId);
             String type = fav.get("type").asText();
-            // String name = fav.get("name").asText();
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
             Query<Favorite> query = ds.createQuery(Favorite.class).field("userId").equal(userID);
             Favorite fa = query.get();
@@ -241,20 +286,17 @@ public class MiscCtrl extends Controller {
                 case "vs":
                     poi = new ViewSpot();
                     poi.id = oid;
-                    //poi.name = name;
                     ops = ds.createUpdateOperations(Favorite.class).removeAll(type, poi);
                     break;
                 case "hotel":
                     poi = new Hotel();
                     poi.id = oid;
-                    // hotel.name = name;
 
                     ops = ds.createUpdateOperations(Favorite.class).removeAll(type, poi);
                     break;
                 case "restaurant":
                     poi = new Restaurant();
                     poi.id = oid;
-                    // res.name = name;
 
                     ops = ds.createUpdateOperations(Favorite.class).removeAll(type, poi);
                     break;
@@ -268,14 +310,12 @@ public class MiscCtrl extends Controller {
                 case "travelNote":
                     TravelNote tn = new TravelNote();
                     tn.id = oid;
-                    // tn.title = name;
 
                     ops = ds.createUpdateOperations(Favorite.class).removeAll(type, tn);
                     break;
                 case "locality":
                     Locality loc = new Locality();
                     loc.id = oid;
-                    //loc.zhName = name;
                     ops = ds.createUpdateOperations(Favorite.class).removeAll(type, loc);
                     break;
                 default:
