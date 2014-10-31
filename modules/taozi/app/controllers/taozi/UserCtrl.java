@@ -1,16 +1,20 @@
 package controllers.taozi;
 
 import aizou.core.UserAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
+import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -19,7 +23,10 @@ import utils.DataConvert.UserConvert;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
-import utils.builder.UserBuilder;
+import utils.formatter.taozi.user.CredentialFormatter;
+import utils.formatter.taozi.user.SelfUserFormatter;
+import utils.formatter.taozi.user.SideUserFormatter;
+import utils.formatter.taozi.user.SimpleUserFormatter;
 
 import java.io.IOException;
 import java.net.URL;
@@ -52,8 +59,8 @@ public class UserCtrl extends Controller {
             String pwd = req.get("pwd").asText();
             Integer countryCode;
             String captcha = req.get("captcha").asText();
-            if (req.has("countryCode")) {
-                countryCode = Integer.valueOf(req.get("countryCode").asText());
+            if (req.has("dialCode")) {
+                countryCode = Integer.valueOf(req.get("dialCode").asText());
             } else {
                 countryCode = 86;
             }
@@ -71,8 +78,23 @@ public class UserCtrl extends Controller {
             } else
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
-            if (userInfo != null)
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
+            if (userInfo != null) {
+                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.userId,
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
+            }
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -91,8 +113,8 @@ public class UserCtrl extends Controller {
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
         Integer userId = Integer.valueOf(req.get("userId").asText());
         int countryCode = 86;
-        if (req.has("countryCode"))
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        if (req.has("dialCode"))
+            countryCode = Integer.valueOf(req.get("dialCode").asText());
 
         ObjectNode result = Json.newObject();
         try {
@@ -121,8 +143,8 @@ public class UserCtrl extends Controller {
         Integer countryCode;
         String pwd = req.has("pwd") ? req.get("pwd").asText() : "";
         String userId = req.get("userId").asText();
-        if (req.has("countryCode")) {
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        if (req.has("dialCode")) {
+            countryCode = Integer.valueOf(req.get("dialCode").asText());
         } else {
             countryCode = 86;
         }
@@ -136,9 +158,15 @@ public class UserCtrl extends Controller {
                 userInfo = UserAPI.getUserByField(UserAPI.UserInfoField.USERID, userId);
                 userInfo.tel = tel;
                 UserAPI.saveUserInfo(userInfo);
-                if (!pwd.equals(""))
-                    // TODO 此处有bug
-                    UserAPI.regCredential(userInfo, pwd);
+
+                if (!pwd.equals("")) {
+                    Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+                    Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(userInfo.userId).get();
+                    cre.salt = Utils.getSalt();
+                    cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+
+                    MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+                }
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
@@ -159,8 +187,8 @@ public class UserCtrl extends Controller {
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
         Integer countryCode;
-        if (req.has("countryCode")) {
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        if (req.has("dialCode")) {
+            countryCode = Integer.valueOf(req.get("dialCode").asText());
         } else {
             countryCode = 86;
         }
@@ -194,8 +222,8 @@ public class UserCtrl extends Controller {
         String token = req.get("token").asText();
         String userId = req.get("userId").asText();
         Integer countryCode = 86;
-        if (req.has("countryCode"))
-            countryCode = Integer.valueOf(req.get("countryCode").asText());
+        if (req.has("dialCode"))
+            countryCode = Integer.valueOf(req.get("dialCode").asText());
 
         //验证密码格式
         if (!validityPwd(pwd)) {
@@ -232,7 +260,7 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
 
         String tel = req.get("tel").asText();
-        Integer countryCode = req.has("countryCode") ? Integer.valueOf(req.get("countryCode").asText()) : 86;
+        Integer countryCode = req.has("dialCode") ? Integer.valueOf(req.get("dialCode").asText()) : 86;
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
         Integer userId = Integer.valueOf(req.get("userId").asText());
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
@@ -294,9 +322,23 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
 
             //验证密码
-            if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd))
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(userInfo, UserBuilder.DETAILS_LEVEL_1));
-            else
+            if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd)) {
+                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.userId,
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
+            } else
                 return Utils.createResponse(MsgConstants.PWD_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -382,7 +424,21 @@ public class UserCtrl extends Controller {
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserAPI.UserInfoField.OPENID, infoNode.get("openid").asText());
             if (us != null) {
-                return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
+                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(us);
+
+                Credential cre = UserAPI.getCredentialByUserId(us.userId,
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
             }
 
             //JSON转化为userInfo
@@ -393,7 +449,7 @@ public class UserCtrl extends Controller {
             }
 
             UserAPI.saveUserInfo(us);
-            return Utils.createResponse(ErrorCode.NORMAL, UserBuilder.buildUserInfo(us, UserBuilder.DETAILS_LEVEL_1));
+            return Utils.createResponse(ErrorCode.NORMAL, new SelfUserFormatter().format(us));
 
 
         } catch (IOException | NullPointerException | TravelPiException e) {
@@ -457,15 +513,29 @@ public class UserCtrl extends Controller {
      */
     public static Result getUserProfileById(Integer userId) {
         try {
+            String tmp = request().getHeader("UserId");
+            Integer selfId = null;
+            if (tmp != null)
+                selfId = Integer.parseInt(tmp);
+
             UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null)
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
-            ObjectNode ret = (ObjectNode) UserBuilder.buildUserInfo(userInfor, UserBuilder.DETAILS_LEVEL_1);
-            ret.put("memo", "");
 
-            return Utils.createResponse(ErrorCode.NORMAL, ret);
+            ObjectNode info;
+            if (userId.equals(selfId)) {
+                info = (ObjectNode) new SelfUserFormatter().format(userInfor);
+            } else
+                info = (ObjectNode) new SideUserFormatter().format(userInfor);
+
+            info.put("memo", "");
+            return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
+        } catch (NumberFormatException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
+        } catch (JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "");
         }
     }
 
@@ -478,6 +548,13 @@ public class UserCtrl extends Controller {
     public static Result editorUserInfo(Integer userId) {
         try {
             JsonNode req = request().body().asJson();
+
+            String tmp = request().getHeader("UserId");
+            Integer selfId = null;
+            if (tmp != null)
+                selfId = Integer.parseInt(tmp);
+            if (!userId.equals(selfId))
+                return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
 
             UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null) {
@@ -577,24 +654,23 @@ public class UserCtrl extends Controller {
 
         try {
             List<UserInfo> list = UserAPI.getContactList(userId);
+            if (list == null)
+                list = new ArrayList<>();
+
             List<JsonNode> nodelist = new ArrayList<>();
-            if (!list.isEmpty()) {
-                for (UserInfo userInfo : list) {
-                    BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();      //构建JsonNode
-                    builder.add("nickName", userInfo.nickName).add("avatar", userInfo.avatar).add("gender", userInfo.gender).
-                            add("signature", userInfo.signature);
-                    JsonNode node = Json.toJson(builder.get());
-                    nodelist.add(node);
+            for (UserInfo userInfo : list) {
+                try {
+                    nodelist.add(new SimpleUserFormatter().format(userInfo));
+                } catch (JsonProcessingException ignored) {
                 }
-                Map<String, List<JsonNode>> map = new HashMap<>();
-                map.put("userList", nodelist);
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
-            } else {
-                return Utils.createResponse(ErrorCode.NORMAL, Json.newObject());
             }
 
+            ObjectNode node = Json.newObject();
+            node.put("contacts", Json.toJson(nodelist));
+            return Utils.createResponse(ErrorCode.NORMAL, node);
+
         } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("return list failed"));
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 
@@ -659,5 +735,16 @@ public class UserCtrl extends Controller {
         } catch (TravelPiException | NullPointerException | ClassCastException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
         }
+    }
+
+    //test
+    public static Result getUserInfo(Integer id){
+        try {
+            UserInfo userInfo=UserAPI.getUserInfo(id);
+            return Utils.createResponse(ErrorCode.NORMAL,userInfo.toJson());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,Json.toJson("wrong"));
+        }
+
     }
 }

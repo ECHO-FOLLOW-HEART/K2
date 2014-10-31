@@ -1,3 +1,4 @@
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import play.Application;
@@ -7,7 +8,10 @@ import play.filters.gzip.GzipFilter;
 import play.mvc.Action;
 import play.mvc.Http;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.TimeZone;
 
 public class Global extends GlobalSettings {

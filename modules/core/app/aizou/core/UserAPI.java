@@ -57,9 +57,13 @@ public class UserAPI {
         }
     }
 
+    /**
+     * 获取用户信息
+     *
+     * @throws TravelPiException
+     */
     public static UserInfo getUserInfo(Integer id) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        return ds.createQuery(UserInfo.class).field("userId").equal(id).get();
+        return getUserInfo(id, null);
     }
 
     /**
@@ -67,9 +71,9 @@ public class UserAPI {
      *
      * @throws TravelPiException
      */
-    public static UserInfo getUserByUserId(Integer id, List<String> fieldList) throws TravelPiException {
+    public static UserInfo getUserInfo(Integer id, List<String> fieldList) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        Query<UserInfo> query = ds.createQuery(UserInfo.class).field("userId").equal(id);
+        Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(id);
         if (fieldList != null && !fieldList.isEmpty()) {
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         }
@@ -240,7 +244,7 @@ public class UserAPI {
         if (user != null) {
             //更新签名
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-            user.secToken = secToken;
+//            user.secToken = secToken;
             ds.save(user);
 
             return user;
@@ -269,7 +273,7 @@ public class UserAPI {
         user.avatar = avatar;
         user.udid = udid;
         user.oauthList = new ArrayList<>();
-        user.secToken = secToken;
+//        user.secToken = secToken;
 
         OAuthInfo oauthInfo = new OAuthInfo();
         oauthInfo.provider = provider;
@@ -325,20 +329,21 @@ public class UserAPI {
      * @throws TravelPiException
      */
     public static boolean authenticate(String uid, String timestamp, String sign) throws TravelPiException {
-        if (uid == null || uid.isEmpty() || timestamp == null || timestamp.isEmpty() || sign == null || sign.isEmpty())
-            return false;
-
-        try {
-            UserInfo userInfo = UserAPI.getUserById(uid);
-            if (userInfo == null || userInfo.secToken == null)
-                return false;
-            String serverSign = Utils.toSha1Hex(timestamp + userInfo.secToken);
-            if (!sign.equals(serverSign))
-                return false;
-        } catch (NullPointerException e) {
-            return false;
-        }
         return true;
+//        if (uid == null || uid.isEmpty() || timestamp == null || timestamp.isEmpty() || sign == null || sign.isEmpty())
+//            return false;
+//
+//        try {
+//            UserInfo userInfo = UserAPI.getUserById(uid);
+//            if (userInfo == null || userInfo.secToken == null)
+//                return false;
+//            String serverSign = Utils.toSha1Hex(timestamp + userInfo.secToken);
+//            if (!sign.equals(serverSign))
+//                return false;
+//        } catch (NullPointerException e) {
+//            return false;
+//        }
+//        return true;
     }
 
 
@@ -428,21 +433,34 @@ public class UserAPI {
         user.tel = tel;
         user.nickName = "桃子_" + user.userId;
         user.gender = "";
-        user.countryCode = countryCode;
+        user.dialCode = countryCode;
         user.email = "";
-        try {
-            user.secToken = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
-        } catch (NoSuchAlgorithmException ignored) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
-        }
         user.signature = "";
         user.origin = "peach-telUser";
         user.enabled = true;
 
-        // 注册私密信息
-        regCredential(user, pwd);
+        // 注册环信
+        String[] ret = regEasemob();
+        String easemobPwd = ret[1];
 
+        user.easemobUser = ret[0];
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
+
+        // 注册机密信息
+        Credential cre = new Credential();
+        cre.id = user.id;
+        cre.userId = user.userId;
+        cre.salt = Utils.getSalt();
+        if (!pwd.equals(""))
+            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        cre.easemobPwd = easemobPwd;
+        try {
+            cre.secKey = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+        } catch (NoSuchAlgorithmException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
+        }
+
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
 
         return user;
     }
@@ -458,57 +476,62 @@ public class UserAPI {
         return ret.count;
     }
 
-    /**
-     * 注册密码
-     *
-     * @param u
-     * @param pwd
-     * @return
-     */
-    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
-        Credential cre = new Credential();
-        cre.id = u.id;
-        cre.userId = u.userId;
-        cre.salt = Utils.getSalt();
-        if (!pwd.equals(""))
-            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
-    }
+//    /**
+//     * 注册密码
+//     *
+//     * @param u
+//     * @param pwd
+//     * @return
+//     */
+//    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
+//        Credential cre = new Credential();
+//        cre.id = u.id;
+//        cre.userId = u.userId;
+//        cre.salt = Utils.getSalt();
+//        if (!pwd.equals(""))
+//            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+//        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+//    }
 
     /**
      * 注册密码和环信
      *
-     * @param u
-     * @param pwd
-     * @return
+     * @return 返回环信的用户名和密码
      */
-    public static void regCredentialAndHunanXin(UserInfo u, String pwd) throws TravelPiException {
-        Credential cre = new Credential();
-        cre.id = new ObjectId();
-        cre.userId = u.userId;
-        cre.salt = Utils.getSalt();
-        if (!pwd.equals(""))
-            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-
-        // 环信注册
-        String base = "abcdefghijklmnopqrstuvwxyz0123456789";
-        int size = base.length();
-        Random random = new Random();
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 32; i++)
-            sb.append(base.charAt(random.nextInt(size)));
-        cre.easemobUser = sb.toString();
-        String passwd = null;
+    public static String[] regEasemob() throws TravelPiException {
+        String easemobPwd;
         try {
-            passwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
-        } catch (NoSuchAlgorithmException ignored) {
+            easemobPwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+        } catch (NoSuchAlgorithmException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
         }
-        assert passwd != null;
-        cre.easemobPwd = passwd;
 
-        regEaseMob(cre.easemobUser, cre.easemobPwd);
+        String easemobName = null;
+        boolean flag = false;
+        for (int i = 0; i < 5; i++) {
+            // 环信注册
+            String base = "abcdefghijklmnopqrstuvwxyz0123456789";
+            int size = base.length();
+            Random random = new Random();
+            StringBuilder sb = new StringBuilder();
+            for (int j = 0; j < 32; j++)
+                sb.append(base.charAt(random.nextInt(size)));
+            easemobName = sb.toString();
 
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+            try {
+                regEasemobReq(easemobName, easemobPwd);
+                flag = true;
+                break;
+            } catch (TravelPiException e) {
+                if (e.errCode != ErrorCode.USER_EXIST)
+                    throw e;
+            }
+        }
+
+        if (flag)
+            return new String[]{easemobName, easemobPwd};
+        else
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
     }
 
     /**
@@ -567,21 +590,15 @@ public class UserAPI {
      * @throws TravelPiException
      */
     public static void resetPwd(UserInfo u, String pwd) throws TravelPiException {
+        if (pwd == null || pwd.isEmpty() || u == null || u.userId == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        Query<Credential> ceQuery = ds.createQuery(Credential.class);
-        Credential cre = ceQuery.field("userId").equal(u.userId).get();
-        if (cre == null) {
-            regCredential(u, pwd);
-        } else {
-            cre = new Credential();
-            cre.id = new ObjectId();
-            cre.userId = u.userId;
-            cre.salt = Utils.getSalt();
-            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-            ds.save(cre);
-        }
+        Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(u.userId).get();
+        cre.salt = Utils.getSalt();
+        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
 
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
     }
 
     /**
@@ -764,7 +781,7 @@ public class UserAPI {
      * @param userName
      * @param pwd
      */
-    private static void regEaseMob(String userName, String pwd) throws TravelPiException {
+    private static void regEasemobReq(String userName, String pwd) throws TravelPiException {
         // 重新获取token
         Configuration config = Configuration.root().getConfig("easemob");
         String orgName = config.getString("org");
@@ -791,8 +808,12 @@ public class UserAPI {
             String body = IOUtils.toString(in, conn.getContentEncoding());
 
             JsonNode tokenData = Json.parse(body);
-            if (tokenData.has("error"))
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+            if (tokenData.has("error")) {
+                if (tokenData.get("error").asText().equals("duplicate_unique_property_exists"))
+                    throw new TravelPiException(ErrorCode.USER_EXIST, String.format("Easemob user %s exists.", userName));
+                else
+                    throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+            }
         } catch (java.io.IOException e) {
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
         }
@@ -805,14 +826,13 @@ public class UserAPI {
      * @param userIdB
      */
     public static void modEaseMobContacts(Integer userIdA, Integer userIdB, boolean actionAdd) throws TravelPiException {
-        List<String> fieldList = new ArrayList<>();
-        fieldList.add("easemobUser");
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
-            Credential creA = UserAPI.getCredentialByUserId(userIdA, fieldList);
-            userA = creA.easemobUser;
-            Credential creB = UserAPI.getCredentialByUserId(userIdB, fieldList);
-            userB = creB.easemobUser;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
+            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobUser;
+            if (userA == null || userB == null)
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         } catch (NullPointerException e) {
             throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
         }
@@ -847,17 +867,22 @@ public class UserAPI {
      * 在环信用户系统中添加用户的黑名单关系
      */
     public static void addEaseMobBlocks(Integer userIdA, List<Integer> blockIds) throws TravelPiException {
-        List<String> fieldList = new ArrayList<>();
-        fieldList.add("easemobUser");
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA;
+        if (blockIds == null || blockIds.isEmpty())
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "");
+
         List<String> blockNames = new ArrayList<>();
         try {
-            Credential creA = UserAPI.getCredentialByUserId(userIdA, fieldList);
-            userA = creA.easemobUser;
-            if (blockIds != null) {
-                for (Integer i : blockIds) {
-                    blockNames.add(UserAPI.getCredentialByUserId(i, fieldList).easemobUser);
-                }
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
+            if (userA == null)
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+
+            for (Integer i : blockIds) {
+                String easemobName = UserAPI.getUserInfo(i, fieldList).easemobUser;
+                if (easemobName == null)
+                    throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+                blockNames.add(easemobName);
             }
         } catch (NullPointerException e) {
             throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
@@ -904,14 +929,11 @@ public class UserAPI {
      * @param userIdB
      */
     public static void delEaseMobBlocks(Integer userIdA, Integer userIdB) throws TravelPiException {
-        List<String> fieldList = new ArrayList<>();
-        fieldList.add("easemobUser");
+        List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
-            Credential creA = UserAPI.getCredentialByUserId(userIdA, fieldList);
-            userA = creA.easemobUser;
-            Credential creB = UserAPI.getCredentialByUserId(userIdB, fieldList);
-            userB = creB.easemobUser;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
+            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobUser;
         } catch (NullPointerException e) {
             throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
         }
@@ -943,13 +965,6 @@ public class UserAPI {
     }
 
     /**
-     * 排序的字段。
-     */
-    public enum UserInfoField {
-        TEL, NICKNAME, OPENID, USERID
-    }
-
-    /**
      * 提出好友申请
      *
      * @param selfId
@@ -972,10 +987,10 @@ public class UserAPI {
         if (selfId.equals(targetId))
             return;
 
-        UserInfo selfInfo = getUserByUserId(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));  //取得用户实体
         //取得好友的实体
-        UserInfo targetInfo = getUserByUserId(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId));
 
         if (selfInfo == null || targetInfo == null)
@@ -1048,8 +1063,8 @@ public class UserAPI {
             return;
 
         //取得用户实体
-        UserInfo selfInfo = getUserByUserId(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
-        UserInfo targetInfo = getUserByUserId(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
         if (selfInfo == null || targetInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
@@ -1113,11 +1128,20 @@ public class UserAPI {
      */
     public static List<UserInfo> getContactList(Integer selfId) throws TravelPiException {
         List<String> fieldList = Arrays.asList(UserInfo.fnContacts);
-
-        List<UserInfo> friends = getUserByUserId(selfId, fieldList).friends;
+        UserInfo userInfo = getUserInfo(selfId, fieldList);
+        if (userInfo == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
+        List<UserInfo> friends = userInfo.friends;
         if (friends == null)
             friends = new ArrayList<>();
 
         return friends;
+    }
+
+    /**
+     * 排序的字段。
+     */
+    public enum UserInfoField {
+        TEL, NICKNAME, OPENID, USERID
     }
 }

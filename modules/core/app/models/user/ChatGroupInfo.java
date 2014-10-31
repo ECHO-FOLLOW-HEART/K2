@@ -21,15 +21,15 @@ import java.util.List;
 
 public class ChatGroupInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
-    public static final String OWNER="owner";
+    public static final String OWNER = "owner";
     @Transient
-    public static final String MEMBERS="members";
+    public static final String MEMBERS = "members";
     @Transient
-    public static final String GROUPNAME="groupName";
+    public static final String GROUPNAME = "groupName";
     @Transient
-    public static final String DESC="desc";
+    public static final String DESC = "desc";
     @Transient
-    public static final String ISGROUPPUBLIC="isGroupPublic";
+    public static final String ISGROUPPUBLIC = "isGroupPublic";
 
     @Id
     public ObjectId id;
@@ -83,14 +83,17 @@ public class ChatGroupInfo extends TravelPiBaseItem implements ITravelPiFormatte
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("ownerId", owner.userId).add("ownerName", owner.nickName).add("desc", desc)
                 .add("groupName", groupName).add("isGroupPublic", isGroupPublic);
-        List<JsonNode> list=new ArrayList<>();
-        for (UserInfo userInfo:members){
-            ObjectNode node=Json.newObject();
-            node.put("userId",userInfo.userId);
-            node.put("userName",userInfo.nickName);
-            list.add(node);
+        List<JsonNode> list = new ArrayList<>();
+        if (!(members == null)) {
+            for (UserInfo userInfo : members) {
+                ObjectNode node = Json.newObject();
+                node.put("userId", userInfo.userId);
+                node.put("userName", userInfo.nickName);
+                list.add(node);
+            }
+            builder.add("members", list);
         }
-        builder.add("members",list);
+
         return Json.toJson(builder.get());
     }
 }
