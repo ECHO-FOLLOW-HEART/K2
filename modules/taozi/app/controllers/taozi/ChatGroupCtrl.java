@@ -88,7 +88,7 @@ public class ChatGroupCtrl {
         try {
             JsonNode node = request().body().asJson();
             String groupId = node.get("groupId").asText();
-            Iterator<JsonNode> iterator = node.iterator();
+            Iterator<JsonNode> iterator = node.get("userList").iterator();
             List<Integer> userList = new ArrayList<>();
             while (iterator.hasNext()) {
                 Integer id = iterator.next().asInt();
@@ -117,6 +117,10 @@ public class ChatGroupCtrl {
         }
     }
 
+    /**
+     *修改群组详情
+     * @return
+     */
     public static Result modifyChatGroupDetail() {
         try {
             JsonNode req = request().body().asJson();

@@ -27,7 +27,10 @@ import java.util.*;
 public class ChatGroupAPI {
 
     /**
-     * 连接mongo,存储数据
+     * 存储数据
+     *
+     * @param chatGroupInfo
+     * @throws TravelPiException
      */
     public static void saveData(ChatGroupInfo chatGroupInfo) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
@@ -36,6 +39,9 @@ public class ChatGroupAPI {
 
     /**
      * 移除数据
+     *
+     * @param chatGroupInfo
+     * @throws TravelPiException
      */
     public static void deleteData(ChatGroupInfo chatGroupInfo) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
@@ -45,6 +51,10 @@ public class ChatGroupAPI {
 
     /**
      * 通过groupId返回群的实体
+     *
+     * @param id
+     * @return
+     * @throws TravelPiException
      */
     public static ChatGroupInfo getChatGroupById(String id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
@@ -55,6 +65,9 @@ public class ChatGroupAPI {
     /**
      * 获取群组信息（添加fieldList限定）
      *
+     * @param id
+     * @param list
+     * @return
      * @throws TravelPiException
      */
     public static ChatGroupInfo getUserGroupInfo(String id, List<String> list) throws TravelPiException {
@@ -67,7 +80,15 @@ public class ChatGroupAPI {
     }
 
     /**
-     * 发送rest请求,获取response
+     * 连接环信
+     *
+     * @param href
+     * @param node
+     * @param flag
+     * @param httpmethod
+     * @return
+     * @throws IOException
+     * @throws TravelPiException
      */
     public static String setUrlConnection(String href, JsonNode node, Boolean flag, String httpmethod) throws IOException, TravelPiException {
         URL url = new URL(href);
@@ -88,7 +109,10 @@ public class ChatGroupAPI {
     }
 
     /**
-     * 获取环信系统的token。如果已经过期，则重新申请一个。
+     * 获取环信系统的token,如果已经过期，则重新申请一个
+     *
+     * @return
+     * @throws TravelPiException
      */
     private static String getEaseMobToken() throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
@@ -164,12 +188,10 @@ public class ChatGroupAPI {
         if (owner == null) {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-        //JsonNode ownerNode = Json.toJson(owner);
-        /*ObjectNode data = Json.newObject();
-        *//**//**//**//**
-         * 请求参数封装
-         *//**//**//**//*
-        data.put("owner", ownerId);
+        /*JsonNode ownerNode = Json.toJson(owner);
+        ObjectNode data = Json.newObject();*/
+        //参数封装
+        /*data.put("owner", ownerId);
         data.put("groupName", groupName == null ? owner.nickName : groupName);
         data.put("desc", desc == null ? "" : desc);
         data.put("isGroupPublic", isGroupPublic);
@@ -179,7 +201,7 @@ public class ChatGroupAPI {
         String href = String.format("https://a1.easemob.com/%s/%s/chatgroups", orgName, appName);
         String groupId = "";
         try {
-            String body = setUrlConnection(href, data, "POST");
+            String body = setUrlConnection(href, data,true "POST");
             JsonNode dataNode = Json.parse(body);
             groupId = dataNode.get("data").get("groupid").asText();
         } catch (IOException e) {
@@ -207,7 +229,7 @@ public class ChatGroupAPI {
     }
 
     /**
-     * 群主删除群
+     * 删除群
      *
      * @param groupId
      * @param id
@@ -221,13 +243,13 @@ public class ChatGroupAPI {
         String appName = configuration.getString("app");*/
 
         ChatGroupInfo chatGroupInfo = getUserGroupInfo(groupId, Arrays.asList(ChatGroupInfo.OWNER));
+        //判断是否为空
         if (chatGroupInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         int sub = chatGroupInfo.owner.userId - id;
         if (sub == 0) {       //判断id,删除操作只能由群主发起
-            //https://a1.easemob.com/easemob-demo/4d7e4ba0-dc4a-11e3-90d5-e1ffbaacdaf5/chatgroups/1411527886490154
-            //String href = String.format("https://a1.easemob.com/%s/%s/chargroups/%s", orgName, appName, groupId);
-            /*String data = "";
+            /*String href = String.format("https://a1.easemob.com/%s/%s/chargroups/%s", orgName, appName, groupId);
+            String data = "";
             try {
                 String body = setUrlConnection(href, Json.newObject(), false, "DELETE");
                 JsonNode dataNode = Json.parse(body);
@@ -266,7 +288,7 @@ public class ChatGroupAPI {
         map.put("usernames", userList);
         JsonNode data = Json.toJson(map);
         try {
-            setUrlConnection(href, data, "POST");
+            setUrlConnection(href, data,true,"POST");
         } catch (IOException e) {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "failed");
         } catch (TravelPiException e) {
@@ -282,26 +304,31 @@ public class ChatGroupAPI {
         }
         List<UserInfo> members = chatGroupInfo.members;
         List<UserInfo> userInfoList = new ArrayList<>();
+        Boolean flag = false;
         for (Integer id : userList) {
             UserInfo userInfo = UserAPI.getUserInfo(id, Arrays.asList(UserInfo.fnNickName,
-                    UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnUserId));
+                    UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnUserId, UserInfo.fnAvatar));
             if (members == null) {
                 userInfoList.add(userInfo);
                 members = userInfoList;
             } else {
-                if (members.contains(userInfo))
-                    continue;       //已经包含用户，则不进行添加
-                members.add(userInfo);
+                for (UserInfo tmpUserInfo : members) {
+                    if ((tmpUserInfo.userId - userInfo.userId == 0)) {
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag == true)
+                    throw new TravelPiException(ErrorCode.USER_EXIST, "USER_EXIST");
+                else
+                    members.add(userInfo);
             }
         }
         //更新库
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         UpdateOperations<ChatGroupInfo> os = ds.createUpdateOperations(ChatGroupInfo.class);
-        //bug
         os.set(ChatGroupInfo.MEMBERS, members);
         ds.update(ds.createQuery(ChatGroupInfo.class).field("groupId").equal(groupId), os);
-       /* chatGroupInfo.members=members;
-        ds.save(chatGroupInfo);*/
     }
 
     /**
@@ -310,7 +337,7 @@ public class ChatGroupAPI {
      * @param groupId
      * @param userList
      */
-    public static String deleteMemberFromGroupApi(String groupId, List<Integer> userList) throws TravelPiException {
+    public static void deleteMemberFromGroupApi(String groupId, List<Integer> userList) throws TravelPiException {
         /**
          * 环信中进行删除
          */
@@ -320,40 +347,45 @@ public class ChatGroupAPI {
         List<UserInfo> members = null;
         if (userList != null) {
             for (Integer id : userList) {
-                //String href = String.format("https://a1.easemob.com/%s/%s/chatgroups/%s/users'/%s", orgName, appName, groupId, id);
-                //try {
-                //setUrlConnection(href, Json.newObject(),false "DELETE");
-
+                /*String href = String.format("https://a1.easemob.com/%s/%s/chatgroups/%s/users'/%s", orgName, appName, groupId, id);
+                try {
+                    setUrlConnection(href, Json.newObject(), false, "DELETE");*/
                 /**
                  * 本地库的更新
                  */
                 ChatGroupInfo chatGroupInfo = getUserGroupInfo(groupId, Arrays.asList(ChatGroupInfo.MEMBERS));
+                if (chatGroupInfo == null)
+                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
                 members = chatGroupInfo.members;
-                UserInfo userInfo = UserAPI.getUserInfo(id);
+                UserInfo userInfo = UserAPI.getUserInfo(id, Arrays.asList(UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnNickName, UserInfo.fnSignature, UserInfo.fnUserId));
                 if (members != null) {
-                    if (members.contains(userInfo))
-                        members.remove(userInfo);
-                    else
-                        continue;
+                    for (int i = 0; i < members.size() && members != null; i++) {
+                        UserInfo tmpuserInfo = members.get(i);
+                        if (tmpuserInfo != null) {
+                            if ((tmpuserInfo.userId - userInfo.userId) == 0) {
+                                members.remove(tmpuserInfo);
+                            } else
+                                throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "user not exists");
+                        }
+                    }
                 } else
-                    return "群成员空,不能删除";
-
-                //} catch (IOException e) {
-                //  throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "delete failed");
-                //}
+                    throw new TravelPiException(ErrorCode.DATA_NOT_EXIST, "group members do not exist");
             }
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-            UpdateOperations<ChatGroupInfo> os = ds.createUpdateOperations(ChatGroupInfo.class);
-            os.set("member", members);
-            ds.update(ds.createQuery(ChatGroupInfo.class).field("groupId").equal(groupId), os);
-            return "删除成功";
+            /*}catch(IOException e){
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "delete failed");
+            }*/
         } else
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "delete failed");
+        //更新库
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        UpdateOperations<ChatGroupInfo> os = ds.createUpdateOperations(ChatGroupInfo.class);
+        os.set(ChatGroupInfo.MEMBERS, members);
+        ds.update(ds.createQuery(ChatGroupInfo.class).field("groupId").equal(groupId), os);
     }
 
 
     /**
-     * 获得群组详情
+     * 获取群组详情
      *
      * @param groupId
      * @return
@@ -368,6 +400,17 @@ public class ChatGroupAPI {
         return response;
     }
 
+    /**
+     * 修改群组详情
+     *
+     * @param groupId
+     * @param id
+     * @param isGroupPublic
+     * @param groupName
+     * @param desc
+     * @return
+     * @throws TravelPiException
+     */
     public static String modifyChatGroupDetailApi(String groupId, String id, boolean isGroupPublic, String groupName, String desc) throws TravelPiException {
         /**
          * 本地库的更新
@@ -390,7 +433,7 @@ public class ChatGroupAPI {
             UpdateOperations<ChatGroupInfo> os = ds.createUpdateOperations(ChatGroupInfo.class);
             os.set("desc", desc);
             os.set("groupName", groupName);
-            os.set("isGrouPublic", isGroupPublic);
+            os.set("isGroupPublic", isGroupPublic);
             ds.update(ds.createQuery(ChatGroupInfo.class).field("groupId").equal(groupId), os);
             return "修改成功";
         } else
