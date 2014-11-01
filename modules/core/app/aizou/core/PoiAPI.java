@@ -13,6 +13,7 @@ import models.poi.ViewSpot;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import play.libs.Json;
 import utils.Constants;
@@ -482,5 +483,55 @@ public class PoiAPI {
         RESTAURANT,
         SHOPPING,
         ENTERTAINMENT
+    }
+
+    /**
+     * 获得POI信息。
+     *
+     * @param ids     POI的id。
+     * @param poiType POI的类型。包括：view_spot: 景点；hotel: 酒店；restaurant: 餐厅。
+     * @return POI详情。如果没有找到，返回null。
+     */
+    public static List<? extends AbstractPOI> getPOIInfoList(List<ObjectId> ids, String poiType, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+        Class<? extends AbstractPOI> poiClass;
+        switch (poiType) {
+            case "vs":
+                poiClass = ViewSpot.class;
+                break;
+            case "hotel":
+                poiClass = Hotel.class;
+                break;
+            case "restaurant":
+                poiClass = Restaurant.class;
+                break;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+        }
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (ObjectId tempId : ids) {
+            criList.add(query.criteria("id").equal(tempId));
+        }
+
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
+    }
+
+    public static List<? extends AbstractPOI> getPOIInfoListByPOI(List<? extends AbstractPOI> pois, String poiType, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+
+        if (pois == null) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POIs.");
+        }
+        List<ObjectId> ids = new ArrayList<>();
+        for (AbstractPOI temp : pois) {
+            ids.add(temp.id);
+        }
+        return getPOIInfoList(ids, poiType, fieldList, page, pageSize);
     }
 }

@@ -5,8 +5,13 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
+import models.poi.AbstractPOI;
+import models.poi.Hotel;
+import models.poi.Restaurant;
+import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 
 import java.util.*;
@@ -231,5 +236,45 @@ public class LocalityAPI {
         }
         query.field("enabled").equal(true);
         return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
+    }
+
+
+    /**
+     * 获得城市列表
+     * @param ids
+     * @param fieldList
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Locality> getLocalityList(List<ObjectId> ids,List<String> fieldList, int page, int pageSize) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class);
+
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (ObjectId tempId : ids) {
+            criList.add(query.criteria("_id").equal(tempId));
+        }
+
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
+    }
+
+    public static List<Locality> getLocalityListByLoc(List<Locality> localities, String poiType, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+
+        if (localities == null) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POIs.");
+        }
+        List<ObjectId> ids = new ArrayList<>();
+        for (Locality temp : localities) {
+            ids.add(temp.id);
+        }
+        return getLocalityList(ids,fieldList, page, pageSize);
     }
 }

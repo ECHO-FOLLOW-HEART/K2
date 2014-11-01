@@ -37,6 +37,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Transient
     public static String simpName = "name";
 
+    @Transient
+    public static String simpDesc = "desc";
+
+    @Transient
+    public static String simpImg = "images";
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -100,6 +106,30 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      * 其它信息
      */
     public Map<String, Object> extra;
+
+    public String getDesc() {
+        if (description == null) {
+            if (desc == null)
+                return "";
+            else
+                return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+        } else
+            return StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN);
+    }
+
+    public List<String> getImages() {
+        if (images == null) {
+            if (imageList == null)
+                return new ArrayList();
+            else
+                return imageList;
+        } else {
+            ArrayList<String> tmpList = new ArrayList<String>();
+            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
+                tmpList.add(img.url);
+            return tmpList;
+        }
+    }
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {

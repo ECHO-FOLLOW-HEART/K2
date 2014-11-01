@@ -39,14 +39,15 @@ POST          /users/blacklist                       controllers.taozi.UserCtrl.
 #添加收藏
 POST          /misc/favorite/$uid<[0-9]+>            controllers.taozi.MiscCtrl.addFavorite(uid: Integer)
 #取得收藏
-GET           /misc/favorite/$uid<[0-9]+>            controllers.taozi.MiscCtrl.getFavorite(uid: Integer)
+GET           /misc/favorite/$uid<[0-9]+>            controllers.taozi.MiscCtrl.getFavorite(uid: Integer,faType: String?="", page: Int?=0, pageSize: Int?=20)
 #删除收藏
 POST          /misc/favorite/del/$uid<[0-9]+>        controllers.taozi.MiscCtrl.delFavorite(uid: Integer)
 #获得封面故事
 GET           /misc/cover-stories                    controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #反馈
 POST          /misc/feedback                         controllers.taozi.MiscCtrl.postFeedback()
-
+#推荐
+GET           /recommend/hotcity                     controllers.taozi.MiscCtrl.recommend(sortType: String = "hotCity", page: Int?=0, pageSize: Int?=20)
 #添加数据脚本
 #添加首页图片
 GET           /bache/addHomeImage                    controllers.taozi.BacheCtrl.addHomeImage()
