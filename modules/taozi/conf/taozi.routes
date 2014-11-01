@@ -51,3 +51,20 @@ GET           /recommend/hotcity                     controllers.taozi.MiscCtrl.
 #添加数据脚本
 #添加首页图片
 GET           /bache/addHomeImage                    controllers.taozi.BacheCtrl.addHomeImage()
+#创建群组
+POST          /im/chatgroups                         controllers.taozi.ChatGroupCtrl.createChatGroup()
+#删除群组
+DELETE        /im/chatgroups/groupId                 controllers.taozi.ChatGroupCtrl.deleteChatGroup()
+#添加群成员
+POST          /im/chatgroups/groupId/members         controllers.taozi.ChatGroupCtrl.addChatGroupRemember()
+#获取群组详情
+POST          /im/chatgroups/groupId                 controllers.taozi.ChatGroupCtrl.getChatGroupDetail()
+#删除群成员
+DELETE        /im/chatgroups/groupId/members         controllers.taozi.ChatGroupCtrl.deleteRememberFromChatGroup()
+#修改群组详情
+POST          /im/chatgroups/detail/groupId          controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
+#地理信息
+# 搜索城市
+GET           /geo/localities/search                 controllers.taozi.GeoCtrl.searchLocality(keyword: String?="",  prefix: Int?=1)
+# 查看城市详情
+GET           /geo/localities/:id                    controllers.taozi.GeoCtrl.getLocality(id: String)

@@ -1,9 +1,13 @@
 package models.geo;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
+import models.TravelPiBaseItem;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 /**
@@ -11,8 +15,16 @@ import play.libs.Json;
  *
  * @author Zephyre
  */
+
 @Embedded
-public class Coords implements ITravelPiFormatter {
+@JsonFilter("coordsFilter")
+public class Coords extends TravelPiBaseItem implements ITravelPiFormatter {
+    @Transient
+    public static String simpLat="lat";
+    @Transient
+    public static String simpLng="lng";
+    @Transient
+    public static String simpId="id";
     public Double lat;
     public Double lng;
     public Double blat;
