@@ -159,20 +159,21 @@ public class LocalityAPI {
      * 发现城市。
      *
      * @param showDetails 是否显示详情。
+     * @param abroad      查找国外城市还是国内城市
      * @param page        分页。
-     * @param pageSize    页面大小。
-     * @return
+     * @param pageSize    页面大小。   @return
      */
-    public static List<Locality> explore(boolean showDetails, int page, int pageSize) throws TravelPiException {
+    public static List<Locality> explore(boolean showDetails, boolean abroad, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
         List<String> fields = new ArrayList<>();
-        Collections.addAll(fields, "zhName", "ratings");
+        Collections.addAll(fields, "zhName", "enName", "ratings", "country");
         if (showDetails)
             Collections.addAll(fields, "imageList", "tags", "desc");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
-                .field("imageList").notEqual(null)
-                .field("relPlanCnt").greaterThan(0)
+                .field("abroad").equal(abroad)
+//                .field("imageList").notEqual(null)
+//                .field("relPlanCnt").greaterThan(0)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 

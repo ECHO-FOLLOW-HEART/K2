@@ -294,7 +294,7 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, int page, int pageSize) throws TravelPiException {
+    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws TravelPiException {
         boolean detailsFlag = (details != 0);
         ObjectNode results = Json.newObject();
 
@@ -302,7 +302,7 @@ public class MiscCtrl extends Controller {
         if (loc != 0) {
             List<JsonNode> retLocList = new ArrayList<>();
             // TODO 获得城市信息
-            for (Locality locality : LocalityAPI.explore(detailsFlag, page, pageSize))
+            for (Locality locality : LocalityAPI.explore(detailsFlag, abroad, page, pageSize))
                 retLocList.add(locality.toJson(2));
             results.put("loc", Json.toJson(retLocList));
         }
