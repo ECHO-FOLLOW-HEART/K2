@@ -1,24 +1,70 @@
 #-------------------------------------
 #用户
 #手机注册
-POST          /users/signup                                  controllers.taozi.UserCtrl.register()
+POST          /users/signup                          controllers.taozi.UserCtrl.signup()
 #第三方注册、登录
-POST          /users/auth-signup                             controllers.taozi.UserCtrl.authRegister()
+POST          /users/auth-signup                     controllers.taozi.UserCtrl.authRegister()
 #检验用户信息的有效性(手机号)
-GET           /users/validity                                controllers.taozi.UserCtrl.validityInfo(tel:String?="",nick:String?="")
+GET           /users/validity                        controllers.taozi.UserCtrl.validityInfo(tel:String?="",nick:String?="")
 #手机号登录
-POST          /users/signin                                  controllers.taozi.UserCtrl.signin()
+POST          /users/signin                          controllers.taozi.UserCtrl.signin()
 #发送手机验证码
-POST          /users/send-validation                         controllers.taozi.UserCtrl.sendCaptcha()
+POST          /users/send-validation                 controllers.taozi.UserCtrl.sendCaptcha()
 #修改密码
-POST          /users/pwd                                     controllers.taozi.UserCtrl.modPassword()
+POST          /users/pwd                             controllers.taozi.UserCtrl.modPassword()
 #验证验证码，重设密码
-POST          /users/reset-pwd                               controllers.taozi.UserCtrl.newPassword()
+POST          /users/reset-pwd                       controllers.taozi.UserCtrl.newPassword()
 #绑定手机
-POST          /users/bind                                    controllers.taozi.UserCtrl.bindTel()
+POST          /users/bind                            controllers.taozi.UserCtrl.bindTel()
 #验证验证码,返回token,绑定手机时用
-POST          /users/check-validation                        controllers.taozi.UserCtrl.checkCaptcha()
+POST          /users/check-validation                controllers.taozi.UserCtrl.checkCaptcha()
 #获取用户信息
-GET           /users/:uid                                    controllers.taozi.UserCtrl.getUserProfileById(uid: String)
+GET           /users/$uid<[0-9]+>                    controllers.taozi.UserCtrl.getUserProfileById(uid: Integer)
+#搜索用户信息
+GET           /users/search                          controllers.taozi.UserCtrl.searchUser(keyword: String)
 #编辑用户信息，修改密码
-POST          /users/:uid                                    controllers.taozi.UserCtrl.editorUserInfo(uid: String)
+POST          /users/$uid<[0-9]+>                    controllers.taozi.UserCtrl.editorUserInfo(uid: Integer)
+
+#添加好友
+POST          /users/contacts                        controllers.taozi.UserCtrl.addContact()
+#删除好友
+DELETE        /users/contacts/$id<[0-9]+>            controllers.taozi.UserCtrl.delContact(id: Integer)
+#获得好友列表
+GET           /users/contacts                        controllers.taozi.UserCtrl.getContactList()
+POST          /users/:id/memo                        controllers.taozi.UserCtrl.setUserMemo(id:Integer)
+#添加/删除用户到好友列表
+POST          /users/blacklist                       controllers.taozi.UserCtrl.setUserBlacklist()
+
+#其他
+#添加收藏
+POST          /misc/favorite/$uid<[0-9]+>            controllers.taozi.MiscCtrl.addFavorite(uid: Integer)
+#取得收藏
+GET           /misc/favorite/$uid<[0-9]+>            controllers.taozi.MiscCtrl.getFavorite(uid: Integer,faType: String?="", page: Int?=0, pageSize: Int?=20)
+#删除收藏
+POST          /misc/favorite/del/$uid<[0-9]+>        controllers.taozi.MiscCtrl.delFavorite(uid: Integer)
+#获得封面故事
+GET           /misc/cover-stories                    controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
+#反馈
+POST          /misc/feedback                         controllers.taozi.MiscCtrl.postFeedback()
+#推荐
+GET           /recommend/hotcity                     controllers.taozi.MiscCtrl.recommend(sortType: String = "hotCity", page: Int?=0, pageSize: Int?=20)
+#添加数据脚本
+#添加首页图片
+GET           /bache/addHomeImage                    controllers.taozi.BacheCtrl.addHomeImage()
+#创建群组
+POST          /im/chatgroups                         controllers.taozi.ChatGroupCtrl.createChatGroup()
+#删除群组
+DELETE        /im/chatgroups/groupId                 controllers.taozi.ChatGroupCtrl.deleteChatGroup()
+#添加群成员
+POST          /im/chatgroups/groupId/members         controllers.taozi.ChatGroupCtrl.addChatGroupRemember()
+#获取群组详情
+POST          /im/chatgroups/groupId                 controllers.taozi.ChatGroupCtrl.getChatGroupDetail()
+#删除群成员
+DELETE        /im/chatgroups/groupId/members         controllers.taozi.ChatGroupCtrl.deleteRememberFromChatGroup()
+#修改群组详情
+POST          /im/chatgroups/detail/groupId          controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
+#地理信息
+# 搜索城市
+GET           /geo/localities/search                 controllers.taozi.GeoCtrl.searchLocality(keyword: String?="",  prefix: Int?=1)
+# 查看城市详情
+GET           /geo/localities/:id                    controllers.taozi.GeoCtrl.getLocality(id: String)

@@ -1,5 +1,6 @@
 package models.poi;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
@@ -13,6 +14,7 @@ import models.misc.ImageItem;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 import utils.Constants;
 import utils.DataFilter;
@@ -26,7 +28,21 @@ import java.util.*;
  * @author Zephyre
  *         Created by zephyre on 7/16/14.
  */
+@JsonFilter("abstractPOIFilter")
 public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
+
+    @Transient
+    public static String simpID = "id";
+
+    @Transient
+    public static String simpName = "name";
+
+    @Transient
+    public static String simpDesc = "desc";
+
+    @Transient
+    public static String simpImg = "images";
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -76,7 +92,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p/>
+     * <p>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -90,6 +106,30 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      * 其它信息
      */
     public Map<String, Object> extra;
+
+    public String getDesc() {
+        if (description == null) {
+            if (desc == null)
+                return "";
+            else
+                return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+        } else
+            return StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN);
+    }
+
+    public List<String> getImages() {
+        if (images == null) {
+            if (imageList == null)
+                return new ArrayList();
+            else
+                return imageList;
+        } else {
+            ArrayList<String> tmpList = new ArrayList<String>();
+            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
+                tmpList.add(img.url);
+            return tmpList;
+        }
+    }
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
@@ -131,7 +171,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             }
 
             if (images != null) {
-                ArrayList<String> tmpList = new ArrayList<>();
+                ArrayList<String> tmpList = new ArrayList<String>();
                 for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
                     tmpList.add(img.url);
                 builder.add("imageList", tmpList);

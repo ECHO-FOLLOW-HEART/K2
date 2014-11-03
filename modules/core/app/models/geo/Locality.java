@@ -1,5 +1,6 @@
 package models.geo;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
@@ -14,8 +15,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
+import utils.Constants;
+import utils.formatter.taozi.geo.CoordsFormatter;
+import utils.formatter.taozi.geo.SimpleRefFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +33,41 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 @Entity
+@JsonFilter("localityFilter")
 public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
+
+    @Transient
+    public static String simpId = "id";
+
+    @Transient
+    public static String simpZhName = "name";
+
+    @Transient
+    public static String simpDesc = "desc";
+
+    @Transient
+    public static String simpImg = "images";
+
+    @Transient
+    public static String simpEnName="enName";
+
+    @Transient
+    public static String simpShortName="shortName";
+
+    @Transient
+    public static String simpCountry="country";
+
+    @Transient
+    public static String simpAborad ="abroad";
+
+    @Transient
+    public static String simpSuperAdm="superAdm";
+
+    @Transient
+    public static String simpCoords="coords";
+
     @Indexed()
+
     public String zhName;
 
     public String enName;
@@ -91,6 +129,61 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
      * 该locality对应路线的
      */
     public Integer relPlanCnt;
+
+    public String getName() {
+        if (zhName == null)
+            return "";
+        else
+            return stripLocName(zhName);
+    }
+
+    public List<String> getImages() {
+        if (imageList == null)
+            return new ArrayList();
+        else {
+            return imageList;
+        }
+    }
+
+    public String getDesc() {
+        if (desc == null)
+            return "";
+        else
+            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+    }
+    public String getEnName(){
+        if (enName==null)
+            return "";
+        else
+            return StringUtils.capitalize(enName);
+    }
+    public String getShortName(){
+        if (shortName==null)
+            return stripLocName(zhName);
+        else
+            return StringUtils.capitalize(shortName);
+    }
+    public Boolean getAbroad(){
+        return abroad != null && abroad;
+    }
+    public JsonNode getCoords(){
+        if (coords==null)
+            return Json.newObject();
+        else
+            return new CoordsFormatter().format(coords);
+    }
+    public JsonNode getCountry(){
+        if (country==null)
+            return Json.newObject();
+        else
+            return new SimpleRefFormatter().format(country);
+    }
+    public JsonNode getSuperAdm(){
+        if (superAdm==null)
+            return Json.newObject();
+        else
+            return new SimpleRefFormatter().format(superAdm);
+    }
 
     /**
      * 去掉末尾的省市县等名字。

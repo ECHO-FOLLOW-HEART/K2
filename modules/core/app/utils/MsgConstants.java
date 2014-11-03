@@ -38,11 +38,6 @@ public class MsgConstants {
     /**
      * 注册时验证码错误
      */
-    public static int PWD_ERROR = 407;
-
-    /**
-     * 注册时验证码错误
-     */
     public static String PWD_ERROR_MSG = "密码不正确，请重新填写.";
     /**
      * 昵称已存在
@@ -113,4 +108,14 @@ public class MsgConstants {
      * 注册时验证码错误
      */
     public static String TOKEN_ERROR_MSG = "Token错误，请重新发送.";
+
+    /**
+     * 此用户没有收藏项目(数据不存在:402)
+     */
+    public static int FAVORITE_NOT_EXIT = 402;
+
+    /**
+     * 此用户没有收藏项目
+     */
+    public static String FAVORITE_NOT_EXIT_MSG = "该用户没有收藏项目.";
 }

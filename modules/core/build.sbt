@@ -8,6 +8,8 @@ libraryDependencies ++= Seq(
   "org.mongodb.morphia" % "morphia-validation" % "0.108",
   "cglib" % "cglib-nodep" % "3.1",
   "com.thoughtworks.proxytoys" % "proxytoys" % "1.0",
-  "org.apache.solr" % "solr-solrj" % "4.10.0"
+  "org.apache.solr" % "solr-solrj" % "4.10.0",
+  "dom4j" % "dom4j" % "1.6.1",
+  "jaxen" % "jaxen" % "1.1.6"
   //  "commons-logging" % "commons-logging" % "1.2"
 )
