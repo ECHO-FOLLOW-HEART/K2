@@ -12,11 +12,12 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
+import models.geo.Address;
+import models.geo.Coords;
 import models.misc.Contact;
 import models.misc.Description;
+import models.misc.SimpleRef;
 import models.poi.AbstractPOI;
-import models.user.UserInfo;
-import org.mongodb.morphia.annotations.Transient;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
@@ -45,6 +46,7 @@ public class DetailedPOIFormatter implements JsonFormatter {
                     writer.serializeAsOmittedField(pojo, jgen, provider);
                 }
             }
+
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractPOI.simpID);
@@ -145,9 +147,9 @@ public class DetailedPOIFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Contact.simpPhoneList);
-                includedFields.add(Contact.simpFax);
-                includedFields.add(Contact.simpEmail);
+                includedFields.add(SimpleRef.simpID);
+                includedFields.add(SimpleRef.simpZhName);
+                includedFields.add(SimpleRef.simpEnName);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -162,8 +164,67 @@ public class DetailedPOIFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", theFilter).addFilter("descriptionFilter",descriptionFilter)
-                .addFilter("contactFilter", contactFilter).addFilter("simpleRefFilter",simpleRefFilter);
+        PropertyFilter addressFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(Address.simpAddress);
+                includedFields.add(Address.simpCoords);
+                includedFields.add(Address.simpLoc);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+        PropertyFilter coordsFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(Coords.simpLat);
+                includedFields.add(Coords.simpLng);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", theFilter).addFilter("descriptionFilter", descriptionFilter)
+                .addFilter("contactFilter", contactFilter).addFilter("simpleRefFilter", simpleRefFilter).addFilter("addressFilter", addressFilter)
+                .addFilter("coordsFilter", coordsFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);
