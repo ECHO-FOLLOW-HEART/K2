@@ -19,8 +19,7 @@ import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 import utils.Constants;
-import utils.formatter.taozi.geo.CoordsFormatter;
-import utils.formatter.taozi.geo.SimpleRefFormatter;
+import utils.formatter.taozi.user.DetailedPOIFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -166,13 +165,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public Boolean getAbroad(){
         return abroad != null && abroad;
     }
-    public JsonNode getCoords(){
-        if (coords==null)
-            return Json.newObject();
-        else
-            return new CoordsFormatter().format(coords);
-    }
-    public JsonNode getCountry(){
+    /*public JsonNode getCountry(){
         if (country==null)
             return Json.newObject();
         else
@@ -183,7 +176,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
             return Json.newObject();
         else
             return new SimpleRefFormatter().format(superAdm);
-    }
+    }*/
 
     /**
      * 去掉末尾的省市县等名字。

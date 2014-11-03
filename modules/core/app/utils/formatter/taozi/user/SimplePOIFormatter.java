@@ -64,7 +64,7 @@ public class SimplePOIFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", poiFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", poiFilter).addFilter("abstractPOIFilter", poiFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

@@ -151,6 +151,20 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return contact;
     }
 
+    public String getOpenTime() {
+        if (openTime == null)
+            return DataFilter.openTimeFilter(openTime);
+        else
+            return openTime;
+    }
+
+    public String getTrafficInfo() {
+        if (trafficInfo == null)
+            return "";
+        else
+            return trafficInfo;
+    }
+
     public List<String> getImages() {
         if (images == null) {
             if (imageList == null)

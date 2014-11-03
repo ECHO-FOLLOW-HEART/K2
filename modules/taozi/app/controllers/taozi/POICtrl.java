@@ -10,6 +10,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 import utils.formatter.ProxyFormatter;
+import utils.formatter.taozi.user.DetailedPOIFormatter;
 import utils.formatter.taozi.user.SimplePOIFormatter;
 
 /**
@@ -54,7 +55,7 @@ public class POICtrl extends Controller {
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
         if (poiInfo == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
-        JsonNode info = details ? new ProxyFormatter.DetailedPOIFormatter().format(poiInfo) : new SimplePOIFormatter().format(poiInfo);
+        JsonNode info = details ? new DetailedPOIFormatter().format(poiInfo) : new SimplePOIFormatter().format(poiInfo);
         ObjectNode ret = (ObjectNode) info;
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }

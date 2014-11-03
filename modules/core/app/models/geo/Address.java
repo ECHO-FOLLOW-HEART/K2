@@ -7,6 +7,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 /**
@@ -17,6 +18,18 @@ import play.libs.Json;
 @Embedded
 @JsonFilter("addressFilter")
 public class Address implements ITravelPiFormatter {
+    @Transient
+    public static String simpAddress= "address";
+
+    @Transient
+    public static String simpLoc = "loc";
+
+    @Transient
+    public static String simpCoords = "coords";
+
+    @Transient
+    public static String simpBCoords = "bCoords";
+
     public String address;
 
     @Embedded

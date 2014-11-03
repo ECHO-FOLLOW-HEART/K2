@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
@@ -16,16 +15,15 @@ import play.libs.Json;
  *
  * @author Zephyre
  */
+@JsonFilter("simpleRefFilter")
 @Embedded
-@JsonFilter("simpleRfFilter")
-public class SimpleRef extends TravelPiBaseItem implements ITravelPiFormatter {
+public class SimpleRef implements ITravelPiFormatter {
     @Transient
-    public static String simpEnName="enName";
+    public static String simpID = "id";
     @Transient
-    public static String simpZhName="zhName";
+    public static String simpEnName = "enName";
     @Transient
-    public static String simpId="id";
-
+    public static String simpZhName = "zhName";
     public ObjectId id;
     public String enName;
     public String zhName;

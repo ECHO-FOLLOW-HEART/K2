@@ -20,6 +20,7 @@ import utils.Utils;
 import utils.formatter.ProxyFormatter;
 import utils.formatter.taozi.geo.CountryFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
+import utils.formatter.taozi.user.DetailedPOIFormatter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -139,7 +140,7 @@ public class GeoCtrl extends Controller {
                 List<JsonNode> retPoiList = new ArrayList<>();
 
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize); it.hasNext(); )
-                    retPoiList.add(new ProxyFormatter.DetailedPOIFormatter().format(it.next()));
+                    retPoiList.add(new DetailedPOIFormatter().format(it.next()));
                 //formatter\filter
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }

@@ -147,7 +147,8 @@ public class DetailedPOIFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(SimpleRef.simpId);
+
+                includedFields.add(SimpleRef.simpID);
                 includedFields.add(SimpleRef.simpZhName);
                 includedFields.add(SimpleRef.simpEnName);
                 return (includedFields.contains(writer.getName()));
@@ -177,7 +178,7 @@ public class DetailedPOIFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Address);
+                includedFields.add(Address.simpAddress);
                 includedFields.add(Address.simpCoords);
                 includedFields.add(Address.simpLoc);
                 return (includedFields.contains(writer.getName()));
