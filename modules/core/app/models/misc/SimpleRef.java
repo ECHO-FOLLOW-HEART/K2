@@ -25,10 +25,10 @@ public class SimpleRef extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String simpZhName="zhName";
     @Transient
     public static String simpId="id";
+
     public ObjectId id;
     public String enName;
     public String zhName;
-
     public String getEnName(){
         if (enName==null)
             return "";

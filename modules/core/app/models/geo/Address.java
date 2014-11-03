@@ -1,6 +1,7 @@
 package models.geo;
 
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
@@ -14,6 +15,7 @@ import play.libs.Json;
  * @author Zephyre
  */
 @Embedded
+@JsonFilter("addressFilter")
 public class Address implements ITravelPiFormatter {
     public String address;
 

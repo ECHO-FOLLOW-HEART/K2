@@ -43,6 +43,33 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Transient
     public static String simpImg = "images";
 
+    @Transient
+    public static String detAddr = "addr";
+
+    @Transient
+    public static String detDesc = "description";
+
+    @Transient
+    public static String detPrice = "price";
+
+    @Transient
+    public static String detPriceDesc = "priceDesc";
+
+    @Transient
+    public static String detContact = "contact";
+
+    @Transient
+    public static String detOpenTime = "openTime";
+
+    @Transient
+    public static String detAlias = "alias";
+
+    @Transient
+    public static String detTargets = "targets";
+
+    @Transient
+    public static String detTrafficInfo = "trafficInfo";
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -117,6 +144,13 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN);
     }
 
+    public Contact getContact() {
+        if (contact == null)
+            return new Contact();
+        else
+            return contact;
+    }
+
     public List<String> getImages() {
         if (images == null) {
             if (imageList == null)
@@ -143,6 +177,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         }
         return new ArrayList<>();
     }
+
 
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

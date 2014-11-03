@@ -246,7 +246,7 @@ public class MiscCtrl extends Controller {
                     retFa.hotel = (List<Hotel>) pois;
                     pois = PoiAPI.getPOIInfoListByPOI(fa.restaurant, "restaurant", fields, page, pageSize);
                     retFa.restaurant = (List<Restaurant>) pois;
-
+                    // TODO 缺少美食
                     retFa.locality = LocalityAPI.getLocalityListByLoc(fa.locality, "locality", locFields, page, pageSize);
                     break;
                 default:
