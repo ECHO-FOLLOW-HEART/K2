@@ -1,5 +1,6 @@
 package models.misc;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
@@ -14,10 +15,18 @@ import play.libs.Json;
  * @author Zephyre
  */
 @Embedded
+@JsonFilter("simpleRefFilter")
 public class SimpleRef implements ITravelPiFormatter {
     public ObjectId id;
     public String enName;
     public String zhName;
+
+    public String getEnName() {
+        if (enName == null)
+            return "";
+        else
+            return enName;
+    }
 
     @Override
     public JsonNode toJson() {
