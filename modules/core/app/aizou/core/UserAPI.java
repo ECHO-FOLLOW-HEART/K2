@@ -1161,7 +1161,7 @@ public class UserAPI {
 
 
     /**
-     * 同意删除好友时服务器向原客户端发送透传消息
+     * 服务器调用环信接口发送透传消息
      */
     public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType) throws TravelPiException {
         if (selfInfo.easemobUser == null)
@@ -1173,9 +1173,9 @@ public class UserAPI {
         ext.put("content", info);
 
         ObjectNode msg = Json.newObject();
-        ext.put("type", "txt");
-        ext.put("msg", "agree friend");
-        ext.put("action", "tzaction");
+        msg.put("type", "cmd");
+        msg.put("msg", "agree to be friends");
+        msg.put("action", "tzaction");
 
         ObjectNode requestBody = Json.newObject();
         List<String> users = new ArrayList<>();
@@ -1185,6 +1185,7 @@ public class UserAPI {
         requestBody.put("target", Json.toJson(users));
         requestBody.put("msg", msg);
         requestBody.put("ext", ext);
+        requestBody.put("from", selfInfo.easemobUser);
 
         // 重新获取token
         Configuration config = Configuration.root().getConfig("easemob");
