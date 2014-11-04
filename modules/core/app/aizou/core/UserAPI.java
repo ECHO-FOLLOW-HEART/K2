@@ -25,6 +25,7 @@ import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http;
+import utils.Constants;
 import utils.FPUtils;
 import utils.Utils;
 import utils.formatter.taozi.user.SimpleUserFormatter;
@@ -352,6 +353,7 @@ public class UserAPI {
 
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        query.field("origin").equal(Constants.APP_FLAG_PEACH);
 
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
@@ -421,7 +423,7 @@ public class UserAPI {
         user.dialCode = countryCode;
         user.email = "";
         user.signature = "";
-        user.origin = "peach-telUser";
+        user.origin = Constants.APP_FLAG_PEACH;
         user.enabled = true;
 
         // 注册环信
@@ -491,6 +493,7 @@ public class UserAPI {
         userInfo.gender = json.get("sex").asText().equals("1") ? "M" : "F";
         userInfo.oauthList = new ArrayList<>();
         userInfo.userId = UserAPI.populateUserId();
+        userInfo.origin = Constants.APP_FLAG_PEACH;
 //        userInfo.secToken = Utils.getSecToken();
 
         OAuthInfo oauthInfo = new OAuthInfo();
@@ -1100,8 +1103,8 @@ public class UserAPI {
             return;
 
         //取得用户实体
-        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
-        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
         if (selfInfo == null || targetInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
@@ -1155,7 +1158,7 @@ public class UserAPI {
             func.funcv((Object[]) obj);
         }
 
-        // 向加友请求发起的客户端发消息
+        // 向删友请求发起的客户端发消息
         unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND);
     }
 
@@ -1180,6 +1183,7 @@ public class UserAPI {
         ObjectNode requestBody = Json.newObject();
         List<String> users = new ArrayList<>();
         users.add(targetInfo.easemobUser);
+
 
         requestBody.put("target_type", "users");
         requestBody.put("target", Json.toJson(users));
