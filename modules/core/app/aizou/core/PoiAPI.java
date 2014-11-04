@@ -16,10 +16,12 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import play.libs.Json;
+import play.mvc.Result;
 import utils.Constants;
 import utils.Utils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -150,6 +152,79 @@ public class PoiAPI {
     }
 
     /**
+     * 重载POI搜索
+     *
+     * @param poiType
+     * @param tag
+     * @param searchWord
+     * @param sortField
+     * @param asc
+     * @param page
+     * @param pageSize
+     * @param hotelType
+     * @return
+     * @throws TravelPiException
+     */
+    public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, String tag,
+                                                                      String searchWord, final SortField sortField, boolean asc,
+                                                                      int page, int pageSize, Boolean details, int hotelType)
+            throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+
+        Class<? extends AbstractPOI> poiClass = null;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+
+        if (searchWord != null && !searchWord.isEmpty())
+            query = query.filter("name", Pattern.compile(searchWord));
+        if (tag != null && !tag.isEmpty())
+            query = query.field("tags").equal(tag);
+        //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店
+        if (hotelType != 0)
+            query = query.field("type").equal(hotelType);
+
+        int detailLvl = details ? 3 : 2;
+        try {
+            List fieldList = (List) poiClass.getMethod("getRetrievedFields", int.class).invoke(poiClass, detailLvl);
+            query.retrievedFields(true, (String[]) fieldList.toArray(new String[]{""}));
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException ignored) {
+            return null;
+        }
+        // 排序
+        if (sortField != null) {
+            String stKey = null;
+            switch (sortField) {
+                case PRICE:
+                    stKey = "price";
+                    break;
+                case SCORE:
+                    stKey = "ratings.score";
+                    break;
+            }
+            query.order(String.format("%s%s", asc ? "" : "-", stKey));
+        } else {
+            query.order("-ratings.recommended, -ratings.rankingA, -ratings.qtScore, -ratings.baiduScore, -ratings.viewCnt");
+        }
+
+        query.offset(page * pageSize).limit(pageSize);
+
+        return query.iterator();
+    }
+
+    /**
      * POI搜索。
      *
      * @param poiType    POI类型。
@@ -227,6 +302,79 @@ public class PoiAPI {
                     poiId != null ? poiId : "NULL"));
         }
         return getPOIInfo(id, poiType, showDetails);
+    }
+
+    /**
+     * 获得地区的poi
+     *
+     * @param poiType
+     * @param locId
+     * @param tagFilter
+     * @param sortField
+     * @param sort
+     * @param details
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws UnknownHostException
+     * @throws TravelPiException
+     */
+    public static Iterator<? extends AbstractPOI> poiList(POIType poiType, String locId, String tagFilter, final SortField sortField,
+                                                          Boolean sort, Boolean details, int page, int pageSize)
+            throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Class<? extends AbstractPOI> poiClass = null;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+
+        if (locId == null || locId.isEmpty())
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        query = query.field("addr.loc.id").equal(locId);
+        //query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
+
+        if (tagFilter != null && !tagFilter.isEmpty())
+            query = query.field("tags").equal(tagFilter);
+
+        int detailLvl = details ? 3 : 2;
+        try {
+            List fieldList = (List) poiClass.getMethod("getRetrievedFields", int.class).invoke(poiClass, detailLvl);
+            query.retrievedFields(true, (String[]) fieldList.toArray(new String[]{""}));
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException ignored) {
+            return null;
+        }
+        // 排序
+        if (sortField != null) {
+            String stKey = null;
+            switch (sortField) {
+                case PRICE:
+                    stKey = "price";
+                    break;
+                case SCORE:
+                    stKey = "ratings.score";
+                    break;
+            }
+            query.order(String.format("%s%s", sort ? "" : "-", stKey));
+        } else {
+            query.order("-ratings.recommended, -ratings.rankingA, -ratings.qtScore, -ratings.baiduScore, -ratings.viewCnt");
+        }
+
+        query.offset(page * pageSize).limit(pageSize);
+
+        return query.iterator();
     }
 
     /**
