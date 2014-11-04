@@ -65,7 +65,8 @@ GET           /poi/shopping/:spotId                  controllers.taozi.POICtrl.v
 #美食详情
 GET           /poi/entertainment/:spotId             controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="entertainment", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
 
-
+#获得景点周边的POI列表
+GET           /poi/nearby/vs/                        controllers.taozi.POICtrl.getPOINearBy(poiDesc: String="vs", lat:String?="",lng:String?="",page:Int?=0,pageSize: Int?=20)
 #----------数据脚本----------
 #添加首页图片
 GET           /bache/addHomeImage                    controllers.taozi.BacheCtrl.addHomeImage()

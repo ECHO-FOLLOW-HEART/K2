@@ -249,6 +249,14 @@ public class PoiAPI {
             case RESTAURANT:
                 poiClass = Restaurant.class;
                 break;
+            case SHOPPING:
+                // TODO
+                poiClass = Restaurant.class;
+                break;
+            case ENTERTAINMENT:
+                //TODO
+                poiClass = Restaurant.class;
+                break;
             default:
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         }
@@ -533,5 +541,44 @@ public class PoiAPI {
             ids.add(temp.id);
         }
         return getPOIInfoList(ids, poiType, fieldList, page, pageSize);
+    }
+
+    /**
+     * 获得附近POI列表。
+     *
+     * @param poiType POI的类型。包括：view_spot: 景点；hotel: 酒店；restaurant: 餐厅。
+     * @return POI详情。如果没有找到，返回null。
+     */
+    public static List<? extends AbstractPOI> getPOINearBy( String poiType,double lat,double lng, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+        Class<? extends AbstractPOI> poiClass;
+        switch (poiType) {
+            case "vs":
+                poiClass = ViewSpot.class;
+                break;
+            case "hotel":
+                poiClass = Hotel.class;
+                break;
+            case "restaurant":
+                poiClass = Restaurant.class;
+                break;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+        }
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+
+        query.field("addr.coords").near(lat,lng,10000,true);
+//        List<CriteriaContainerImpl> criList = new ArrayList<>();
+//        for (ObjectId tempId : ids) {
+//            criList.add(query.criteria("id").equal(tempId));
+//        }
+//
+//        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
     }
 }
