@@ -6,21 +6,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.poi.AbstractPOI;
-import org.bson.types.ObjectId;
-import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.Constants;
-import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.ProxyFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
-import utils.formatter.taozi.user.SelfFavoriteFormatter;
 import utils.formatter.taozi.user.SimplePOIFormatter;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Created by topy on 2014/11/1.

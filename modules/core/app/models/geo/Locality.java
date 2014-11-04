@@ -19,6 +19,7 @@ import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 import utils.Constants;
+import utils.formatter.taozi.user.DetailedPOIFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,13 +40,33 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String simpZhName = "name";
+
     @Transient
     public static String simpDesc = "desc";
 
     @Transient
     public static String simpImg = "images";
 
+    @Transient
+    public static String simpEnName="enName";
+
+    @Transient
+    public static String simpShortName="shortName";
+
+    @Transient
+    public static String simpCountry="country";
+
+    @Transient
+    public static String simpAborad ="abroad";
+
+    @Transient
+    public static String simpSuperAdm="superAdm";
+
+    @Transient
+    public static String simpCoords="coords";
+
     @Indexed()
+
     public String zhName;
 
     public String enName;
@@ -129,6 +150,33 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         else
             return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
+    public String getEnName(){
+        if (enName==null)
+            return "";
+        else
+            return StringUtils.capitalize(enName);
+    }
+    public String getShortName(){
+        if (shortName==null)
+            return stripLocName(zhName);
+        else
+            return StringUtils.capitalize(shortName);
+    }
+    public Boolean getAbroad(){
+        return abroad != null && abroad;
+    }
+    /*public JsonNode getCountry(){
+        if (country==null)
+            return Json.newObject();
+        else
+            return new SimpleRefFormatter().format(country);
+    }
+    public JsonNode getSuperAdm(){
+        if (superAdm==null)
+            return Json.newObject();
+        else
+            return new SimpleRefFormatter().format(superAdm);
+    }*/
 
     /**
      * 去掉末尾的省市县等名字。

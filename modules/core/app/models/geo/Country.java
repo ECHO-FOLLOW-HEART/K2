@@ -1,10 +1,12 @@
 package models.geo;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 import java.util.ArrayList;
@@ -15,8 +17,21 @@ import java.util.List;
  *
  * @author Zephyre
  */
+@JsonFilter("countryFilter")
 @Entity
 public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
+    @Transient
+    public static String simpZhCont="zhCont";
+    @Transient
+    public static String simpEnCont="enCont";
+    @Transient
+    public static String simpZhName="zhName";
+    @Transient
+    public static String simpEnName="enName";
+    @Transient
+    public static String simpIsHot="isHot";
+    @Transient
+    public static String simpId="id";
     /**
      * ISO 3166-2标准的国家代码
      */
@@ -86,7 +101,51 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      * 对应的穷游代码
      */
     public Integer qyerId;
-
+    public String getId(){
+        return id.toString();
+    }
+    public String getZhCont(){
+        if (zhCont==null)
+            return "";
+        else
+            return zhCont;
+    }
+    public String getEnCont(){
+        if (enCont==null)
+            return "";
+        else
+            return enCont;
+    }
+    public String getZhRegion(){
+        if (zhRegion==null)
+            return "";
+        else
+            return zhRegion;
+    }
+    public String getEnRegion(){
+        if (enRegion==null)
+            return "";
+        else
+            return enRegion;
+    }
+    public String getEnName(){
+        if (enName==null)
+            return "";
+        else
+            return enName;
+    }
+    public String getZhName(){
+        if (zhName==null)
+            return "";
+        else
+            return zhName;
+    }
+    public Boolean getIsHot(){
+        if (isHot==null)
+            return false;
+        else
+            return true;
+    }
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

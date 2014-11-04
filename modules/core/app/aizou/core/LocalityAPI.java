@@ -172,15 +172,32 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
         List<String> fields = new ArrayList<>();
-        Collections.addAll(fields, "zhName", "ratings");
+        Collections.addAll(fields, "enName","zhName", "ratings");
         if (showDetails)
-            Collections.addAll(fields, "imageList", "tags", "desc");
+            Collections.addAll(fields, "superAdm","imageList", "tags", "desc","country","coords");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
                 .field("imageList").notEqual(null)
                 .field("relPlanCnt").greaterThan(0)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 
+        return query.asList();
+    }
+
+    /**
+     * 发现国家
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Country> exploreCountry(int page,int pageSize) throws TravelPiException {
+        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        List<String> fields=new ArrayList<>();
+        //限定字段显示
+        Collections.addAll(fields,"zhName","enName","zhCont","isHot","enCont");
+        Query<Country> query=ds.createQuery (Country.class).retrievedFields(true,fields.toArray(new String[]{""}))
+                .offset(page*pageSize).limit(pageSize).order("zhName");
         return query.asList();
     }
 

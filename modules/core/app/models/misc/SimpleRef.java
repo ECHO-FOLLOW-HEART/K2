@@ -15,8 +15,8 @@ import play.libs.Json;
  *
  * @author Zephyre
  */
-@Embedded
 @JsonFilter("simpleRefFilter")
+@Embedded
 public class SimpleRef implements ITravelPiFormatter {
     @Transient
     public static String simpID = "id";
@@ -27,14 +27,22 @@ public class SimpleRef implements ITravelPiFormatter {
     public ObjectId id;
     public String enName;
     public String zhName;
-
-    public String getEnName() {
-        if (enName == null)
+    public String getEnName(){
+        if (enName==null)
             return "";
         else
-            return enName;
+            return StringUtils.capitalize(enName);
     }
 
+    public String getZhName(){
+        if (zhName==null)
+            return "";
+        else
+            return StringUtils.capitalize(zhName);
+    }
+    public String getId(){
+        return id.toString();
+    }
     @Override
     public JsonNode toJson() {
         return Json.toJson(BasicDBObjectBuilder.start("_id", id.toString())

@@ -1,4 +1,4 @@
-package utils.formatter;
+package utils.formatter.taozi.geo;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,20 +12,17 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.misc.Contact;
-import models.misc.Description;
-import models.poi.AbstractPOI;
+import models.geo.Country;
+import models.geo.Locality;
+import utils.formatter.JsonFormatter;
 
-import java.text.SimpleDateFormat;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 获得代理服务器信息
- * <p/>
- * Created by zephyre on 10/29/14.
+ * Created by lxf on 14-11-1.
  */
-public class ProxyFormatter implements JsonFormatter {
+public class CountryFormatter implements JsonFormatter{
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -44,30 +41,32 @@ public class ProxyFormatter implements JsonFormatter {
                 }
             }
 
-            private boolean excludeImpl(PropertyWriter writer) {
-                Set<String> excludedFields = new HashSet<>();
-                excludedFields.add("id");
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(Country.simpEnCont);
+                includedFields.add(Country.simpZhCont);
+                includedFields.add(Country.simpEnName);
+                includedFields.add(Country.simpZhName);
+                includedFields.add(Country.simpIsHot);
+                includedFields.add(Country.simpId);
 
-                return (excludedFields.contains(writer.getName()));
+                return (includedFields.contains(writer.getName()));
             }
 
             @Override
             protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return !excludeImpl(beanPropertyWriter);
+                return includeImpl(beanPropertyWriter);
             }
 
             @Override
             protected boolean include(PropertyWriter writer) {
-                return !excludeImpl(writer);
+                return includeImpl(writer);
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("proxyFilter", theFilter);
-        mapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ"));
+        FilterProvider filters = new SimpleFilterProvider().addFilter("countryFilter", theFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);
     }
-
-
 }
