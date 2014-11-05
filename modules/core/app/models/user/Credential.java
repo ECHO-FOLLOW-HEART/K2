@@ -2,7 +2,6 @@ package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.TravelPiBaseItem;
-import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 
@@ -11,7 +10,6 @@ import play.data.validation.Constraints;
  *
  * @author Zephyre
  */
-@Entity
 @JsonFilter("credentialFilter")
 public class Credential extends TravelPiBaseItem {
     @Transient
@@ -29,22 +27,71 @@ public class Credential extends TravelPiBaseItem {
     @Transient
     public static String fnEasemobPwd = "easemobPwd";
 
+    /**
+     * 用户ID
+     */
     @Constraints.Required
-    public Integer userId;
+    private Integer userId;
 
-    public String pwdHash;
+    public Integer getUserId() {
+        return userId;
+    }
 
+    public void setUserId(Integer val) {
+        userId = val;
+    }
+
+    /**
+     * 密码加盐hash
+     */
+    private String pwdHash;
+
+    public String getPwdHash() {
+        return (pwdHash != null ? pwdHash : "");
+    }
+
+    public void setPwdHash(String val) {
+        pwdHash = val;
+    }
+
+    /**
+     * 该用户对应的盐值
+     */
     @Constraints.Required
-    public String salt;
+    private String salt;
+
+    public String getSalt() {
+        return (salt != null ? salt : "");
+    }
+
+    public void setSalt(String val) {
+        salt = val;
+    }
 
     /**
      * 环信密码
      */
-    public String easemobPwd;
+    private String easemobPwd;
+
+    public String getEasemobPwd() {
+        return (easemobPwd != null ? easemobPwd : "");
+    }
+
+    public void setEasemobPwd(String val) {
+        easemobPwd = val;
+    }
 
     /**
-     * 用户密钥
+     * 用户密钥，鉴权的时候使用
      */
     @Constraints.Required
-    public String secKey;
+    private String secKey;
+
+    public String getSecKey() {
+        return (secKey != null ? secKey : "");
+    }
+
+    public void setSecKey(String val) {
+        secKey = val;
+    }
 }

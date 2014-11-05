@@ -436,13 +436,13 @@ public class UserAPI {
         // 注册机密信息
         Credential cre = new Credential();
         cre.id = user.id;
-        cre.userId = user.userId;
-        cre.salt = Utils.getSalt();
+        cre.setUserId(user.userId);
+        cre.setSalt(Utils.getSalt());
         if (!pwd.equals(""))
-            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-        cre.easemobPwd = easemobPwd;
+            cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
+        cre.setEasemobPwd(easemobPwd);
         try {
-            cre.secKey = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+            cre.setSecKey(Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded()));
         } catch (NoSuchAlgorithmException e) {
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
         }
@@ -470,11 +470,11 @@ public class UserAPI {
         // 注册机密信息
         Credential cre = new Credential();
         cre.id = user.id;
-        cre.userId = user.userId;
-        cre.salt = Utils.getSalt();
-        cre.easemobPwd = easemobPwd;
+        cre.setUserId(user.userId);
+        cre.setSalt(Utils.getSalt());
+        cre.setEasemobPwd(easemobPwd);
         try {
-            cre.secKey = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+            cre.setSecKey(Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded()));
         } catch (NoSuchAlgorithmException e) {
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
         }
@@ -589,7 +589,7 @@ public class UserAPI {
         if (u.userId == null)
             return null;
         Credential cre = ceQuery.field("userId").equal(u.userId).get();
-        if (cre == null || cre.pwdHash == null)
+        if (cre == null || cre.getPwdHash() == null)
             return null;
         return cre;
 
@@ -636,8 +636,8 @@ public class UserAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(u.userId).get();
-        cre.salt = Utils.getSalt();
-        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        cre.setSalt(Utils.getSalt());
+        cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
     }
@@ -650,11 +650,10 @@ public class UserAPI {
      * @return
      */
     public static boolean validCredential(UserInfo u, String pwd) throws TravelPiException {
-
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
         Credential ce = ceQuery.field("userId").equal(u.userId).get();
-        return ce != null && ce.pwdHash.equals(Utils.toSha1Hex(ce.salt + pwd));
+        return ce != null && ce.getPwdHash().equals(Utils.toSha1Hex(ce.getSalt() + pwd));
     }
 
     /**

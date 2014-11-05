@@ -161,8 +161,8 @@ public class UserCtrl extends Controller {
                 if (!pwd.equals("")) {
                     Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
                     Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(userInfo.userId).get();
-                    cre.salt = Utils.getSalt();
-                    cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+                    cre.setSalt(Utils.getSalt());
+                    cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
 
                     MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
                 }
