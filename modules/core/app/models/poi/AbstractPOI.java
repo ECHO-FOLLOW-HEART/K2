@@ -79,6 +79,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Embedded
     public Address addr;
 
+    /**
+     * 是否位于国外
+     */
+    public Boolean abroad;
+
     public String name;
 
     public String url;
