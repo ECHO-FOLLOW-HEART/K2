@@ -113,7 +113,8 @@ public class GeoCtrl extends Controller {
             if (loc != 0) {
                 List<JsonNode> retLocList = new ArrayList<>();
                 //获得城市信息
-                List<Locality> localityList = LocalityAPI.explore(detailsFlag, page, pageSize);
+                // TODO 暂时只返回国内数据
+                List<Locality> localityList = LocalityAPI.explore(detailsFlag, false, page, pageSize);
                 for (Locality locality : localityList)
                     retLocList.add(new LocalityFormatter().format(locality));
                 results.put("loc", Json.toJson(retLocList));
