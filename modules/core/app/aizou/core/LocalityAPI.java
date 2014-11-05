@@ -168,7 +168,8 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
         List<String> fields = new ArrayList<>();
-        Collections.addAll(fields, "zhName", "enName", "ratings", "countryDetails");
+        // TODO 此处删除了countryDetails，这是什么字段？
+        Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
             Collections.addAll(fields, "superAdm", "imageList", "tags", "desc", "country", "coords");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
