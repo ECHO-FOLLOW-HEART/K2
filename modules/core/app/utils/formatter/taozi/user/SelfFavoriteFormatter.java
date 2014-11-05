@@ -24,7 +24,7 @@ import java.util.Set;
 
 /**
  * 返回用户的详细信息（即：查看自己的用户信息时使用）
- * <p>
+ * <p/>
  * Created by zephyre on 10/28/14.
  */
 public class SelfFavoriteFormatter implements JsonFormatter {
@@ -191,7 +191,7 @@ public class SelfFavoriteFormatter implements JsonFormatter {
             }
         };
         FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("abstractPOIFilter", poiFilter)
-                .addFilter("travelNoteFilter", travelFilter).addFilter("localityFilter", localityFilter).addFilter("descriptionFilter",descriptionFilter);
+                .addFilter("travelNoteFilter", travelFilter).addFilter("localityFilter", localityFilter).addFilter("descriptionFilter", descriptionFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

@@ -60,8 +60,8 @@ public class Application extends Controller {
 //                put("subContinent", finalSubCont);
 //            }
 //        };
-//        Country country = (Country) Utils.create(Country.class, kvPair);
-//        country.save();
+//        Country countryDetails = (Country) Utils.create(Country.class, kvPair);
+//        countryDetails.save();
 //
 //        kvPair = new HashMap<String, Object>() {
 //            {
@@ -82,8 +82,8 @@ public class Application extends Controller {
 //                put("subContinent", finalSubCont1);
 //            }
 //        };
-//        country = (Country) Utils.create(Country.class, kvPair);
-//        country.save();
+//        countryDetails = (Country) Utils.create(Country.class, kvPair);
+//        countryDetails.save();
 //
 //        LocalityTag cityTag = new LocalityTag();
 //        cityTag.cityTagName = "古镇风情";
@@ -100,7 +100,7 @@ public class Application extends Controller {
 //
 //        kvPair = new HashMap<String, Object>() {
 //            {
-//                put("country", Country.finder.byId("CN"));
+//                put("countryDetails", Country.finder.byId("CN"));
 //                put("enLocalityName", "BEIJING");
 //                put("zhLocalityName", "北京");
 //                put("lat", 40f);
@@ -118,7 +118,7 @@ public class Application extends Controller {
 //
 //        kvPair = new HashMap<String, Object>() {
 //            {
-//                put("country", Country.finder.byId("CN"));
+//                put("countryDetails", Country.finder.byId("CN"));
 //                put("enLocalityName", "CHENGDU");
 //                put("zhLocalityName", "成都");
 //                put("lat", 31f);
@@ -179,11 +179,11 @@ public class Application extends Controller {
 ////                loc.superAdm = ref;
 ////                updated = true;
 ////            }
-////            models.morphia.geo.Country country = loc.country;
-////            if (country != null) {
-////                loc.countryId = country.code;
-////                loc.countryEnName = country.enName;
-////                loc.countryZhName = country.zhName;
+////            models.morphia.geo.Country countryDetails = loc.countryDetails;
+////            if (countryDetails != null) {
+////                loc.countryId = countryDetails.code;
+////                loc.countryEnName = countryDetails.enName;
+////                loc.countryZhName = countryDetails.zhName;
 ////                updated = true;
 ////            }
 ////            if (updated)
@@ -254,28 +254,28 @@ public class Application extends Controller {
 //        Datastore ds = Utils.getDatastore();
 //        morphia.map(models.morphia.geo.Country.class);
 //
-//        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("country");
+//        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("countryDetails");
 //
 //        DBCursor cursor = col.find(QueryBuilder.start().get());
 //        while (cursor.hasNext()) {
 //            DBObject loc = cursor.next();
 //
-//            models.morphia.geo.Country country = new models.morphia.geo.Country();
-//            country.code = loc.get("_id").toString();
+//            models.morphia.geo.Country countryDetails = new models.morphia.geo.Country();
+//            countryDetails.code = loc.get("_id").toString();
 //            Object tmp = loc.get("code3");
 //            if (tmp != null)
-//                country.code3 = tmp.toString();
+//                countryDetails.code3 = tmp.toString();
 //            tmp = loc.get("enName");
 //            if (tmp != null)
-//                country.enName = tmp.toString();
+//                countryDetails.enName = tmp.toString();
 //            tmp = loc.get("zhName");
 //            if (tmp != null)
-//                country.zhName = tmp.toString();
+//                countryDetails.zhName = tmp.toString();
 //            tmp = loc.get("defaultCurrency");
 //            if (tmp != null)
-//                country.defCurrency = tmp.toString();
+//                countryDetails.defCurrency = tmp.toString();
 //
-//            ds.save(country);
+//            ds.save(countryDetails);
 //        }
 //
 //        return Results.ok();

@@ -21,17 +21,21 @@ import java.util.List;
 @Entity
 public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
-    public static String simpZhCont="zhCont";
+    public static String simpZhCont = "zhCont";
     @Transient
-    public static String simpEnCont="enCont";
+    public static String simpEnCont = "enCont";
     @Transient
-    public static String simpZhName="zhName";
+    public static String simpEnRegion = "enRegion";
     @Transient
-    public static String simpEnName="enName";
+    public static String SimpZhRegion = "zhRegion";
     @Transient
-    public static String simpIsHot="isHot";
+    public static String simpZhName = "zhName";
     @Transient
-    public static String simpId="id";
+    public static String simpEnName = "enName";
+    @Transient
+    public static String simpIsHot = "isHot";
+    @Transient
+    public static String simpId = "id";
     /**
      * ISO 3166-2标准的国家代码
      */
@@ -41,6 +45,11 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      * ISO 3166-3标准的国家代码
      */
     public String code3;
+
+    /**
+     * 标准的ISO-Numeric代码
+     */
+    public String isoNum;
 
     /**
      * FIPS国家代码
@@ -83,6 +92,21 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
     public String enName;
 
     /**
+     * 首都
+     */
+    public String enCapital;
+
+    /**
+     * 面积（平方千米）
+     */
+    public Integer area;
+
+    /**
+     * 人口数量
+     */
+    public Integer population;
+
+    /**
      * 别名
      */
     public List<String> alias;
@@ -90,7 +114,32 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 默认货币
      */
-    public String defCurrency;
+    public String currencyCode;
+
+    /**
+     * 货币英文名称
+     */
+    public String currencyEnName;
+
+    /**
+     * 货币中文名称
+     */
+    public String currencyZhName;
+
+    /**
+     * 电话的国家代码
+     */
+    public Integer dialCode;
+
+    /**
+     * 语言
+     */
+    public List<String> lang;
+
+    /**
+     * 相邻的国家
+     */
+    public List<String> neighbours;
 
     /**
      * 是否为热门旅游目的地国家
@@ -101,51 +150,60 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      * 对应的穷游代码
      */
     public Integer qyerId;
-    public String getId(){
+
+    public String getId() {
         return id.toString();
     }
-    public String getZhCont(){
-        if (zhCont==null)
+
+    public String getZhCont() {
+        if (zhCont == null)
             return "";
         else
             return zhCont;
     }
-    public String getEnCont(){
-        if (enCont==null)
+
+    public String getEnCont() {
+        if (enCont == null)
             return "";
         else
             return enCont;
     }
-    public String getZhRegion(){
-        if (zhRegion==null)
+
+    public String getZhRegion() {
+        if (zhRegion == null)
             return "";
         else
             return zhRegion;
     }
-    public String getEnRegion(){
-        if (enRegion==null)
+
+    public String getEnRegion() {
+        if (enRegion == null)
             return "";
         else
             return enRegion;
     }
-    public String getEnName(){
-        if (enName==null)
+
+    public String getEnName() {
+        if (enName == null)
             return "";
         else
             return enName;
     }
-    public String getZhName(){
-        if (zhName==null)
+
+    public String getZhName() {
+        if (zhName == null)
             return "";
         else
             return zhName;
     }
-    public Boolean getIsHot(){
-        if (isHot==null)
+
+    public Boolean getIsHot() {
+        if (isHot == null)
             return false;
         else
             return true;
     }
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

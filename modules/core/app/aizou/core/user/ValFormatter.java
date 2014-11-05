@@ -4,7 +4,7 @@ import java.util.Map;
 
 /**
  * 生成验证短信的内容。
- * <p>
+ * <p/>
  * Created by zephyre on 14-10-15.
  */
 public interface ValFormatter {

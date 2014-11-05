@@ -67,6 +67,7 @@ public class ViewSpot extends AbstractPOI {
         else
             return trafficInfo;
     }
+
     @Override
     public JsonNode toJson(int level) {
         ObjectNode node = (ObjectNode) super.toJson(level);

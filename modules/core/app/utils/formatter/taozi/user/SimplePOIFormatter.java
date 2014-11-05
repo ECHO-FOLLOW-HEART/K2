@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
 import models.poi.AbstractPOI;
-import models.user.UserInfo;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
@@ -21,7 +20,7 @@ import java.util.Set;
 
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p>
+ * <p/>
  * Created by zephyre on 10/28/14.
  */
 public class SimplePOIFormatter implements JsonFormatter {

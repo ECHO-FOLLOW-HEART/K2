@@ -62,7 +62,7 @@ public class Country extends Model {
     /**
      * 下属城市列表。
      */
-    @OneToMany(mappedBy = "country", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "countryDetails", fetch = FetchType.LAZY)
     public List<Locality> localityList;
 
     /**
