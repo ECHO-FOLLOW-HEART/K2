@@ -22,9 +22,9 @@ public class Contact implements ITravelPiFormatter {
     @Transient
     public static String simpFax = "fax";
     @Transient
-    public static String simpEmail= "email";
+    public static String simpEmail = "email";
     @Transient
-    public static String simpPhoneList= "phoneList";
+    public static String simpPhoneList = "phoneList";
 
     public List<String> phoneList;
     public String fax;

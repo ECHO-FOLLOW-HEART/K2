@@ -19,7 +19,6 @@ import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 import utils.Constants;
-import utils.formatter.taozi.user.DetailedPOIFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +35,13 @@ import java.util.regex.Pattern;
 public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
+    public static String fnEnName = "enName";
+
+    @Transient
+    public static String fnZhName = "zhName";
+
+
+    @Transient
     public static String simpId = "id";
 
     @Transient
@@ -48,22 +54,25 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String simpImg = "images";
 
     @Transient
-    public static String simpEnName="enName";
+    public static String simpEnName = "enName";
 
     @Transient
-    public static String simpShortName="shortName";
+    public static String simpShortName = "shortName";
+
+//    @Transient
+//    public static String simpCountry = "countryDetails";
 
     @Transient
-    public static String simpCountry="country";
+    public static String fnCountry = "country";
 
     @Transient
-    public static String simpAborad ="abroad";
+    public static String simpAborad = "abroad";
 
     @Transient
-    public static String simpSuperAdm="superAdm";
+    public static String simpSuperAdm = "superAdm";
 
     @Transient
-    public static String simpCoords="coords";
+    public static String simpCoords = "coords";
 
     @Indexed()
 
@@ -129,55 +138,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public Integer relPlanCnt;
 
-    public String getName() {
-        if (zhName == null)
-            return "";
-        else
-            return stripLocName(zhName);
-    }
-
-    public List<String> getImages() {
-        if (imageList == null)
-            return new ArrayList();
-        else {
-            return imageList;
-        }
-    }
-
-    public String getDesc() {
-        if (desc == null)
-            return "";
-        else
-            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
-    }
-    public String getEnName(){
-        if (enName==null)
-            return "";
-        else
-            return StringUtils.capitalize(enName);
-    }
-    public String getShortName(){
-        if (shortName==null)
-            return stripLocName(zhName);
-        else
-            return StringUtils.capitalize(shortName);
-    }
-    public Boolean getAbroad(){
-        return abroad != null && abroad;
-    }
-    /*public JsonNode getCountry(){
-        if (country==null)
-            return Json.newObject();
-        else
-            return new SimpleRefFormatter().format(country);
-    }
-    public JsonNode getSuperAdm(){
-        if (superAdm==null)
-            return Json.newObject();
-        else
-            return new SimpleRefFormatter().format(superAdm);
-    }*/
-
     /**
      * 去掉末尾的省市县等名字。
      *
@@ -229,6 +189,46 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         return result;
     }
 
+    public String getName() {
+        if (zhName == null)
+            return "";
+        else
+            return stripLocName(zhName);
+    }
+
+    public List<String> getImages() {
+        if (imageList == null)
+            return new ArrayList();
+        else {
+            return imageList;
+        }
+    }
+
+    public String getDesc() {
+        if (desc == null)
+            return "";
+        else
+            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+    }
+
+    public String getEnName() {
+        if (enName == null)
+            return "";
+        else
+            return StringUtils.capitalize(enName);
+    }
+
+    public String getShortName() {
+        if (shortName == null)
+            return stripLocName(zhName);
+        else
+            return StringUtils.capitalize(shortName);
+    }
+
+    public Boolean getAbroad() {
+        return abroad != null && abroad;
+    }
+
     public JsonNode getJsonNode() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("level", level);
@@ -263,11 +263,11 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
         builder.add("abroad", (abroad != null && abroad));
 
-        if (country != null) {
-            ObjectNode node = (ObjectNode) country.toJson();
-            builder.add("country", node);
-        } else
-            builder.add("country", new BasicDBObject());
+//        if (country != null) {
+//            ObjectNode node = (ObjectNode) country.toJson();
+//            builder.add("countryDetails", node);
+//        } else
+//            builder.add("countryDetails", new BasicDBObject());
 
         if (coords != null) {
             if (coords.blat != null) builder.add("blat", coords.blat);

@@ -388,7 +388,7 @@ public class PlanAPI {
 
             // 需要添加酒店
             try {
-                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastLoc.id, 0, 1);
+                Iterator<? extends AbstractPOI> itr = PoiAPI.explore(PoiAPI.POIType.HOTEL, lastLoc.id, false, 0, 1);
                 if (itr.hasNext()) {
                     Hotel hotel = (Hotel) itr.next();
                     PlanItem hotelItem = new PlanItem();

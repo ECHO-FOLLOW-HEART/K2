@@ -3,6 +3,7 @@ package utils.phone;
 /**
  * 表示一个电话号码的实体
  * <p/>
+ *
  * @author Zephyre
  */
 public class PhoneEntity {
@@ -10,6 +11,22 @@ public class PhoneEntity {
      * 国家代码
      */
     private int dialCode;
+    /**
+     * 区号
+     */
+    private String regionNumber;
+    /**
+     * 电话号码
+     */
+    private String phoneNumber;
+    /**
+     * 分机号
+     */
+    private String extension;
+    /**
+     * 是否为手机
+     */
+    private Boolean cellPhone;
 
     public int getDialCode() {
         return dialCode;
@@ -19,11 +36,6 @@ public class PhoneEntity {
         dialCode = val;
     }
 
-    /**
-     * 区号
-     */
-    private String regionNumber;
-
     public String getRegionNumber() {
         return regionNumber;
     }
@@ -31,11 +43,6 @@ public class PhoneEntity {
     void setRegionNumber(String val) {
         regionNumber = val;
     }
-
-    /**
-     * 电话号码
-     */
-    private String phoneNumber;
 
     public String getPhoneNumber() {
         return phoneNumber;
@@ -45,11 +52,6 @@ public class PhoneEntity {
         phoneNumber = val;
     }
 
-    /**
-     * 分机号
-     */
-    private String extension;
-
     public String getExtension() {
         return extension;
     }
@@ -57,11 +59,6 @@ public class PhoneEntity {
     void setExtension(String val) {
         extension = val;
     }
-
-    /**
-     * 是否为手机
-     */
-    private Boolean cellPhone;
 
     public Boolean getCellPhone() {
         return cellPhone;

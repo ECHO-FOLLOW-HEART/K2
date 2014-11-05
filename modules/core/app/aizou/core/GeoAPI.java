@@ -6,6 +6,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
+import models.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -20,6 +21,34 @@ import java.util.regex.PatternSyntaxException;
  * Created by zephyre on 7/10/14.
  */
 public class GeoAPI {
+
+    /**
+     * 获得国家详情
+     *
+     * @param countryId
+     * @param field
+     * @return
+     */
+    public static Country countryDetails(String countryId, List<String> field) throws TravelPiException {
+        return countryDetails(new ObjectId(countryId), field);
+    }
+
+    /**
+     * 获得国家详情
+     *
+     * @param countryId
+     * @param field
+     * @return
+     */
+    public static Country countryDetails(ObjectId countryId, List<String> field) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Country> query = ds.createQuery(Country.class).field("_id").equal(countryId);
+        if (field != null && !field.isEmpty())
+            query.retrievedFields(true, field.toArray(new String[field.size()]));
+
+        return query.get();
+    }
+
     /**
      * 获得城市详情。
      *
@@ -56,11 +85,14 @@ public class GeoAPI {
      * @param page     分页偏移量。
      * @param pageSize 页面大小。
      */
-    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, int page, int pageSize) throws TravelPiException, PatternSyntaxException {
+    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, ObjectId countryId, int page, int pageSize)
+            throws TravelPiException, PatternSyntaxException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
             query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
+        if (countryId != null)
+            query.field(String.format("%s.%s", Locality.fnCountry, SimpleRef.simpID)).equal(countryId);
         return query.order("level").offset(page * pageSize).limit(pageSize).iterator();
     }
 

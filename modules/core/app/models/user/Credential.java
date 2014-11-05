@@ -2,9 +2,7 @@ package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.TravelPiBaseItem;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 

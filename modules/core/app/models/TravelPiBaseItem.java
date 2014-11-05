@@ -2,6 +2,7 @@ package models;
 
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Transient;
 
 import java.util.Map;
 

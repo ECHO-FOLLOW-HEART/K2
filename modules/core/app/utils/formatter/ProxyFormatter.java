@@ -12,9 +12,6 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.misc.Contact;
-import models.misc.Description;
-import models.poi.AbstractPOI;
 
 import java.text.SimpleDateFormat;
 import java.util.HashSet;

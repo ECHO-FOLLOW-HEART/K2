@@ -1,4 +1,4 @@
-package utils.formatter.taozi.user;
+package utils.formatter.travelpi.geo;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,18 +12,16 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.user.UserInfo;
+import models.geo.Locality;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p/>
- * Created by zephyre on 10/28/14.
+ * @author Zephyre
  */
-public class SimpleUserFormatter implements JsonFormatter {
+public class SimpleLocalityFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -44,12 +42,9 @@ public class SimpleUserFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(UserInfo.fnNickName);
-                includedFields.add(UserInfo.fnAvatar);
-                includedFields.add(UserInfo.fnUserId);
-                includedFields.add(UserInfo.fnGender);
-                includedFields.add(UserInfo.fnMemo);
-                includedFields.add(UserInfo.fnEasemobUser);
+                includedFields.add(Locality.fnEnName);
+                includedFields.add(Locality.fnZhName);
+                includedFields.add("id");
 
                 return (includedFields.contains(writer.getName()));
             }
@@ -65,7 +60,7 @@ public class SimpleUserFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("userInfoFilter", theFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

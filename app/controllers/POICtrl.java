@@ -371,7 +371,7 @@ public class POICtrl extends Controller {
 
         List<JsonNode> retPoiList = new ArrayList<>();
 
-        for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(pt, oLocId, page, pageSize); it.hasNext(); )
+        for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(pt, oLocId, false, page, pageSize); it.hasNext(); )
             retPoiList.add(it.next().toJson(2));
 
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(retPoiList), request(), Constants.SMALL_PIC));
