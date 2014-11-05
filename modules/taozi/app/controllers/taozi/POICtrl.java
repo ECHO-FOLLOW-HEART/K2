@@ -14,6 +14,7 @@ import models.poi.AbstractPOI;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.FieldEndImpl;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -217,6 +218,4 @@ public class POICtrl extends Controller {
             throws TravelPiException {
         return viewPoiList("restaurant", locId, tagFilter,sortField,sortType,page, pageSize);
     }
-
-
 }

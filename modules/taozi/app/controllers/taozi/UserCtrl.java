@@ -684,7 +684,7 @@ public class UserCtrl extends Controller {
 
         try {
             UserAPI.delContact(userId, id);
-            return Utils.createResponse(ErrorCode.NORMAL, "");
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }

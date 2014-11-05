@@ -25,8 +25,10 @@ import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http;
+import utils.Constants;
 import utils.FPUtils;
 import utils.Utils;
+import utils.formatter.taozi.user.SimpleUserFormatter;
 
 import javax.crypto.KeyGenerator;
 import java.io.InputStream;
@@ -43,6 +45,9 @@ import java.util.*;
  * @author Zephyre
  */
 public class UserAPI {
+
+    public static int CMDTYPE_ADD_FRIEND = 2;
+    public static int CMDTYPE_DEL_FRIEND = 3;
 
     public static UserInfo getUserById(ObjectId id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
@@ -348,6 +353,7 @@ public class UserAPI {
 
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        query.field("origin").equal(Constants.APP_FLAG_PEACH);
 
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
@@ -362,7 +368,7 @@ public class UserAPI {
     public static UserInfo getUserByField(List<String> fieldDesc, String value, List<String> fieldList)
             throws TravelPiException {
         Iterator<UserInfo> itr = searchUser(fieldDesc, value, fieldList, 0, 1);
-        if (itr!=null && itr.hasNext())
+        if (itr != null && itr.hasNext())
             return itr.next();
         else
             return null;
@@ -417,7 +423,7 @@ public class UserAPI {
         user.dialCode = countryCode;
         user.email = "";
         user.signature = "";
-        user.origin = "peach-telUser";
+        user.origin = Constants.APP_FLAG_PEACH;
         user.enabled = true;
 
         // 注册环信
@@ -487,6 +493,7 @@ public class UserAPI {
         userInfo.gender = json.get("sex").asText().equals("1") ? "M" : "F";
         userInfo.oauthList = new ArrayList<>();
         userInfo.userId = UserAPI.populateUserId();
+        userInfo.origin = Constants.APP_FLAG_PEACH;
 //        userInfo.secToken = Utils.getSecToken();
 
         OAuthInfo oauthInfo = new OAuthInfo();
@@ -1079,7 +1086,11 @@ public class UserAPI {
         })) {
             func.funcv((Object[]) obj);
         }
+
+        // 向加友请求发起的客户端发消息
+        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND);
     }
+
 
     /**
      * 删除好友
@@ -1092,8 +1103,8 @@ public class UserAPI {
             return;
 
         //取得用户实体
-        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
-        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId));
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
         if (selfInfo == null || targetInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
@@ -1145,6 +1156,70 @@ public class UserAPI {
                 new Object[]{targetInfo, selfId}
         })) {
             func.funcv((Object[]) obj);
+        }
+
+        // 向删友请求发起的客户端发消息
+        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND);
+    }
+
+
+    /**
+     * 服务器调用环信接口发送透传消息
+     */
+    public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType) throws TravelPiException {
+        if (selfInfo.easemobUser == null)
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+        ObjectNode info = (ObjectNode) new SimpleUserFormatter().format(selfInfo);
+
+        ObjectNode ext = Json.newObject();
+        ext.put("CMDType", cmdType);
+        ext.put("content", info);
+
+        ObjectNode msg = Json.newObject();
+        msg.put("type", "cmd");
+        msg.put("msg", "agree to be friends");
+        msg.put("action", "tzaction");
+
+        ObjectNode requestBody = Json.newObject();
+        List<String> users = new ArrayList<>();
+        users.add(targetInfo.easemobUser);
+
+
+        requestBody.put("target_type", "users");
+        requestBody.put("target", Json.toJson(users));
+        requestBody.put("msg", msg);
+        requestBody.put("ext", ext);
+        requestBody.put("from", selfInfo.easemobUser);
+
+        // 重新获取token
+        Configuration config = Configuration.root().getConfig("easemob");
+        String orgName = config.getString("org");
+        String appName = config.getString("app");
+
+        String href = String.format("https://a1.easemob.com/%s/%s/messages",
+                orgName, appName);
+
+        try {
+            URL url = new URL(href);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
+
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            out.write(requestBody.toString());
+            out.flush();
+            out.close();
+
+            InputStream in = conn.getInputStream();
+            String body = IOUtils.toString(in, conn.getContentEncoding());
+
+            JsonNode tokenData = Json.parse(body);
+            if (tokenData.has("error"))
+                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+        } catch (java.io.IOException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
         }
     }
 
