@@ -17,7 +17,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.geo.CountryFormatter;
+import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 
@@ -151,7 +151,7 @@ public class GeoCtrl extends Controller {
                 List<JsonNode> retcountryList = new ArrayList<>();
                 //获得城市信息
                 for (Country tmpCountry : LocalityAPI.exploreCountry(page, pageSize))
-                    retcountryList.add(new CountryFormatter().format(tmpCountry));
+                    retcountryList.add(new SimpleCountryFormatter().format(tmpCountry));
                 results.put("country", Json.toJson(retcountryList));
             }
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));

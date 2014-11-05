@@ -10,7 +10,7 @@ import models.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
-import utils.formatter.taozi.geo.CountryFormatter;
+import utils.formatter.taozi.geo.SimpleCountryFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,7 +126,7 @@ public class GeoAPI {
         List<Country> countryList = searchCountryByName(keyword, page, pageSize);
         List<JsonNode> result = new ArrayList<>();
         for (Country c : countryList)
-            result.add(new CountryFormatter().format(c));
+            result.add(new SimpleCountryFormatter().format(c));
         return result;
     }
 }

@@ -313,7 +313,6 @@ public class PoiAPI {
      * @param page
      * @param pageSize
      * @return
-     * @throws UnknownHostException
      * @throws TravelPiException
      */
     public static Iterator<? extends AbstractPOI> poiList(POIType poiType, String locId, String tagFilter, final SortField sortField,
@@ -625,14 +624,14 @@ public class PoiAPI {
 
         Map<String, List<Locality>> results = new HashMap<>();
         for (Object obj : countryList) {
-            Country country = GeoAPI.countryDetails((ObjectId) obj, Arrays.asList(Country.simpEnName, Country.simpZhName));
-            if (country.enName.equals("China"))
+            Country country = GeoAPI.countryDetails((ObjectId) obj, Arrays.asList(Country.fnEnName, Country.fnZhName));
+            if (country.getEnName().equals("China"))
                 continue;
 
             List<Locality> l = new ArrayList<>();
             for (Iterator<Locality> itr = GeoAPI.searchLocalities("", false, country.id, 0, 10); itr.hasNext(); )
                 l.add(itr.next());
-            results.put(country.zhName, l);
+            results.put(country.getZhName(), l);
         }
         return results;
     }
