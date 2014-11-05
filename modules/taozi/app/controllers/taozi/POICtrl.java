@@ -220,7 +220,7 @@ public class POICtrl extends Controller {
         List<JsonNode> results = new ArrayList<>();
         Iterator<? extends AbstractPOI> it = null;
         try {
-            it = PoiAPI.poiList(type, locId, tagFilter, sf, sort, true, page, pageSize);
+            it = PoiAPI.poiList(type, new ObjectId(locId), tagFilter, sf, sort, true, page, pageSize);
             while (it.hasNext())
                 results.add(new DetailedPOIFormatter().format(it.next()));
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
