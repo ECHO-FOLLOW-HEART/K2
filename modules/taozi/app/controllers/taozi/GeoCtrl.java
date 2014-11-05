@@ -17,7 +17,6 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.ProxyFormatter;
 import utils.formatter.taozi.geo.CountryFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
@@ -79,7 +78,7 @@ public class GeoCtrl extends Controller {
         try {
             countryList = GeoAPI.searchCountry(searchWord, page, pageSize);
             for (Iterator<Locality> it =
-                         GeoAPI.searchLocalities(searchWord, (prefix != 0), page, pageSize);
+                         GeoAPI.searchLocalities(searchWord, (prefix != 0), null, page, pageSize);
                  it.hasNext(); )
                 cityList.add(new LocalityFormatter().format(it.next()));
         } catch (PatternSyntaxException e) {
@@ -113,7 +112,8 @@ public class GeoCtrl extends Controller {
             if (loc != 0) {
                 List<JsonNode> retLocList = new ArrayList<>();
                 //获得城市信息
-                List<Locality> localityList = LocalityAPI.explore(detailsFlag, page, pageSize);
+                // TODO 暂时只返回国内数据
+                List<Locality> localityList = LocalityAPI.explore(detailsFlag, false, page, pageSize);
                 for (Locality locality : localityList)
                     retLocList.add(new LocalityFormatter().format(locality));
                 results.put("loc", Json.toJson(retLocList));
@@ -139,7 +139,8 @@ public class GeoCtrl extends Controller {
             for (PoiAPI.POIType poiType : poiKeyList) {
                 List<JsonNode> retPoiList = new ArrayList<>();
 
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize); it.hasNext(); )
+                // TODO 暂时返回国内数据
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, false, page, pageSize); it.hasNext(); )
                     retPoiList.add(new DetailedPOIFormatter().format(it.next()));
                 //formatter\filter
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));

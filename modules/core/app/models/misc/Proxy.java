@@ -2,9 +2,7 @@ package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.TravelPiBaseItem;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Id;
 import play.data.validation.Constraints;
 
 import java.util.Date;

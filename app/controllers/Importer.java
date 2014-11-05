@@ -13,28 +13,28 @@ public class Importer extends Controller {
 //        Datastore ds = Utils.getDatastore();
 //        morphia.map(Country.class);
 //
-//        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("country");
+//        DBCollection col = Utils.getMongoClient().getDB("geo").getCollection("countryDetails");
 //
 //        DBCursor cursor = col.find(QueryBuilder.start().get());
 //        while (cursor.hasNext()) {
 //            DBObject loc = cursor.next();
 //
-//            Country country = new Country();
-//            country.code = loc.get("_id").toString();
+//            Country countryDetails = new Country();
+//            countryDetails.code = loc.get("_id").toString();
 //            Object tmp = loc.get("code3");
 //            if (tmp != null)
-//                country.code3 = tmp.toString();
+//                countryDetails.code3 = tmp.toString();
 //            tmp = loc.get("enName");
 //            if (tmp != null)
-//                country.enName = tmp.toString();
+//                countryDetails.enName = tmp.toString();
 //            tmp = loc.get("zhName");
 //            if (tmp != null)
-//                country.zhName = tmp.toString();
+//                countryDetails.zhName = tmp.toString();
 //            tmp = loc.get("defaultCurrency");
 //            if (tmp != null)
-//                country.defCurrency = tmp.toString();
+//                countryDetails.defCurrency = tmp.toString();
 //
-//            ds.save(country);
+//            ds.save(countryDetails);
 //        }
 //
 //        return Results.ok();
@@ -101,7 +101,7 @@ public class Importer extends Controller {
 //        }
 //        locality.coords = coords;
 //
-////        locality.country = ds.createQuery(Country.class).field("_id").equal("CN").get();
+////        locality.countryDetails = ds.createQuery(Country.class).field("_id").equal("CN").get();
 ////
 ////        tmp = loc.get("parent");
 ////        if (tmp != null) {

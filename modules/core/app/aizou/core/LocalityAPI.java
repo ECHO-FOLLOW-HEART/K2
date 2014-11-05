@@ -5,10 +5,6 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
-import models.poi.AbstractPOI;
-import models.poi.Hotel;
-import models.poi.Restaurant;
-import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -36,7 +32,7 @@ public class LocalityAPI {
         try {
             return countryDetails(new ObjectId(countryId));
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid country ID: %s.", countryId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid countryDetails ID: %s.", countryId));
         }
     }
 
@@ -113,7 +109,7 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord));
         query.field("relPlanCnt").greaterThan(0);
-        return query.retrievedFields(true, "zhName", "enName", "country", "level", "superAdm", "abroad")
+        return query.retrievedFields(true, "zhName", "enName", "level", "superAdm", "abroad")
                 .limit(pageSize).iterator();
     }
 
@@ -164,20 +160,22 @@ public class LocalityAPI {
      * 发现城市。
      *
      * @param showDetails 是否显示详情。
+     * @param abroad      查找国外城市还是国内城市
      * @param page        分页。
-     * @param pageSize    页面大小。
-     * @return
+     * @param pageSize    页面大小。   @return
      */
-    public static List<Locality> explore(boolean showDetails, int page, int pageSize) throws TravelPiException {
+    public static List<Locality> explore(boolean showDetails, boolean abroad, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
         List<String> fields = new ArrayList<>();
-        Collections.addAll(fields, "enName","zhName", "ratings");
+        // TODO 此处删除了countryDetails，这是什么字段？
+        Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
-            Collections.addAll(fields, "superAdm","imageList", "tags", "desc","country","coords");
+            Collections.addAll(fields, "superAdm", "imageList", "tags", "desc", "country", "coords");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
-                .field("imageList").notEqual(null)
-                .field("relPlanCnt").greaterThan(0)
+                .field("abroad").equal(abroad)
+//                .field("imageList").notEqual(null)
+//                .field("relPlanCnt").greaterThan(0)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 
@@ -186,18 +184,19 @@ public class LocalityAPI {
 
     /**
      * 发现国家
+     *
      * @param page
      * @param pageSize
      * @return
      * @throws TravelPiException
      */
-    public static List<Country> exploreCountry(int page,int pageSize) throws TravelPiException {
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        List<String> fields=new ArrayList<>();
+    public static List<Country> exploreCountry(int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        List<String> fields = new ArrayList<>();
         //限定字段显示
-        Collections.addAll(fields,"zhName","enName","zhCont","isHot","enCont");
-        Query<Country> query=ds.createQuery (Country.class).retrievedFields(true,fields.toArray(new String[]{""}))
-                .offset(page*pageSize).limit(pageSize).order("zhName");
+        Collections.addAll(fields, "zhName", "enName", "zhCont", "isHot", "enCont");
+        Query<Country> query = ds.createQuery(Country.class).retrievedFields(true, fields.toArray(new String[]{""}))
+                .offset(page * pageSize).limit(pageSize).order("zhName");
         return query.asList();
     }
 
@@ -258,6 +257,7 @@ public class LocalityAPI {
 
     /**
      * 获得城市列表
+     *
      * @param ids
      * @param fieldList
      * @param page
@@ -265,7 +265,7 @@ public class LocalityAPI {
      * @return
      * @throws TravelPiException
      */
-    public static List<Locality> getLocalityList(List<ObjectId> ids,List<String> fieldList, int page, int pageSize) throws TravelPiException {
+    public static List<Locality> getLocalityList(List<ObjectId> ids, List<String> fieldList, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
@@ -292,6 +292,6 @@ public class LocalityAPI {
         for (Locality temp : localities) {
             ids.add(temp.id);
         }
-        return getLocalityList(ids,fieldList, page, pageSize);
+        return getLocalityList(ids, fieldList, page, pageSize);
     }
 }

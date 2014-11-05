@@ -43,14 +43,13 @@ public class MiscInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     public String easemobUUID;
 
     /**
-     *封面故事
+     * 封面故事
      */
     public Map<String, String> coverStory;
     /**
      * 用于哪个应用
      */
     public String application;
-
 
 
     @Override

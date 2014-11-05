@@ -89,23 +89,9 @@ public class GeoCtrl extends Controller {
      * @param scope      搜索国外城市还是国内城市。1：国内，2：国外，3：both。
      * @param prefix     是否为前缀搜索。
      */
-    public static Result searchLocality(String searchWord, String country, int scope, int prefix) {
+    public static Result searchLocality(String searchWord, String country, int scope, int prefix, int page, int pageSize) {
         if (scope < 1 || scope > 3)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search scope: %d", scope));
-
-        int page;
-        try {
-            page = Integer.parseInt(request().getQueryString("page"));
-        } catch (NullPointerException | NumberFormatException ignore) {
-            page = 0;
-        }
-
-        int pageSize;
-        try {
-            pageSize = Integer.parseInt(request().getQueryString("pageSize"));
-        } catch (NullPointerException | NumberFormatException ignore) {
-            pageSize = 10;
-        }
 
         searchWord = (searchWord != null ? searchWord.trim() : "");
         country = (country != null ? country.trim() : "");

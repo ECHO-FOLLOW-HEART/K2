@@ -8,7 +8,7 @@ import play.libs.Json;
 
 /**
  * 表示一张图像。
- * <p>
+ * <p/>
  * Created by zephyre on 8/14/14.
  */
 @Embedded
