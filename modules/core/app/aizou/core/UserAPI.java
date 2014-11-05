@@ -281,11 +281,11 @@ public class UserAPI {
 //        user.secToken = secToken;
 
         OAuthInfo oauthInfo = new OAuthInfo();
-        oauthInfo.provider = provider;
-        oauthInfo.oauthId = oauthId;
-        oauthInfo.nickName = nickName;
-        oauthInfo.avatar = avatar;
-        oauthInfo.token = token;
+        oauthInfo.setProvider(provider);
+        oauthInfo.setOauthId(oauthId);
+        oauthInfo.setNickName(nickName);
+        oauthInfo.setAvatar(avatar);
+        oauthInfo.setToken(token);
         user.oauthList.add(oauthInfo);
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
@@ -483,7 +483,7 @@ public class UserAPI {
         return user;
     }
 
-    public static UserInfo oauthToUserInfoForWX(JsonNode json) throws NullPointerException, TravelPiException {
+    public static UserInfo oauthToUserInfoForWX(JsonNode json) throws TravelPiException {
         String nickname = json.get("nickname").asText();
         String headimgurl = json.get("headimgurl").asText();
         UserInfo userInfo = new UserInfo();
@@ -497,10 +497,10 @@ public class UserAPI {
 //        userInfo.secToken = Utils.getSecToken();
 
         OAuthInfo oauthInfo = new OAuthInfo();
-        oauthInfo.provider = "weixin";
-        oauthInfo.oauthId = json.get("openid").asText();
-        oauthInfo.nickName = nickname;
-        oauthInfo.avatar = headimgurl;
+        oauthInfo.setProvider("weixin");
+        oauthInfo.setOauthId(json.get("openid").asText());
+        oauthInfo.setNickName(nickname);
+        oauthInfo.setAvatar(headimgurl);
         userInfo.oauthList.add(oauthInfo);
 
         return userInfo;

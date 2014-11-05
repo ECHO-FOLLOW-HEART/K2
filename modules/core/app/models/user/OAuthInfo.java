@@ -9,17 +9,68 @@ import play.data.validation.Constraints;
  */
 @Embedded
 public class OAuthInfo {
+    /**
+     * 第三方账号体系的名称。比如：weixin表示这是微信账号
+     */
     @Constraints.Required
-    public String provider;
-
+    private String provider;
+    /**
+     * 用户在第三方账号体系中的id
+     */
     @Constraints.Required
-    public String oauthId;
-
+    private String oauthId;
+    /**
+     * 用户在第三方账号的昵称
+     */
     @Constraints.Required
-    public String nickName;
+    private String nickName;
+    /**
+     * 用户在第三方账号的头像
+     */
+    private String avatar;
+    /**
+     * 用户在第三方账号的token
+     */
+    private String token;
 
-    public String avatar;
+    public String getProvider() {
+        return provider != null ? provider : "";
+    }
 
-    public String token;
+    public void setProvider(String val) {
+        provider = val;
+    }
+
+    public String getOauthId() {
+        return oauthId != null ? oauthId : "";
+    }
+
+    public void setOauthId(String val) {
+        oauthId = val;
+    }
+
+    public String getNickName() {
+        return nickName != null ? nickName : "";
+    }
+
+    public void setNickName(String val) {
+        nickName = val;
+    }
+
+    public String getAvatar() {
+        return avatar != null ? avatar : "";
+    }
+
+    public void setAvatar(String val) {
+        avatar = val;
+    }
+
+    public String getToken() {
+        return token != null ? token : "";
+    }
+
+    public void setToken(String val) {
+        token = val;
+    }
 
 }
