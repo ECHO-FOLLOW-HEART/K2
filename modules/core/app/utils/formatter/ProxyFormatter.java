@@ -1,7 +1,6 @@
 package utils.formatter;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -13,6 +12,9 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
+import models.misc.Contact;
+import models.misc.Description;
+import models.poi.AbstractPOI;
 
 import java.text.SimpleDateFormat;
 import java.util.HashSet;
@@ -66,4 +68,6 @@ public class ProxyFormatter implements JsonFormatter {
 
         return mapper.valueToTree(item);
     }
+
+
 }

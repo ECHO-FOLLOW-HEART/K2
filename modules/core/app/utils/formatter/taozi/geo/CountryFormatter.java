@@ -47,8 +47,6 @@ public class CountryFormatter implements JsonFormatter{
                 includedFields.add(Country.simpZhCont);
                 includedFields.add(Country.simpEnName);
                 includedFields.add(Country.simpZhName);
-                includedFields.add(Country.simpEnRegion);
-                includedFields.add(Country.SimpZhRegion);
                 includedFields.add(Country.simpIsHot);
                 includedFields.add(Country.simpId);
 

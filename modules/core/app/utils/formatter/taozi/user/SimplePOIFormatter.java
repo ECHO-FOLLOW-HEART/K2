@@ -1,4 +1,4 @@
-package utils.formatter.taozi.geo;
+package utils.formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,17 +12,19 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Coords;
-import models.misc.SimpleRef;
+import models.poi.AbstractPOI;
+import models.user.UserInfo;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by lxf on 14-11-1.
+ * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
+ * <p>
+ * Created by zephyre on 10/28/14.
  */
-public class SimpleRefFormatter implements JsonFormatter{
+public class SimplePOIFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -30,7 +32,8 @@ public class SimpleRefFormatter implements JsonFormatter{
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
-        PropertyFilter theFilter = new SimpleBeanPropertyFilter() {
+        //POI字段
+        PropertyFilter poiFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -43,10 +46,10 @@ public class SimpleRefFormatter implements JsonFormatter{
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(SimpleRef.simpId);
-                includedFields.add(SimpleRef.simpEnName);
-                includedFields.add(SimpleRef.simpZhName);
-
+                includedFields.add(AbstractPOI.simpID);
+                includedFields.add(AbstractPOI.simpName);
+                includedFields.add(AbstractPOI.simpDesc);
+                includedFields.add(AbstractPOI.simpImg);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -61,7 +64,7 @@ public class SimpleRefFormatter implements JsonFormatter{
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("simpleRfFilter", theFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", poiFilter).addFilter("abstractPOIFilter", poiFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

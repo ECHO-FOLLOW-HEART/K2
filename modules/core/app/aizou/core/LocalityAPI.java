@@ -5,10 +5,6 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
-import models.poi.AbstractPOI;
-import models.poi.Hotel;
-import models.poi.Restaurant;
-import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -174,7 +170,7 @@ public class LocalityAPI {
         List<String> fields = new ArrayList<>();
         Collections.addAll(fields, "zhName", "enName", "ratings", "country");
         if (showDetails)
-            Collections.addAll(fields, "imageList", "tags", "desc");
+            Collections.addAll(fields, "superAdm", "imageList", "tags", "desc", "country", "coords");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
                 .field("abroad").equal(abroad)
 //                .field("imageList").notEqual(null)
@@ -182,6 +178,24 @@ public class LocalityAPI {
                 .retrievedFields(true, fields.toArray(new String[]{""}))
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
 
+        return query.asList();
+    }
+
+    /**
+     * 发现国家
+     *
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Country> exploreCountry(int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        List<String> fields = new ArrayList<>();
+        //限定字段显示
+        Collections.addAll(fields, "zhName", "enName", "zhCont", "isHot", "enCont");
+        Query<Country> query = ds.createQuery(Country.class).retrievedFields(true, fields.toArray(new String[]{""}))
+                .offset(page * pageSize).limit(pageSize).order("zhName");
         return query.asList();
     }
 
@@ -242,6 +256,7 @@ public class LocalityAPI {
 
     /**
      * 获得城市列表
+     *
      * @param ids
      * @param fieldList
      * @param page
@@ -249,7 +264,7 @@ public class LocalityAPI {
      * @return
      * @throws TravelPiException
      */
-    public static List<Locality> getLocalityList(List<ObjectId> ids,List<String> fieldList, int page, int pageSize) throws TravelPiException {
+    public static List<Locality> getLocalityList(List<ObjectId> ids, List<String> fieldList, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
@@ -276,6 +291,6 @@ public class LocalityAPI {
         for (Locality temp : localities) {
             ids.add(temp.id);
         }
-        return getLocalityList(ids,fieldList, page, pageSize);
+        return getLocalityList(ids, fieldList, page, pageSize);
     }
 }

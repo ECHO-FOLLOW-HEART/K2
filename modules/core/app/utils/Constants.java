@@ -13,9 +13,9 @@ public class Constants {
      * 标识不同的应用
      *
      */
-    public static String APP_FLAG_TRAVEL = "travelpai-app";
-    public static String APP_FLAG_PEACH = "peach-app";
-    public static String APP_FLAG_WEB = "travelpai-web";
+    public static String APP_FLAG_TRAVEL = "travelpai";
+    public static String APP_FLAG_PEACH = "peach";
+    public static String APP_FLAG_WEB = "web";
 
 
     // 一个大数
