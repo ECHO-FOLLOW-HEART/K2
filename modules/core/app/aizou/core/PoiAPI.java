@@ -319,7 +319,7 @@ public class PoiAPI {
      * @throws UnknownHostException
      * @throws TravelPiException
      */
-    public static Iterator<? extends AbstractPOI> poiList(POIType poiType, String locId, String tagFilter, final SortField sortField,
+    public static Iterator<? extends AbstractPOI> poiList(POIType poiType, ObjectId locId, String tagFilter, final SortField sortField,
                                                           Boolean sort, Boolean details, int page, int pageSize)
             throws TravelPiException {
 
@@ -341,7 +341,7 @@ public class PoiAPI {
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
 
-        if (locId == null || locId.isEmpty())
+        if (locId == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         query = query.field("addr.loc.id").equal(locId);
         //query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
