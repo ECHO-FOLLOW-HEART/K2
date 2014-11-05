@@ -49,7 +49,7 @@ public class BacheCtrl extends Controller {
             Query<UserInfo> query = ds.createQuery(UserInfo.class);
             query.field("userId").notEqual(null);
             for (UserInfo us : query.asList()) {
-                us.origin = Constants.APP_FLAG_PEACH;
+                us.setOrigin(Constants.APP_FLAG_PEACH);
                 ds.save(us);
             }
         } catch (TravelPiException e) {

@@ -78,7 +78,7 @@ public class UserCtrl extends Controller {
             if (userInfo != null) {
                 ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
 
-                Credential cre = UserAPI.getCredentialByUserId(userInfo.userId,
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
                     throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
@@ -155,12 +155,12 @@ public class UserCtrl extends Controller {
                     return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
                 }
                 userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
-                userInfo.tel = tel;
+                userInfo.setTel(tel);
                 UserAPI.saveUserInfo(userInfo);
 
                 if (!pwd.equals("")) {
                     Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-                    Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(userInfo.userId).get();
+                    Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(userInfo.getUserId()).get();
                     cre.setSalt(Utils.getSalt());
                     cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
 
@@ -328,7 +328,7 @@ public class UserCtrl extends Controller {
             if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd)) {
                 ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
 
-                Credential cre = UserAPI.getCredentialByUserId(userInfo.userId,
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
                     throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
@@ -429,7 +429,7 @@ public class UserCtrl extends Controller {
             if (us != null) {
                 ObjectNode info = (ObjectNode) new SelfUserFormatter().format(us);
 
-                Credential cre = UserAPI.getCredentialByUserId(us.userId,
+                Credential cre = UserAPI.getCredentialByUserId(us.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
                     throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
@@ -447,7 +447,7 @@ public class UserCtrl extends Controller {
             //JSON转化为userInfo
             us = UserAPI.oauthToUserInfoForWX(infoNode);
             //如果第三方昵称已被其他用户使用，则添加后缀
-            if (UserAPI.getUserByField(UserInfo.fnNickName, us.nickName) != null) {
+            if (UserAPI.getUserByField(UserInfo.fnNickName, us.getNickName()) != null) {
                 nickDuplicateRemoval(us);
             }
 
@@ -457,7 +457,7 @@ public class UserCtrl extends Controller {
             //返回注册信息
             ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
 
-            Credential cre = UserAPI.getCredentialByUserId(userInfo.userId,
+            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
             if (cre == null)
                 throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "Credential info is null.");
@@ -480,10 +480,10 @@ public class UserCtrl extends Controller {
      * @param u
      */
     private static void nickDuplicateRemoval(UserInfo u) {
-        String uidStr = u.userId.toString();
+        String uidStr = u.getUserId().toString();
         int size = uidStr.length();
         String doc = uidStr.substring(size - 4, size - 1);
-        u.nickName = u.nickName + "_" + doc;
+        u.setNickName(u.getNickName() + "_" + doc);
     }
 
     private static String getAccessUrl(String urlDomain, String urlAccess, String appid, String secret, String code) {
@@ -618,27 +618,27 @@ public class UserCtrl extends Controller {
                 LogUtils.info(Plan.class, "NickName in POST:" + nickName);
                 //如果昵称不存在
                 if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
-                    userInfor.nickName = nickName;
+                    userInfor.setNickName(nickName);
                 else
                     return Utils.createResponse(MsgConstants.NICKNAME_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
             }
             //修改签名
             if (req.has("signature"))
-                userInfor.signature = req.get("signature").asText();
+                userInfor.setSignature(req.get("signature").asText());
             //修改性别
             if (req.has("gender")) {
                 String genderStr = req.get("gender").asText();
                 if ((!genderStr.equals("F")) && (!genderStr.equals("M"))) {
                     Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid gender");
                 }
-                userInfor.gender = genderStr;
+                userInfor.setGender(genderStr);
             }
             //修改头像
             if (req.has("avatar"))
-                userInfor.avatar = req.get("avatar").asText();
+                userInfor.setAvatar(req.get("avatar").asText());
             UserAPI.saveUserInfo(userInfor);
             // TODO 跟踪乱码问题
-            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.userId).nickName);
+            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
             LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | TravelPiException e) {
@@ -722,66 +722,66 @@ public class UserCtrl extends Controller {
         }
     }
 
-    /**
-     * 添加用户的备注信息
-     *
-     * @param id
-     * @return
-     * @throws TravelPiException
-     */
-    public static Result setUserMemo(Integer id) throws TravelPiException {
-        try {
-            String selfId = request().getHeader("userId");
-            String memo = request().body().asJson().get("memo").asText();
-            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, Json.toJson(e.getMessage()));
-        } catch (NullPointerException | NumberFormatException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        }
-    }
+//    /**
+//     * 添加用户的备注信息
+//     *
+//     * @param id
+//     * @return
+//     * @throws TravelPiException
+//     */
+//    public static Result setUserMemo(Integer id) throws TravelPiException {
+//        try {
+//            String selfId = request().getHeader("userId");
+//            String memo = request().body().asJson().get("memo").asText();
+//            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
+//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, Json.toJson(e.getMessage()));
+//        } catch (NullPointerException | NumberFormatException e) {
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
+//        }
+//    }
 
-    /**
-     * 获得用户的黑名单列表
-     *
-     * @param
-     * @return backlist
-     */
-    public static Result getUserBlackList() {
-        try {
-            String userId = request().getHeader("userId");
-            List<Integer> list = UserAPI.getBlackList(Integer.parseInt(userId));
-            Map<String, List<Integer>> map = new HashMap<>();
-            map.put("blacklist", list);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
-        } catch (TravelPiException | NullPointerException | ClassCastException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        }
-    }
-
-    /**
-     * 将用户加入/移除黑名单
-     *
-     * @return
-     */
-    public static Result setUserBlacklist() {
-        try {
-            String selfId = request().getHeader("userId");
-            JsonNode req = request().body().asJson();
-            List<Integer> list = (List<Integer>) req.get("userList").iterator();
-            /*Iterator<JsonNode> iterator =  req.get("userList").iterator();
-            List<Integer> list =new ArrayList<>();
-            while(iterator.hasNext()){
-               JsonNode node=iterator.next();
-               list.add(node.get("userList").asInt());
-            }*/
-            String operation = req.get("action").asText();
-
-            UserAPI.setUserBlacklist(Integer.parseInt(selfId), list, operation);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-        } catch (TravelPiException | NullPointerException | ClassCastException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-        }
-    }
+//    /**
+//     * 获得用户的黑名单列表
+//     *
+//     * @param
+//     * @return backlist
+//     */
+//    public static Result getUserBlackList() {
+//        try {
+//            String userId = request().getHeader("userId");
+//            List<Integer> list = UserAPI.getBlackList(Integer.parseInt(userId));
+//            Map<String, List<Integer>> map = new HashMap<>();
+//            map.put("blacklist", list);
+//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
+//        } catch (TravelPiException | NullPointerException | ClassCastException e) {
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
+//        }
+//    }
+//
+//    /**
+//     * 将用户加入/移除黑名单
+//     *
+//     * @return
+//     */
+//    public static Result setUserBlacklist() {
+//        try {
+//            String selfId = request().getHeader("userId");
+//            JsonNode req = request().body().asJson();
+//            List<Integer> list = (List<Integer>) req.get("userList").iterator();
+//            /*Iterator<JsonNode> iterator =  req.get("userList").iterator();
+//            List<Integer> list =new ArrayList<>();
+//            while(iterator.hasNext()){
+//               JsonNode node=iterator.next();
+//               list.add(node.get("userList").asInt());
+//            }*/
+//            String operation = req.get("action").asText();
+//
+//            UserAPI.setUserBlacklist(Integer.parseInt(selfId), list, operation);
+//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
+//        } catch (TravelPiException | NullPointerException | ClassCastException e) {
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
+//        }
+//    }
 }

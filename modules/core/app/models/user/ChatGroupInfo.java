@@ -19,7 +19,7 @@ import play.libs.Json;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ChatGroupInfo extends TravelPiBaseItem implements ITravelPiFormatter {
+public class ChatGroupInfo extends TravelPiBaseItem {
     @Transient
     public static final String OWNER = "owner";
     @Transient
@@ -73,27 +73,27 @@ public class ChatGroupInfo extends TravelPiBaseItem implements ITravelPiFormatte
     public Integer maxUsers;
 
 
-    /**
-     * 转换成json
-     *
-     * @return
-     */
-    @Override
-    public JsonNode toJson() {
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("ownerId", owner.userId).add("ownerName", owner.nickName).add("desc", desc)
-                .add("groupName", groupName).add("isGroupPublic", isGroupPublic);
-        List<JsonNode> list = new ArrayList<>();
-        if (!(members == null)) {
-            for (UserInfo userInfo : members) {
-                ObjectNode node = Json.newObject();
-                node.put("userId", userInfo.userId);
-                node.put("userName", userInfo.nickName);
-                list.add(node);
-            }
-            builder.add("members", list);
-        }
-
-        return Json.toJson(builder.get());
-    }
+//    /**
+//     * 转换成json
+//     *
+//     * @return
+//     */
+//    @Override
+//    public JsonNode toJson() {
+//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
+//        builder.add("ownerId", owner.userId).add("ownerName", owner.nickName).add("desc", desc)
+//                .add("groupName", groupName).add("isGroupPublic", isGroupPublic);
+//        List<JsonNode> list = new ArrayList<>();
+//        if (!(members == null)) {
+//            for (UserInfo userInfo : members) {
+//                ObjectNode node = Json.newObject();
+//                node.put("userId", userInfo.userId);
+//                node.put("userName", userInfo.nickName);
+//                list.add(node);
+//            }
+//            builder.add("members", list);
+//        }
+//
+//        return Json.toJson(builder.get());
+//    }
 }
