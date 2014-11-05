@@ -109,7 +109,7 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord));
         query.field("relPlanCnt").greaterThan(0);
-        return query.retrievedFields(true, "zhName", "enName", "countryDetails", "level", "superAdm", "abroad")
+        return query.retrievedFields(true, "zhName", "enName", "level", "superAdm", "abroad")
                 .limit(pageSize).iterator();
     }
 
@@ -131,7 +131,7 @@ public class LocalityAPI {
         if (keyword != null && !keyword.isEmpty())
             query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
         if (countryId != null)
-            query.filter("countryDetails.id", countryId);
+            query.filter("country.id", countryId);
         switch (scope) {
             case 1:
                 query.filter("abroad", false);

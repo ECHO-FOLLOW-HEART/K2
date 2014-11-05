@@ -23,7 +23,7 @@ import java.util.Set;
 /**
  * Created by lxf on 14-11-1.
  */
-public class LocalityFormatter implements JsonFormatter{
+public class LocalityFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -46,7 +46,7 @@ public class LocalityFormatter implements JsonFormatter{
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(Locality.simpAborad);
                 includedFields.add(Locality.simpCoords);
-                includedFields.add(Locality.simpCountry);
+//                includedFields.add(Locality.simpCountry);
                 includedFields.add(Locality.simpDesc);
                 includedFields.add(Locality.simpEnName);
                 includedFields.add(Locality.simpId);
@@ -128,8 +128,8 @@ public class LocalityFormatter implements JsonFormatter{
         };
 
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter).addFilter("coordsFilter",coordsFilter)
-                                                                                                  .addFilter("simpleRefFilter",simpleRefFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter).addFilter("coordsFilter", coordsFilter)
+                .addFilter("simpleRefFilter", simpleRefFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

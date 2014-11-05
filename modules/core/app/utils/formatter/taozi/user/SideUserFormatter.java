@@ -1,7 +1,6 @@
 package utils.formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -21,7 +20,7 @@ import java.util.Set;
 
 /**
  * 返回用户的简要信息（即：查看别人的用户信息时使用）
- * <p>
+ * <p/>
  * Created by zephyre on 10/28/14.
  */
 public class SideUserFormatter implements JsonFormatter {

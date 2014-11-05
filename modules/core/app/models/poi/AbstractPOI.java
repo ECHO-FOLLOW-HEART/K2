@@ -129,7 +129,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p>
+     * <p/>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -143,6 +143,19 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      * 其它信息
      */
     public Map<String, Object> extra;
+
+    public static List<String> getRetrievedFields(int level) {
+        switch (level) {
+            case 1:
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
+            case 2:
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags"));
+            case 3:
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags", "contact", "url",
+                        "price", "priceDesc", "alias"));
+        }
+        return new ArrayList<>();
+    }
 
     public String getDesc() {
         if (description == null) {
@@ -188,20 +201,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return tmpList;
         }
     }
-
-    public static List<String> getRetrievedFields(int level) {
-        switch (level) {
-            case 1:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
-            case 2:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags"));
-            case 3:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags", "contact", "url",
-                        "price", "priceDesc", "alias"));
-        }
-        return new ArrayList<>();
-    }
-
 
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

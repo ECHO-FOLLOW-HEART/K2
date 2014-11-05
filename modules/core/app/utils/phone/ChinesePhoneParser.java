@@ -45,7 +45,7 @@ class ChinesePhoneParser implements PhoneParser {
             }
         }
 
-        if (tel==null)
+        if (tel == null)
             throw new IllegalArgumentException();
 
         PhoneEntity phone = new PhoneEntity();

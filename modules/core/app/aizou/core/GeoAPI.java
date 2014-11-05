@@ -6,6 +6,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
+import models.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -91,7 +92,7 @@ public class GeoAPI {
         if (keyword != null && !keyword.isEmpty())
             query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
         if (countryId != null)
-            query.field(String.format("%s._id", Locality.fnCountry)).equal(countryId);
+            query.field(String.format("%s.%s", Locality.fnCountry, SimpleRef.simpID)).equal(countryId);
         return query.order("level").offset(page * pageSize).limit(pageSize).iterator();
     }
 

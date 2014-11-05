@@ -474,11 +474,14 @@ public class PoiAPI {
      * 获得推荐的境外目的地
      */
     public static Map<String, List<Locality>> destRecommend() throws TravelPiException {
-        List countryList = Utils.getMongoClient().getDB("geo").getCollection("Locality").distinct("countryDetails.id");
+        List countryList = Utils.getMongoClient().getDB("geo").getCollection("Locality")
+                .distinct(String.format("%s.id", Locality.fnCountry));
 
         Map<String, List<Locality>> results = new HashMap<>();
         for (Object obj : countryList) {
             Country country = GeoAPI.countryDetails((ObjectId) obj, Arrays.asList(Country.simpEnName, Country.simpZhName));
+            if (country.enName.equals("China"))
+                continue;
 
             List<Locality> l = new ArrayList<>();
             for (Iterator<Locality> itr = GeoAPI.searchLocalities("", false, country.id, 0, 10); itr.hasNext(); )
@@ -486,23 +489,6 @@ public class PoiAPI {
             results.put(country.zhName, l);
         }
         return results;
-    }
-
-
-    /**
-     * 排序的字段。
-     */
-    public enum SortField {
-        SCORE, PRICE
-    }
-
-
-    public enum POIType {
-        VIEW_SPOT,
-        HOTEL,
-        RESTAURANT,
-        SHOPPING,
-        ENTERTAINMENT
     }
 
     /**
@@ -553,5 +539,20 @@ public class PoiAPI {
             ids.add(temp.id);
         }
         return getPOIInfoList(ids, poiType, fieldList, page, pageSize);
+    }
+
+    /**
+     * 排序的字段。
+     */
+    public enum SortField {
+        SCORE, PRICE
+    }
+
+    public enum POIType {
+        VIEW_SPOT,
+        HOTEL,
+        RESTAURANT,
+        SHOPPING,
+        ENTERTAINMENT
     }
 }

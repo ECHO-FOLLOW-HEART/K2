@@ -21,7 +21,7 @@ import java.util.Set;
 /**
  * @author Zephyre
  */
-public class SimpleLocalityFormatter implements JsonFormatter{
+public class SimpleLocalityFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -42,9 +42,9 @@ public class SimpleLocalityFormatter implements JsonFormatter{
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Locality.simpEnName);
-                includedFields.add(Locality.simpZhName);
-                includedFields.add("_id");
+                includedFields.add(Locality.fnEnName);
+                includedFields.add(Locality.fnZhName);
+                includedFields.add("id");
 
                 return (includedFields.contains(writer.getName()));
             }

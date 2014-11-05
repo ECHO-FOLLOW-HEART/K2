@@ -9,7 +9,6 @@ import models.poi.AbstractPOI;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-import utils.formatter.ProxyFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 import utils.formatter.taozi.user.SimplePOIFormatter;
 

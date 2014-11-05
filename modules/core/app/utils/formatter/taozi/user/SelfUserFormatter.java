@@ -20,7 +20,7 @@ import java.util.Set;
 
 /**
  * 返回用户的详细信息（即：查看自己的用户信息时使用）
- * <p>
+ * <p/>
  * Created by zephyre on 10/28/14.
  */
 public class SelfUserFormatter implements JsonFormatter {

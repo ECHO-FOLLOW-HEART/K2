@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
 import models.geo.Country;
-import models.geo.Locality;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
@@ -22,7 +21,7 @@ import java.util.Set;
 /**
  * Created by lxf on 14-11-1.
  */
-public class CountryFormatter implements JsonFormatter{
+public class CountryFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();

@@ -19,7 +19,7 @@ import play.libs.Json;
 @JsonFilter("addressFilter")
 public class Address implements ITravelPiFormatter {
     @Transient
-    public static String simpAddress= "address";
+    public static String simpAddress = "address";
 
     @Transient
     public static String simpLoc = "loc";

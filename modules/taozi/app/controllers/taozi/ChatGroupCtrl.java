@@ -115,7 +115,8 @@ public class ChatGroupCtrl {
     }
 
     /**
-     *修改群组详情
+     * 修改群组详情
+     *
      * @return
      */
     public static Result modifyChatGroupDetail() {
