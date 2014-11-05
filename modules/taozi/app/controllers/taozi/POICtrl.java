@@ -3,17 +3,9 @@ package controllers.taozi;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.MorphiaFactory;
 import models.poi.AbstractPOI;
-import org.apache.commons.lang3.StringUtils;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.Datastore;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -23,7 +15,6 @@ import utils.Utils;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 import utils.formatter.taozi.user.SimplePOIFormatter;
 
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -149,6 +140,7 @@ public class POICtrl extends Controller {
 
     /**
      * 查看特定地区的poi
+     *
      * @param poiType
      * @param locId
      * @param tagFilter
@@ -157,7 +149,7 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result viewPoiList(String poiType,String locId,String tagFilter,String sortField,String sortType,int page,int pageSize){
+    public static Result viewPoiList(String poiType, String locId, String tagFilter, String sortField, String sortType, int page, int pageSize) {
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":
@@ -191,7 +183,7 @@ public class POICtrl extends Controller {
         List<JsonNode> results = new ArrayList<>();
         Iterator<? extends AbstractPOI> it = null;
         try {
-            it = PoiAPI.poiList(type, locId,tagFilter,sf, sort,true,page, pageSize);
+            it = PoiAPI.poiList(type, locId, tagFilter, sf, sort, true, page, pageSize);
             while (it.hasNext())
                 results.add(new DetailedPOIFormatter().format(it.next()));
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
@@ -201,21 +193,21 @@ public class POICtrl extends Controller {
     }
 
     public static Result viewSpotList(String locId, String tagFilter, String sortField,
-                                      String sortType,int page, int pageSize)
+                                      String sortType, int page, int pageSize)
             throws TravelPiException {
-        return viewPoiList("vs", locId, tagFilter,sortField,sortType,page, pageSize);
+        return viewPoiList("vs", locId, tagFilter, sortField, sortType, page, pageSize);
     }
 
     public static Result viewHotelList(String locId, String tagFilter, String sortField,
-                                      String sortType,int page, int pageSize)
+                                       String sortType, int page, int pageSize)
             throws TravelPiException {
-        return viewPoiList("hotel", locId, tagFilter,sortField,sortType,page, pageSize);
+        return viewPoiList("hotel", locId, tagFilter, sortField, sortType, page, pageSize);
     }
 
     public static Result viewRestaurantList(String locId, String tagFilter, String sortField,
-                                      String sortType,int page, int pageSize)
+                                            String sortType, int page, int pageSize)
             throws TravelPiException {
-        return viewPoiList("restaurant", locId, tagFilter,sortField,sortType,page, pageSize);
+        return viewPoiList("restaurant", locId, tagFilter, sortField, sortType, page, pageSize);
     }
 
 

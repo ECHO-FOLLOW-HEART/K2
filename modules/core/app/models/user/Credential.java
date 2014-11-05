@@ -32,6 +32,24 @@ public class Credential extends TravelPiBaseItem {
      */
     @Constraints.Required
     private Integer userId;
+    /**
+     * 密码加盐hash
+     */
+    private String pwdHash;
+    /**
+     * 该用户对应的盐值
+     */
+    @Constraints.Required
+    private String salt;
+    /**
+     * 环信密码
+     */
+    private String easemobPwd;
+    /**
+     * 用户密钥，鉴权的时候使用
+     */
+    @Constraints.Required
+    private String secKey;
 
     public Integer getUserId() {
         return userId;
@@ -41,11 +59,6 @@ public class Credential extends TravelPiBaseItem {
         userId = val;
     }
 
-    /**
-     * 密码加盐hash
-     */
-    private String pwdHash;
-
     public String getPwdHash() {
         return (pwdHash != null ? pwdHash : "");
     }
@@ -53,12 +66,6 @@ public class Credential extends TravelPiBaseItem {
     public void setPwdHash(String val) {
         pwdHash = val;
     }
-
-    /**
-     * 该用户对应的盐值
-     */
-    @Constraints.Required
-    private String salt;
 
     public String getSalt() {
         return (salt != null ? salt : "");
@@ -68,11 +75,6 @@ public class Credential extends TravelPiBaseItem {
         salt = val;
     }
 
-    /**
-     * 环信密码
-     */
-    private String easemobPwd;
-
     public String getEasemobPwd() {
         return (easemobPwd != null ? easemobPwd : "");
     }
@@ -80,12 +82,6 @@ public class Credential extends TravelPiBaseItem {
     public void setEasemobPwd(String val) {
         easemobPwd = val;
     }
-
-    /**
-     * 用户密钥，鉴权的时候使用
-     */
-    @Constraints.Required
-    private String secKey;
 
     public String getSecKey() {
         return (secKey != null ? secKey : "");
