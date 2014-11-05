@@ -32,7 +32,7 @@ public class LocalityAPI {
         try {
             return countryDetails(new ObjectId(countryId));
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid country ID: %s.", countryId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid countryDetails ID: %s.", countryId));
         }
     }
 
@@ -109,7 +109,7 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord));
         query.field("relPlanCnt").greaterThan(0);
-        return query.retrievedFields(true, "zhName", "enName", "country", "level", "superAdm", "abroad")
+        return query.retrievedFields(true, "zhName", "enName", "countryDetails", "level", "superAdm", "abroad")
                 .limit(pageSize).iterator();
     }
 
@@ -131,7 +131,7 @@ public class LocalityAPI {
         if (keyword != null && !keyword.isEmpty())
             query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
         if (countryId != null)
-            query.filter("country.id", countryId);
+            query.filter("countryDetails.id", countryId);
         switch (scope) {
             case 1:
                 query.filter("abroad", false);
@@ -168,7 +168,7 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
         List<String> fields = new ArrayList<>();
-        Collections.addAll(fields, "zhName", "enName", "ratings", "country");
+        Collections.addAll(fields, "zhName", "enName", "ratings", "countryDetails");
         if (showDetails)
             Collections.addAll(fields, "superAdm", "imageList", "tags", "desc", "country", "coords");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)

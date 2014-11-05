@@ -6,6 +6,8 @@ import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.geo.Country;
+import models.geo.Locality;
 import models.poi.AbstractPOI;
 import models.poi.Hotel;
 import models.poi.Restaurant;
@@ -20,10 +22,7 @@ import utils.Constants;
 import utils.Utils;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -267,7 +266,7 @@ public class PoiAPI {
     public static Iterator<? extends AbstractPOI> explore(POIType poiType, String locId,
                                                           int page, int pageSize) throws TravelPiException {
         try {
-            return explore(poiType, new ObjectId(locId), page, pageSize);
+            return explore(poiType, new ObjectId(locId), false, page, pageSize);
         } catch (IllegalArgumentException e) {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.",
                     locId != null ? locId : "NULL"));
@@ -277,12 +276,13 @@ public class PoiAPI {
     /**
      * 发现POI。
      *
+     * @param abroad
      * @param page
      * @param pageSize
      * @return
      */
     public static Iterator<? extends AbstractPOI> explore(POIType poiType, ObjectId locId,
-                                                          int page, int pageSize) throws TravelPiException {
+                                                          boolean abroad, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
 
         Class<? extends AbstractPOI> poiClass = null;
@@ -303,6 +303,8 @@ public class PoiAPI {
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (locId != null)
             query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
+
+        query.field("abroad").equal(abroad);
 
 //        if (poiType == POIType.VIEW_SPOT)
 //            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
@@ -466,6 +468,24 @@ public class PoiAPI {
             retVs.put("desc", (tmp == null ? "" : tmp.toString()));
 
         return (ObjectNode) Json.toJson(retVs);
+    }
+
+    /**
+     * 获得推荐的境外目的地
+     */
+    public static Map<String, List<Locality>> destRecommend() throws TravelPiException {
+        List countryList = Utils.getMongoClient().getDB("geo").getCollection("Locality").distinct("countryDetails.id");
+
+        Map<String, List<Locality>> results = new HashMap<>();
+        for (Object obj : countryList) {
+            Country country = GeoAPI.countryDetails((ObjectId) obj, Arrays.asList(Country.simpEnName, Country.simpZhName));
+
+            List<Locality> l = new ArrayList<>();
+            for (Iterator<Locality> itr = GeoAPI.searchLocalities("", false, country.id, 0, 10); itr.hasNext(); )
+                l.add(itr.next());
+            results.put(country.zhName, l);
+        }
+        return results;
     }
 
 

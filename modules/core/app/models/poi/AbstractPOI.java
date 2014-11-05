@@ -90,6 +90,16 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public String desc;
 
     /**
+     * 电话
+     */
+    public List<String> tel;
+
+    /**
+     * 网址
+     */
+    public String website;
+
+    /**
      * 开放时间描述
      */
     public String openTime;

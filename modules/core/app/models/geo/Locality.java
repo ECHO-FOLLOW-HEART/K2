@@ -48,22 +48,25 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String simpImg = "images";
 
     @Transient
-    public static String simpEnName="enName";
+    public static String simpEnName = "enName";
 
     @Transient
-    public static String simpShortName="shortName";
+    public static String simpShortName = "shortName";
 
     @Transient
-    public static String simpCountry="country";
+    public static String simpCountry = "countryDetails";
 
     @Transient
-    public static String simpAborad ="abroad";
+    public static String fnCountry = "country";
 
     @Transient
-    public static String simpSuperAdm="superAdm";
+    public static String simpAborad = "abroad";
 
     @Transient
-    public static String simpCoords="coords";
+    public static String simpSuperAdm = "superAdm";
+
+    @Transient
+    public static String simpCoords = "coords";
 
     @Indexed()
 
@@ -150,33 +153,24 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         else
             return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
-    public String getEnName(){
-        if (enName==null)
+
+    public String getEnName() {
+        if (enName == null)
             return "";
         else
             return StringUtils.capitalize(enName);
     }
-    public String getShortName(){
-        if (shortName==null)
+
+    public String getShortName() {
+        if (shortName == null)
             return stripLocName(zhName);
         else
             return StringUtils.capitalize(shortName);
     }
-    public Boolean getAbroad(){
+
+    public Boolean getAbroad() {
         return abroad != null && abroad;
     }
-    /*public JsonNode getCountry(){
-        if (country==null)
-            return Json.newObject();
-        else
-            return new SimpleRefFormatter().format(country);
-    }
-    public JsonNode getSuperAdm(){
-        if (superAdm==null)
-            return Json.newObject();
-        else
-            return new SimpleRefFormatter().format(superAdm);
-    }*/
 
     /**
      * 去掉末尾的省市县等名字。
@@ -265,9 +259,9 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
         if (country != null) {
             ObjectNode node = (ObjectNode) country.toJson();
-            builder.add("country", node);
+            builder.add("countryDetails", node);
         } else
-            builder.add("country", new BasicDBObject());
+            builder.add("countryDetails", new BasicDBObject());
 
         if (coords != null) {
             if (coords.blat != null) builder.add("blat", coords.blat);

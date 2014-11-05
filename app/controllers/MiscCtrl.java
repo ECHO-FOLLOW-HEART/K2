@@ -26,6 +26,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.net.UnknownHostException;
 import java.util.*;
@@ -330,7 +331,7 @@ public class MiscCtrl extends Controller {
             } else {
                 // 发现POI
                 List<JsonNode> retPoiList = new ArrayList<>();
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize);
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, abroad, page, pageSize);
                      it.hasNext(); )
                     retPoiList.add(it.next().toJson(2));
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
@@ -604,6 +605,31 @@ public class MiscCtrl extends Controller {
             result.put("coolDown", resendMs / 1000);
             return Utils.createResponse(ErrorCode.NORMAL, result);
 
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 获得推荐的境外目的地
+     *
+     * @return
+     */
+    public static Result destRecommend() {
+        // 获得支持的国家列表
+        try {
+            Map<String, List<Locality>> ret = PoiAPI.destRecommend();
+            ObjectNode results = Json.newObject();
+
+            for (Map.Entry<String, List<Locality>> entry : ret.entrySet()) {
+                List<JsonNode> locNodeList = new ArrayList<>();
+                for (Locality loc : entry.getValue()) {
+                    JsonNode locNode = new SimpleLocalityFormatter().format(loc);
+                    locNodeList.add(locNode);
+                }
+                results.put(entry.getKey(), Json.toJson(locNodeList));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
