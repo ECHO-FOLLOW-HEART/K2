@@ -1,33 +1,27 @@
 package controllers.taozi;
 
+import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.MorphiaFactory;
+import models.geo.Country;
+import models.geo.Locality;
 import models.poi.AbstractPOI;
-import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.FieldEndImpl;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.Constants;
-import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.taozi.geo.CountryFormatter;
+import utils.formatter.taozi.geo.LocalityFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 import utils.formatter.taozi.user.SimplePOIFormatter;
+import utils.DataFilter;
+import utils.Constants;
 
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by topy on 2014/11/1.
@@ -41,40 +35,73 @@ public class POICtrl extends Controller {
      *                    vs: 景点
      *                    hotel: 酒店
      *                    restaurant: 餐饮
+     *                    shopping:购物
+     *                    entertainment:美食
      * @param spotId      POI的ID。
      * @param showDetails 获得更多的详情。
      */
-    public static Result viewPOIInfo(String poiDesc, String spotId, int showDetails, int pageSize) throws TravelPiException {
+    public static Result viewPOIInfo(String poiDesc, String spotId, int showDetails, int pageSize) {
+        try {
+            PoiAPI.POIType poiType = null;
+            switch (poiDesc) {
+                case "vs":
+                    poiType = PoiAPI.POIType.VIEW_SPOT;
+                    break;
+                case "hotel":
+                    poiType = PoiAPI.POIType.HOTEL;
+                    break;
+                case "restaurant":
+                    poiType = PoiAPI.POIType.RESTAURANT;
+                    break;
+                case "shopping":
+                    poiType = PoiAPI.POIType.SHOPPING;
+                    break;
+                case "entertainment":
+                    poiType = PoiAPI.POIType.ENTERTAINMENT;
+                    break;
+            }
+            if (poiType == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
 
-        PoiAPI.POIType poiType = null;
-        switch (poiDesc) {
-            case "vs":
-                poiType = PoiAPI.POIType.VIEW_SPOT;
-                break;
-            case "hotel":
-                poiType = PoiAPI.POIType.HOTEL;
-                break;
-            case "restaurant":
-                poiType = PoiAPI.POIType.RESTAURANT;
-                break;
-            case "shopping":
-                poiType = PoiAPI.POIType.SHOPPING;
-                break;
-            case "entertainment":
-                poiType = PoiAPI.POIType.ENTERTAINMENT;
-                break;
+            boolean details = (showDetails != 0);
+            AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
+            if (poiInfo == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
+            JsonNode info = details ? new DetailedPOIFormatter().format(poiInfo) : new SimplePOIFormatter().format(poiInfo);
+            ObjectNode ret = (ObjectNode) info;
+            return Utils.createResponse(ErrorCode.NORMAL, ret);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
-        if (poiType == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
-
-        boolean details = (showDetails != 0);
-        AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
-        if (poiInfo == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
-        JsonNode info = details ? new DetailedPOIFormatter().format(poiInfo) : new SimplePOIFormatter().format(poiInfo);
-        ObjectNode ret = (ObjectNode) info;
-        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
+
+    /**
+     * 获得景点周边的周边POI按照
+     *
+     * @param gainType
+     * @param lat
+     * @param lgn
+     * @param page
+     * @param pageSize
+     * @return
+     *//*
+    public static Result getPOINearBy(String gainType, String lat, String lgn, int page, int pageSize) {
+
+        try {
+            Double latD = Double.valueOf(lat);
+            Double lngD = Double.valueOf(lat);
+            List<String> fieldsLimit = Arrays.asList(AbstractPOI.simpID, AbstractPOI.simpName, AbstractPOI.simpDesc, AbstractPOI.simpImg);
+            List<AbstractPOI> poiInfos = (List<AbstractPOI>) PoiAPI.getPOINearBy(gainType, latD, lngD, fieldsLimit, page, pageSize);
+
+            List<JsonNode> nodeList = new ArrayList();
+            for (AbstractPOI temp : poiInfos) {
+                nodeList.add(new SimplePOIFormatter().format(temp));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
+        } catch (NumberFormatException | TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        }
+    }*/
 
     /**
      * 根据关键词搜索POI信息
@@ -150,6 +177,7 @@ public class POICtrl extends Controller {
 
     /**
      * 查看特定地区的poi
+     *
      * @param poiType
      * @param locId
      * @param tagFilter
@@ -158,7 +186,7 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result viewPoiList(String poiType,String locId,String tagFilter,String sortField,String sortType,int page,int pageSize){
+    public static Result viewPoiList(String poiType, String locId, String tagFilter, String sortField, String sortType, int page, int pageSize) {
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":
@@ -192,7 +220,7 @@ public class POICtrl extends Controller {
         List<JsonNode> results = new ArrayList<>();
         Iterator<? extends AbstractPOI> it = null;
         try {
-            it = PoiAPI.poiList(type, locId,tagFilter,sf, sort,true,page, pageSize);
+            it = PoiAPI.poiList(type, locId, tagFilter, sf, sort, true, page, pageSize);
             while (it.hasNext())
                 results.add(new DetailedPOIFormatter().format(it.next()));
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
@@ -202,20 +230,64 @@ public class POICtrl extends Controller {
     }
 
     public static Result viewSpotList(String locId, String tagFilter, String sortField,
-                                      String sortType,int page, int pageSize)
+                                      String sortType, int page, int pageSize)
             throws TravelPiException {
-        return viewPoiList("vs", locId, tagFilter,sortField,sortType,page, pageSize);
+        return viewPoiList("vs", locId, tagFilter, sortField, sortType, page, pageSize);
     }
 
     public static Result viewHotelList(String locId, String tagFilter, String sortField,
-                                      String sortType,int page, int pageSize)
+                                       String sortType, int page, int pageSize)
             throws TravelPiException {
-        return viewPoiList("hotel", locId, tagFilter,sortField,sortType,page, pageSize);
+        return viewPoiList("hotel", locId, tagFilter, sortField, sortType, page, pageSize);
     }
 
     public static Result viewRestaurantList(String locId, String tagFilter, String sortField,
-                                      String sortType,int page, int pageSize)
+                                            String sortType, int page, int pageSize)
             throws TravelPiException {
-        return viewPoiList("restaurant", locId, tagFilter,sortField,sortType,page, pageSize);
+        return viewPoiList("restaurant", locId, tagFilter, sortField, sortType, page, pageSize);
     }
+
+    /**
+     * 发现特定景点周边的poi
+     *
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    public static Result getPoiNear(Double lat, Double lng, int page, int pageSize) {
+
+        try {
+            ObjectNode results = Json.newObject();
+            //发现poi
+            List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
+            poiKeyList.add(PoiAPI.POIType.HOTEL);
+            poiKeyList.add(PoiAPI.POIType.RESTAURANT);
+            poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
+
+            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
+                {
+                    put(PoiAPI.POIType.VIEW_SPOT, "vs");
+                    put(PoiAPI.POIType.HOTEL, "hotel");
+                    put(PoiAPI.POIType.RESTAURANT, "restaurant");
+                }
+            };
+
+            for (PoiAPI.POIType poiType : poiKeyList) {
+                List<JsonNode> retPoiList = new ArrayList<>();
+                Iterator<? extends  AbstractPOI> iterator=PoiAPI.getPOINearBy(poiType, lat, lng, page, pageSize);
+                if (iterator!=null){
+                    for (;iterator.hasNext();)
+                        retPoiList.add(new DetailedPOIFormatter().format(iterator.next()));
+                    results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+                }
+
+            }
+            return Utils.createResponse(ErrorCode.NORMAL,results);
+        }catch (TravelPiException | NullPointerException e){
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT");
+        }
+        }
+
+
 }

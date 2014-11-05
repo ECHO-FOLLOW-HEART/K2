@@ -77,7 +77,8 @@ GET           /poi/view-restaurants/localities/:locId        controllers.taozi.P
 # 景点列表
 GET           /poi/view-spots/localities/:locId              controllers.taozi.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="price", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
-
+#获得景点周边的POI列表
+GET           /poi/nearby/vs/                                controllers.taozi.POICtrl.getPoiNear(lat: Double?=100.23,lng: Double?=123.23 ,page:Int?=0,pageSize:Int?=20)
 #----------数据脚本----------
 #添加首页图片
 GET           /bache/addHomeImage                            controllers.taozi.BacheCtrl.addHomeImage()
@@ -95,7 +96,7 @@ DELETE        /im/chatgroups/groupId/members                 controllers.taozi.C
 POST          /im/chatgroups/detail/groupId                  controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
 #地理信息
 # 搜索城市
-GET           /geo/localities/search                         controllers.taozi.GeoCtrl.searchLocality(keyword: String?="",  prefix: Int?=1)
+GET           /geo/search                                    controllers.taozi.GeoCtrl.searchGeo(keyword: String?="",  prefix: Int?=1)
 # 查看城市详情
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
 #发现城市、国家、poi详情

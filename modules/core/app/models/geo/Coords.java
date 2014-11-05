@@ -7,7 +7,10 @@ import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Index;
+import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.Transient;
+import org.mongodb.morphia.utils.IndexDirection;
 import play.libs.Json;
 
 /**
@@ -25,6 +28,8 @@ public class Coords extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String simpLng="lng";
     @Transient
     public static String simpId="id";
+
+    @Indexed(IndexDirection.GEO2D)
     public Double lat;
     public Double lng;
     public Double blat;

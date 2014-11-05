@@ -58,7 +58,7 @@ public class GeoCtrl extends Controller {
      * @param searchWord 搜索关键词。
      * @param prefix     是否为前缀搜索。
      */
-    public static Result searchLocality(String searchWord, int prefix) {
+    public static Result searchGeo(String searchWord, int prefix) {
         int page;
         try {
             page = Integer.parseInt(request().getQueryString("page"));
@@ -159,4 +159,5 @@ public class GeoCtrl extends Controller {
         }
 
     }
+
 }

@@ -397,6 +397,14 @@ public class PoiAPI {
             case RESTAURANT:
                 poiClass = Restaurant.class;
                 break;
+            case SHOPPING:
+                // TODO
+                poiClass = Restaurant.class;
+                break;
+            case ENTERTAINMENT:
+                //TODO
+                poiClass = Restaurant.class;
+                break;
             default:
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         }
@@ -681,5 +689,39 @@ public class PoiAPI {
             ids.add(temp.id);
         }
         return getPOIInfoList(ids, poiType, fieldList, page, pageSize);
+    }
+
+    /**
+     * 获得景点周围的poi列表
+     * @param poiType
+     * @param lat
+     * @param lng
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    public static Iterator<? extends AbstractPOI> getPOINearBy( POIType poiType,Double lat,Double lng, int page, int pageSize) throws TravelPiException {
+        Class<? extends AbstractPOI> poiClass;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+        }
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        //coords的字段问题
+        query=query.field("addr.coords").near(lat,lng,10000,true);
+        query.offset(page * pageSize).limit(pageSize);
+        return query.iterator();
     }
 }
