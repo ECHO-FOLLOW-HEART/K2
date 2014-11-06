@@ -722,8 +722,7 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        //coords的字段问题
-        query=query.field("addr.coords").near(lat,lng,10000,true);
+        query=query.field("addr.coords").near(lat,lng);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
    }
