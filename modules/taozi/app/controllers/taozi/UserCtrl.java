@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -719,6 +719,36 @@ public class UserCtrl extends Controller {
 
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 根据环信用户名获取
+     *
+     * @return
+     */
+    public static Result getUsersByEasemob() {
+        JsonNode req = request().body().asJson();
+        JsonNode emList;
+        List<String> emNameList = new ArrayList();
+        try {
+
+            emList = req.get("easemob");
+            if (null != emList && emList.isArray() && emList.findValues("easemob") != null) {
+                for (JsonNode node : emList) {
+                    emNameList.add(node.asText());
+                }
+            }
+            List<String> fieldList = Arrays.asList(UserInfo.fnUserId, UserInfo.fnNickName, UserInfo.fnAvatar,
+                    UserInfo.fnGender, UserInfo.fnEasemobUser, UserInfo.fnSignature);
+            List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
+            List<JsonNode> nodelist = new ArrayList<>();
+            for (UserInfo userInfo : list) {
+                nodelist.add(new SimpleUserFormatter().format(userInfo));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodelist));
+        } catch (NumberFormatException | NullPointerException | TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }
 

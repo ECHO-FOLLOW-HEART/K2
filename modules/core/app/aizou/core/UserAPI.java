@@ -1232,6 +1232,25 @@ public class UserAPI {
         return friends;
     }
 
+    public static List<UserInfo> getUserByEaseMob(List<String> users, List<String> fieldList) throws TravelPiException {
+        try {
+            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            Query<UserInfo> query = ds.createQuery(UserInfo.class);
+            List<CriteriaContainerImpl> criList = new ArrayList<>();
+            for (String name : users) {
+                criList.add(query.criteria("easemobUser").equal(name));
+            }
+            query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+            if (fieldList != null && !fieldList.isEmpty())
+                query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+
+            return query.asList();
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Error easeMob users.");
+        }
+    }
+
     /**
      * 排序的字段。
      */
