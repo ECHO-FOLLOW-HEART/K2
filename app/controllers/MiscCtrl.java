@@ -1,22 +1,24 @@
 package controllers;
 
+import aizou.core.LocalityAPI;
+import aizou.core.PoiAPI;
+import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import core.LocalityAPI;
-import core.PoiAPI;
-import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.geo.Locality;
-import models.morphia.misc.Feedback;
-import models.morphia.misc.MiscInfo;
-import models.morphia.poi.AbstractPOI;
-import models.morphia.user.UserInfo;
+import models.geo.Locality;
+import models.misc.Feedback;
+import models.misc.MiscInfo;
+import models.misc.Recommendation;
+import models.poi.AbstractPOI;
+import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
@@ -24,6 +26,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.net.UnknownHostException;
 import java.util.*;
@@ -292,7 +295,7 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, int page, int pageSize) throws TravelPiException {
+    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws TravelPiException {
         boolean detailsFlag = (details != 0);
         ObjectNode results = Json.newObject();
 
@@ -300,7 +303,7 @@ public class MiscCtrl extends Controller {
         if (loc != 0) {
             List<JsonNode> retLocList = new ArrayList<>();
             // TODO 获得城市信息
-            for (Locality locality : LocalityAPI.explore(detailsFlag, page, pageSize))
+            for (Locality locality : LocalityAPI.explore(detailsFlag, abroad, page, pageSize))
                 retLocList.add(locality.toJson(2));
             results.put("loc", Json.toJson(retLocList));
         }
@@ -328,7 +331,7 @@ public class MiscCtrl extends Controller {
             } else {
                 // 发现POI
                 List<JsonNode> retPoiList = new ArrayList<>();
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, page, pageSize);
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, abroad, page, pageSize);
                      it.hasNext(); )
                     retPoiList.add(it.next().toJson(2));
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
@@ -344,14 +347,15 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result updateUserInfo() {
-        try {
-
-            UserAPI.updateUserInfo(request());
-
-            return Utils.createResponse(ErrorCode.NORMAL, "Update UserInfo Success");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
+//        try {
+//
+//            UserAPI.updateUserInfo(request());
+//
+//            return Utils.createResponse(ErrorCode.NORMAL, "Update UserInfo Success");
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+        return Utils.createResponse(ErrorCode.NORMAL, "");
     }
 
     /**
@@ -364,7 +368,7 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
 
-            //UserAPI.updateUserInfo(request());
+//            UserAPI.updateUserInfo(request());
 
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).get();
@@ -385,13 +389,13 @@ public class MiscCtrl extends Controller {
     public static Result getWeatherInfo(String locId) {
         try {
 
-            //请求验证
-            String sign = request().getQueryString("sign");
-            String uid = request().getQueryString("uid");
-            String timestamp = request().getQueryString("timestamp");
-            boolean auth = UserAPI.authenticate(uid, timestamp, sign);
-            if (!auth)
-                return Utils.createResponse(ErrorCode.AUTHENTICATE_ERROR, "AUTHENTIFICATION FAILED.");
+//            //请求验证
+//            String sign = request().getQueryString("sign");
+//            String uid = request().getQueryString("uid");
+//            String timestamp = request().getQueryString("timestamp");
+//            boolean auth = UserAPI.authenticate(uid, timestamp, sign);
+//            if (!auth)
+//                return Utils.createResponse(ErrorCode.AUTH_ERROR, "AUTHENTIFICATION FAILED.");
 
             DBCollection colLoc = Utils.getMongoClient().getDB("misc").getCollection("Weather");
             DBObject qb = QueryBuilder.start("loc.id").is(new ObjectId(locId)).get();
@@ -481,6 +485,151 @@ public class MiscCtrl extends Controller {
             result.put("sampleTime", tmp != null ? tmp.toString() : "");
             return Utils.createResponse(ErrorCode.NORMAL, result);
 
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static Result recommend(String type, int page, int pageSize) {
+        List<JsonNode> results = new ArrayList<JsonNode>();
+
+        Datastore ds = null;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            Query<Recommendation> query = ds.createQuery(Recommendation.class);
+
+            query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
+            query.order(type).offset(page * pageSize).limit(pageSize);
+
+            for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
+                results.add(it.next().toJson());
+            }
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
+    }
+
+    public static Result checkValidation() {
+        JsonNode data = request().body().asJson();
+
+        JsonNode tmp = data.get("tel");
+        String tel = null;
+        if (tmp != null)
+            tel = Utils.telParser(tmp.asText());
+
+        tmp = data.get("actionCode");
+        Integer actionCode = null;
+        try {
+            if (tmp != null)
+                actionCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        Integer countryCode = 86;
+        Integer userId = Integer.valueOf(data.get("userId").asText());
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                countryCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        String v = null;
+        tmp = data.get("validationCode");
+        if (tmp != null)
+            v = tmp.asText();
+
+        if (tel == null || actionCode == null || v == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+
+        try {
+            if (actionCode != 1)
+                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+
+            boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v, userId);
+
+            ObjectNode result = Json.newObject();
+            result.put("isValid", valid);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static Result sendValidation() {
+        JsonNode data = request().body().asJson();
+
+        JsonNode tmp = data.get("tel");
+        String tel = null;
+        if (tmp != null)
+            tel = Utils.telParser(tmp.asText());
+
+        tmp = data.get("actionCode");
+        Integer actionCode = null;
+        Integer userId = Integer.valueOf(data.get("userId").asText());
+        try {
+            if (tmp != null)
+                actionCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        Integer countryCode = 86;
+        try {
+            tmp = data.get("code");
+            if (tmp != null)
+                countryCode = Integer.parseInt(tmp.asText());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+        }
+
+        if (tel == null || actionCode == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid arguments.");
+
+        try {
+            if (actionCode != 1)
+                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+
+            // 确定过期时间
+            Map<String, Object> smsConf = Configuration.root().getConfig("sms").asMap();
+            long expireMs = Integer.parseInt(smsConf.get("signupExpire").toString()) * 1000L;
+            long resendMs = Integer.parseInt(smsConf.get("resendInterval").toString()) * 1000L;
+
+            UserAPI.sendValCode(countryCode, tel, actionCode, userId, expireMs, resendMs);
+
+            ObjectNode result = Json.newObject();
+            result.put("coolDown", resendMs / 1000);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    /**
+     * 获得推荐的境外目的地
+     *
+     * @return
+     */
+    public static Result destRecommend() {
+        // 获得支持的国家列表
+        try {
+            Map<String, List<Locality>> ret = PoiAPI.destRecommend();
+            ObjectNode results = Json.newObject();
+
+            for (Map.Entry<String, List<Locality>> entry : ret.entrySet()) {
+                List<JsonNode> locNodeList = new ArrayList<>();
+                for (Locality loc : entry.getValue()) {
+                    JsonNode locNode = new SimpleLocalityFormatter().format(loc);
+                    locNodeList.add(locNode);
+                }
+                results.put(entry.getKey(), Json.toJson(locNodeList));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }

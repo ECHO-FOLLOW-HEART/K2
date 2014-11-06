@@ -1,14 +1,14 @@
 package controllers;
 
+import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
-import core.PoiAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.poi.AbstractPOI;
-import models.morphia.poi.ViewSpot;
+import models.poi.AbstractPOI;
+import models.poi.ViewSpot;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -63,7 +63,7 @@ public class POICtrl extends Controller {
         boolean details = (showDetails != 0);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
         if (poiInfo == null)
-            return Utils.createResponse(ErrorCode.INVALID_OBJECTID, String.format("Invalid POI ID: %s.", spotId));
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
 
         ObjectNode results = (ObjectNode) poiInfo.toJson(details ? 3 : 2);
 
@@ -92,7 +92,7 @@ public class POICtrl extends Controller {
             }
         }
         JsonNode result = DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC);
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(result,request()));
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(result, request()));
     }
 
 
@@ -371,7 +371,7 @@ public class POICtrl extends Controller {
 
         List<JsonNode> retPoiList = new ArrayList<>();
 
-        for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(pt, oLocId, page, pageSize); it.hasNext(); )
+        for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(pt, oLocId, false, page, pageSize); it.hasNext(); )
             retPoiList.add(it.next().toJson(2));
 
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(retPoiList), request(), Constants.SMALL_PIC));

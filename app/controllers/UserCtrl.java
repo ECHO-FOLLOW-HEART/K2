@@ -1,11 +1,11 @@
 package controllers;
 
+import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.*;
-import core.UserAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.morphia.user.UserInfo;
+import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;

@@ -1,38 +1,36 @@
 package controllers;
 
+import aizou.core.PlanAPI;
+import aizou.core.PlanAPIOld;
+import aizou.core.PoiAPI;
+import aizou.core.TrafficAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.DBCollection;
 import com.mongodb.DBObject;
 import com.mongodb.QueryBuilder;
-import core.PlanAPI;
-import core.PlanAPIOld;
-import core.PoiAPI;
-import core.TrafficAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.morphia.misc.Share;
-import models.morphia.misc.SimpleRef;
-import models.morphia.plan.*;
-import models.morphia.poi.AbstractPOI;
-import models.morphia.poi.Hotel;
-import models.morphia.poi.Restaurant;
-import models.morphia.poi.ViewSpot;
-import models.morphia.traffic.AirRoute;
-import models.morphia.traffic.Airport;
-import models.morphia.traffic.TrainRoute;
-import models.morphia.traffic.TrainStation;
+import models.misc.Share;
+import models.misc.SimpleRef;
+import models.plan.*;
+import models.poi.AbstractPOI;
+import models.poi.Hotel;
+import models.poi.Restaurant;
+import models.poi.ViewSpot;
+import models.traffic.AirRoute;
+import models.traffic.Airport;
+import models.traffic.TrainRoute;
+import models.traffic.TrainStation;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
-import utils.Constants;
-import utils.DataFilter;
-import utils.Planner;
-import utils.Utils;
+import utils.*;
 
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -49,6 +47,7 @@ import java.util.*;
 public class PlanCtrl extends Controller {
 
 
+    public static int WEB_REQUEST_FLAG = 1;
     public static String UGCPLAN = "UgcPlan";
     public static String SHAREPLAN = "SharePlan";
 
@@ -60,17 +59,19 @@ public class PlanCtrl extends Controller {
      * @return
      * @throws UnknownHostException
      */
-    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId) {
+    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int webFlag, String uid) {
         try {
+            Http.Request req = request();
             if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);
                 if (plan == null)
-                    throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", planId.toString()));
+                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId.toString()));
                 return Utils.createResponse(ErrorCode.NORMAL, plan.toJson());
             }
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
-            UgcPlan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal);
+
+            UgcPlan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req);
 
             Configuration config = Configuration.root();
             Map budget = (Map) config.getObject("budget");
@@ -101,10 +102,150 @@ public class PlanCtrl extends Controller {
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.SMALL_PIC));
+
+            if (DataFilter.isAppRequest(req))
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC), req));
+            else
+                return Utils.createResponse(ErrorCode.NORMAL, updatePlanByNode(planJson, uid).toJson());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+    }
+
+    private static UgcPlan updatePlanByNode(JsonNode data, String uid) throws TravelPiException {
+        String ugcPlanId = data.get("_id").asText();
+        String templateId = data.get("templateId").asText();
+        String title = data.get("title").asText();
+        //String uid = data.has("uid") ? data.get("uid").asText() : "";
+
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+
+        Plan plan = PlanAPI.getPlan(templateId, false);
+        if (plan == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
+        UgcPlan ugcPlan = new UgcPlan(plan);
+
+        PlanDayEntry planDayEntry = null;
+        PlanItem planItem = null;
+        List<PlanItem> planItemList = null;
+        SimpleRef pItem = null;
+        SimpleRef pLoc = null;
+        List<PlanDayEntry> planDayEntryList = new ArrayList<PlanDayEntry>();
+
+        JsonNode jsList = data.get("details");
+        JsonNode tempDay = null;
+        int dayIndex = 0;
+        Date startDate = null;
+        Date endDate = null;
+        for (int i = 0; i < jsList.size(); i++) {
+            tempDay = jsList.get(i);
+            planDayEntry = new PlanDayEntry();
+            if (!tempDay.has("actv"))
+                continue;
+            JsonNode actv = tempDay.get("actv");
+            JsonNode date = tempDay.get("date");
+
+            //设置Date
+            try {
+                planDayEntry.date = timeFmt.parse(date.asText());
+            } catch (ParseException e) {
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+            }
+            if (dayIndex == 0) {
+                startDate = planDayEntry.date;
+            } else if (dayIndex == jsList.size() - 1) {
+                endDate = planDayEntry.date;
+            }
+            dayIndex++;
+            planItemList = new ArrayList<PlanItem>();
+
+            for (JsonNode item : actv) {
+                try {
+                    //新建PlanItem
+                    planItem = new PlanItem();
+                    pItem = new SimpleRef();
+                    pLoc = new SimpleRef();
+                    planItem.ts = planDayEntry.date;
+                    if (item.has("ts") && (!item.get("ts").asText().equals(""))) {
+                        planItem.ts = timeFmt.parse(item.get("ts").asText());
+                    } else {
+                        planItem.ts = planDayEntry.date;
+                    }
+                    if (item.has("itemId")) {
+                        pItem.id = new ObjectId(item.get("itemId").asText());
+                        pItem.zhName = item.get("itemName").asText();
+                        planItem.item = pItem;
+                    }
+                    if (item.has("locId")) {
+                        pLoc.id = new ObjectId(item.get("locId").asText());
+                        pLoc.zhName = item.get("locName").asText();
+                        planItem.loc = pLoc;
+                    }
+
+                    String subTypeStr = item.get("subType").asText();
+                    if (subTypeStr.equals("airport") || subTypeStr.equals("trainStaion")) {
+                        planItem.stopType = item.get("stopType").asText();
+                        if (item.has("lat") && item.has("lng")) {
+                            planItem.lat = Double.parseDouble(item.get("lat").asText());
+                            planItem.lng = Double.parseDouble(item.get("lng").asText());
+                        }
+                    }
+                    if (subTypeStr.equals("airRoute") || subTypeStr.equals("trainRoute")) {
+                        if (item.has("depStop") && item.has("depLoc")) {
+                            planItem.depLoc = new ObjectId(item.get("depLoc").asText());
+                            planItem.depStop = new ObjectId(item.get("depStop").asText());
+                        }
+                        if (item.has("arrLoc") && item.has("arrStop")) {
+                            planItem.arrLoc = new ObjectId(item.get("arrLoc").asText());
+                            planItem.arrStop = new ObjectId(item.get("arrStop").asText());
+                        }
+                        if (item.has("depTime") && item.has("arrTime")
+                                && (!item.get("depTime").asText().equals(""))
+                                && (!item.get("arrTime").asText().equals(""))) {
+                            planItem.depTime = timeFmt.parse(item.get("depTime").asText());
+                            planItem.arrTime = timeFmt.parse(item.get("arrTime").asText());
+                        }
+                        if (item.has("distance")) {
+                            planItem.distance = item.get("distance").asText();
+                        }
+                    }
+                    planItem.type = item.get("type").asText();
+                    planItem.subType = item.get("subType").asText();
+
+                    planItemList.add(planItem);
+                } catch (ParseException e) {
+                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+                }
+            }
+            planDayEntry.actv = planItemList;
+            planDayEntryList.add(planDayEntry);
+        }
+        ugcPlan.details = planDayEntryList;
+        ugcPlan.stayBudget = Integer.parseInt(data.get("stayBudget").asText());
+        ugcPlan.viewBudget = Integer.parseInt(data.get("viewBudget").asText());
+        ugcPlan.trafficBudget = Integer.parseInt(data.get("trafficBudget").asText());
+        //设置UGC路线ID
+        ugcPlan.id = new ObjectId(ugcPlanId);
+        ugcPlan.templateId = new ObjectId(templateId);
+        ugcPlan.startDate = startDate;
+        ugcPlan.endDate = endDate;
+        ugcPlan.title = title;
+        //uid为空，中间态数据；否则为保存态数据。中间态数据会被定期清理。
+        if (!uid.equals("")) {
+            ugcPlan.uid = new ObjectId(uid);
+            ugcPlan.persisted = true;
+
+        } else {
+            ugcPlan.persisted = false;
+        }
+        ugcPlan.updateTime = (new Date()).getTime();
+        ugcPlan.enabled = true;
+        ugcPlan.isFromWeb = true;
+
+        PlanAPI.saveUGCPlan(ugcPlan);
+        return ugcPlan;
+
     }
 
     /**
@@ -439,6 +580,7 @@ public class PlanCtrl extends Controller {
 //        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
+
     /**
      * 保存用户的路线
      *
@@ -447,7 +589,7 @@ public class PlanCtrl extends Controller {
     public static Result saveUGCPlan() {
         JsonNode data = request().body().asJson();
         JsonNode action = data.get("action");
-        String title = null;
+        String updateField = null;
         String ugcPlanId = null;
 
         try {
@@ -456,8 +598,18 @@ public class PlanCtrl extends Controller {
             ObjectId oid = ugcPlanId == null ? new ObjectId() : new ObjectId(ugcPlanId);
             //只更新标题
             if (actionFlag.equals("updateTitle")) {
-                title = data.get("title").asText();
-                PlanAPI.updateUGCPlanByFiled(oid, "title", title);
+
+                updateField = data.get("title").asText();
+                //记录日志
+                LogUtils.info(Plan.class, "UpdateTitle:" + updateField);
+                LogUtils.info(Plan.class, request());
+
+                PlanAPI.updateUGCPlanByFiled(oid, "title", updateField);
+            }
+            //只更新用户ID：web用
+            if (actionFlag.equals("updateUid")) {
+                updateField = data.get("uid").asText();
+                PlanAPI.updateUGCPlanByFiled(oid, "uid", updateField);
             }
             //更新路线
             if (actionFlag.equals("upsert")) {
@@ -507,7 +659,7 @@ public class PlanCtrl extends Controller {
         Plan plan = PlanAPI.getPlan(templateId, false);
         UgcPlan ugcPlan = new UgcPlan(plan);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_OBJECTID, String.format("Invalid plan ID: %s.", templateId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
 
         //补全信息
         List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, false);
@@ -633,7 +785,7 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) throws UnknownHostException, TravelPiException {
+    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) {
         List<JsonNode> results = new ArrayList<>();
 
         if (locId != null && !locId.isEmpty()) {
@@ -701,33 +853,38 @@ public class PlanCtrl extends Controller {
                 poiId = poiIdMapping.get(poiId);
         }
 
-        Double trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
-        //取得预算常量
-        Configuration config = Configuration.root();
-        Map budget = (Map) config.getObject("budget");
-        int stayBudgetDefault = 0;
         try {
-            if (budget != null) {
-                stayBudgetDefault = Integer.valueOf(budget.get("stayBudgetDefault").toString());
+            Double trafficBudget = 0.0;
+            if (fromLoc != null && !fromLoc.isEmpty())
+                trafficBudget = Bache.getTrafficBudget(fromLoc, locId);
+
+            int stayBudgetDefault = 0;
+            try {
+                //取得预算常量
+                Map<String, Object> budget = Configuration.root().getConfig("budget").asMap();
+                if (budget != null)
+                    stayBudgetDefault = Integer.valueOf(budget.get("stayBudgetDefault").toString());
+            } catch (ClassCastException ignored) {
             }
-        } catch (ClassCastException e) {
-            stayBudgetDefault = 0;
+
+            for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, minDays, maxDays, page,
+                    pageSize, sortField); it.hasNext(); ) {
+                //加入交通预算,住宿预算
+                if (null != fromLoc && !fromLoc.trim().equals("")) {
+                    try {
+                        results.add(addTrafficBudget(it, trafficBudget, stayBudgetDefault));
+                    } catch (ClassCastException e) {
+                        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+                    }
+                } else {
+                    results.add(it.next().toJson(false));
+                }
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, minDays, maxDays, page, pageSize, sortField);
-             it.hasNext(); ) {
-            //加入交通预算,住宿预算
-            if (null != fromLoc && !fromLoc.trim().equals("")) {
-                try {
-                    results.add(addTrafficBudget(it, trafficBudget, stayBudgetDefault));
-                } catch (ClassCastException e) {
-                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-                }
-            } else {
-                results.add(it.next().toJson(false));
-            }
-        }
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
     }
 
     /**
@@ -847,6 +1004,7 @@ public class PlanCtrl extends Controller {
                 planItem.loc = airport.addr.loc;
                 planItem.type = "traffic";
                 planItem.subType = "airport";
+                planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
                 } catch (ParseException ignored) {
@@ -862,6 +1020,7 @@ public class PlanCtrl extends Controller {
                 planItem.loc = trainStation.addr.loc;
                 planItem.type = "traffic";
                 planItem.subType = "trainStation";
+                planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
                 } catch (ParseException ignored) {
@@ -876,6 +1035,7 @@ public class PlanCtrl extends Controller {
                 planItem.item = ref;
                 planItem.type = "traffic";
                 planItem.subType = "airRoute";
+                planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
 //                planItem.ts = airRoute.depTime;
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
@@ -891,6 +1051,7 @@ public class PlanCtrl extends Controller {
                 planItem.item = ref;
                 planItem.type = "traffic";
                 planItem.subType = "trainRoute";
+                planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
 //                planItem.ts = trainRoute.depTime;
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
@@ -976,6 +1137,9 @@ public class PlanCtrl extends Controller {
             String type = item.get("type").asText();
             if (!type.equals("traffic"))
                 continue;
+            if (PlanUtils.isTransferTraffic(item)) {
+                needOptimize = false;
+            }
 
             String subType = item.get("subType").asText();
             PlanItem trafficItem = trafficMapper(item);
@@ -984,13 +1148,14 @@ public class PlanCtrl extends Controller {
             else
                 lastTs = trafficItem.ts;
 
+            isAway = PlanUtils.isFromTraffic(item);
             (isAway ? awayTraffic : backTraffic).add(trafficItem);
 
-            if (subType.equals("airport") || subType.equals("trainStation")) {
-                arrived = !arrived;
-                if (arrived)
-                    isAway = !isAway;
-            }
+//            if (subType.equals("airport") || subType.equals("trainStation")) {
+//                arrived = !arrived;
+//                if (arrived)
+//                    isAway = !isAway;
+//            }
         }
 
         // 需要考虑两端的大交通的时间是否需要shift
@@ -1131,15 +1296,26 @@ public class PlanCtrl extends Controller {
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
         ret.put("details", Json.toJson(retDetails));
-//        ret.put("budget", Json.toJson(Arrays.asList(2000, 3000)));
-
         try {
             fullfill(ret);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(ret, request(), Constants.SMALL_PIC));
+        Http.Request req = request();
+        if (!DataFilter.isAppRequest(req)) {
+            //WEB分支
+            String uid = rawPlan.get("uid") == null ? "" : rawPlan.get("uid").asText();
+            ObjectNode planNode = (ObjectNode) rawPlan;
+            planNode.put("details", Json.toJson(ret.get("details")));
+            try {
+                updatePlanByNode(Json.toJson(planNode), uid);
+                return Utils.createResponse(ErrorCode.NORMAL, "Success");
+            } catch (TravelPiException e) {
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+            }
+        } else
+            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(ret, req, Constants.SMALL_PIC));
     }
 
     /**
@@ -1150,21 +1326,12 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getUGCPlans(String userId, String ugcPlanId, String updateTime, int page, int pageSize) {
-
+    public static Result getUGCPlans(String userId, String ugcPlanId, int page, int pageSize) {
         try {
             //根据ID取得UGC路线
             if (!ugcPlanId.equals("")) {
                 UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-                //根据ID取用户路线时，先判断时间戳，是否需要更新
-                //如果不需要更新，只返回一个标识，以节省流量
-                long updateTimeInDB = ugcPlan.updateTime;
-                if (!updateTime.equals("")) {
-                    Long appTimeStamp = Long.parseLong(updateTime);
-                    if (appTimeStamp.longValue() == updateTimeInDB) {
-                        return Utils.createResponse(ErrorCode.DONOTNEED_UPDATE, "DO NOT NEED UPDATE");
-                    }
-                }
+
                 //取详细信息
                 JsonNode planJson = ugcPlan.toJson(true);
                 planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
@@ -1255,6 +1422,34 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
         } catch (TravelPiException | NoSuchFieldException | InstantiationException | ParseException | IllegalAccessException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        }
+    }
+
+    public static Result getUGCPlans1(String userId, String ugcPlanId, int page, int pageSize) {
+        try {
+            //根据ID取得UGC路线
+            if (!ugcPlanId.equals("")) {
+                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
+
+                //取详细信息
+                JsonNode planJson = ugcPlan.toJson(true);
+                planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC));
+            }
+            //根据用户ID取得UGC路线列表
+            if (!userId.equals("")) {
+                List<JsonNode> results = new ArrayList<JsonNode>();
+                for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
+                    //取粗略信息
+                    results.add(it.next().toJson(false));
+                }
+                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
+            }
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
+        } catch (ClassCastException ec) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 }

@@ -1,27 +1,28 @@
-name := """com.lvxingpai.api"""
+name := """aizou"""
 
-version := "1.1"
+version := "1.3"
+
+lazy val core = (project in file("modules/core")).enablePlugins(PlayJava)
+
+lazy val web = (project in file("modules/web")).enablePlugins(PlayJava).dependsOn(core)
+
+lazy val travelpi = (project in file("modules/travelpi")).enablePlugins(PlayJava).dependsOn(core)
+
+lazy val taozi = (project in file("modules/taozi")).enablePlugins(PlayJava).dependsOn(core)
 
 lazy val root = (project in file(".")).enablePlugins(PlayJava)
+  .dependsOn(core).dependsOn(web).dependsOn(travelpi).dependsOn(taozi)
+  .aggregate(core, web, taozi, travelpi)
 
 scalaVersion := "2.10.3"
-
-conflictWarning := ConflictWarning.disable
 
 libraryDependencies ++= Seq(
   javaJdbc,
   javaEbean,
   cache,
   javaWs,
-  "mysql" % "mysql-connector-java" % "latest.integration",
-  "org.mongodb" % "mongo-java-driver" % "latest.integration",
-  "org.mongodb.morphia" % "morphia" % "latest.integration",
-  "org.mongodb.morphia" % "morphia-validation" % "latest.integration",
-  "cglib" % "cglib-nodep" % "latest.integration",
-  "com.thoughtworks.proxytoys" % "proxytoys" % "latest.integration",
-  "com.vxp" % "plan_2.10" % "1.0.1",
-  filters
+  filters,
+  "org.mongodb" % "mongo-java-driver" % "2.12.4"
 )
 
-//externalPom(Def.setting(baseDirectory.value / "morphia-validation.xml"))
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
