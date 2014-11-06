@@ -318,7 +318,6 @@ public class PoiAPI {
      * @param page
      * @param pageSize
      * @return
-     * @throws UnknownHostException
      * @throws TravelPiException
      */
     public static Iterator<? extends AbstractPOI> poiList(POIType poiType, ObjectId locId, String tagFilter, final SortField sortField,
