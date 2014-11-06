@@ -17,6 +17,7 @@ import models.geo.Locality;
 import models.misc.SimpleRef;
 import utils.formatter.JsonFormatter;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -44,16 +45,9 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Locality.simpAborad);
-                includedFields.add(Locality.simpCoords);
-//                includedFields.add(Locality.simpCountry);
-                includedFields.add(Locality.simpDesc);
-                includedFields.add(Locality.simpEnName);
-                includedFields.add(Locality.simpId);
-                includedFields.add(Locality.simpShortName);
-                includedFields.add(Locality.simpSuperAdm);
-                includedFields.add(Locality.simpZhName);
-                includedFields.add(Locality.simpImg);
+                Collections.addAll(includedFields, Locality.simpAborad, Locality.simpCoords, Locality.simpDesc,
+                        Locality.simpEnName, Locality.simpId, Locality.simpShortName, Locality.simpSuperAdm,
+                        Locality.simpZhName, Locality.simpImg);
 
                 return (includedFields.contains(writer.getName()));
             }
