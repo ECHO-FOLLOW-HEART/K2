@@ -49,11 +49,11 @@ public class SelfFavoriteFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Favorite.TYPE_VS);
-                includedFields.add(Favorite.TYPE_HOTEL);
-                includedFields.add(Favorite.TYPE_RESTAURANT);
-                includedFields.add(Favorite.TYPE_TRAVELNOTE);
-                includedFields.add(Favorite.TYPE_LOCALITY);
+                includedFields.add(Favorite.fnViewSpot);
+                includedFields.add(Favorite.fnHotel);
+                includedFields.add(Favorite.fnRestaurant);
+                includedFields.add(Favorite.fnTravelNote);
+                includedFields.add(Favorite.fnLocality);
                 return (includedFields.contains(writer.getName()));
             }
 

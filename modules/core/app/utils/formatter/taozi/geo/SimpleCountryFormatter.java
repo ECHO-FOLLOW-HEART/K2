@@ -15,13 +15,16 @@ import models.TravelPiBaseItem;
 import models.geo.Country;
 import utils.formatter.JsonFormatter;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * 格式化国家的简单信息，主要使用在搜索列表中。
+ * <p/>
  * Created by lxf on 14-11-1.
  */
-public class CountryFormatter implements JsonFormatter {
+public class SimpleCountryFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -42,13 +45,8 @@ public class CountryFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Country.simpEnCont);
-                includedFields.add(Country.simpZhCont);
-                includedFields.add(Country.simpEnName);
-                includedFields.add(Country.simpZhName);
-                includedFields.add(Country.simpIsHot);
-                includedFields.add(Country.simpId);
-
+                Collections.addAll(includedFields, Country.fnEnName, Country.fnZhName, Country.fnCode, Country.fnIsHot,
+                        "id");
                 return (includedFields.contains(writer.getName()));
             }
 

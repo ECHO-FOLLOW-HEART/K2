@@ -59,9 +59,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String simpShortName = "shortName";
 
-//    @Transient
-//    public static String simpCountry = "countryDetails";
-
     @Transient
     public static String fnCountry = "country";
 
@@ -73,8 +70,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String simpCoords = "coords";
-
-    @Indexed()
 
     public String zhName;
 

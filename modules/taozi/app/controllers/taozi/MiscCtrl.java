@@ -182,17 +182,17 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
 
-    private static Favorite createFavorite(Integer userID) {
+    private static Favorite createFavorite(Integer userId) {
         Favorite fa = new Favorite();
         fa.id = new ObjectId();
-        fa.userId = userID;
+        fa.setUserId(userId);
         return fa;
     }
 
     private static Favorite createFavorite(Favorite fa) {
         Favorite result = new Favorite();
         result.id = fa.id;
-        result.userId = fa.userId;
+        result.setUserId(fa.getUserId());
         return result;
     }
 
@@ -201,6 +201,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
+    @SuppressWarnings("unchecked")
     public static Result getFavorite(Integer userID, String faType, int page, int pageSize) {
 
         try {
@@ -213,17 +214,17 @@ public class MiscCtrl extends Controller {
             List<String> locFields = Arrays.asList("id", "zhName", "imageList", "desc");
             switch (faType) {
                 case "vs":
-                    pois = PoiAPI.getPOIInfoListByPOI(fa.vs, faType, fields, page, pageSize);
-                    retFa.vs = (List<ViewSpot>) pois;
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.getVs(), faType, fields, page, pageSize);
+                    retFa.setVs((List<ViewSpot>) pois);
 
                     break;
                 case "hotel":
-                    pois = PoiAPI.getPOIInfoListByPOI(fa.hotel, faType, fields, page, pageSize);
-                    retFa.hotel = (List<Hotel>) pois;
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.getHotel(), faType, fields, page, pageSize);
+                    retFa.setHotel((List<Hotel>) pois);
                     break;
                 case "restaurant":
-                    pois = PoiAPI.getPOIInfoListByPOI(fa.restaurant, faType, fields, page, pageSize);
-                    retFa.restaurant = (List<Restaurant>) pois;
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.getRestaurant(), faType, fields, page, pageSize);
+                    retFa.setRestaurant((List<Restaurant>) pois);
                     break;
                 case "shopping":
 
@@ -240,12 +241,12 @@ public class MiscCtrl extends Controller {
                     retFa.locality = LocalityAPI.getLocalityListByLoc(fa.locality, faType, locFields, page, pageSize);
                     break;
                 case "all":
-                    pois = PoiAPI.getPOIInfoListByPOI(fa.vs, "vs", fields, page, pageSize);
-                    retFa.vs = (List<ViewSpot>) pois;
-                    pois = PoiAPI.getPOIInfoListByPOI(fa.hotel, "hotel", fields, page, pageSize);
-                    retFa.hotel = (List<Hotel>) pois;
-                    pois = PoiAPI.getPOIInfoListByPOI(fa.restaurant, "restaurant", fields, page, pageSize);
-                    retFa.restaurant = (List<Restaurant>) pois;
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.getVs(), "vs", fields, page, pageSize);
+                    retFa.setVs((List<ViewSpot>) pois);
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.getHotel(), "hotel", fields, page, pageSize);
+                    retFa.setHotel((List<Hotel>) pois);
+                    pois = PoiAPI.getPOIInfoListByPOI(fa.getRestaurant(), "restaurant", fields, page, pageSize);
+                    retFa.setRestaurant((List<Restaurant>) pois);
                     // TODO 缺少美食
                     retFa.locality = LocalityAPI.getLocalityListByLoc(fa.locality, "locality", locFields, page, pageSize);
                     break;

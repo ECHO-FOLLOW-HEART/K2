@@ -248,7 +248,7 @@ public class ChatGroupAPI {
         //判断是否为空
         if (chatGroupInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        int sub = chatGroupInfo.owner.userId - id;
+        int sub = chatGroupInfo.owner.getUserId() - id;
         if (sub == 0) {       //判断id,删除操作只能由群主发起
             /*String href = String.format("https://a1.easemob.com/%s/%s/chargroups/%s", orgName, appName, groupId);
             String data = "";
@@ -315,7 +315,7 @@ public class ChatGroupAPI {
                 members = userInfoList;
             } else {
                 for (UserInfo tmpUserInfo : members) {
-                    if ((tmpUserInfo.userId - userInfo.userId == 0)) {
+                    if ((tmpUserInfo.getUserId() - userInfo.getUserId() == 0)) {
                         flag = true;
                         break;
                     }
@@ -364,7 +364,7 @@ public class ChatGroupAPI {
                     for (int i = 0; i < members.size() && members != null; i++) {
                         UserInfo tmpuserInfo = members.get(i);
                         if (tmpuserInfo != null) {
-                            if ((tmpuserInfo.userId - userInfo.userId) == 0) {
+                            if ((tmpuserInfo.getUserId() - userInfo.getUserId()) == 0) {
                                 members.remove(tmpuserInfo);
                             } else
                                 throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "user not exists");
@@ -398,8 +398,9 @@ public class ChatGroupAPI {
         ChatGroupInfo chatGroupInfo = getChatGroupById(groupId);
         if (chatGroupInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        JsonNode response = chatGroupInfo.toJson();
-        return response;
+        // TODO 需要实现
+//        JsonNode response = chatGroupInfo.toJson();
+        return Json.newObject();
     }
 
     /**
@@ -422,7 +423,7 @@ public class ChatGroupAPI {
         if (chatGroupInfo == null) {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-        Boolean flag = ("" + chatGroupInfo.owner.userId).equals(id);
+        Boolean flag = ("" + chatGroupInfo.owner.getUserId()).equals(id);
         if (flag) {
             if (desc != null)
                 chatGroupInfo.desc = desc;

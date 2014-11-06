@@ -85,107 +85,107 @@ public class UserAPI {
         return query.get();
     }
 
-    /**
-     * 修改用户备注
-     *
-     * @param selfId
-     * @param id
-     * @param memo
-     * @throws TravelPiException
-     */
-    public static void setUserMemo(Integer selfId, Integer id, String memo) throws TravelPiException {
-        UserInfo userInfo = getUserInfo(selfId);
-//        Map<Integer, UserInfo> friends = userInfo.friends;
-//        boolean flag = friends.containsKey(id);   //查看是否存在好友
-
-        Map<Integer, String> friendRemark = userInfo.remark;
-        friendRemark.put(id, memo);
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        ds.save(userInfo);
-
-    }
-
-    /**
-     * 检查用户是否在黑名单中
-     *
-     * @param selfId
-     * @param id
-     */
-   /* public static boolean checkBlackList(Integer selfId,Integer id) throws TravelPiException {
-        UserInfo userInfo=getUserInfo(selfId);
-        Map<Integer,UserInfo> blacklist= userInfo.blackList;
-        if (blacklist.containsKey(id)){
-            return true;
-        } else
-            return false;
-    }*/
-
-    /**
-     * 将用户添加/移除黑名单
-     *
-     * @param selfId
-     * @param list
-     * @param operation
-     * @throws TravelPiException
-     */
-    public static void setUserBlacklist(Integer selfId, List<Integer> list, String operation) throws TravelPiException {
-        UserInfo userInfo = getUserInfo(selfId);
-        Map<Integer, UserInfo> blackList = userInfo.blackList;  //用户的黑名单列表
-//        Map<Integer, UserInfo> friends = userInfo.friends;     //用户的朋友圈列表
-        switch (operation) {
-            case "add":         //用户加入到黑名单
-                for (Integer id : list) {
-                    if (blackList.containsKey(id)) {         //黑名单中存在用户已经
-                        continue;
-                    }
-                    UserInfo user = getUserInfo(id);
-                    blackList.put(id, user);            //添加用户到黑名单
-//                    friends.remove(id);                 //将用户从朋友圈中删除
-                }
-                addEaseMobBlocks(selfId, list);          //向环信中注册
-                break;
-            case "remove":                                  //用户移除黑名单
-                if (list.isEmpty()) {                        //黑名单空的话，抛出异常
-                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-                } else {
-                    for (Integer id : list) {
-                        if (!blackList.containsKey(id)) {        //用户不再黑名单中
-                            continue;
-                        }
-                        UserInfo user = getUserInfo(id);
-                        blackList.remove(id);                 //添加用户到朋友圈
-//                        friends.put(id, user);
-                    }
-                    for (Integer id : list) {
-                        delEaseMobBlocks(selfId, id);
-                    }
-                    break;
-                }
-            default:
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);    //更新用户的信息
-        ds.save(userInfo);
-    }
-
-    /**
-     * 获得用户的黑名单列表
-     *
-     * @param userId
-     * @return
-     * @throws TravelPiException
-     */
-    public static List<Integer> getBlackList(Integer userId) throws TravelPiException {
-        UserInfo userInfo = getUserInfo(userId);
-        Map<Integer, UserInfo> blackList = userInfo.blackList;
-        List<Integer> list = new ArrayList<>();
-        if (!blackList.isEmpty()) {          //黑名单不为空
-            for (Integer i : blackList.keySet()) {
-                list.add(i);
-            }
-        }
-        return list;
-    }
+//    /**
+//     * 修改用户备注
+//     *
+//     * @param selfId
+//     * @param id
+//     * @param memo
+//     * @throws TravelPiException
+//     */
+//    public static void setUserMemo(Integer selfId, Integer id, String memo) throws TravelPiException {
+//        UserInfo userInfo = getUserInfo(selfId);
+////        Map<Integer, UserInfo> friends = userInfo.friends;
+////        boolean flag = friends.containsKey(id);   //查看是否存在好友
+//
+//        Map<Integer, String> friendRemark = userInfo.remark;
+//        friendRemark.put(id, memo);
+//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+//        ds.save(userInfo);
+//
+//    }
+//
+//    /**
+//     * 检查用户是否在黑名单中
+//     *
+//     * @param selfId
+//     * @param id
+//     */
+//   /* public static boolean checkBlackList(Integer selfId,Integer id) throws TravelPiException {
+//        UserInfo userInfo=getUserInfo(selfId);
+//        Map<Integer,UserInfo> blacklist= userInfo.blackList;
+//        if (blacklist.containsKey(id)){
+//            return true;
+//        } else
+//            return false;
+//    }*/
+//
+//    /**
+//     * 将用户添加/移除黑名单
+//     *
+//     * @param selfId
+//     * @param list
+//     * @param operation
+//     * @throws TravelPiException
+//     */
+//    public static void setUserBlacklist(Integer selfId, List<Integer> list, String operation) throws TravelPiException {
+//        UserInfo userInfo = getUserInfo(selfId);
+//        Map<Integer, UserInfo> blackList = userInfo.blackList;  //用户的黑名单列表
+////        Map<Integer, UserInfo> friends = userInfo.friends;     //用户的朋友圈列表
+//        switch (operation) {
+//            case "add":         //用户加入到黑名单
+//                for (Integer id : list) {
+//                    if (blackList.containsKey(id)) {         //黑名单中存在用户已经
+//                        continue;
+//                    }
+//                    UserInfo user = getUserInfo(id);
+//                    blackList.put(id, user);            //添加用户到黑名单
+////                    friends.remove(id);                 //将用户从朋友圈中删除
+//                }
+//                addEaseMobBlocks(selfId, list);          //向环信中注册
+//                break;
+//            case "remove":                                  //用户移除黑名单
+//                if (list.isEmpty()) {                        //黑名单空的话，抛出异常
+//                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+//                } else {
+//                    for (Integer id : list) {
+//                        if (!blackList.containsKey(id)) {        //用户不再黑名单中
+//                            continue;
+//                        }
+//                        UserInfo user = getUserInfo(id);
+//                        blackList.remove(id);                 //添加用户到朋友圈
+////                        friends.put(id, user);
+//                    }
+//                    for (Integer id : list) {
+//                        delEaseMobBlocks(selfId, id);
+//                    }
+//                    break;
+//                }
+//            default:
+//                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+//        }
+//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);    //更新用户的信息
+//        ds.save(userInfo);
+//    }
+//
+//    /**
+//     * 获得用户的黑名单列表
+//     *
+//     * @param userId
+//     * @return
+//     * @throws TravelPiException
+//     */
+//    public static List<Integer> getBlackList(Integer userId) throws TravelPiException {
+//        UserInfo userInfo = getUserInfo(userId);
+//        Map<Integer, UserInfo> blackList = userInfo.blackList;
+//        List<Integer> list = new ArrayList<>();
+//        if (!blackList.isEmpty()) {          //黑名单不为空
+//            for (Integer i : blackList.keySet()) {
+//                list.add(i);
+//            }
+//        }
+//        return list;
+//    }
 
     /**
      * 根据OAuth信息获得用户信息。
@@ -223,11 +223,9 @@ public class UserAPI {
         if (user != null)
             return user;
 
-        user = new UserInfo();
-        user.nickName = (new ObjectId()).toString();
-        user.avatar = "http://default";
-        user.oauthList = new ArrayList<>();
-        user.udid = udid;
+        user = UserInfo.newInstance(populateUserId());
+        user.setNickName((new ObjectId()).toString());
+        user.setAvatar("http://default");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(user);
@@ -272,21 +270,23 @@ public class UserAPI {
         if (tmp != null)
             udid = tmp.toString();
 
-        user = new UserInfo();
+        user = UserInfo.newInstance(populateUserId());
 
-        user.nickName = nickName;
-        user.avatar = avatar;
-        user.udid = udid;
-        user.oauthList = new ArrayList<>();
-//        user.secToken = secToken;
+        user.setNickName(nickName);
+        user.setAvatar(avatar);
 
         OAuthInfo oauthInfo = new OAuthInfo();
-        oauthInfo.provider = provider;
-        oauthInfo.oauthId = oauthId;
-        oauthInfo.nickName = nickName;
-        oauthInfo.avatar = avatar;
-        oauthInfo.token = token;
-        user.oauthList.add(oauthInfo);
+        oauthInfo.setProvider(provider);
+        oauthInfo.setOauthId(oauthId);
+        oauthInfo.setNickName(nickName);
+        oauthInfo.setAvatar(avatar);
+        oauthInfo.setToken(token);
+        List<OAuthInfo> oauthList = user.getOauthList();
+        if (oauthList == null)
+            oauthList = new ArrayList<>();
+        // TODO 此处需要检查。假设原来的oauthList已经有微信了，现在如果再调用一次，是否会append一个新的微信账号进去？
+        oauthList.add(oauthInfo);
+        user.setOauthList(oauthList);
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(user);
@@ -411,38 +411,28 @@ public class UserAPI {
      * @param
      * @return
      */
-    public static UserInfo regByTel(String tel, Integer countryCode, String pwd) throws TravelPiException {
-        UserInfo user = new UserInfo();
-        user.id = new ObjectId();
-        user.userId = populateUserId();
-        user.avatar = "http://default";
-        user.oauthList = new ArrayList<>();
-        user.tel = tel;
-        user.nickName = "桃子_" + user.userId;
-        user.gender = "";
-        user.dialCode = countryCode;
-        user.email = "";
-        user.signature = "";
-        user.origin = Constants.APP_FLAG_PEACH;
-        user.enabled = true;
+    public static UserInfo regByTel(String tel, Integer dialCode, String pwd) throws TravelPiException {
+        UserInfo user = UserInfo.newInstance(populateUserId());
+        user.setTel(tel);
+        user.setDialCode(dialCode);
+        user.setOrigin(Constants.APP_FLAG_PEACH);
 
         // 注册环信
         String[] ret = regEasemob();
-        String easemobPwd = ret[1];
-
-        user.easemobUser = ret[0];
+        user.setEasemobUser(ret[0]);
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
         // 注册机密信息
+        String easemobPwd = ret[1];
         Credential cre = new Credential();
         cre.id = user.id;
-        cre.userId = user.userId;
-        cre.salt = Utils.getSalt();
+        cre.setUserId(user.getUserId());
+        cre.setSalt(Utils.getSalt());
         if (!pwd.equals(""))
-            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-        cre.easemobPwd = easemobPwd;
+            cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
+        cre.setEasemobPwd(easemobPwd);
         try {
-            cre.secKey = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+            cre.setSecKey(Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded()));
         } catch (NoSuchAlgorithmException e) {
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
         }
@@ -464,17 +454,17 @@ public class UserAPI {
         String[] ret = regEasemob();
         String easemobPwd = ret[1];
 
-        user.easemobUser = ret[0];
+        user.setEasemobUser(ret[0]);
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
         // 注册机密信息
         Credential cre = new Credential();
         cre.id = user.id;
-        cre.userId = user.userId;
-        cre.salt = Utils.getSalt();
-        cre.easemobPwd = easemobPwd;
+        cre.setUserId(user.getUserId());
+        cre.setSalt(Utils.getSalt());
+        cre.setEasemobPwd(easemobPwd);
         try {
-            cre.secKey = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
+            cre.setSecKey(Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded()));
         } catch (NoSuchAlgorithmException e) {
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
         }
@@ -483,25 +473,26 @@ public class UserAPI {
         return user;
     }
 
-    public static UserInfo oauthToUserInfoForWX(JsonNode json) throws NullPointerException, TravelPiException {
+    public static UserInfo oauthToUserInfoForWX(JsonNode json) throws TravelPiException {
         String nickname = json.get("nickname").asText();
         String headimgurl = json.get("headimgurl").asText();
-        UserInfo userInfo = new UserInfo();
-        userInfo.id = new ObjectId();
-        userInfo.nickName = nickname;
-        userInfo.avatar = headimgurl;
-        userInfo.gender = json.get("sex").asText().equals("1") ? "M" : "F";
-        userInfo.oauthList = new ArrayList<>();
-        userInfo.userId = UserAPI.populateUserId();
-        userInfo.origin = Constants.APP_FLAG_PEACH;
-//        userInfo.secToken = Utils.getSecToken();
+        UserInfo userInfo = UserInfo.newInstance(populateUserId());
+        userInfo.setNickName(nickname);
+        userInfo.setAvatar(headimgurl);
+        userInfo.setGender(json.get("sex").asText().equals("1") ? "M" : "F");
+        userInfo.setOrigin(Constants.APP_FLAG_PEACH);
 
         OAuthInfo oauthInfo = new OAuthInfo();
-        oauthInfo.provider = "weixin";
-        oauthInfo.oauthId = json.get("openid").asText();
-        oauthInfo.nickName = nickname;
-        oauthInfo.avatar = headimgurl;
-        userInfo.oauthList.add(oauthInfo);
+        oauthInfo.setProvider("weixin");
+        oauthInfo.setOauthId(json.get("openid").asText());
+        oauthInfo.setNickName(nickname);
+        oauthInfo.setAvatar(headimgurl);
+        List<OAuthInfo> oauthList = userInfo.getOauthList();
+        if (oauthList == null)
+            oauthList = new ArrayList<>();
+        // TODO 直接append，会不会相同来源的多个Oauth账号重复在一起？
+        oauthList.add(oauthInfo);
+        userInfo.setOauthList(oauthList);
 
         return userInfo;
     }
@@ -586,10 +577,10 @@ public class UserAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
-        if (u.userId == null)
+        if (u.getUserId() == null)
             return null;
-        Credential cre = ceQuery.field("userId").equal(u.userId).get();
-        if (cre == null || cre.pwdHash == null)
+        Credential cre = ceQuery.field("userId").equal(u.getUserId()).get();
+        if (cre == null || cre.getPwdHash() == null)
             return null;
         return cre;
 
@@ -631,13 +622,13 @@ public class UserAPI {
      * @throws TravelPiException
      */
     public static void resetPwd(UserInfo u, String pwd) throws TravelPiException {
-        if (pwd == null || pwd.isEmpty() || u == null || u.userId == null)
+        if (pwd == null || pwd.isEmpty() || u == null || u.getUserId() == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(u.userId).get();
-        cre.salt = Utils.getSalt();
-        cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
+        Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(u.getUserId()).get();
+        cre.setSalt(Utils.getSalt());
+        cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
     }
@@ -650,11 +641,10 @@ public class UserAPI {
      * @return
      */
     public static boolean validCredential(UserInfo u, String pwd) throws TravelPiException {
-
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
-        Credential ce = ceQuery.field("userId").equal(u.userId).get();
-        return ce != null && ce.pwdHash.equals(Utils.toSha1Hex(ce.salt + pwd));
+        Credential ce = ceQuery.field("userId").equal(u.getUserId()).get();
+        return ce != null && ce.getPwdHash().equals(Utils.toSha1Hex(ce.getSalt() + pwd));
     }
 
     /**
@@ -865,8 +855,8 @@ public class UserAPI {
         List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
-            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
-            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobUser;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).getEasemobUser();
+            userB = UserAPI.getUserInfo(userIdB, fieldList).getEasemobUser();
             if (userA == null || userB == null)
                 throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         } catch (NullPointerException e) {
@@ -910,12 +900,12 @@ public class UserAPI {
 
         List<String> blockNames = new ArrayList<>();
         try {
-            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).getEasemobUser();
             if (userA == null)
                 throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
 
             for (Integer i : blockIds) {
-                String easemobName = UserAPI.getUserInfo(i, fieldList).easemobUser;
+                String easemobName = UserAPI.getUserInfo(i, fieldList).getEasemobUser();
                 if (easemobName == null)
                     throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
                 blockNames.add(easemobName);
@@ -968,8 +958,8 @@ public class UserAPI {
         List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
-            userA = UserAPI.getUserInfo(userIdA, fieldList).easemobUser;
-            userB = UserAPI.getUserInfo(userIdB, fieldList).easemobUser;
+            userA = UserAPI.getUserInfo(userIdA, fieldList).getEasemobUser();
+            userB = UserAPI.getUserInfo(userIdB, fieldList).getEasemobUser();
         } catch (NullPointerException e) {
             throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
         }
@@ -1032,10 +1022,10 @@ public class UserAPI {
         if (selfInfo == null || targetInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
-        List<UserInfo> selfContacts = selfInfo.friends;
+        List<UserInfo> selfContacts = selfInfo.getFriends();
         if (selfContacts == null)
             selfContacts = new ArrayList<>();
-        List<UserInfo> targetContacts = targetInfo.friends;
+        List<UserInfo> targetContacts = targetInfo.getFriends();
         if (targetContacts == null)
             targetContacts = new ArrayList<>();
 
@@ -1068,8 +1058,8 @@ public class UserAPI {
                 } else {
                     Set<Integer> userIdSet = new HashSet<>();
                     for (UserInfo u : sc)
-                        userIdSet.add(u.userId);
-                    if (!userIdSet.contains(tinfo.userId)) {
+                        userIdSet.add(u.getUserId());
+                    if (!userIdSet.contains(tinfo.getUserId())) {
                         ops.add(UserInfo.fnContacts, tinfo);
                         ds.updateFirst(query, ops);
                     }
@@ -1125,13 +1115,13 @@ public class UserAPI {
                 UserInfo sinfo = (UserInfo) val[0];
                 Integer tid = (Integer) val[1];
 
-                List<UserInfo> contactList = sinfo.friends;
+                List<UserInfo> contactList = sinfo.getFriends();
                 if (contactList == null || contactList.isEmpty())
                     return null;
 
                 int idx = -1;
                 for (int i = 0; i < contactList.size(); i++) {
-                    if (contactList.get(i).userId.equals(tid)) {
+                    if (contactList.get(i).getUserId().equals(tid)) {
                         idx = i;
                         break;
                     }
@@ -1140,7 +1130,7 @@ public class UserAPI {
                     // 更新数据库
                     contactList.remove(idx);
 
-                    Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(sinfo.userId);
+                    Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(sinfo.getUserId());
                     UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
                     ops.set(UserInfo.fnContacts, contactList);
                     ds.updateFirst(query, ops);
@@ -1167,7 +1157,7 @@ public class UserAPI {
      * 服务器调用环信接口发送透传消息
      */
     public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType) throws TravelPiException {
-        if (selfInfo.easemobUser == null)
+        if (selfInfo.getEasemobUser() == null)
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         ObjectNode info = (ObjectNode) new SimpleUserFormatter().format(selfInfo);
 
@@ -1182,14 +1172,14 @@ public class UserAPI {
 
         ObjectNode requestBody = Json.newObject();
         List<String> users = new ArrayList<>();
-        users.add(targetInfo.easemobUser);
+        users.add(targetInfo.getEasemobUser());
 
 
         requestBody.put("target_type", "users");
         requestBody.put("target", Json.toJson(users));
         requestBody.put("msg", msg);
         requestBody.put("ext", ext);
-        requestBody.put("from", selfInfo.easemobUser);
+        requestBody.put("from", selfInfo.getEasemobUser());
 
         // 重新获取token
         Configuration config = Configuration.root().getConfig("easemob");
@@ -1235,7 +1225,7 @@ public class UserAPI {
         UserInfo userInfo = getUserInfo(selfId, fieldList);
         if (userInfo == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
-        List<UserInfo> friends = userInfo.friends;
+        List<UserInfo> friends = userInfo.getFriends();
         if (friends == null)
             friends = new ArrayList<>();
 
