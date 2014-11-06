@@ -127,14 +127,6 @@ DELETE        /users/:userId/favors/view-spots/:vsId             controllers.Use
 # 其它接口 RESTful
 GET           /home-images/$width<[0-9]+>x$height<[0-9]+>        controllers.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 
-GET           /batch/planBudge                                   controllers.Bache.getPlanBudget(dep: String?="", arr: String?="" )
-GET           /batch/provCap                                     controllers.Bache.updateLocalityProvCap()
-GET           /batch/recVs                                       controllers.Bache.getViewSpot()
-GET           /batch/recLoc                                      controllers.Bache.getLocalities()
-GET           /batch/recPlan                                     controllers.Bache.getRecPlans(plType: Int?=1)
-GET           /batch/addProToPlan                                controllers.Bache.addProToPlan()
-#刷新自增序列
-GET           /batch/refrechUid                                  controllers.Bache.addUserIdSequence()
 #-------------------------------------
 #路线
 #复制路线：生成一条UGC路线

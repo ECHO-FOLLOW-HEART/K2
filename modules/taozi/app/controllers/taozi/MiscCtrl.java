@@ -209,6 +209,7 @@ public class MiscCtrl extends Controller {
                     .field("userId").equal(userID).get();
             Favorite retFa = createFavorite(fa);
             List<? extends AbstractPOI> pois;
+            // TODO 注意此处的images和imagesList，需要更新
             List<String> fields = Arrays.asList("id", "name", "description", "images", "desc", "imageList");
             List<String> tnFields = Arrays.asList("id", "title", "summary");
             List<String> locFields = Arrays.asList("id", "zhName", "imageList", "desc");

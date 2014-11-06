@@ -46,85 +46,85 @@ public class Bache extends Controller {
     public static String[] EDITOR_NICKNAME = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
     public static String[] EDITOR_DATE = new String[]{"素素", "孙Easy", "海子_君子不器", "只随风逝"};
 
-    /**
-     * Need
-     * 计算旅行计划模板的预算，并入库
-     *
-     * @return
-     */
-    public static Result getPlanBudget(String depId, String arrId) {
-        Double VIEWPOINT_DEFAULT_PRICE = 0d;
-
-        //取得景点预算常量
-        Configuration config = Configuration.root();
-        Map budget = (Map) config.getObject("budget");
-        try {
-            if (budget != null) {
-                VIEWPOINT_DEFAULT_PRICE = Double.valueOf(budget.get("viewpointBudgetDefault").toString());
-            }
-        } catch (ClassCastException e) {
-            return Utils.createResponse(ErrorCode.INVALID_CONFARG, Json.newObject());
-        }
-
-        try {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-            Query<Plan> query = ds.createQuery(Plan.class);
-            UpdateOperations<Plan> update = ds.createUpdateOperations(Plan.class);
-
-            UpdateOperations<Plan> ops = ds.createUpdateOperations(Plan.class);
-
-            Query<Plan> queryStay = ds.createQuery(Plan.class);
-            UpdateOperations<Plan> opsStay = ds.createUpdateOperations(Plan.class);
-
-            ObjectId tempObjectId = null;
-            Plan tempPlan = null;
-            List<PlanDayEntry> tempDetails = null;
-            List<PlanItem> actvs = null;
-            List<Double> vsPriceList = new ArrayList<Double>(5000);
-            //得到景点Id-景点价格Map
-            // Map<ObjectId, Double> iD_Price_Map = getVsPriceById();
-            Map<ObjectId, Double> iD_Price_Map = new HashMap<ObjectId, Double>();
-            Double tempPrice = 0d;
-            Double totalPrice = 0d;
-            int days = 0;
-            query.field("enabled").equal(Boolean.TRUE);
-            for (Iterator<Plan> it = query.iterator(); it.hasNext(); ) {
-                tempPlan = (Plan) it.next();
-                tempDetails = (List<PlanDayEntry>) tempPlan.details;
-                days = tempPlan.days;
-                actvs = new ArrayList<PlanItem>(10);
-                totalPrice = 0d;
-                if (null != tempDetails) {
-                    // 遍历details
-                    for (PlanDayEntry entry : tempDetails) {
-                        actvs = entry.actv;
-                        // 遍历Acts
-                        for (PlanItem item : actvs) {
-                            if (item.type.equals("vs")) {
-                                //得到景点Id
-                                tempObjectId = item.item.id;
-                                if (iD_Price_Map.get(tempObjectId) == null) {
-                                    iD_Price_Map.putAll(getVsPriceById(tempObjectId));
-                                }
-                                tempPrice = iD_Price_Map.get(tempObjectId);
-                                if (null != tempPrice) {
-                                    totalPrice = totalPrice + tempPrice;
-                                } else {
-                                    totalPrice = totalPrice + VIEWPOINT_DEFAULT_PRICE;
-                                }
-                            }
-                        }
-                    }
-                }
-                ops = ds.createUpdateOperations(Plan.class);
-                ops.set("viewBudget", totalPrice);
-                ds.update(query, ops, true);
-            }
-        } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.DATABASE_ERROR, Json.newObject());
-        }
-        return Utils.createResponse(ErrorCode.NORMAL, Json.newObject());
-    }
+//    /**
+//     * Need
+//     * 计算旅行计划模板的预算，并入库
+//     *
+//     * @return
+//     */
+//    public static Result getPlanBudget(String depId, String arrId) {
+//        Double VIEWPOINT_DEFAULT_PRICE = 0d;
+//
+//        //取得景点预算常量
+//        Configuration config = Configuration.root();
+//        Map budget = (Map) config.getObject("budget");
+//        try {
+//            if (budget != null) {
+//                VIEWPOINT_DEFAULT_PRICE = Double.valueOf(budget.get("viewpointBudgetDefault").toString());
+//            }
+//        } catch (ClassCastException e) {
+//            return Utils.createResponse(ErrorCode.INVALID_CONFARG, Json.newObject());
+//        }
+//
+//        try {
+//            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+//            Query<Plan> query = ds.createQuery(Plan.class);
+//            UpdateOperations<Plan> update = ds.createUpdateOperations(Plan.class);
+//
+//            UpdateOperations<Plan> ops = ds.createUpdateOperations(Plan.class);
+//
+//            Query<Plan> queryStay = ds.createQuery(Plan.class);
+//            UpdateOperations<Plan> opsStay = ds.createUpdateOperations(Plan.class);
+//
+//            ObjectId tempObjectId = null;
+//            Plan tempPlan = null;
+//            List<PlanDayEntry> tempDetails = null;
+//            List<PlanItem> actvs = null;
+//            List<Double> vsPriceList = new ArrayList<Double>(5000);
+//            //得到景点Id-景点价格Map
+//            // Map<ObjectId, Double> iD_Price_Map = getVsPriceById();
+//            Map<ObjectId, Double> iD_Price_Map = new HashMap<ObjectId, Double>();
+//            Double tempPrice = 0d;
+//            Double totalPrice = 0d;
+//            int days = 0;
+//            query.field("enabled").equal(Boolean.TRUE);
+//            for (Iterator<Plan> it = query.iterator(); it.hasNext(); ) {
+//                tempPlan = (Plan) it.next();
+//                tempDetails = (List<PlanDayEntry>) tempPlan.details;
+//                days = tempPlan.days;
+//                actvs = new ArrayList<PlanItem>(10);
+//                totalPrice = 0d;
+//                if (null != tempDetails) {
+//                    // 遍历details
+//                    for (PlanDayEntry entry : tempDetails) {
+//                        actvs = entry.actv;
+//                        // 遍历Acts
+//                        for (PlanItem item : actvs) {
+//                            if (item.type.equals("vs")) {
+//                                //得到景点Id
+//                                tempObjectId = item.item.id;
+//                                if (iD_Price_Map.get(tempObjectId) == null) {
+//                                    iD_Price_Map.putAll(getVsPriceById(tempObjectId));
+//                                }
+//                                tempPrice = iD_Price_Map.get(tempObjectId);
+//                                if (null != tempPrice) {
+//                                    totalPrice = totalPrice + tempPrice;
+//                                } else {
+//                                    totalPrice = totalPrice + VIEWPOINT_DEFAULT_PRICE;
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                ops = ds.createUpdateOperations(Plan.class);
+//                ops.set("viewBudget", totalPrice);
+//                ds.update(query, ops, true);
+//            }
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(ErrorCode.DATABASE_ERROR, Json.newObject());
+//        }
+//        return Utils.createResponse(ErrorCode.NORMAL, Json.newObject());
+//    }
 
     /**
      * 获得交通预算
@@ -173,315 +173,315 @@ public class Bache extends Controller {
         return trafficBudget;
     }
 
-    /**
-     * 生成景点价格
-     *
-     * @param id
-     * @return
-     * @throws TravelPiException
-     */
-    private static Map<ObjectId, Double> getVsPriceById(ObjectId id) throws TravelPiException {
-
-        Map<ObjectId, Double> mapPrice = new HashMap<ObjectId, Double>(5000);
-
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
-        query.field("_id").equal(id);
-        ViewSpot viewSpotTemp = null;
-        for (Iterator<ViewSpot> it = query.iterator(); it.hasNext(); ) {
-            viewSpotTemp = (ViewSpot) it.next();
-            mapPrice.put(viewSpotTemp.id, viewSpotTemp.price);
-        }
-        return mapPrice;
-    }
-
-    /**
-     * 设置省会城市
-     *
-     * @return
-     */
-    public static Result updateLocalityProvCap() {
-
-        List<String> capList = Arrays.asList(cap);
-        try {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-            Query<Locality> query = ds.createQuery(Locality.class);
-            query.field("zhName").hasAnyOf(capList).field("level").equal(2);
-            Locality locality = null;
-            for (Iterator<Locality> it = query.iterator(); it.hasNext(); ) {
-                locality = (Locality) it.next();
-                locality.provCap = true;
-                ds.save(locality);
-            }
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-        return Utils.createResponse(ErrorCode.NORMAL, "Success");
-    }
-
-    /**
-     * 添加推荐城市
-     *
-     * @return
-     */
-    public static Result getLocalities() {
-        List<String> capList = Arrays.asList(cap);
-        Datastore ds = null;
-        try {
-            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-            Query<Locality> query = ds.createQuery(Locality.class);
-            query.field("zhName").hasAnyOf(capList).field("level").equal(2).field("enabled").equal(Boolean.TRUE);
-            List<Recommendation> recommendList = new ArrayList<Recommendation>();
-            Recommendation rec;
-            int index = 1;
-            Description descp = null;
-            for (Locality locality : query.asList()) {
-                rec = new Recommendation();
-                rec.hotCity = index;
-                index++;
-                rec.imageList = locality.imageList;
-                rec.id = locality.id;
-                rec.name = locality.zhName;
-                descp = new Description();
-                descp.desc = locality.desc;
-                rec.description = descp;
-                rec.enabled = true;
-                recommendList.add(rec);
-            }
-            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            update.save(recommendList);
-
-
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-
-        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
-    }
-
-    /**
-     * 添加推荐景点
-     *
-     * @return
-     */
-    public static Result getViewSpot() {
-        List<String> capList = Arrays.asList(vsList);
-        Datastore ds = null;
-        try {
-            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-            Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
-            query.field("name").hasAnyOf(capList).field("enabled").equal(Boolean.TRUE);
-            List<Recommendation> recommendList = new ArrayList<Recommendation>();
-            Recommendation rec;
-            int index = 1;
-            for (ViewSpot vs : query.asList()) {
-                rec = new Recommendation();
-                rec.hotVs = index;
-                index++;
-                rec.imageList = vs.imageList;
-                rec.images = vs.images;
-                rec.id = vs.id;
-                rec.name = vs.name;
-                rec.description = vs.description;
-                rec.enabled = true;
-                recommendList.add(rec);
-            }
-            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            update.save(recommendList);
-
-
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-
-        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
-    }
-
-    /**
-     * 添加推荐计划
-     *
-     * @param plType
-     * @return
-     */
-    public static Result getRecPlans(int plType) {
-        List<String> capList = Arrays.asList(plListNew);
-
-        Class cls = Plan.class;
-        int manualIndex = 1;
-        switch (plType) {
-            case 1:
-                manualIndex = 1;
-                capList = Arrays.asList(plListNew);
-                break;
-            case 2:
-                manualIndex = 2;
-                capList = Arrays.asList(plListEdit);
-                break;
-            case 3:
-                manualIndex = 3;
-                capList = Arrays.asList(plListMust);
-                break;
-            case 4:
-                manualIndex = 4;
-                capList = Arrays.asList(plListPopular);
-                break;
-        }
-        Datastore ds = null;
-        try {
-
-            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-
-            Query<Plan> querySrc = ds.createQuery(Plan.class);
-            querySrc.field("manualPriority").equal(manualIndex).field("desc").notEqual(null)
-                    .field("images").notEqual(null).field("enabled").equal(Boolean.TRUE);
-
-            List<Plan> titleList = querySrc.asList();
-            List<Recommendation> recommendList = new ArrayList<Recommendation>();
-            Recommendation rec;
-            int index = 1;
-            for (Plan pl : titleList) {
-                rec = new Recommendation();
-                switch (plType) {
-                    case 1:
-                        rec.newItemWeight = index;
-                        break;
-                    case 2:
-                        rec.editorWeight = index;
-                        break;
-                    case 3:
-                        rec.mustGoWeight = index;
-                        break;
-                    case 4:
-                        rec.popularityWeight = index;
-                        break;
-                }
-                int number = new Random().nextInt(3) + 1;
-                index++;
-                rec.imageList = pl.imageList;
-                rec.images = pl.images;
-                rec.id = pl.id;
-                rec.name = pl.title;
-                rec.editorNickName = EDITOR_NICKNAME[number];
-                rec.editorAvatar = EDITOR_AVATAR[number];
-                rec.description = pl.description;
-                rec.editorDate = new Date();
-                rec.planViews = 1000 + new Random().nextInt(1000);
-                rec.enabled = true;
-                recommendList.add(rec);
-            }
-            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            update.save(recommendList);
-
-
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-
-        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
-    }
-
-    /**
-     * 在路线中标识路线所属的省，支持根据省会查询接口
-     *
-     * @return
-     */
-    public static Result addProToPlan() {
-
-
-        try {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-            Query<Plan> querySrc = ds.createQuery(Plan.class);
-
-            Plan plan;
-            List<SimpleRef> sims;
-            Locality cap;
-            SimpleRef capRef;
-            HashMap<String, SimpleRef> capMap;
-            for (Iterator it = querySrc.iterator(); it.hasNext(); ) {
-                capMap = new HashMap<>();
-                plan = (Plan) it.next();
-                sims = plan.targets;
-                if (null == sims)
-                    continue;
-                for (SimpleRef refs : sims) {
-                    cap = findCap(refs.id);
-                    if (cap == null)
-                        continue;
-                    capRef = new SimpleRef();
-                    capRef.id = cap.id;
-                    capRef.zhName = cap.zhName;
-                    capMap.put(capRef.id.toString(), capRef);
-                }
-                for (SimpleRef capTemp : capMap.values()) {
-                    sims.add(capTemp);
-                }
-                plan.targets = sims;
-                ds.save(plan);
-            }
-
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-
-        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
-
-    }
-
-    /**
-     * 查找一个城市所在省的省会
-     *
-     * @param oid
-     * @return
-     */
-    private static Locality findCap(ObjectId oid) {
-
-        Datastore ds;
-        try {
-            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-
-            Query<Locality> querySrc = ds.createQuery(Locality.class);
-
-            Locality locality = querySrc.field("_id").equal(oid).get();
-            if (locality.level == 1) {
-                return locality;
-            } else {
-                ObjectId superId = locality.superAdm.id;
-                querySrc = ds.createQuery(Locality.class);
-                Locality sLocality = querySrc.field("_id").equal(superId).get();
-                if (sLocality.level == 1) {
-                    return sLocality;
-                } else {
-                    ObjectId sSuperId = sLocality.superAdm.id;
-                    querySrc = ds.createQuery(Locality.class);
-                    Locality sSLocality = querySrc.field("_id").equal(sSuperId).get();
-
-                    if (sSLocality.level == 1) {
-                        return sSLocality;
-                    } else {
-                        return null;
-                    }
-                }
-            }
-        } catch (TravelPiException e) {
-            return null;
-        }
-    }
-
-    /**
-     * 设置自增序列，用于记录用户自增ID
-     */
-    public static Result addUserIdSequence() {
-        try {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            Sequence info = new Sequence();
-            info.column = Sequence.USERID;
-            info.count = 100000;
-            ds.save(info);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-
-        return Utils.createResponse(ErrorCode.NORMAL, "Success");
-    }
+//    /**
+//     * 生成景点价格
+//     *
+//     * @param id
+//     * @return
+//     * @throws TravelPiException
+//     */
+//    private static Map<ObjectId, Double> getVsPriceById(ObjectId id) throws TravelPiException {
+//
+//        Map<ObjectId, Double> mapPrice = new HashMap<ObjectId, Double>(5000);
+//
+//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+//        Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
+//        query.field("_id").equal(id);
+//        ViewSpot viewSpotTemp = null;
+//        for (Iterator<ViewSpot> it = query.iterator(); it.hasNext(); ) {
+//            viewSpotTemp = (ViewSpot) it.next();
+//            mapPrice.put(viewSpotTemp.id, viewSpotTemp.price);
+//        }
+//        return mapPrice;
+//    }
+//
+//    /**
+//     * 设置省会城市
+//     *
+//     * @return
+//     */
+//    public static Result updateLocalityProvCap() {
+//
+//        List<String> capList = Arrays.asList(cap);
+//        try {
+//            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//            Query<Locality> query = ds.createQuery(Locality.class);
+//            query.field("zhName").hasAnyOf(capList).field("level").equal(2);
+//            Locality locality = null;
+//            for (Iterator<Locality> it = query.iterator(); it.hasNext(); ) {
+//                locality = (Locality) it.next();
+//                locality.provCap = true;
+//                ds.save(locality);
+//            }
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+//        return Utils.createResponse(ErrorCode.NORMAL, "Success");
+//    }
+//
+//    /**
+//     * 添加推荐城市
+//     *
+//     * @return
+//     */
+//    public static Result getLocalities() {
+//        List<String> capList = Arrays.asList(cap);
+//        Datastore ds = null;
+//        try {
+//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//            Query<Locality> query = ds.createQuery(Locality.class);
+//            query.field("zhName").hasAnyOf(capList).field("level").equal(2).field("enabled").equal(Boolean.TRUE);
+//            List<Recommendation> recommendList = new ArrayList<Recommendation>();
+//            Recommendation rec;
+//            int index = 1;
+//            Description descp = null;
+//            for (Locality locality : query.asList()) {
+//                rec = new Recommendation();
+//                rec.hotCity = index;
+//                index++;
+//                rec.imageList = locality.imageList;
+//                rec.id = locality.id;
+//                rec.name = locality.zhName;
+//                descp = new Description();
+//                descp.desc = locality.desc;
+//                rec.description = descp;
+//                rec.enabled = true;
+//                recommendList.add(rec);
+//            }
+//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+//            update.save(recommendList);
+//
+//
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+//
+//        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+//    }
+//
+//    /**
+//     * 添加推荐景点
+//     *
+//     * @return
+//     */
+//    public static Result getViewSpot() {
+//        List<String> capList = Arrays.asList(vsList);
+//        Datastore ds = null;
+//        try {
+//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+//            Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
+//            query.field("name").hasAnyOf(capList).field("enabled").equal(Boolean.TRUE);
+//            List<Recommendation> recommendList = new ArrayList<Recommendation>();
+//            Recommendation rec;
+//            int index = 1;
+//            for (ViewSpot vs : query.asList()) {
+//                rec = new Recommendation();
+//                rec.hotVs = index;
+//                index++;
+//                rec.imageList = vs.imageList;
+//                rec.images = vs.images;
+//                rec.id = vs.id;
+//                rec.name = vs.name;
+//                rec.description = vs.description;
+//                rec.enabled = true;
+//                recommendList.add(rec);
+//            }
+//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+//            update.save(recommendList);
+//
+//
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+//
+//        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+//    }
+//
+//    /**
+//     * 添加推荐计划
+//     *
+//     * @param plType
+//     * @return
+//     */
+//    public static Result getRecPlans(int plType) {
+//        List<String> capList = Arrays.asList(plListNew);
+//
+//        Class cls = Plan.class;
+//        int manualIndex = 1;
+//        switch (plType) {
+//            case 1:
+//                manualIndex = 1;
+//                capList = Arrays.asList(plListNew);
+//                break;
+//            case 2:
+//                manualIndex = 2;
+//                capList = Arrays.asList(plListEdit);
+//                break;
+//            case 3:
+//                manualIndex = 3;
+//                capList = Arrays.asList(plListMust);
+//                break;
+//            case 4:
+//                manualIndex = 4;
+//                capList = Arrays.asList(plListPopular);
+//                break;
+//        }
+//        Datastore ds = null;
+//        try {
+//
+//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+//
+//            Query<Plan> querySrc = ds.createQuery(Plan.class);
+//            querySrc.field("manualPriority").equal(manualIndex).field("desc").notEqual(null)
+//                    .field("images").notEqual(null).field("enabled").equal(Boolean.TRUE);
+//
+//            List<Plan> titleList = querySrc.asList();
+//            List<Recommendation> recommendList = new ArrayList<Recommendation>();
+//            Recommendation rec;
+//            int index = 1;
+//            for (Plan pl : titleList) {
+//                rec = new Recommendation();
+//                switch (plType) {
+//                    case 1:
+//                        rec.newItemWeight = index;
+//                        break;
+//                    case 2:
+//                        rec.editorWeight = index;
+//                        break;
+//                    case 3:
+//                        rec.mustGoWeight = index;
+//                        break;
+//                    case 4:
+//                        rec.popularityWeight = index;
+//                        break;
+//                }
+//                int number = new Random().nextInt(3) + 1;
+//                index++;
+//                rec.imageList = pl.imageList;
+//                rec.images = pl.images;
+//                rec.id = pl.id;
+//                rec.name = pl.title;
+//                rec.editorNickName = EDITOR_NICKNAME[number];
+//                rec.editorAvatar = EDITOR_AVATAR[number];
+//                rec.description = pl.description;
+//                rec.editorDate = new Date();
+//                rec.planViews = 1000 + new Random().nextInt(1000);
+//                rec.enabled = true;
+//                recommendList.add(rec);
+//            }
+//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+//            update.save(recommendList);
+//
+//
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+//
+//        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+//    }
+//
+//    /**
+//     * 在路线中标识路线所属的省，支持根据省会查询接口
+//     *
+//     * @return
+//     */
+//    public static Result addProToPlan() {
+//
+//
+//        try {
+//            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+//            Query<Plan> querySrc = ds.createQuery(Plan.class);
+//
+//            Plan plan;
+//            List<SimpleRef> sims;
+//            Locality cap;
+//            SimpleRef capRef;
+//            HashMap<String, SimpleRef> capMap;
+//            for (Iterator it = querySrc.iterator(); it.hasNext(); ) {
+//                capMap = new HashMap<>();
+//                plan = (Plan) it.next();
+//                sims = plan.targets;
+//                if (null == sims)
+//                    continue;
+//                for (SimpleRef refs : sims) {
+//                    cap = findCap(refs.id);
+//                    if (cap == null)
+//                        continue;
+//                    capRef = new SimpleRef();
+//                    capRef.id = cap.id;
+//                    capRef.zhName = cap.zhName;
+//                    capMap.put(capRef.id.toString(), capRef);
+//                }
+//                for (SimpleRef capTemp : capMap.values()) {
+//                    sims.add(capTemp);
+//                }
+//                plan.targets = sims;
+//                ds.save(plan);
+//            }
+//
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+//
+//        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+//
+//    }
+//
+//    /**
+//     * 查找一个城市所在省的省会
+//     *
+//     * @param oid
+//     * @return
+//     */
+//    private static Locality findCap(ObjectId oid) {
+//
+//        Datastore ds;
+//        try {
+//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//
+//            Query<Locality> querySrc = ds.createQuery(Locality.class);
+//
+//            Locality locality = querySrc.field("_id").equal(oid).get();
+//            if (locality.level == 1) {
+//                return locality;
+//            } else {
+//                ObjectId superId = locality.superAdm.id;
+//                querySrc = ds.createQuery(Locality.class);
+//                Locality sLocality = querySrc.field("_id").equal(superId).get();
+//                if (sLocality.level == 1) {
+//                    return sLocality;
+//                } else {
+//                    ObjectId sSuperId = sLocality.superAdm.id;
+//                    querySrc = ds.createQuery(Locality.class);
+//                    Locality sSLocality = querySrc.field("_id").equal(sSuperId).get();
+//
+//                    if (sSLocality.level == 1) {
+//                        return sSLocality;
+//                    } else {
+//                        return null;
+//                    }
+//                }
+//            }
+//        } catch (TravelPiException e) {
+//            return null;
+//        }
+//    }
+//
+//    /**
+//     * 设置自增序列，用于记录用户自增ID
+//     */
+//    public static Result addUserIdSequence() {
+//        try {
+//            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+//            Sequence info = new Sequence();
+//            info.column = Sequence.USERID;
+//            info.count = 100000;
+//            ds.save(info);
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+//
+//        return Utils.createResponse(ErrorCode.NORMAL, "Success");
+//    }
 
 }
