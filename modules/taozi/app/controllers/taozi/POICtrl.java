@@ -253,27 +253,31 @@ public class POICtrl extends Controller {
      * @return
      * @throws TravelPiException
      */
-    public static Result getPoiNear(Double lat, Double lng, int page, int pageSize) {
+    public static Result getPoiNear(String lat, String lng, int spot, int hotel, int restaurant, int page, int pageSize) {
 
         try {
             ObjectNode results = Json.newObject();
             //发现poi
             List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
-            poiKeyList.add(PoiAPI.POIType.HOTEL);
-            poiKeyList.add(PoiAPI.POIType.RESTAURANT);
-            poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
+            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
+            if (spot == 1) {
+                poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
+                poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
+            }
 
-            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
-                {
-                    put(PoiAPI.POIType.VIEW_SPOT, "vs");
-                    put(PoiAPI.POIType.HOTEL, "hotel");
-                    put(PoiAPI.POIType.RESTAURANT, "restaurant");
-                }
-            };
+            if (hotel == 1) {
+                poiKeyList.add(PoiAPI.POIType.HOTEL);
+                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
+            }
+
+            if (restaurant == 1) {
+                poiKeyList.add(PoiAPI.POIType.HOTEL);
+                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
+            }
 
             for (PoiAPI.POIType poiType : poiKeyList) {
                 List<JsonNode> retPoiList = new ArrayList<>();
-                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lat, lng, page, pageSize);
+                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(PoiAPI.POIType.VIEW_SPOT, Double.parseDouble(lat), Double.parseDouble(lng), page, pageSize);
                 if (iterator != null) {
                     for (; iterator.hasNext(); )
                         retPoiList.add(new DetailedPOIFormatter().format(iterator.next()));
@@ -282,7 +286,7 @@ public class POICtrl extends Controller {
 
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (TravelPiException | NullPointerException | NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
