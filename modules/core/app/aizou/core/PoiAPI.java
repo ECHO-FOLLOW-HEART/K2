@@ -696,6 +696,7 @@ public class PoiAPI {
 
     /**
      * 获得景点周围的poi列表
+     *
      * @param poiType
      * @param lat
      * @param lng
@@ -704,7 +705,7 @@ public class PoiAPI {
      * @return
      * @throws TravelPiException
      */
-    public static Iterator<? extends AbstractPOI> getPOINearBy( POIType poiType,Double lat,Double lng, int page, int pageSize) throws TravelPiException {
+    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, Double lat, Double lng, int page, int pageSize) throws TravelPiException {
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case VIEW_SPOT:
@@ -722,10 +723,10 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        query=query.field("addr.coords").near(lat,lng);
+        query = query.field("addr.coords").near(lat, lng);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
-   }
+    }
 
     public enum SortField {
         SCORE, PRICE

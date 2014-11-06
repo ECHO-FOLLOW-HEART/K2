@@ -273,19 +273,19 @@ public class POICtrl extends Controller {
 
             for (PoiAPI.POIType poiType : poiKeyList) {
                 List<JsonNode> retPoiList = new ArrayList<>();
-                Iterator<? extends  AbstractPOI> iterator=PoiAPI.getPOINearBy(poiType, lat, lng, page, pageSize);
-                if (iterator!=null){
-                    for (;iterator.hasNext();)
+                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lat, lng, page, pageSize);
+                if (iterator != null) {
+                    for (; iterator.hasNext(); )
                         retPoiList.add(new DetailedPOIFormatter().format(iterator.next()));
                     results.put(poiMap.get(poiType), Json.toJson(retPoiList));
                 }
 
             }
-            return Utils.createResponse(ErrorCode.NORMAL,results);
-        }catch (TravelPiException | NullPointerException e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT");
+            return Utils.createResponse(ErrorCode.NORMAL, results);
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-        }
+    }
 
 
 }
