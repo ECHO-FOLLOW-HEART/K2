@@ -114,6 +114,9 @@ public class MorphiaFactory {
             case TRAFFIC:
                 ds = morphia.createDatastore(client, "traffic");
                 break;
+            case GUIDE:
+                ds = morphia.createDatastore(client, "guide");
+                break;
         }
         try {
             if (ds != null) {
@@ -135,6 +138,7 @@ public class MorphiaFactory {
         PLAN_UGC,
         USER,
         MISC,
-        TRAFFIC
+        TRAFFIC,
+        GUIDE
     }
 }

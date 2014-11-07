@@ -86,6 +86,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public String name;
 
+    public String enName;
+
     public String url;
 
     public Double price;
@@ -118,9 +120,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public String trafficInfo;
 
-    public List<String> imageList;
+//    public List<String> imageList;
 
     public List<ImageItem> images;
+
+    public String cover;
 
     public List<String> tags;
 
@@ -154,9 +158,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             case 1:
                 return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
             case 2:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags"));
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags"));
             case 3:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags", "contact", "url",
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact", "url",
                         "price", "priceDesc", "alias"));
         }
         return new ArrayList<>();
@@ -193,19 +197,19 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return trafficInfo;
     }
 
-    public List<String> getImages() {
-        if (images == null) {
-            if (imageList == null)
-                return new ArrayList();
-            else
-                return imageList;
-        } else {
-            ArrayList<String> tmpList = new ArrayList<String>();
-            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
-                tmpList.add(img.url);
-            return tmpList;
-        }
-    }
+//    public List<String> getImages() {
+//        if (images == null) {
+//            if (imageList == null)
+//                return new ArrayList();
+//            else
+//                return imageList;
+//        } else {
+//            ArrayList<String> tmpList = new ArrayList<String>();
+//            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
+//                tmpList.add(img.url);
+//            return tmpList;
+//        }
+//    }
 
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
@@ -219,7 +223,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
         // level2
         if (level > 1) {
-            for (String k : new String[]{"imageList", "tags"}) {
+            for (String k : new String[]{"tags"}) {
                 Field field;
                 Object val = null;
                 try {
