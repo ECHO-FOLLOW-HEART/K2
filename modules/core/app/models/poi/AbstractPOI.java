@@ -70,6 +70,15 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Transient
     public static String detTrafficInfo = "trafficInfo";
 
+    @Transient
+    public static String simpEnName = "enName";
+
+    @Transient
+    public static String simpCover= "cover";
+
+    @Transient
+    public static String simpRating= "rating";
+
     @Embedded
     public CheckinRatings ratings;
 
