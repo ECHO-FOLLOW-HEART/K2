@@ -282,9 +282,13 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 builder.add("priceDesc", DataFilter.priceDescFilter(priceDesc));
                 if (alias != null) {
                     Set<String> aliasSet = new HashSet<>();
-
-                }
-                builder.add("alias", alias != null ? alias : new ArrayList<>());
+                    for (String val : alias) {
+                        if (val != null && name != null && !val.equals(name))
+                            aliasSet.add(val);
+                    }
+                    builder.add("alias", Arrays.asList(aliasSet.toArray(new String[aliasSet.size()])));
+                } else
+                    builder.add("alias", new ArrayList<>());
                 // TODO 暂时兼容两种数据
                 //builder.add("desc", (desc != null ? desc : ""));
                 if (null != description) {
