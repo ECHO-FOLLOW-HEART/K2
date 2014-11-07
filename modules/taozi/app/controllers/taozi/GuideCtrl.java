@@ -1,8 +1,10 @@
 package controllers.taozi;
 
+import aizou.core.GuideAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
+import exception.TravelPiException;
 import models.guide.ItinerItem;
 import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
@@ -69,4 +71,16 @@ public class GuideCtrl extends Controller {
 //        return itemBean;
 //
 //    }
+
+    public static Result setGuideTitle(String id){
+        try{
+            JsonNode req=request().body().asJson();
+            String title=req.get("title").asText();
+            GuideAPI.saveGuideTitle(new ObjectId(id),title);
+            return Utils.createResponse(ErrorCode.NORMAL,"success");
+        }catch (TravelPiException | NullPointerException e){
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT".toLowerCase());
+        }
+
+    }
 }

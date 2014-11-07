@@ -104,3 +104,7 @@ GET           /geo/search                                    controllers.taozi.G
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
 #发现城市、国家、poi详情
 GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Int?=1, loc: Int?=1, vs: Int?=1, hotel: Int?=1, restaurant: Int?=1, country:Int?=1, page: Int?=0, pageSize: Int?=5)
+
+#攻略
+#修改攻略标题
+PUT          /guides/:id                               controllers.taozi.GuideCtrl.setGuideTitle(id:String)
