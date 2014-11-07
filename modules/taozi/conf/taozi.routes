@@ -24,6 +24,8 @@ GET           /users/$uid<[0-9]+>                            controllers.taozi.U
 GET           /users/search                                  controllers.taozi.UserCtrl.searchUser(keyword: String)
 #编辑用户信息，修改密码
 POST          /users/$uid<[0-9]+>                            controllers.taozi.UserCtrl.editorUserInfo(uid: Integer)
+#根据环信用户名列表取得用户名列表
+POST          /users/easemob                                 controllers.taozi.UserCtrl.getUsersByEasemob()
 
 #----------好友接口----------
 #添加好友

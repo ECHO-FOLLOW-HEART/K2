@@ -90,7 +90,7 @@ public class LocalityAPI {
         List<String> fields = new ArrayList<>();
         fields.addAll(Arrays.asList("zhName", "superAdm", "level"));
         if (level > 1)
-            fields.addAll(Arrays.asList("desc", "imageList", "tags", "coords"));
+            fields.addAll(Arrays.asList("desc", "images", "tags", "coords"));
 
         query.retrievedFields(true, fields.toArray(new String[]{""}));
         return query.get();
@@ -171,7 +171,7 @@ public class LocalityAPI {
         // TODO 此处删除了countryDetails，这是什么字段？
         Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
-            Collections.addAll(fields, "superAdm", "imageList", "tags", "desc", "country", "coords");
+            Collections.addAll(fields, "superAdm", "images", "tags", "desc", "country", "coords");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
                 .field("abroad").equal(abroad)
 //                .field("imageList").notEqual(null)

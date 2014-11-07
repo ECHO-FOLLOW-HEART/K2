@@ -341,7 +341,7 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
         try {
-            for (String k : new String[]{"id", "code", "code3", "zhName", "enName", "zhCont", "enCont", "defCurrency"}) {
+            for (String k : new String[]{"id", "code", "code3", "zhName", "enName", "zhCont", "enCont"}) {
                 Object val = Country.class.getField(k).get(this);
                 builder.add(k, val != null ? val.toString() : "");
             }
