@@ -70,6 +70,15 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Transient
     public static String detTrafficInfo = "trafficInfo";
 
+    @Transient
+    public static String simpEnName = "enName";
+
+    @Transient
+    public static String simpCover= "cover";
+
+    @Transient
+    public static String simpRating= "rating";
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -85,6 +94,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public Boolean abroad;
 
     public String name;
+
+    public String enName;
 
     public String url;
 
@@ -118,9 +129,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public String trafficInfo;
 
-    public List<String> imageList;
+//    public List<String> imageList;
 
     public List<ImageItem> images;
+
+    public String cover;
 
     public List<String> tags;
 
@@ -149,14 +162,17 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      */
     public Map<String, Object> extra;
 
+
+    public Double rating;
+
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:
                 return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
             case 2:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags"));
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags"));
             case 3:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags", "contact", "url",
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact", "url",
                         "price", "priceDesc", "alias"));
         }
         return new ArrayList<>();
@@ -193,19 +209,19 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return trafficInfo;
     }
 
-    public List<String> getImages() {
-        if (images == null) {
-            if (imageList == null)
-                return new ArrayList();
-            else
-                return imageList;
-        } else {
-            ArrayList<String> tmpList = new ArrayList<String>();
-            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
-                tmpList.add(img.url);
-            return tmpList;
-        }
-    }
+//    public List<String> getImages() {
+//        if (images == null) {
+//            if (imageList == null)
+//                return new ArrayList();
+//            else
+//                return imageList;
+//        } else {
+//            ArrayList<String> tmpList = new ArrayList<String>();
+//            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
+//                tmpList.add(img.url);
+//            return tmpList;
+//        }
+//    }
 
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
