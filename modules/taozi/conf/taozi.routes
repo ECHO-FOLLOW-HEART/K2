@@ -107,4 +107,8 @@ GET           /explore                                       controllers.taozi.G
 
 #攻略
 #修改攻略标题
-PUT          /guides/:id                               controllers.taozi.GuideCtrl.setGuideTitle(id:String)
+PUT           /guides/:id                                    controllers.taozi.GuideCtrl.setGuideTitle(id:String)
+#保存购物单
+PUT           /guides/:id/shopping                           controllers.taozi.GuideCtrl.setGuideInfo(id:String,typeInfo:String?="shopping")
+#保存美食信息
+PUT           /guides/:id/dinning                            controllers.taozi.GuideCtrl.setGuideInfo(id:String,typeInfo:String?="dinning")

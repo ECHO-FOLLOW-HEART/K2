@@ -7,6 +7,7 @@ import models.poi.Dinning;
 import models.poi.Entertainment;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Transient;
 
 import java.util.List;
 
@@ -14,7 +15,10 @@ import java.util.List;
  * Created by topy on 2014/11/4.
  */
 public class Guide extends TravelPiBaseItem implements ITravelPiFormatter {
-
+    @Transient
+    public static final String SHOPPING="shoppings";
+    @Transient
+    public static final String DINNING="dinnings";
     public Integer userId;
 
     public String title;

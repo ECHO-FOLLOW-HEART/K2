@@ -2,14 +2,13 @@ package controllers.taozi;
 
 import aizou.core.GuideAPI;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.guide.ItinerItem;
-import models.poi.AbstractPOI;
-import models.poi.ViewSpot;
-import play.mvc.Controller;
+import models.poi.Dinning;
+import models.poi.Shopping;
 import org.bson.types.ObjectId;
+import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 
@@ -72,15 +71,47 @@ public class GuideCtrl extends Controller {
 //
 //    }
 
-    public static Result setGuideTitle(String id){
-        try{
-            JsonNode req=request().body().asJson();
-            String title=req.get("title").asText();
-            GuideAPI.saveGuideTitle(new ObjectId(id),title);
-            return Utils.createResponse(ErrorCode.NORMAL,"success");
-        }catch (TravelPiException | NullPointerException e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT".toLowerCase());
+    /**
+     * 保存攻略标题
+     *
+     * @param id
+     * @return
+     */
+    public static Result setGuideTitle(String id) {
+        try {
+            JsonNode req = request().body().asJson();
+            String title = req.get("title").asText();
+            GuideAPI.saveGuideTitle(new ObjectId(id), title);
+            return Utils.createResponse(ErrorCode.NORMAL, "success");
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
 
+    }
+
+    public static Result setGuideInfo(String id, String typeInfo) {
+        try {
+            JsonNode req = request().body().asJson();
+            String zhName = req.get("name").asText();
+            String enName = req.get("enName").asText();
+            Double price = req.get("price").asDouble();
+            if (typeInfo.equals("shopping")) {
+                Shopping shopping = new Shopping();
+                shopping.name = zhName;
+                shopping.enName = enName;
+                shopping.price = price;
+                GuideAPI.savaGuideShopping(new ObjectId(id), shopping);
+            }
+            if (typeInfo.equals("dinning")) {
+                Dinning dinning = new Dinning();
+                dinning.name = zhName;
+                dinning.enName = enName;
+                dinning.price = price;
+                GuideAPI.savaGuideDinning(new ObjectId(id), dinning);
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, "success");
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        }
     }
 }
