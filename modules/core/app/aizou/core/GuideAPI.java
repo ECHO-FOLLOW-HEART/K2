@@ -57,7 +57,7 @@ public class GuideAPI {
     public static List<Guide> getGuideByUser(Integer uid, List<String> fieldList, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class);
-        query.field("userId").equal(uid);
+        query.field(Guide.fnUserId).equal(uid);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         query.offset(page * pageSize).limit(pageSize);
@@ -75,7 +75,7 @@ public class GuideAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
         UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
-        update.set("itinerary", itemBeanList);
+        update.set(Guide.fnItinerary, itemBeanList);
         ds.update(query, update);
     }
 

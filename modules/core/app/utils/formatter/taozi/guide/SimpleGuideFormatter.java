@@ -45,7 +45,7 @@ public class SimpleGuideFormatter implements JsonFormatter {
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(Guide.fdId);
-                includedFields.add(Guide.fdTitle);
+                includedFields.add(Guide.fnTitle);
                 return (includedFields.contains(writer.getName()));
             }
 

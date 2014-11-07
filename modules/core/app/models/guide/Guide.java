@@ -19,20 +19,22 @@ import java.util.List;
 public class Guide extends TravelPiBaseItem {
 
     @Transient
-    public static String fdUserId = "userId";
+    public static final String fnUserId = "userId";
 
     @Transient
-    public static String fdTitle = "title";
+    public static final String fnTitle = "title";
 
     @Transient
-    public static String fdItinerary = "itinerary";
+    public static final String fnItinerary = "itinerary";
 
     @Transient
-    public static String fdShopping = "shopping";
+    public static final String fnShopping = "shopping";
+
     @Transient
-    public static String fdDinning = "dinning";
+    public static final String fnDinning = "dinning";
+
     @Transient
-    public static String fdId = "id";
+    public static final String fdId = "id";
 
     public Integer userId;
 
@@ -42,8 +44,7 @@ public class Guide extends TravelPiBaseItem {
 
     public List<ItinerItem> itinerary;
 
-    public List<Shopping> shoppings;
+    public List<Shopping> shopping;
 
-    public List<Dinning> dinnings;
-
+    public List<Dinning> dinning;
 }

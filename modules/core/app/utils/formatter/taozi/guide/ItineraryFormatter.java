@@ -47,10 +47,10 @@ public class ItineraryFormatter implements JsonFormatter {
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(Guide.fdId);
-                includedFields.add(Guide.fdUserId);
-                includedFields.add(Guide.fdTitle);
+                includedFields.add(Guide.fnUserId);
+                includedFields.add(Guide.fnTitle);
                 //行程单
-                includedFields.add(Guide.fdItinerary);
+                includedFields.add(Guide.fnItinerary);
                 return (includedFields.contains(writer.getName()));
             }
 

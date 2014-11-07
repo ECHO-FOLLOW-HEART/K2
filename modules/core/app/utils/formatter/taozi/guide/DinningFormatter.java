@@ -46,9 +46,9 @@ public class DinningFormatter implements JsonFormatter {
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(Guide.fdId);
-                includedFields.add(Guide.fdUserId);
-                includedFields.add(Guide.fdTitle);
-                includedFields.add(Guide.fdDinning);
+                includedFields.add(Guide.fnUserId);
+                includedFields.add(Guide.fnTitle);
+                includedFields.add(Guide.fnDinning);
                 return (includedFields.contains(writer.getName()));
             }
 

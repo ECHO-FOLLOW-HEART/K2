@@ -69,7 +69,7 @@ public class GuideCtrl extends Controller {
             Integer selfId = null;
             if (tmp != null)
                 selfId = Integer.parseInt(tmp);
-            List<String> fields = Arrays.asList(Guide.fdId, Guide.fdTitle);
+            List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle);
             List<Guide> guides = GuideAPI.getGuideByUser(selfId, fields, page, pageSize);
 
             List<JsonNode> result = new ArrayList<>();
@@ -137,19 +137,19 @@ public class GuideCtrl extends Controller {
         try {
             JsonFormatter jsonFormatter;
             ObjectId guideId = new ObjectId(id);
-            List<String> fields = Arrays.asList(Guide.fdId, Guide.fdUserId, Guide.fdTitle);
+            List<String> fields = Arrays.asList(Guide.fdId, Guide.fnUserId, Guide.fnTitle);
             switch (part) {
                 case "itinerary":
                     jsonFormatter = new ItineraryFormatter();
-                    fields.add(Guide.fdItinerary);
+                    fields.add(Guide.fnItinerary);
                     break;
                 case "shopping":
                     jsonFormatter = new ShoppingFormatter();
-                    fields.add(Guide.fdShopping);
+                    fields.add(Guide.fnShopping);
                     break;
                 case "dinning":
                     jsonFormatter = new DinningFormatter();
-                    fields.add(Guide.fdDinning);
+                    fields.add(Guide.fnDinning);
                     break;
                 default:
                     throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Error guide part."));
