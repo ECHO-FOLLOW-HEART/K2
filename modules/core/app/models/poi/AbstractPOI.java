@@ -153,6 +153,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      */
     public Map<String, Object> extra;
 
+
+    public Double rating;
+
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:

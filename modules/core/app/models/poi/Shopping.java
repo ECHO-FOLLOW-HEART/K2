@@ -20,20 +20,4 @@ import java.util.List;
 @JsonFilter("shoppingFilter")
 public class Shopping extends AbstractPOI {
 
-    public Integer spotId;
-
-    public String trafficInfo;
-
-    @Embedded
-    public ViewSpotRatings ratings;
-
-    @Override
-    public JsonNode toJson(int level) {
-        ObjectNode node = (ObjectNode) super.toJson(level);
-
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-
-        node.putAll((ObjectNode) Json.toJson(builder.get()));
-        return node;
-    }
 }
