@@ -84,6 +84,10 @@ GET           /poi/view-spots/localities/:locId              controllers.taozi.P
 #----------数据脚本----------
 #添加首页图片
 GET           /bache/addHomeImage                            controllers.taozi.BacheCtrl.addHomeImage()
+
+#----------攻略接口----------
+#更新行程单
+PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateItinerary(id: String)
 #创建群组
 POST          /im/chatgroups                                 controllers.taozi.ChatGroupCtrl.createChatGroup()
 #删除群组
