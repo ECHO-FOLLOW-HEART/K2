@@ -20,7 +20,6 @@ import play.libs.Json;
 import utils.Constants;
 import utils.DataFilter;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -220,18 +219,22 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
         // level2
         if (level > 1) {
-            for (String k : new String[]{Locality.fnImageList, Locality.fnTags}) {
-                Field field;
-                Object val = null;
+            for (Map.Entry<String, String> entry : new HashMap<String, String>() {
+                {
+                    put("imageList", Locality.fnImageList);
+                    put("tags", Locality.fnTags);
+                }
+            }.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
                 try {
-                    field = AbstractPOI.class.getField(k);
-                    val = field.get(this);
+                    Object val = AbstractPOI.class.getField(v).get(this);
+                    boolean isNull = (val == null);
+                    if (val != null && val instanceof Collection)
+                        isNull = ((Collection) val).isEmpty();
+                    builder.add(k, (isNull ? new ArrayList<>() : val));
                 } catch (NoSuchFieldException | IllegalAccessException ignored) {
                 }
-                boolean isNull = (val == null);
-                if (val != null && val instanceof Collection)
-                    isNull = ((Collection) val).isEmpty();
-                builder.add(k, (isNull ? new ArrayList<>() : val));
             }
 
             // 如果存在更高阶的images字段，则使用之
@@ -263,7 +266,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                         ret.add(img.url);
                 }
 
-                builder.add(Locality.fnImageList, ret);
+                builder.add("imageList", ret);
             }
 
             // TODO 暂时兼容两种数据
