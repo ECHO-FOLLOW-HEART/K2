@@ -86,6 +86,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public String name;
 
+    public String enName;
+
     public String url;
 
     public Double price;
@@ -122,6 +124,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public List<ImageItem> images;
 
+    public String cover;
+
     public List<String> tags;
 
     public List<String> alias;
@@ -148,6 +152,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      * 其它信息
      */
     public Map<String, Object> extra;
+
+
+    public Double rating;
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
