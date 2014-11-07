@@ -253,31 +253,31 @@ public class POICtrl extends Controller {
      * @return
      * @throws TravelPiException
      */
-    public static Result getPoiNear(String lat, String lng, int spot, int hotel, int restaurant, int page, int pageSize) {
+    public static Result getPoiNear(Double lat, Double lng, Boolean spot, Boolean hotel, Boolean restaurant, int page, int pageSize) {
 
         try {
             ObjectNode results = Json.newObject();
             //发现poi
             List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
             HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
-            if (spot == 1) {
+            if (spot) {
                 poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
                 poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
             }
 
-            if (hotel == 1) {
+            if (hotel) {
                 poiKeyList.add(PoiAPI.POIType.HOTEL);
                 poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
             }
 
-            if (restaurant == 1) {
+            if (restaurant) {
                 poiKeyList.add(PoiAPI.POIType.HOTEL);
                 poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
             }
 
             for (PoiAPI.POIType poiType : poiKeyList) {
                 List<JsonNode> retPoiList = new ArrayList<>();
-                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(PoiAPI.POIType.VIEW_SPOT, Double.parseDouble(lat), Double.parseDouble(lng), page, pageSize);
+                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lat, lng, page, pageSize);
                 if (iterator != null) {
                     for (; iterator.hasNext(); )
                         retPoiList.add(new DetailedPOIFormatter().format(iterator.next()));

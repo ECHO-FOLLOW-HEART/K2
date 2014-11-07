@@ -81,7 +81,7 @@ GET           /poi/view-restaurants/localities/:locId        controllers.taozi.P
 GET           /poi/view-spots/localities/:locId              controllers.taozi.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="price", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
 #获得景点周边的POI列表
-GET           /poi/nearby/:lat/:lng                       controllers.taozi.POICtrl.getPoiNear(lat: String,lng: String,spot:Int?=1,hotel:Int?=0,restaurant:Int?=0,page:Int?=0,pageSize :Int?=20)
+GET           /poi/nearby                                    controllers.taozi.POICtrl.getPoiNear(lat: Double,lng: Double,spot:Boolean=true,hotel:Boolean?=false,restaurant:Boolean?=false,page:Int?=0,pageSize :Int?=20)
 #----------数据脚本----------
 #添加首页图片
 GET           /bache/addHomeImage                            controllers.taozi.BacheCtrl.addHomeImage()
