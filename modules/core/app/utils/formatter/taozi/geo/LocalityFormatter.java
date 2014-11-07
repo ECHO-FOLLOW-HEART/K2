@@ -45,9 +45,9 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Locality.simpAborad, Locality.simpCoords, Locality.simpDesc,
-                        Locality.simpEnName, Locality.simpId, Locality.simpShortName, Locality.simpSuperAdm,
-                        Locality.simpZhName, Locality.simpImg);
+                Collections.addAll(includedFields, Locality.fnAbroad, Locality.fnCoords, Locality.fnDesc,
+                        Locality.fnEnName, Locality.simpId, Locality.simpShortName, Locality.fnSuperAdm,
+                        Locality.fnZhName, Locality.fnImages);
 
                 return (includedFields.contains(writer.getName()));
             }
