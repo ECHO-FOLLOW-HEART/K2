@@ -23,13 +23,14 @@ public class GuideAPI {
      * @return
      * @throws TravelPiException
      */
-    public static Guide getGuideById(ObjectId id) throws TravelPiException {
-        if (id == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Guide ID is null.");
+    public static Guide getGuideById(ObjectId id, List<String> fieldList) throws TravelPiException {
+        Query<Guide> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
+                .createQuery(Guide.class);
+        query.field("_id").equal(id);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        Query<Guide> query = ds.createQuery(Guide.class);
-        return query.field("_id").equal(id).get();
+        return query.get();
     }
 
     /**

@@ -36,7 +36,7 @@ public class GuideCtrl extends Controller {
         List<ItinerItem> itemBeanList = new ArrayList<>();
         try {
             ObjectId guideId = new ObjectId(id);
-            Guide guide = GuideAPI.getGuideById(guideId);
+            Guide guide = GuideAPI.getGuideById(guideId, null);
             JsonNode itineraries = data.get("itinerary");
             if (itineraries == null)
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Put data doesn't contain itinerary.");
