@@ -101,21 +101,26 @@ public class GuideCtrl extends Controller {
             String zhName = req.get("name").asText();
             String enName = req.get("enName").asText();
             Double price = req.get("price").asDouble();
-            if (typeInfo.equals("shopping")) {
-                Shopping shopping = new Shopping();
-                shopping.name = zhName;
-                shopping.enName = enName;
-                shopping.price = price;
-                GuideAPI.savaGuideShopping(new ObjectId(id), shopping);
+            Double rating=req.get("rating").asDouble();
+            switch (typeInfo){
+                case "shopping":
+                    Shopping shopping = new Shopping();
+                    shopping.name = zhName;
+                    shopping.enName = enName;
+                    shopping.price = price;
+                    shopping.rating=rating;
+                    GuideAPI.savaGuideShopping(new ObjectId(id), shopping);
+                    return Utils.createResponse(ErrorCode.NORMAL, "success");
+                case "dinning":
+                    Dinning dinning = new Dinning();
+                    dinning.name = zhName;
+                    dinning.enName = enName;
+                    dinning.price = price;
+                    GuideAPI.savaGuideDinning(new ObjectId(id), dinning);
+                    return Utils.createResponse(ErrorCode.NORMAL, "success");
+                default:
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT".toLowerCase());
             }
-            if (typeInfo.equals("dinning")) {
-                Dinning dinning = new Dinning();
-                dinning.name = zhName;
-                dinning.enName = enName;
-                dinning.price = price;
-                GuideAPI.savaGuideDinning(new ObjectId(id), dinning);
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, "success");
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }

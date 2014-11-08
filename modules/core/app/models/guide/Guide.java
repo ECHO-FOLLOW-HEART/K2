@@ -25,9 +25,9 @@ public class Guide extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public List<ItinerItem> itinerary;
 
-    public List<Shopping> shoppings;
+    public List<Shopping> shopping;
 
-    public List<Dinning> dinnings;
+    public List<Dinning> dinning;
     @Override
     public JsonNode toJson() {
         return null;

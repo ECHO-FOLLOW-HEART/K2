@@ -60,7 +60,7 @@ public class GuideAPI {
      */
     public static void savaGuideShopping(ObjectId id, Shopping shopping) throws TravelPiException {
         Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNSHOPPING));
-        List<Shopping> shoppings = guide.shoppings;
+        List<Shopping> shoppings = guide.shopping;
         if (shoppings == null) {
             List<Shopping> shoppingList = new ArrayList<>();
             shoppingList.add(shopping);
@@ -70,7 +70,7 @@ public class GuideAPI {
         }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("shoppings", shoppings);
+        uo.set("shopping", shoppings);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
@@ -83,7 +83,7 @@ public class GuideAPI {
      */
     public static void savaGuideDinning(ObjectId id, Dinning dinning) throws TravelPiException {
         Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNDINNING));
-        List<Dinning> dinnings = guide.dinnings;
+        List<Dinning> dinnings = guide.dinning;
         if (dinnings == null) {
             List<Dinning> dinningList = new ArrayList<>();
             dinningList.add(dinning);
@@ -93,7 +93,7 @@ public class GuideAPI {
         }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("dinnings", dinnings);
+        uo.set("dinning", dinnings);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 }
