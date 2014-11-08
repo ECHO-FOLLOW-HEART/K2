@@ -21,7 +21,8 @@ public class GuideAPI {
 
 
     /**
-     * 通过id返回Gui详情
+     * 通过id返回Guide详情
+     *
      * @param id
      * @param list
      * @return
@@ -37,55 +38,62 @@ public class GuideAPI {
     }
 
     /**
-     *保存攻略标题
+     * 保存攻略标题
+     *
      * @param id
      * @param title
      * @throws TravelPiException
      */
-    public static void saveGuideTitle(ObjectId id,String title) throws TravelPiException {
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo=ds.createUpdateOperations(Guide.class);
-        uo.set("title",title);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id),uo);
+    public static void saveGuideTitle(ObjectId id, String title) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
+        uo.set("title", title);
+        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
     /**
-     *保存购物信息
+     * 保存购物信息
+     *
      * @param id
      * @param shopping
      * @throws TravelPiException
      */
-    public static void savaGuideShopping(ObjectId id,Shopping shopping) throws TravelPiException {
-        Guide guide=getGuideInfo(id, Arrays.asList(Guide.SHOPPING));
-        List<Shopping> shoppings=guide.shoppings;
-        if (shoppings==null){
-            List<Shopping> shoppingList=new ArrayList<>();
+    public static void savaGuideShopping(ObjectId id, Shopping shopping) throws TravelPiException {
+        Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNSHOPPING));
+        List<Shopping> shoppings = guide.shoppings;
+        if (shoppings == null) {
+            List<Shopping> shoppingList = new ArrayList<>();
             shoppingList.add(shopping);
-            shoppings=shoppingList;
-        }
-        else{
+            shoppings = shoppingList;
+        } else {
             shoppings.add(shopping);
         }
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo=ds.createUpdateOperations(Guide.class);
-        uo.set("shoppings",shoppings);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id),uo);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
+        uo.set("shoppings", shoppings);
+        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
-    public static void savaGuideDinning(ObjectId id,Dinning dinning) throws TravelPiException {
-        Guide guide=getGuideInfo(id, Arrays.asList(Guide.DINNING));
-        List<Dinning> dinnings=guide.dinnings;
-        if (dinnings==null){
-            List<Dinning> dinningList=new ArrayList<>();
+    /**
+     * 保存用户的美食攻略
+     *
+     * @param id
+     * @param dinning
+     * @throws TravelPiException
+     */
+    public static void savaGuideDinning(ObjectId id, Dinning dinning) throws TravelPiException {
+        Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNDINNING));
+        List<Dinning> dinnings = guide.dinnings;
+        if (dinnings == null) {
+            List<Dinning> dinningList = new ArrayList<>();
             dinningList.add(dinning);
-            dinnings=dinningList;
-        }
-        else{
+            dinnings = dinningList;
+        } else {
             dinnings.add(dinning);
         }
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo=ds.createUpdateOperations(Guide.class);
-        uo.set("dinnings",dinnings);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id),uo);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
+        uo.set("dinnings", dinnings);
+        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 }

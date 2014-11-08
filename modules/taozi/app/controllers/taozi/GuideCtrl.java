@@ -89,6 +89,12 @@ public class GuideCtrl extends Controller {
 
     }
 
+    /**
+     * 保存用户的美食和购物攻略
+     * @param id
+     * @param typeInfo
+     * @return
+     */
     public static Result setGuideInfo(String id, String typeInfo) {
         try {
             JsonNode req = request().body().asJson();
