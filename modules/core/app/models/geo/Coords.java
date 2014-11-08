@@ -1,5 +1,6 @@
 package models.geo;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
@@ -15,6 +16,7 @@ import play.libs.Json;
  */
 
 @Embedded
+@JsonFilter("coordsFilter")
 public class Coords extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String simpLat = "lat";

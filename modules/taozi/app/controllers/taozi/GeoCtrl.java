@@ -93,7 +93,7 @@ public class GeoCtrl extends Controller {
     }
 
     /**
-     * 广义的发现接口（通过一系列开关来控制）
+     * 发现接口
      *
      * @param loc
      * @param vs
@@ -103,17 +103,16 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, int country, int page, int pageSize) throws TravelPiException {
-        boolean detailsFlag = (details != 0);
+    public static Result explore(Boolean details, Boolean loc, Boolean vs, Boolean hotel, Boolean restaurant, Boolean country, int page, int pageSize) throws TravelPiException {
         ObjectNode results = Json.newObject();
 
         // 发现城市
         try {
-            if (loc != 0) {
+            if (loc) {
                 List<JsonNode> retLocList = new ArrayList<>();
                 //获得城市信息
                 // TODO 暂时只返回国内数据
-                List<Locality> localityList = LocalityAPI.explore(detailsFlag, false, page, pageSize);
+                List<Locality> localityList = LocalityAPI.explore(details, false, page, pageSize);
                 for (Locality locality : localityList)
                     retLocList.add(new LocalityFormatter().format(locality));
                 results.put("loc", Json.toJson(retLocList));
@@ -121,20 +120,21 @@ public class GeoCtrl extends Controller {
 
             //发现poi
             List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
-            if (vs != 0)
+            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
+            if (vs) {
                 poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
-            if (hotel != 0)
-                poiKeyList.add(PoiAPI.POIType.HOTEL);
-            if (restaurant != 0)
-                poiKeyList.add(PoiAPI.POIType.RESTAURANT);
+                poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
+            }
 
-            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
-                {
-                    put(PoiAPI.POIType.VIEW_SPOT, "vs");
-                    put(PoiAPI.POIType.HOTEL, "hotel");
-                    put(PoiAPI.POIType.RESTAURANT, "restaurant");
-                }
-            };
+            if (hotel) {
+                poiKeyList.add(PoiAPI.POIType.HOTEL);
+                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
+            }
+
+            if (restaurant) {
+                poiKeyList.add(PoiAPI.POIType.RESTAURANT);
+                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
+            }
 
             for (PoiAPI.POIType poiType : poiKeyList) {
                 List<JsonNode> retPoiList = new ArrayList<>();
@@ -142,12 +142,11 @@ public class GeoCtrl extends Controller {
                 // TODO 暂时返回国内数据
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, false, page, pageSize); it.hasNext(); )
                     retPoiList.add(new DetailedPOIFormatter().format(it.next()));
-                //formatter\filter
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
 
             //发现国家
-            if (country != 0) {
+            if (country) {
                 List<JsonNode> retcountryList = new ArrayList<>();
                 //获得城市信息
                 for (Country tmpCountry : LocalityAPI.exploreCountry(page, pageSize))
