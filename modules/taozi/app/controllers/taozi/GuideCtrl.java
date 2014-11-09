@@ -4,13 +4,21 @@ import aizou.core.GuideAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.MorphiaFactory;
+import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.poi.Dinning;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by topy on 2014/11/5.
@@ -91,6 +99,7 @@ public class GuideCtrl extends Controller {
 
     /**
      * 保存用户的美食和购物攻略
+     *
      * @param id
      * @param typeInfo
      * @return
@@ -98,29 +107,32 @@ public class GuideCtrl extends Controller {
     public static Result setGuideInfo(String id, String typeInfo) {
         try {
             JsonNode req = request().body().asJson();
+            String typeId = req.get("id").asText();
             String zhName = req.get("name").asText();
             String enName = req.get("enName").asText();
             Double price = req.get("price").asDouble();
-            Double rating=req.get("rating").asDouble();
-            switch (typeInfo){
+            Double rating = req.get("rating").asDouble();
+
+            switch (typeInfo) {
                 case "shopping":
-                    Shopping shopping = new Shopping();
+                    //判断是添加还是做修改
+                    Shopping shopping = GuideAPI.confirmShoppingOpration(id, typeId);
                     shopping.name = zhName;
                     shopping.enName = enName;
                     shopping.price = price;
-                    shopping.rating=rating;
+                    shopping.rating = rating;
                     GuideAPI.savaGuideShopping(new ObjectId(id), shopping);
                     return Utils.createResponse(ErrorCode.NORMAL, "success");
                 case "dinning":
-                    Dinning dinning = new Dinning();
+                    Dinning dinning = GuideAPI.confirmDinningOpration(id, typeId);
                     dinning.name = zhName;
                     dinning.enName = enName;
                     dinning.price = price;
-                    dinning.rating=rating;
+                    dinning.rating = rating;
                     GuideAPI.savaGuideDinning(new ObjectId(id), dinning);
                     return Utils.createResponse(ErrorCode.NORMAL, "success");
                 default:
-                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT".toLowerCase());
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
             }
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());

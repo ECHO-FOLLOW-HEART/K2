@@ -52,6 +52,60 @@ public class GuideAPI {
     }
 
     /**
+     * 判断是添加还是更新
+     */
+    public static Shopping confirmShoppingOpration(String id,String tyepId) throws TravelPiException {
+        if (tyepId==null||tyepId.equals("")){   //用户第一次提交数据
+            Shopping shopping=new Shopping();
+            shopping.id=new ObjectId();
+            return shopping;
+        }
+        Guide guide=getGuideInfo(new ObjectId(id),Arrays.asList(Guide.FNDINNING,Guide.FNSHOPPING));
+        List<Shopping> shoppingList=guide.shopping;
+        if (shoppingList.isEmpty()){
+            Shopping shopping=new Shopping();
+            shopping.id=new ObjectId();
+            return shopping;
+        }
+        else{
+            for (Shopping shopping:shoppingList){
+                if (shopping.id.equals(new ObjectId(tyepId))){
+                    return shopping;
+                }
+            }
+            Shopping shopping=new Shopping();
+            shopping.id=new ObjectId();
+            return shopping;
+        }
+
+    }
+
+    public static Dinning confirmDinningOpration(String id,String tyepId) throws TravelPiException {
+        if (tyepId==null||tyepId.equals("")){   //用户第一次提交数据
+            Dinning dinning=new Dinning();
+            dinning.id=new ObjectId();
+            return dinning;
+        }
+        Guide guide=getGuideInfo(new ObjectId(id),Arrays.asList(Guide.FNDINNING,Guide.FNSHOPPING));
+        List<Dinning> dinningList=guide.dinning;
+        if (dinningList.isEmpty()){
+            Dinning dinning=new Dinning();
+            dinning.id=new ObjectId();
+            return dinning;
+        }
+        else{
+            for (Dinning dinning:dinningList){
+                if (dinning.id.equals(new ObjectId(tyepId))){
+                    return dinning;
+                }
+            }
+            Dinning dinning=new Dinning();
+            dinning.id=new ObjectId();
+            return dinning;
+        }
+
+    }
+    /**
      * 保存购物信息
      *
      * @param id
