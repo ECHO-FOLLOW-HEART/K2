@@ -167,9 +167,7 @@ public class LocalityAPI {
      */
     public static List<Locality> explore(boolean showDetails, boolean abroad, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-
         List<String> fields = new ArrayList<>();
-        // TODO 此处删除了countryDetails，这是什么字段？
         Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
             Collections.addAll(fields, "superAdm", "images", "tags", "desc", "country", "coords");
