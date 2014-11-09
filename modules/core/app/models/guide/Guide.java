@@ -16,9 +16,9 @@ import java.util.List;
  */
 public class Guide extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
-    public static final String FNSHOPPING="shoppings";
+    public static final String FNSHOPPING="shopping";
     @Transient
-    public static final String FNDINNING="dinnings";
+    public static final String FNDINNING="dinning";
     public Integer userId;
 
     public String title;
