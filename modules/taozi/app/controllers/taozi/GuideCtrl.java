@@ -116,6 +116,7 @@ public class GuideCtrl extends Controller {
                     dinning.name = zhName;
                     dinning.enName = enName;
                     dinning.price = price;
+                    dinning.rating=rating;
                     GuideAPI.savaGuideDinning(new ObjectId(id), dinning);
                     return Utils.createResponse(ErrorCode.NORMAL, "success");
                 default:
