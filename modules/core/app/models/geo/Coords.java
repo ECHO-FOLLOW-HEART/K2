@@ -16,7 +16,6 @@ import play.libs.Json;
  */
 
 @Embedded
-@JsonFilter("coordsFilter")
 public class Coords extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String simpLat = "lat";
