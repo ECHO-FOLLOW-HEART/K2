@@ -24,15 +24,21 @@ import java.util.*;
 @Entity
 abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPiFormatter {
 
+    /**
+     * 目的地
+     */
     @Embedded
     public List<SimpleRef> targets;
 
+    /**
+     * 标签
+     */
     public List<String> tags;
 
+    /**
+     * 路线标题
+     */
     public String title;
-
-    public Integer planId;
-
 
     /**
      * 行程天数
@@ -44,7 +50,20 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
      */
     public Integer vsCnt;
 
+    /**
+     * 路线简介
+     */
     public String desc;
+
+    /**
+     * 更多的描述
+     */
+    public String moreDesc;
+
+    /**
+     * 注意事项
+     */
+    public String tips;
 
     @Embedded
     public Description description;
@@ -71,11 +90,6 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
     public Integer manualPriority;
 
     /**
-     * 注意事项
-     */
-    public String tips;
-
-    /**
      * 路线速览
      */
     public List<String> summary;
@@ -89,9 +103,6 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
     public CheckinRatings ratings;
 
     public List<PlanDayEntry> details;
-
-    public String moreDesc;
-
 
     @Override
     public JsonNode toJson() {
