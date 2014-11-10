@@ -7,7 +7,7 @@ import org.bson.types.ObjectId;
 
 /**
  * @author lxf
- *         Weather相关的api
+ * Weather相关的api
  */
 public class WeatherAPI {
 

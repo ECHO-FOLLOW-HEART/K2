@@ -2,16 +2,14 @@ package controllers.taozi;
 
 import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
+import aizou.core.WeatherAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.misc.Feedback;
-import models.misc.MiscInfo;
-import models.misc.Recommendation;
-import models.misc.TravelNote;
+import models.misc.*;
 import models.poi.AbstractPOI;
 import models.poi.Hotel;
 import models.poi.Restaurant;
@@ -28,6 +26,7 @@ import utils.Constants;
 import utils.DataFilter;
 import utils.MsgConstants;
 import utils.Utils;
+import utils.formatter.taozi.misc.WeatherFormatter;
 import utils.formatter.taozi.user.SelfFavoriteFormatter;
 
 import java.net.UnknownHostException;
@@ -328,6 +327,21 @@ public class MiscCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+    }
+
+    /**
+     * 通过城市id获得天气情况
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
+    public static Result getWeatherDetail(String id) {
+        try{
+            YahooWeather weather=WeatherAPI.weatherDetails(new ObjectId(id));
+            return Utils.createResponse(ErrorCode.NORMAL,new WeatherFormatter().format(weather));
+        } catch (NullPointerException | TravelPiException e){
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT");
+        }
     }
 
 }
