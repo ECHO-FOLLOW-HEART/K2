@@ -1,8 +1,11 @@
 package models.guide;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import models.TravelPiBaseItem;
 import models.poi.AbstractPOI;
+import models.poi.ViewSpot;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 
@@ -25,5 +28,15 @@ public class ItinerItem extends TravelPiBaseItem {
     public String type;
 
     @Embedded
+    public ViewSpot viewSpot;
+
+
+    @Embedded
+    @JsonTypeInfo(
+            use = JsonTypeInfo.Id.NAME,
+            include = JsonTypeInfo.As.PROPERTY,
+            property = "type")
+    @JsonSubTypes({
+            @JsonSubTypes.Type(value = ViewSpot.class, name = "vs")})
     public AbstractPOI poi;
 }

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
+import models.guide.AbstractGuide;
 import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.poi.AbstractPOI;
@@ -46,11 +47,11 @@ public class ItineraryFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Guide.fdId);
+                includedFields.add(AbstractGuide.fdId);
                 includedFields.add(Guide.fnUserId);
-                includedFields.add(Guide.fnTitle);
+                includedFields.add(AbstractGuide.fnTitle);
                 //行程单
-                includedFields.add(Guide.fnItinerary);
+                includedFields.add(AbstractGuide.fnItinerary);
                 return (includedFields.contains(writer.getName()));
             }
 

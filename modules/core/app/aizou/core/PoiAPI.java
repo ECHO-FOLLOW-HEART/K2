@@ -315,7 +315,7 @@ public class PoiAPI {
      * @return
      * @throws TravelPiException
      */
-    public static Iterator<? extends AbstractPOI> poiList(POIType poiType, String locId, String tagFilter, final SortField sortField,
+    public static Iterator<? extends AbstractPOI> poiList(POIType poiType, ObjectId locId, String tagFilter, final SortField sortField,
                                                           Boolean sort, Boolean details, int page, int pageSize)
             throws TravelPiException {
 
@@ -337,7 +337,7 @@ public class PoiAPI {
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
 
-        if (locId == null || locId.isEmpty())
+        if (locId == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         query = query.field("addr.loc.id").equal(locId);
         //query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
@@ -391,6 +391,14 @@ public class PoiAPI {
                 poiClass = Hotel.class;
                 break;
             case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+            case SHOPPING:
+                // TODO
+                poiClass = Restaurant.class;
+                break;
+            case ENTERTAINMENT:
+                //TODO
                 poiClass = Restaurant.class;
                 break;
             default:
@@ -687,8 +695,39 @@ public class PoiAPI {
     }
 
     /**
-     * 排序的字段。
+     * 获得景点周围的poi列表
+     *
+     * @param poiType
+     * @param lat
+     * @param lng
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
      */
+    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, Double lat, Double lng, int page, int pageSize) throws TravelPiException {
+        Class<? extends AbstractPOI> poiClass;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+        }
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        query = query.field("addr.coords").near(lat, lng);
+        query.offset(page * pageSize).limit(pageSize);
+        return query.iterator();
+    }
+
     public enum SortField {
         SCORE, PRICE
     }
