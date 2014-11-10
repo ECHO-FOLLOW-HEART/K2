@@ -8,13 +8,8 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
-import models.guide.ItinerItem;
-import models.poi.AbstractPOI;
-import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import play.libs.Json;
-import models.poi.Dinning;
-import models.poi.Shopping;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
@@ -32,23 +27,22 @@ import java.util.List;
  * Created by topy on 2014/11/5.
  */
 public class GuideCtrl extends Controller {
-
     /**
      * 更新攻略中相应信息
      *
      * @param id 攻略ID
      * @return
      */
-    public static Result updateGuide(String id,String typeInfo) {
+    public static Result updateGuide(String id, String typeInfo) {
 
         JsonNode data = request().body().asJson();
         try {
             ObjectId guideId = new ObjectId(id);
-            ObjectMapper m =  new ObjectMapper();
-            Guide guideUpdate = m.convertValue(data,Guide.class);
-            List<String> guideParts = Arrays.asList(AbstractGuide.fnItinerary,AbstractGuide.fnShopping,AbstractGuide.fnDinning);
-            if(!guideParts.contains(typeInfo))
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("s% is not a part of guide.",typeInfo));
+            ObjectMapper m = new ObjectMapper();
+            Guide guideUpdate = m.convertValue(data, Guide.class);
+            List<String> guideParts = Arrays.asList(AbstractGuide.fnItinerary, AbstractGuide.fnShopping, AbstractGuide.fnDinning);
+            if (!guideParts.contains(typeInfo))
+                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("s% is not a part of guide.", typeInfo));
             //保存攻略
             GuideAPI.updateGuide(guideId, guideUpdate, typeInfo);
         } catch (NullPointerException e) {

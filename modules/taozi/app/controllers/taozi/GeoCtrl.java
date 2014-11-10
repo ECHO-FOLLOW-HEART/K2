@@ -17,8 +17,8 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
+import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 
 import java.util.ArrayList;
@@ -27,10 +27,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.regex.PatternSyntaxException;
 
-
 /**
  * 地理相关
- * <p/>
+ * <p>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {

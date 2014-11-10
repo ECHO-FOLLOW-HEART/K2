@@ -4,15 +4,11 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
-import models.poi.Dinning;
-import models.poi.Shopping;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -119,49 +115,4 @@ public class GuideAPI {
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
-    /**
-     * 保存购物信息
-     *
-     * @param id
-     * @param shopping
-     * @throws TravelPiException
-     */
-    public static void savaGuideShopping(ObjectId id, Shopping shopping) throws TravelPiException {
-        Guide guide = getGuideInfo(id, Arrays.asList(AbstractGuide.fnShopping));
-        List<Shopping> shoppings = guide.shopping;
-        if (shoppings == null) {
-            List<Shopping> shoppingList = new ArrayList<>();
-            shoppingList.add(shopping);
-            shoppings = shoppingList;
-        } else {
-            shoppings.add(shopping);
-        }
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("shopping", shoppings);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
-    }
-
-    /**
-     * 保存用户的美食攻略
-     *
-     * @param id
-     * @param dinning
-     * @throws TravelPiException
-     */
-    public static void savaGuideDinning(ObjectId id, Dinning dinning) throws TravelPiException {
-        Guide guide = getGuideInfo(id, Arrays.asList(Guide.fnDinning));
-        List<Dinning> dinnings = guide.dinning;
-        if (dinnings == null) {
-            List<Dinning> dinningList = new ArrayList<>();
-            dinningList.add(dinning);
-            dinnings = dinningList;
-        } else {
-            dinnings.add(dinning);
-        }
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("dinning", dinnings);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
-    }
 }
