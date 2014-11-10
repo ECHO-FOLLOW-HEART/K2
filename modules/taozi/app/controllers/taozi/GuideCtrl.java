@@ -99,7 +99,6 @@ public class GuideCtrl extends Controller {
 
     /**
      * 保存用户的美食和购物攻略
-     *
      * @param id
      * @param typeInfo
      * @return
@@ -107,35 +106,33 @@ public class GuideCtrl extends Controller {
     public static Result setGuideInfo(String id, String typeInfo) {
         try {
             JsonNode req = request().body().asJson();
-            String typeId = req.get("id").asText();
             String zhName = req.get("name").asText();
             String enName = req.get("enName").asText();
             Double price = req.get("price").asDouble();
-            Double rating = req.get("rating").asDouble();
-
-            switch (typeInfo) {
+            Double rating=req.get("rating").asDouble();
+            switch (typeInfo){
                 case "shopping":
-                    //判断是添加还是做修改
-                    Shopping shopping = GuideAPI.confirmShoppingOpration(id, typeId);
+                    Shopping shopping = new Shopping();
                     shopping.name = zhName;
                     shopping.enName = enName;
                     shopping.price = price;
-                    shopping.rating = rating;
+                    shopping.rating=rating;
                     GuideAPI.savaGuideShopping(new ObjectId(id), shopping);
                     return Utils.createResponse(ErrorCode.NORMAL, "success");
                 case "dinning":
-                    Dinning dinning = GuideAPI.confirmDinningOpration(id, typeId);
+                    Dinning dinning = new Dinning();
                     dinning.name = zhName;
                     dinning.enName = enName;
                     dinning.price = price;
-                    dinning.rating = rating;
+                    dinning.rating=rating;
                     GuideAPI.savaGuideDinning(new ObjectId(id), dinning);
                     return Utils.createResponse(ErrorCode.NORMAL, "success");
                 default:
-                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT".toLowerCase());
             }
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
     }
+
 }

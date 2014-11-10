@@ -1,5 +1,6 @@
 package aizou.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.guide.Guide;
@@ -52,79 +53,25 @@ public class GuideAPI {
     }
 
     /**
-     * 判断是添加还是更新
-     */
-    public static Shopping confirmShoppingOpration(String id,String tyepId) throws TravelPiException {
-        if (tyepId==null||tyepId.equals("")){   //用户第一次提交数据
-            Shopping shopping=new Shopping();
-            shopping.id=new ObjectId();
-            return shopping;
-        }
-        Guide guide=getGuideInfo(new ObjectId(id),Arrays.asList(Guide.FNDINNING,Guide.FNSHOPPING));
-        List<Shopping> shoppingList=guide.shopping;
-        if (shoppingList.isEmpty()){
-            Shopping shopping=new Shopping();
-            shopping.id=new ObjectId();
-            return shopping;
-        }
-        else{
-            for (Shopping shopping:shoppingList){
-                if (shopping.id.equals(new ObjectId(tyepId))){
-                    return shopping;
-                }
-            }
-            Shopping shopping=new Shopping();
-            shopping.id=new ObjectId();
-            return shopping;
-        }
-
-    }
-
-    public static Dinning confirmDinningOpration(String id,String tyepId) throws TravelPiException {
-        if (tyepId==null||tyepId.equals("")){   //用户第一次提交数据
-            Dinning dinning=new Dinning();
-            dinning.id=new ObjectId();
-            return dinning;
-        }
-        Guide guide=getGuideInfo(new ObjectId(id),Arrays.asList(Guide.FNDINNING,Guide.FNSHOPPING));
-        List<Dinning> dinningList=guide.dinning;
-        if (dinningList.isEmpty()){
-            Dinning dinning=new Dinning();
-            dinning.id=new ObjectId();
-            return dinning;
-        }
-        else{
-            for (Dinning dinning:dinningList){
-                if (dinning.id.equals(new ObjectId(tyepId))){
-                    return dinning;
-                }
-            }
-            Dinning dinning=new Dinning();
-            dinning.id=new ObjectId();
-            return dinning;
-        }
-
-    }
-    /**
      * 保存购物信息
      *
      * @param id
-     * @param shop
+     * @param shopping
      * @throws TravelPiException
      */
-    public static void savaGuideShopping(ObjectId id, Shopping shop) throws TravelPiException {
+    public static void savaGuideShopping(ObjectId id, Shopping shopping) throws TravelPiException {
         Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNSHOPPING));
-        List<Shopping> shopping = guide.shopping;
-        if (shopping == null) {
+        List<Shopping> shoppings = guide.shopping;
+        if (shoppings == null) {
             List<Shopping> shoppingList = new ArrayList<>();
-            shoppingList.add(shop);
-            shopping = shoppingList;
+            shoppingList.add(shopping);
+            shoppings = shoppingList;
         } else {
-            shopping.add(shop);
+            shoppings.add(shopping);
         }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("shopping", shopping);
+        uo.set("shopping", shoppings);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
@@ -132,22 +79,22 @@ public class GuideAPI {
      * 保存用户的美食攻略
      *
      * @param id
-     * @param din
+     * @param dinning
      * @throws TravelPiException
      */
-    public static void savaGuideDinning(ObjectId id, Dinning din) throws TravelPiException {
+    public static void savaGuideDinning(ObjectId id, Dinning dinning) throws TravelPiException {
         Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNDINNING));
-        List<Dinning> dinning = guide.dinning;
-        if (dinning == null) {
+        List<Dinning> dinnings = guide.dinning;
+        if (dinnings == null) {
             List<Dinning> dinningList = new ArrayList<>();
-            dinningList.add(din);
-            dinning = dinningList;
+            dinningList.add(dinning);
+            dinnings = dinningList;
         } else {
-            dinning.add(din);
+            dinnings.add(dinning);
         }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("dinning", dinning);
+        uo.set("dinning", dinnings);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 }
