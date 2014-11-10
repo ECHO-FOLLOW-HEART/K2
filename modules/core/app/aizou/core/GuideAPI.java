@@ -1,6 +1,5 @@
 package aizou.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.guide.Guide;
@@ -11,8 +10,6 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -54,47 +51,27 @@ public class GuideAPI {
 
     /**
      * 保存购物信息
-     *
      * @param id
-     * @param shopping
+     * @param shoppingList
      * @throws TravelPiException
      */
     public static void savaGuideShopping(ObjectId id, List<Shopping> shoppingList) throws TravelPiException {
-        Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNSHOPPING));
-        List<Shopping> shoppings = guide.shopping;
-        if (shoppings == null) {
-            List<Shopping> shoppingList = new ArrayList<>();
-            shoppingList.add(shopping);
-            shoppings = shoppingList;
-        } else {
-            shoppings.add(shopping);
-        }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("shopping", shoppings);
+        uo.set("shopping", shoppingList);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
     /**
-     * 保存用户的美食攻略
-     *
+     * 保存美食信息
      * @param id
-     * @param dinning
+     * @param dinningList
      * @throws TravelPiException
      */
-    public static void savaGuideDinning(ObjectId id, Dinning dinning) throws TravelPiException {
-        Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNDINNING));
-        List<Dinning> dinnings = guide.dinning;
-        if (dinnings == null) {
-            List<Dinning> dinningList = new ArrayList<>();
-            dinningList.add(dinning);
-            dinnings = dinningList;
-        } else {
-            dinnings.add(dinning);
-        }
+    public static void savaGuideDinning(ObjectId id, List<Dinning> dinningList) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("dinning", dinnings);
+        uo.set("dinning", dinningList);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 }

@@ -637,7 +637,7 @@ public class PoiAPI {
                 continue;
 
             List<Locality> l = new ArrayList<>();
-            for (Iterator<Locality> itr = GeoAPI.searchLocalities("", false, country.id, 0, 10); itr.hasNext(); )
+            for (Iterator<Locality> itr = GeoAPI.searchLocalities("", false, new ObjectId(country.id), 0, 10); itr.hasNext(); )
                 l.add(itr.next());
             results.put(country.getZhName(), l);
         }
@@ -689,7 +689,7 @@ public class PoiAPI {
         }
         List<ObjectId> ids = new ArrayList<>();
         for (AbstractPOI temp : pois) {
-            ids.add(temp.id);
+            ids.add(new ObjectId(temp.id));
         }
         return getPOIInfoList(ids, poiType, fieldList, page, pageSize);
     }

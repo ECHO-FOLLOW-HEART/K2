@@ -4,20 +4,15 @@ import aizou.core.GuideAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.MorphiaFactory;
-import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.poi.Dinning;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -97,6 +92,38 @@ public class GuideCtrl extends Controller {
 
     }
 
+
+    /**
+     * @param node
+     * @param typeInfo
+     * @return
+     * @throws NullPointerException
+     * @throws TravelPiException
+     */
+    public static Object getShoppingFromNode(JsonNode node, String typeInfo) throws NullPointerException, TravelPiException {
+        switch (typeInfo) {
+            case "shopping":
+                Shopping shopping = new Shopping();
+                shopping.id = node.get("_id").asText();
+                shopping.name = node.get("zhName").asText();
+                shopping.enName = node.get("enName").asText();
+                shopping.price = node.get("price").asDouble();
+                shopping.rating = node.get("rating").asDouble();
+                return shopping;
+            case "dinning":
+                Dinning dinning = new Dinning();
+                dinning.id = node.get("_id").asText();
+                dinning.name = node.get("zhName").asText();
+                dinning.enName = node.get("enName").asText();
+                dinning.price = node.get("price").asDouble();
+                dinning.rating = node.get("rating").asDouble();
+                return dinning;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        }
+
+    }
+
     /**
      * 保存用户的美食和购物攻略
      * @param id
@@ -106,22 +133,29 @@ public class GuideCtrl extends Controller {
     public static Result setGuideInfo(String id, String typeInfo) {
         try {
             JsonNode req = request().body().asJson();
-            switch (typeInfo){
+            switch (typeInfo) {
                 case "shopping":
-                    JsonNode shoppings=req.get("shopping");
-                    for ()
-                    GuideAPI.savaGuideShopping(new ObjectId(id), shopping);
+                    JsonNode shoppings = req.get("shopping");
+                    List<Shopping> shoppingList = new ArrayList<>();
+                    Shopping shopping;
+                    for (JsonNode node : shoppings) {
+                        shopping = (Shopping) getShoppingFromNode(node, "shopping");
+                        shoppingList.add(shopping);
+                    }
+                    GuideAPI.savaGuideShopping(new ObjectId(id), shoppingList);
                     return Utils.createResponse(ErrorCode.NORMAL, "success");
                 case "dinning":
-                    Dinning dinning = new Dinning();
-                    dinning.name = zhName;
-                    dinning.enName = enName;
-                    dinning.price = price;
-                    dinning.rating=rating;
-                    GuideAPI.savaGuideDinning(new ObjectId(id), dinning);
+                    JsonNode dinnings = req.get("dinning");
+                    List<Dinning> dinningList = new ArrayList<>();
+                    Dinning dinning;
+                    for (JsonNode node : dinnings) {
+                        dinning = (Dinning) getShoppingFromNode(node, "dinning");
+                        dinningList.add(dinning);
+                    }
+                    GuideAPI.savaGuideDinning(new ObjectId(id), dinningList);
                     return Utils.createResponse(ErrorCode.NORMAL, "success");
                 default:
-                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT".toLowerCase());
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
             }
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
