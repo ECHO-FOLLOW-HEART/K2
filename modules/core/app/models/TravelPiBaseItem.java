@@ -14,7 +14,7 @@ import java.util.Map;
 @Entity
 public abstract class TravelPiBaseItem {
     @Id
-    public String id;
+    public ObjectId id;
     public boolean enabled;
     public Map<String, Object> misc;
 

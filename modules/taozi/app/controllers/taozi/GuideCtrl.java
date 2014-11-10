@@ -119,7 +119,7 @@ public class GuideCtrl extends Controller {
         }
         ObjectNode poiObject = (ObjectNode) itemObject.get("poi");
         String poiId = poiObject.get("_id").asText();
-        poiBean.id = poiId;
+        poiBean.id = new ObjectId(poiId);
         poiBean.name = poiObject.get("zhName").asText();
         poiBean.enName = poiObject.get("enName").asText();
         poiBean.desc = poiObject.get("desc").asText();
@@ -206,7 +206,7 @@ public class GuideCtrl extends Controller {
         switch (typeInfo) {
             case "shopping":
                 Shopping shopping = new Shopping();
-                shopping.id = node.get("_id").asText();
+                shopping.id = new ObjectId(node.get("_id").asText());
                 shopping.name = node.get("zhName").asText();
                 shopping.enName = node.get("enName").asText();
                 shopping.price = node.get("price").asDouble();
@@ -214,7 +214,7 @@ public class GuideCtrl extends Controller {
                 return shopping;
             case "dinning":
                 Dinning dinning = new Dinning();
-                dinning.id = node.get("_id").asText();
+                dinning.id = new ObjectId(node.get("_id").asText());
                 dinning.name = node.get("zhName").asText();
                 dinning.enName = node.get("enName").asText();
                 dinning.price = node.get("price").asDouble();
