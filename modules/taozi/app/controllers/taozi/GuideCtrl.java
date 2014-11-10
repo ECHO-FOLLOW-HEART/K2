@@ -106,17 +106,10 @@ public class GuideCtrl extends Controller {
     public static Result setGuideInfo(String id, String typeInfo) {
         try {
             JsonNode req = request().body().asJson();
-            String zhName = req.get("name").asText();
-            String enName = req.get("enName").asText();
-            Double price = req.get("price").asDouble();
-            Double rating=req.get("rating").asDouble();
             switch (typeInfo){
                 case "shopping":
-                    Shopping shopping = new Shopping();
-                    shopping.name = zhName;
-                    shopping.enName = enName;
-                    shopping.price = price;
-                    shopping.rating=rating;
+                    JsonNode shoppings=req.get("shopping");
+                    for ()
                     GuideAPI.savaGuideShopping(new ObjectId(id), shopping);
                     return Utils.createResponse(ErrorCode.NORMAL, "success");
                 case "dinning":

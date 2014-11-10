@@ -59,7 +59,7 @@ public class GuideAPI {
      * @param shopping
      * @throws TravelPiException
      */
-    public static void savaGuideShopping(ObjectId id, Shopping shopping) throws TravelPiException {
+    public static void savaGuideShopping(ObjectId id, List<Shopping> shoppingList) throws TravelPiException {
         Guide guide = getGuideInfo(id, Arrays.asList(Guide.FNSHOPPING));
         List<Shopping> shoppings = guide.shopping;
         if (shoppings == null) {
