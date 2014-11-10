@@ -7,6 +7,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.geo.Address;
+import models.geo.Locality;
 import models.misc.CheckinRatings;
 import models.misc.Contact;
 import models.misc.Description;
@@ -19,7 +20,6 @@ import play.libs.Json;
 import utils.Constants;
 import utils.DataFilter;
 
-import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -69,6 +69,15 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String detTrafficInfo = "trafficInfo";
+
+    @Transient
+    public static String simpEnName = "enName";
+
+    @Transient
+    public static String simpCover= "cover";
+
+    @Transient
+    public static String simpRating= "rating";
 
     @Embedded
     public CheckinRatings ratings;
@@ -226,36 +235,23 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
         // level2
         if (level > 1) {
-            for (String k : new String[]{"tags"}) {
-                Field field;
-                Object val = null;
+            for (Map.Entry<String, String> entry : new HashMap<String, String>() {
+                {
+                    put("imageList", Locality.fnImageList);
+                    put("tags", Locality.fnTags);
+                }
+            }.entrySet()) {
+                String k = entry.getKey();
+                String v = entry.getValue();
                 try {
-                    field = AbstractPOI.class.getField(k);
-                    val = field.get(this);
+                    Object val = AbstractPOI.class.getField(v).get(this);
+                    boolean isNull = (val == null);
+                    if (val != null && val instanceof Collection)
+                        isNull = ((Collection) val).isEmpty();
+                    builder.add(k, (isNull ? new ArrayList<>() : val));
                 } catch (NoSuchFieldException | IllegalAccessException ignored) {
                 }
-                boolean isNull = (val == null);
-                if (val != null && val instanceof Collection)
-                    isNull = ((Collection) val).isEmpty();
-                builder.add(k, (isNull ? new ArrayList<>() : val));
             }
-
-            if (images != null) {
-                ArrayList<String> tmpList = new ArrayList<String>();
-                for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
-                    tmpList.add(img.url);
-                builder.add("imageList", tmpList);
-            }
-
-            // TODO 暂时兼容两种数据
-            if (null != description) {
-                builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc != null ? desc : ""));
-            } else {
-                builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
-            }
-            if (price != null)
-                builder.add("price", price);
-            builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
 
             // 如果存在更高阶的images字段，则使用之
             if (images != null && !images.isEmpty()) {
@@ -266,6 +262,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                     imgList.add(img);
                 }
 
+                // 简单的挑选图像挑选算法：选取清晰度最高的5张图像。
                 Collections.sort(imgList, new Comparator<ImageItem>() {
                     @Override
                     public int compare(ImageItem o1, ImageItem o2) {
@@ -279,7 +276,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                             return 0;
                     }
                 });
-
                 List<String> ret = new ArrayList<>();
                 for (ImageItem img : imgList.subList(0, imgList.size() >= 5 ? 5 : imgList.size())) {
                     if (img.url != null)
@@ -289,11 +285,29 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 builder.add("imageList", ret);
             }
 
+            // TODO 暂时兼容两种数据
+            if (null != description) {
+                builder.add("desc", (description.desc != null ? StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN) : desc != null ? desc : ""));
+            } else {
+                builder.add("desc", (desc != null ? StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN) : ""));
+            }
+            if (price != null)
+                builder.add("price", price);
+            builder.add("contact", (contact != null ? contact.toJson() : new HashMap<>()));
+
             // level3
             if (level > 2) {
                 builder.add("url", url != null ? url : "");
                 builder.add("priceDesc", DataFilter.priceDescFilter(priceDesc));
-                builder.add("alias", alias != null ? alias : new ArrayList<>());
+                if (alias != null) {
+                    Set<String> aliasSet = new HashSet<>();
+                    for (String val : alias) {
+                        if (val != null && name != null && !val.equals(name))
+                            aliasSet.add(val);
+                    }
+                    builder.add("alias", Arrays.asList(aliasSet.toArray(new String[aliasSet.size()])));
+                } else
+                    builder.add("alias", new ArrayList<>());
                 // TODO 暂时兼容两种数据
                 //builder.add("desc", (desc != null ? desc : ""));
                 if (null != description) {

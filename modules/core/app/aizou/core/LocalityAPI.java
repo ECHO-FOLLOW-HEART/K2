@@ -88,9 +88,10 @@ public class LocalityAPI {
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
 
         List<String> fields = new ArrayList<>();
-        fields.addAll(Arrays.asList("zhName", "superAdm", "level"));
+        fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnSuperAdm, Locality.fnLevel));
         if (level > 1)
-            fields.addAll(Arrays.asList("desc", "images", "tags", "coords"));
+            fields.addAll(Arrays.asList(Locality.fnDesc, Locality.fnImageList, Locality.fnImages, Locality.fnTags,
+                    Locality.fnCoords));
 
         query.retrievedFields(true, fields.toArray(new String[]{""}));
         return query.get();
@@ -166,9 +167,7 @@ public class LocalityAPI {
      */
     public static List<Locality> explore(boolean showDetails, boolean abroad, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-
         List<String> fields = new ArrayList<>();
-        // TODO 此处删除了countryDetails，这是什么字段？
         Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
             Collections.addAll(fields, "superAdm", "images", "tags", "desc", "country", "coords");
@@ -290,7 +289,7 @@ public class LocalityAPI {
         }
         List<ObjectId> ids = new ArrayList<>();
         for (Locality temp : localities) {
-            ids.add(temp.id);
+            ids.add(new ObjectId(temp.id));
         }
         return getLocalityList(ids, fieldList, page, pageSize);
     }

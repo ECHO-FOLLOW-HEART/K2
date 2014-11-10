@@ -14,7 +14,6 @@ import models.misc.SimpleRef;
 import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
-import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
@@ -40,36 +39,38 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnZhName = "zhName";
 
+    @Transient
+    public static String fnCountry = "country";
+
+    @Transient
+    public static String fnSuperAdm = "superAdm";
+
+    @Transient
+    public static String fnLevel = "level";
+
+    @Transient
+    public static String fnDesc = "desc";
+
+    @Transient
+    public static String fnImages = "images";
+
+    @Transient
+    public static String fnImageList = "imageList";
+
+    @Transient
+    public static final String fnTags = "tags";
+
+    @Transient
+    public static String fnAbroad = "abroad";
 
     @Transient
     public static String simpId = "id";
 
     @Transient
-    public static String simpZhName = "name";
-
-    @Transient
-    public static String simpDesc = "desc";
-
-    @Transient
-    public static String simpImg = "images";
-
-    @Transient
-    public static String simpEnName = "enName";
-
-    @Transient
     public static String simpShortName = "shortName";
 
     @Transient
-    public static String fnCountry = "country";
-
-    @Transient
-    public static String simpAborad = "abroad";
-
-    @Transient
-    public static String simpSuperAdm = "superAdm";
-
-    @Transient
-    public static String simpCoords = "coords";
+    public static String fnCoords = "coords";
 
     public String zhName;
 

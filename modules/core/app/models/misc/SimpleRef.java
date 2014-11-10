@@ -24,7 +24,7 @@ public class SimpleRef implements ITravelPiFormatter {
     public static String simpEnName = "enName";
     @Transient
     public static String simpZhName = "zhName";
-    public ObjectId id;
+    public String id;
     public String enName;
     public String zhName;
 

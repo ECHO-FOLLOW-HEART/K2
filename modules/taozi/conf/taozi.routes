@@ -85,6 +85,17 @@ GET           /poi/nearby                                    controllers.taozi.P
 #----------数据脚本----------
 #添加首页图片
 GET           /bache/addHomeImage                            controllers.taozi.BacheCtrl.addHomeImage()
+
+#----------攻略接口----------
+#获得攻略列表
+GET           /guides                                        controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
+#查看攻略详情
+GET           /guides/:id/:part                              controllers.taozi.GuideCtrl.getGuideInfo(id: String,part: String)
+#更新行程单
+PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateItinerary(id: String)
+#删除攻略
+DELETE        /guides/:id                                    controllers.taozi.GuideCtrl.deleteGuide(id: String)
+
 #创建群组
 POST          /im/chatgroups                                 controllers.taozi.ChatGroupCtrl.createChatGroup()
 #删除群组
