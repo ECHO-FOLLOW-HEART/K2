@@ -99,7 +99,7 @@ public class DataFilter {
             for (JsonNode node : json) {
                 tempObjNode = (ObjectNode) node;
                 tempJsImg = tempObjNode.get("imageList");
-                if (!tempJsImg.isArray())
+                if (tempJsImg == null || !tempJsImg.isArray())
                     continue;
                 newNodeList = new ArrayList<>();
                 for (JsonNode imgNode : tempJsImg) {

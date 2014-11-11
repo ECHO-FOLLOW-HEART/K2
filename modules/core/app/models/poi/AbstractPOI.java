@@ -74,10 +74,10 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simpEnName = "enName";
 
     @Transient
-    public static String simpCover= "cover";
+    public static String simpCover = "cover";
 
     @Transient
-    public static String simpRating= "rating";
+    public static String simpRating = "rating";
 
     @Embedded
     public CheckinRatings ratings;
@@ -250,6 +250,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                         isNull = ((Collection) val).isEmpty();
                     builder.add(k, (isNull ? new ArrayList<>() : val));
                 } catch (NoSuchFieldException | IllegalAccessException ignored) {
+                    builder.add(k, new ArrayList<>());
                 }
             }
 
