@@ -178,7 +178,7 @@ public class LocalityAPI {
 //                .field("imageList").notEqual(null)
 //                .field("relPlanCnt").greaterThan(0)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
-                .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
+                .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score, -relPlanCnt");
 
         return query.asList();
     }
