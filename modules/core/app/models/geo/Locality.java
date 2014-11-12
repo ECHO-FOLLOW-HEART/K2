@@ -122,6 +122,9 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public Integer areaCode;
 
     @Embedded
+    public GeoJsonPoint location;
+
+    @Embedded
     public Coords coords;
 
     @Embedded
