@@ -209,9 +209,9 @@ public class MiscCtrl extends Controller {
             Favorite retFa = createFavorite(fa);
             List<? extends AbstractPOI> pois;
             // TODO 注意此处的images和imagesList，需要更新
-            List<String> fields = Arrays.asList("id", "name", "description", "images", "desc", "imageList");
+            List<String> fields = Arrays.asList("id", "name", "description", "images", "desc", "images");
             List<String> tnFields = Arrays.asList("id", "title", "summary");
-            List<String> locFields = Arrays.asList("id", "zhName", "imageList", "desc");
+            List<String> locFields = Arrays.asList("id", "zhName", "images", "desc");
             switch (faType) {
                 case "vs":
                     pois = PoiAPI.getPOIInfoListByPOI(fa.getVs(), faType, fields, page, pageSize);

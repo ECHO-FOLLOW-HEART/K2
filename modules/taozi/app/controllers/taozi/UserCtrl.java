@@ -267,7 +267,7 @@ public class UserCtrl extends Controller {
         try {
             UserInfo us = UserAPI.getUserByField(UserInfo.fnTel, tel);
             if (actionCode == CAPTCHA_ACTION_SIGNUP) {
-                if (us != null) {
+                if (us != null) {   //us！=null,说明用户存在
                     return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
                 }
             } else if (actionCode == CAPTCHA_ACTION_MODPWD) {
