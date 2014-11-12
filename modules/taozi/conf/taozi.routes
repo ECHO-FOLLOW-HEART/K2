@@ -92,16 +92,12 @@ GET           /bache/addHomeImage                            controllers.taozi.B
 GET           /guides                                        controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
 #查看攻略详情
 GET           /guides/:id/:part                              controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
-#更新行程单
-PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateGuide(id: String, typeInfo: String="itinerary")
 #修改攻略标题
 PUT           /guides/:id                                    controllers.taozi.GuideCtrl.setGuideTitle(id:String)
 #删除攻略
 DELETE        /guides/:id                                    controllers.taozi.GuideCtrl.deleteGuide(id: String)
-#查看攻略详情
-GET           /guides/:id/:typeInfo                          controllers.taozi.GuideCtrl.getGuideInfo(id: String,typeInfo: String)
 #更新行程单
-PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateGuide(id: String,typeInfo:String?="itinerary")
+PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateGuide(id: String, typeInfo: String="itinerary")
 #更新购物单
 PUT           /guides/:id/shopping                           controllers.taozi.GuideCtrl.updateGuide(id:String,typeInfo:String?="shopping")
 #更新美食单
@@ -129,11 +125,3 @@ GET           /geo/search                                    controllers.taozi.G
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
 #发现城市、国家、poi详情
 GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Boolean?=true, loc: Boolean?=true, vs: Boolean?=false, hotel: Boolean?=true, restaurant: Boolean?=true, country:Boolean?=true, page: Int?=0, pageSize: Int?=5)
-
-#攻略
-#修改攻略标题
-PUT           /guides/:id                                    controllers.taozi.GuideCtrl.setGuideTitle(id:String)
-#保存购物单
-PUT           /guides/:id/shopping                           controllers.taozi.GuideCtrl.setGuideInfo(id:String,typeInfo:String?="shopping")
-#保存美食信息
-PUT           /guides/:id/dinning                            controllers.taozi.GuideCtrl.setGuideInfo(id:String,typeInfo:String?="dinning")
