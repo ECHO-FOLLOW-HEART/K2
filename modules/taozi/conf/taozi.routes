@@ -125,3 +125,12 @@ GET           /geo/search                                    controllers.taozi.G
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
 #发现城市、国家、poi详情
 GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Boolean?=true, loc: Boolean?=true, vs: Boolean?=false, hotel: Boolean?=true, restaurant: Boolean?=true, country:Boolean?=true, page: Int?=0, pageSize: Int?=10)
+
+#旅行专栏
+GET           /columns                                       controllers.taozi.MiscCtrl.getTravelColumns()
+
+#用户评价
+#保存用户的评价
+POST          /comments                                      controllers.taozi.MiscCtrl.saveComment()
+#查看poi的评价
+GET           /poi/:id/comment                               controllers.taozi.MiscCtrl.displayComment(id :String,page :Int?=0,pageSize :Int?=15)

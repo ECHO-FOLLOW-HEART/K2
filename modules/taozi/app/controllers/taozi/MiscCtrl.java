@@ -1,20 +1,17 @@
 package controllers.taozi;
 
-import aizou.core.LocalityAPI;
-import aizou.core.PoiAPI;
-import aizou.core.WeatherAPI;
+import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Locality;
+import models.misc.TravelColumns;
 import models.misc.*;
-import models.poi.AbstractPOI;
-import models.poi.Hotel;
-import models.poi.Restaurant;
-import models.poi.ViewSpot;
+import models.poi.*;
 import models.user.Favorite;
+import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -26,6 +23,7 @@ import utils.Constants;
 import utils.DataFilter;
 import utils.MsgConstants;
 import utils.Utils;
+import utils.formatter.taozi.misc.MiscFormatter;
 import utils.formatter.taozi.misc.WeatherFormatter;
 import utils.formatter.taozi.user.SelfFavoriteFormatter;
 
@@ -331,17 +329,77 @@ public class MiscCtrl extends Controller {
 
     /**
      * 通过城市id获得天气情况
+     *
      * @param id
      * @return
      * @throws TravelPiException
      */
     public static Result getWeatherDetail(String id) {
-        try{
-            YahooWeather weather=WeatherAPI.weatherDetails(new ObjectId(id));
-            return Utils.createResponse(ErrorCode.NORMAL,new WeatherFormatter().format(weather));
-        } catch (NullPointerException | TravelPiException e){
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT");
+        try {
+            YahooWeather weather = WeatherAPI.weatherDetails(new ObjectId(id));
+            return Utils.createResponse(ErrorCode.NORMAL, new WeatherFormatter().format(weather));
+        } catch (NullPointerException | TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
 
+
+    /**
+     * 旅行专栏
+     *
+     * @return
+     */
+    public static Result getTravelColumns() {
+        try {
+            TravelColumns travelColumns = MiscAPI.getColumns();
+            return Utils.createResponse(ErrorCode.NORMAL, new MiscFormatter().format(travelColumns));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
+
+
+    /**
+     * 保存用户的评论
+     *
+     * @return
+     */
+    public static Result saveComment() {
+        try {
+            JsonNode req = request().body().asJson();
+            String userId = request().getHeader("userId");
+            String poiId = req.get("poiId").asText();
+            Double score = req.get("score").asDouble();
+            String commentDetails = req.get("commentDetails").asText();
+            String type = req.get("type").asText();
+            long commentTime = req.get("commentTime").asLong();
+            UserInfo userInfo = UserAPI.getUserInfo(Integer.parseInt(userId), Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar));
+
+            Comment comment = new Comment();
+            comment.userInfo = userInfo;
+            comment.poiId = poiId;
+            comment.commentDetails = commentDetails;
+            comment.poiType = type;
+            comment.score = score;
+            comment.commentTime = commentTime;
+
+            MiscAPI.saveComment(comment);
+            return Utils.createResponse(ErrorCode.NORMAL, "success");
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
+
+    public static Result displayComment(String poiId, int page, int pageSize) {
+        try {
+            List<Comment> commentList = MiscAPI.displayCommentApi(poiId, page, pageSize);
+            List<JsonNode> list = new ArrayList<>();
+            for (Comment comment : commentList) {
+                list.add(new MiscFormatter().format(comment));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(list));
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
 }
