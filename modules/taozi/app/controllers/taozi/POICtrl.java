@@ -253,7 +253,7 @@ public class POICtrl extends Controller {
      * @return
      * @throws TravelPiException
      */
-    public static Result getPoiNear(Double lat, Double lng, boolean spot, boolean hotel, boolean restaurant, int page, int pageSize) {
+    public static Result getPoiNear(Double lng, Double lat, boolean spot, boolean hotel, boolean restaurant, int page, int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             //发现poi
@@ -276,7 +276,7 @@ public class POICtrl extends Controller {
 
             for (PoiAPI.POIType poiType : poiKeyList) {
                 List<JsonNode> retPoiList = new ArrayList<>();
-                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lat, lng, page, pageSize);
+                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lng, lat, page, pageSize);
                 if (iterator != null) {
                     for (; iterator.hasNext(); )
                         retPoiList.add(new DetailedPOIFormatter().format(iterator.next()));
