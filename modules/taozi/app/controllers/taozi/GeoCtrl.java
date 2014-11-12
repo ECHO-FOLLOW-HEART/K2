@@ -10,21 +10,17 @@ import exception.TravelPiException;
 import models.geo.Country;
 import models.geo.Locality;
 import models.poi.AbstractPOI;
-import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
+import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 
@@ -103,7 +99,8 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explore(Boolean details, Boolean loc, Boolean vs, Boolean hotel, Boolean restaurant, Boolean country, int page, int pageSize) throws TravelPiException {
+    public static Result explore(Boolean details, Boolean loc, Boolean vs, Boolean hotel, Boolean restaurant,
+                                 Boolean country, int page, int pageSize) throws TravelPiException {
         ObjectNode results = Json.newObject();
 
         // 发现城市
@@ -119,30 +116,26 @@ public class GeoCtrl extends Controller {
             }
 
             //发现poi
-            List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
             HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
-            if (vs) {
-                poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
+            if (vs)
                 poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
-            }
 
-            if (hotel) {
-                poiKeyList.add(PoiAPI.POIType.HOTEL);
+            if (hotel)
                 poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
-            }
 
-            if (restaurant) {
-                poiKeyList.add(PoiAPI.POIType.RESTAURANT);
+            if (restaurant)
                 poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
-            }
 
-            for (PoiAPI.POIType poiType : poiKeyList) {
+            for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
                 List<JsonNode> retPoiList = new ArrayList<>();
+                PoiAPI.POIType poiType = entry.getKey();
+                String poiTypeName = entry.getValue();
 
                 // TODO 暂时返回国内数据
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, false, page, pageSize); it.hasNext(); )
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, null, false, page, pageSize);
+                     it.hasNext(); )
                     retPoiList.add(new DetailedPOIFormatter().format(it.next()));
-                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+                results.put(poiTypeName, Json.toJson(retPoiList));
             }
 
             //发现国家
