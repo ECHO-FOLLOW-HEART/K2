@@ -75,12 +75,17 @@ public class GuideAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
         UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
-        if (guidePart.equals(AbstractGuide.fnItinerary))
-            update.set(guidePart, guide.itinerary);
-        else if (guidePart.equals(AbstractGuide.fnShopping))
-            update.set(guidePart, guide.shopping);
-        else if (guidePart.equals(AbstractGuide.fnDinning))
-            update.set(guidePart, guide.dinning);
+        switch (guidePart) {
+            case AbstractGuide.fnItinerary:
+                update.set(guidePart, guide.itinerary);
+                break;
+            case AbstractGuide.fnShopping:
+                update.set(guidePart, guide.shopping);
+                break;
+            case AbstractGuide.fnDinning:
+                update.set(guidePart, guide.dinning);
+                break;
+        }
         ds.update(query, update);
     }
 
