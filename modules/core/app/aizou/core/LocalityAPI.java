@@ -172,13 +172,13 @@ public class LocalityAPI {
         // TODO 此处删除了countryDetails，这是什么字段？
         Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
-            Collections.addAll(fields, "superAdm", "images", "tags", "desc", "country", "coords");
+            Collections.addAll(fields, "superAdm", "images", "imageList", "tags", "desc", "country", "coords");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
                 .field("abroad").equal(abroad)
 //                .field("imageList").notEqual(null)
 //                .field("relPlanCnt").greaterThan(0)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
-                .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score");
+                .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score, -relPlanCnt");
 
         return query.asList();
     }
