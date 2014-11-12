@@ -4,25 +4,14 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.misc.Description;
-import models.misc.Recommendation;
-import models.misc.Sequence;
-import models.misc.SimpleRef;
-import models.plan.Plan;
-import models.plan.PlanDayEntry;
-import models.plan.PlanItem;
-import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
-import play.libs.Json;
 import play.mvc.Controller;
-import play.mvc.Result;
 import utils.Utils;
 
-import java.util.*;
+import java.util.Map;
 
 /**
  * Created by topy on 2014/8/3.
@@ -166,7 +155,14 @@ public class Bache extends Controller {
             depLoc = query.field("_id").equal(depOid).get();
             arrLoc = query1.field("_id").equal(arrOid).get();
             if (null != depLoc && null != arrLoc) {
-                kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
+//                kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
+                try {
+                    double[] depCoords = depLoc.location.getCoordinates();
+                    double[] arrCoords = arrLoc.location.getCoordinates();
+                    kmMount = Utils.getDistatce(depCoords[1], depCoords[0], arrCoords[1], arrCoords[0]);
+                } catch (NullPointerException | IndexOutOfBoundsException e) {
+                    kmMount = 0;
+                }
             }
             trafficBudget = kmMount * trafficRatio;
         }
