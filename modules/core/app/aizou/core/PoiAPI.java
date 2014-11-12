@@ -459,7 +459,7 @@ public class PoiAPI {
 //        if (poiType == POIType.VIEW_SPOT)
 //            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
 
-        return query.offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
+        return query.offset(page * pageSize).limit(pageSize).order("-ratings.score").iterator();
     }
 
 //    /**
@@ -702,7 +702,7 @@ public class PoiAPI {
      * @return
      * @throws TravelPiException
      */
-    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, Double lat, Double lng, int page, int pageSize) throws TravelPiException {
+    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, Double lng, Double lat, int page, int pageSize) throws TravelPiException {
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case VIEW_SPOT:
@@ -720,7 +720,7 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        query = query.field(AbstractPOI.fnLocation).near(lat, lng);
+        query = query.field(AbstractPOI.fnLocation).near(lng, lat, true);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }
