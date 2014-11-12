@@ -1,6 +1,8 @@
 package models.poi;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
@@ -30,7 +32,24 @@ import java.util.*;
  *         Created by zephyre on 7/16/14.
  */
 @JsonFilter("abstractPOIFilter")
+// For deserialize a JSON
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = ViewSpot.class, name = "vs"),
+        @JsonSubTypes.Type(value = Hotel.class, name = "hotel"),
+        @JsonSubTypes.Type(value = Restaurant.class, name = "restaurant"),
+        @JsonSubTypes.Type(value = Shopping.class, name = "shopping"),
+        @JsonSubTypes.Type(value = Dinning.class, name = "dinning")
+})
 public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
+
+    /**
+     * 标识POI的种类
+     */
+    public String type;
 
     @Transient
     public static String simpID = "id";
@@ -156,7 +175,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p/>
+     * <p>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;

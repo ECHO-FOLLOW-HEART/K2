@@ -93,9 +93,20 @@ GET           /guides                                        controllers.taozi.G
 #查看攻略详情
 GET           /guides/:id/:part                              controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
 #更新行程单
-PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateItinerary(id: String)
+PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateGuide(id: String, typeInfo: String="itinerary")
+#修改攻略标题
+PUT           /guides/:id                                    controllers.taozi.GuideCtrl.setGuideTitle(id:String)
 #删除攻略
 DELETE        /guides/:id                                    controllers.taozi.GuideCtrl.deleteGuide(id: String)
+#查看攻略详情
+GET           /guides/:id/:typeInfo                          controllers.taozi.GuideCtrl.getGuideInfo(id: String,typeInfo: String)
+#更新行程单
+PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateGuide(id: String,typeInfo:String?="itinerary")
+#更新购物单
+PUT           /guides/:id/shopping                           controllers.taozi.GuideCtrl.updateGuide(id:String,typeInfo:String?="shopping")
+#更新美食单
+PUT           /guides/:id/dinning                            controllers.taozi.GuideCtrl.updateGuide(id:String,typeInfo:String?="dinning")
+
 
 #创建群组
 POST          /im/chatgroups                                 controllers.taozi.ChatGroupCtrl.createChatGroup()
@@ -111,7 +122,9 @@ DELETE        /im/chatgroups/groupId/members                 controllers.taozi.C
 POST          /im/chatgroups/detail/groupId                  controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
 #地理信息
 # 搜索城市
+# TODO localitites/search弃用了吗？
 GET           /geo/search                                    controllers.taozi.GeoCtrl.searchGeo(keyword: String?="", prefix: Boolean?=true, page: Int?=0, pageSize: Int?=10)
+#GET           /geo/localities/search                         controllers.taozi.GeoCtrl.searchGeo(keyword: String?="",  prefix: Int?=1)
 # 查看城市详情
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
 #发现城市、国家、poi详情

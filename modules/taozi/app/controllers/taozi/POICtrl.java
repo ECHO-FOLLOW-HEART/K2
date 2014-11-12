@@ -254,7 +254,6 @@ public class POICtrl extends Controller {
      * @throws TravelPiException
      */
     public static Result getPoiNear(Double lat, Double lng, boolean spot, boolean hotel, boolean restaurant, int page, int pageSize) {
-
         try {
             ObjectNode results = Json.newObject();
             //发现poi

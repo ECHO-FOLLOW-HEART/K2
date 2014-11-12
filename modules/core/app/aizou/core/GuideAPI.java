@@ -3,6 +3,7 @@ package aizou.core;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.guide.AbstractGuide;
 import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.poi.Dinning;
@@ -71,14 +72,24 @@ public class GuideAPI {
      * 更新行程单
      *
      * @param guideId
-     * @param itemBeanList
+     * @param guide
      * @throws TravelPiException
      */
-    public static void updateItinerary(ObjectId guideId, List<ItinerItem> itemBeanList) throws TravelPiException {
+    public static void updateGuide(ObjectId guideId, Guide guide, String guidePart) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
         UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
-        update.set(Guide.fnItinerary, itemBeanList);
+        switch (guidePart) {
+            case AbstractGuide.fnItinerary:
+                update.set(guidePart, guide.itinerary);
+                break;
+            case AbstractGuide.fnShopping:
+                update.set(guidePart, guide.shopping);
+                break;
+            case AbstractGuide.fnDinning:
+                update.set(guidePart, guide.dinning);
+                break;
+        }
         ds.update(query, update);
     }
 

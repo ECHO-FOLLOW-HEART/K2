@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.guide.Guide;
+import models.guide.AbstractGuide;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
@@ -44,8 +44,8 @@ public class SimpleGuideFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Guide.fdId);
-                includedFields.add(Guide.fnTitle);
+                includedFields.add(AbstractGuide.fdId);
+                includedFields.add(AbstractGuide.fnTitle);
                 return (includedFields.contains(writer.getName()));
             }
 

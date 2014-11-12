@@ -23,10 +23,9 @@ import utils.formatter.taozi.user.DetailedPOIFormatter;
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
-
 /**
  * 地理相关
- * <p/>
+ * <p>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
