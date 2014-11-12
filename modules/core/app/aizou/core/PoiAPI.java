@@ -459,7 +459,7 @@ public class PoiAPI {
 //        if (poiType == POIType.VIEW_SPOT)
 //            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
 
-        return query.offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score").iterator();
+        return query.offset(page * pageSize).limit(pageSize).order("-ratings.score").iterator();
     }
 
 //    /**

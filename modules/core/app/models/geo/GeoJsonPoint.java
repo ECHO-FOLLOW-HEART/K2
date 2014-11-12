@@ -17,6 +17,7 @@ public class GeoJsonPoint {
 
     private double[] coordinates;
 
+    public GeoJsonPoint(){}
     private GeoJsonPoint(double lng, double lat) {
         coordinates = new double[]{lng, lat};
     }
