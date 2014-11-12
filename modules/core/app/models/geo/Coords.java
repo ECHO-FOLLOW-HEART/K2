@@ -6,7 +6,10 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Index;
+import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.Transient;
+import org.mongodb.morphia.utils.IndexDirection;
 import play.libs.Json;
 
 /**
@@ -16,13 +19,15 @@ import play.libs.Json;
  */
 
 @Embedded
+@JsonFilter("coordsFilter")
 public class Coords extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String simpLat = "lat";
     @Transient
     public static String simpLng = "lng";
     @Transient
-    public static String simpId = "id";
+    public static String simpId="id";
+
     public Double lat;
     public Double lng;
     public Double blat;

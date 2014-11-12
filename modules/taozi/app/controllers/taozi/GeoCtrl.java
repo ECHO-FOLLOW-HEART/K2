@@ -53,28 +53,14 @@ public class GeoCtrl extends Controller {
      * @param searchWord 搜索关键词。
      * @param prefix     是否为前缀搜索。
      */
-    public static Result searchLocality(String searchWord, int prefix) {
-        int page;
-        try {
-            page = Integer.parseInt(request().getQueryString("page"));
-        } catch (NullPointerException | NumberFormatException ignore) {
-            page = 0;
-        }
-
-        int pageSize;
-        try {
-            pageSize = Integer.parseInt(request().getQueryString("pageSize"));
-        } catch (NullPointerException | NumberFormatException ignore) {
-            pageSize = 10;
-        }
-
+    public static Result searchGeo(String searchWord, boolean prefix, int page, int pageSize) {
         searchWord = (searchWord != null ? searchWord.trim() : "");
         List<JsonNode> cityList = new ArrayList<>();
         List<JsonNode> countryList;
         try {
             countryList = GeoAPI.searchCountry(searchWord, page, pageSize);
             for (Iterator<Locality> it =
-                         GeoAPI.searchLocalities(searchWord, (prefix != 0), null, page, pageSize);
+                         GeoAPI.searchLocalities(searchWord, prefix, null, page, pageSize);
                  it.hasNext(); )
                 cityList.add(new LocalityFormatter().format(it.next()));
         } catch (PatternSyntaxException e) {
@@ -99,8 +85,8 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explore(Boolean details, Boolean loc, Boolean vs, Boolean hotel, Boolean restaurant,
-                                 Boolean country, int page, int pageSize) throws TravelPiException {
+    public static Result explore(boolean details, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+                                 boolean country, int page, int pageSize) throws TravelPiException {
         ObjectNode results = Json.newObject();
 
         // 发现城市
@@ -152,4 +138,5 @@ public class GeoCtrl extends Controller {
         }
 
     }
+
 }

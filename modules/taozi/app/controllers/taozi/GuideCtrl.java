@@ -8,6 +8,8 @@ import exception.TravelPiException;
 import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.poi.AbstractPOI;
+import models.poi.Dinning;
+import models.poi.Shopping;
 import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -50,7 +52,7 @@ public class GuideCtrl extends Controller {
             //保存攻略
             GuideAPI.updateItinerary(guideId, itemBeanList);
 
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -117,6 +119,7 @@ public class GuideCtrl extends Controller {
         }
         ObjectNode poiObject = (ObjectNode) itemObject.get("poi");
         String poiId = poiObject.get("_id").asText();
+        // TODO poiId可能不合法
         poiBean.id = new ObjectId(poiId);
         poiBean.name = poiObject.get("zhName").asText();
         poiBean.enName = poiObject.get("enName").asText();
@@ -159,6 +162,8 @@ public class GuideCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
 
     }
@@ -170,9 +175,100 @@ public class GuideCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
 
 
     }
 
+    /**
+     * 保存攻略标题
+     *
+     * @param id
+     * @return
+     */
+    public static Result setGuideTitle(String id) {
+        try {
+            JsonNode req = request().body().asJson();
+            String title = req.get("title").asText();
+            GuideAPI.saveGuideTitle(new ObjectId(id), title);
+            return Utils.createResponse(ErrorCode.NORMAL, "success");
+        } catch (TravelPiException | NullPointerException | IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        }
+
+    }
+
+
+    /**
+     * @param node
+     * @param typeInfo
+     * @return
+     * @throws NullPointerException
+     * @throws TravelPiException
+     */
+    public static Object getShoppingFromNode(JsonNode node, String typeInfo) throws NullPointerException, TravelPiException {
+        // TODO ObjectId可能不合法
+        switch (typeInfo) {
+            case "shopping":
+                Shopping shopping = new Shopping();
+                shopping.id = new ObjectId(node.get("_id").asText());
+                shopping.name = node.get("zhName").asText();
+                shopping.enName = node.get("enName").asText();
+                shopping.price = node.get("price").asDouble();
+                shopping.rating = node.get("rating").asDouble();
+                return shopping;
+            case "dinning":
+                Dinning dinning = new Dinning();
+                dinning.id = new ObjectId(node.get("_id").asText());
+                dinning.name = node.get("zhName").asText();
+                dinning.enName = node.get("enName").asText();
+                dinning.price = node.get("price").asDouble();
+                dinning.rating = node.get("rating").asDouble();
+                return dinning;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        }
+
+    }
+
+    /**
+     * 保存用户的美食和购物攻略
+     *
+     * @param id
+     * @param typeInfo
+     * @return
+     */
+    public static Result setGuideInfo(String id, String typeInfo) {
+        try {
+            JsonNode req = request().body().asJson();
+            switch (typeInfo) {
+                case "shopping":
+                    JsonNode shoppings = req.get("shopping");
+                    List<Shopping> shoppingList = new ArrayList<>();
+                    Shopping shopping;
+                    for (JsonNode node : shoppings) {
+                        shopping = (Shopping) getShoppingFromNode(node, "shopping");
+                        shoppingList.add(shopping);
+                    }
+                    GuideAPI.savaGuideShopping(new ObjectId(id), shoppingList);
+                    return Utils.createResponse(ErrorCode.NORMAL, "success");
+                case "dinning":
+                    JsonNode dinnings = req.get("dinning");
+                    List<Dinning> dinningList = new ArrayList<>();
+                    Dinning dinning;
+                    for (JsonNode node : dinnings) {
+                        dinning = (Dinning) getShoppingFromNode(node, "dinning");
+                        dinningList.add(dinning);
+                    }
+                    GuideAPI.savaGuideDinning(new ObjectId(id), dinningList);
+                    return Utils.createResponse(ErrorCode.NORMAL, "success");
+                default:
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+            }
+        } catch (TravelPiException | IllegalArgumentException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        }
+    }
 }
