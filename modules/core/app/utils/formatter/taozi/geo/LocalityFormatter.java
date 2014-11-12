@@ -122,8 +122,7 @@ public class LocalityFormatter implements JsonFormatter {
         };
 
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter).addFilter("coordsFilter", coordsFilter)
-                .addFilter("simpleRefFilter", simpleRefFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter).addFilter("simpleRefFilter", simpleRefFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

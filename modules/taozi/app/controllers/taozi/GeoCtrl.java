@@ -10,21 +10,17 @@ import exception.TravelPiException;
 import models.geo.Country;
 import models.geo.Locality;
 import models.poi.AbstractPOI;
-import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
+import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 
@@ -93,7 +89,7 @@ public class GeoCtrl extends Controller {
     }
 
     /**
-     * 广义的发现接口（通过一系列开关来控制）
+     * 发现接口
      *
      * @param loc
      * @param vs
@@ -103,51 +99,47 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, int country, int page, int pageSize) throws TravelPiException {
-        boolean detailsFlag = (details != 0);
+    public static Result explore(Boolean details, Boolean loc, Boolean vs, Boolean hotel, Boolean restaurant,
+                                 Boolean country, int page, int pageSize) throws TravelPiException {
         ObjectNode results = Json.newObject();
 
         // 发现城市
         try {
-            if (loc != 0) {
+            if (loc) {
                 List<JsonNode> retLocList = new ArrayList<>();
                 //获得城市信息
                 // TODO 暂时只返回国内数据
-                List<Locality> localityList = LocalityAPI.explore(detailsFlag, false, page, pageSize);
+                List<Locality> localityList = LocalityAPI.explore(details, false, page, pageSize);
                 for (Locality locality : localityList)
                     retLocList.add(new LocalityFormatter().format(locality));
                 results.put("loc", Json.toJson(retLocList));
             }
 
             //发现poi
-            List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
-            if (vs != 0)
-                poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
-            if (hotel != 0)
-                poiKeyList.add(PoiAPI.POIType.HOTEL);
-            if (restaurant != 0)
-                poiKeyList.add(PoiAPI.POIType.RESTAURANT);
+            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
+            if (vs)
+                poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
 
-            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
-                {
-                    put(PoiAPI.POIType.VIEW_SPOT, "vs");
-                    put(PoiAPI.POIType.HOTEL, "hotel");
-                    put(PoiAPI.POIType.RESTAURANT, "restaurant");
-                }
-            };
+            if (hotel)
+                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
 
-            for (PoiAPI.POIType poiType : poiKeyList) {
+            if (restaurant)
+                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
+
+            for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
                 List<JsonNode> retPoiList = new ArrayList<>();
+                PoiAPI.POIType poiType = entry.getKey();
+                String poiTypeName = entry.getValue();
 
                 // TODO 暂时返回国内数据
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, false, page, pageSize); it.hasNext(); )
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, null, false, page, pageSize);
+                     it.hasNext(); )
                     retPoiList.add(new DetailedPOIFormatter().format(it.next()));
-                //formatter\filter
-                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+                results.put(poiTypeName, Json.toJson(retPoiList));
             }
 
             //发现国家
-            if (country != 0) {
+            if (country) {
                 List<JsonNode> retcountryList = new ArrayList<>();
                 //获得城市信息
                 for (Country tmpCountry : LocalityAPI.exploreCountry(page, pageSize))
