@@ -86,7 +86,7 @@ public class GeoAPI {
      * @param pageSize 页面大小。
      */
     public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, ObjectId countryId, int page, int pageSize)
-            throws TravelPiException, PatternSyntaxException {
+            throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
@@ -105,6 +105,7 @@ public class GeoAPI {
      */
     public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws TravelPiException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        // TODO 以后仅仅使用alias即可
         query.or(
                 query.criteria("zhName").equal(keyword),
                 query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),

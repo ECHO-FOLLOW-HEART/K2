@@ -8,10 +8,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
-import models.poi.AbstractPOI;
-import models.poi.Hotel;
-import models.poi.Restaurant;
-import models.poi.ViewSpot;
+import models.poi.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -395,11 +392,11 @@ public class PoiAPI {
                 break;
             case SHOPPING:
                 // TODO
-                poiClass = Restaurant.class;
+                poiClass = Shopping.class;
                 break;
             case ENTERTAINMENT:
                 //TODO
-                poiClass = Restaurant.class;
+                poiClass = Entertainment.class;
                 break;
             default:
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
@@ -723,7 +720,7 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        query = query.field("addr.coords").near(lat, lng);
+        query = query.field(AbstractPOI.fnLocation).near(lat, lng);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }

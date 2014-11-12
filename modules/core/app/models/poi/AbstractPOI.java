@@ -7,6 +7,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.geo.Address;
+import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.CheckinRatings;
 import models.misc.Contact;
@@ -45,6 +46,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String detAddr = "addr";
+
+    @Transient
+    public static String fnLocation = "location";
 
     @Transient
     public static String detDesc = "description";
@@ -104,6 +108,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public String priceDesc;
 
     public String desc;
+
+    /**
+     * 坐标
+     */
+    public GeoJsonPoint location;
 
     /**
      * 电话

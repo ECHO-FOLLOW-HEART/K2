@@ -52,7 +52,7 @@ public class GuideCtrl extends Controller {
             //保存攻略
             GuideAPI.updateItinerary(guideId, itemBeanList);
 
-        } catch (NullPointerException e) {
+        } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -119,6 +119,7 @@ public class GuideCtrl extends Controller {
         }
         ObjectNode poiObject = (ObjectNode) itemObject.get("poi");
         String poiId = poiObject.get("_id").asText();
+        // TODO poiId可能不合法
         poiBean.id = new ObjectId(poiId);
         poiBean.name = poiObject.get("zhName").asText();
         poiBean.enName = poiObject.get("enName").asText();
@@ -161,6 +162,8 @@ public class GuideCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
 
     }
@@ -172,10 +175,13 @@ public class GuideCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
 
 
     }
+
     /**
      * 保存攻略标题
      *
@@ -188,7 +194,7 @@ public class GuideCtrl extends Controller {
             String title = req.get("title").asText();
             GuideAPI.saveGuideTitle(new ObjectId(id), title);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (TravelPiException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
 
@@ -203,6 +209,7 @@ public class GuideCtrl extends Controller {
      * @throws TravelPiException
      */
     public static Object getShoppingFromNode(JsonNode node, String typeInfo) throws NullPointerException, TravelPiException {
+        // TODO ObjectId可能不合法
         switch (typeInfo) {
             case "shopping":
                 Shopping shopping = new Shopping();
@@ -228,6 +235,7 @@ public class GuideCtrl extends Controller {
 
     /**
      * 保存用户的美食和购物攻略
+     *
      * @param id
      * @param typeInfo
      * @return
@@ -259,7 +267,7 @@ public class GuideCtrl extends Controller {
                 default:
                     return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
             }
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (TravelPiException | IllegalArgumentException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
     }

@@ -91,7 +91,7 @@ GET           /bache/addHomeImage                            controllers.taozi.B
 #获得攻略列表
 GET           /guides                                        controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
 #查看攻略详情
-GET           /guides/:id/:part                              controllers.taozi.GuideCtrl.getGuideInfo(id: String,part: String)
+GET           /guides/:id/:part                              controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
 #更新行程单
 PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateItinerary(id: String)
 #删除攻略
@@ -111,7 +111,7 @@ DELETE        /im/chatgroups/groupId/members                 controllers.taozi.C
 POST          /im/chatgroups/detail/groupId                  controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
 #地理信息
 # 搜索城市
-GET           /geo/search                                    controllers.taozi.GeoCtrl.searchGeo(keyword: String?="",  prefix: Int?=1)
+GET           /geo/search                                    controllers.taozi.GeoCtrl.searchGeo(keyword: String?="", prefix: Boolean?=true, page: Int?=0, pageSize: Int?=10)
 # 查看城市详情
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
 #发现城市、国家、poi详情

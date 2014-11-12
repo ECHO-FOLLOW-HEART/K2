@@ -1,5 +1,6 @@
 package aizou.core;
 
+import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.guide.Guide;
@@ -106,14 +107,22 @@ public class GuideAPI {
      * @throws TravelPiException
      */
     public static void saveGuideTitle(ObjectId id, String title) throws TravelPiException {
+        try {
+            title = title.trim();
+            if (title.isEmpty())
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID TITLE");
+        } catch (NullPointerException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID TITLE");
+        }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("title", title);
+        uo.set(Guide.fnTitle, title);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
     /**
      * 保存购物信息
+     *
      * @param id
      * @param shoppingList
      * @throws TravelPiException
@@ -121,12 +130,13 @@ public class GuideAPI {
     public static void savaGuideShopping(ObjectId id, List<Shopping> shoppingList) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("shopping", shoppingList);
+        uo.set(Guide.fnShopping, shoppingList);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
     /**
      * 保存美食信息
+     *
      * @param id
      * @param dinningList
      * @throws TravelPiException
@@ -134,7 +144,7 @@ public class GuideAPI {
     public static void savaGuideDinning(ObjectId id, List<Dinning> dinningList) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set("dinning", dinningList);
+        uo.set(Guide.fnDinning, dinningList);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 }
