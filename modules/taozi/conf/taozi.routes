@@ -113,4 +113,4 @@ GET           /geo/localities/search                         controllers.taozi.G
 # 查看城市详情
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
 #发现城市、国家、poi详情
-GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Int?=1, loc: Int?=1, vs: Int?=1, hotel: Int?=1, restaurant: Int?=1, country:Int?=1, page: Int?=0, pageSize: Int?=5)
+GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Boolean?=true, loc: Boolean?=true, vs: Boolean?=false, hotel: Boolean?=true, restaurant: Boolean?=true, country:Boolean?=true, page: Int?=0, pageSize: Int?=5)
