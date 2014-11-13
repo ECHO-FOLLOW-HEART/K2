@@ -8,6 +8,7 @@ import com.mongodb.MongoClient;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.dom4j.Document;
@@ -20,11 +21,14 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Result;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
@@ -259,6 +263,22 @@ public class Utils {
         }
     }
 
+    /**
+     * 生成签名数据
+     * @param data 待加密的数据
+     * @param key 加密使用的key
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     */
+    public static String hmac_sha1(String data,String key) throws NoSuchAlgorithmException, InvalidKeyException {
+        byte[] keyBytes=key.getBytes();
+        SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA1");
+        Mac mac = Mac.getInstance("HmacSHA1");
+        mac.init(signingKey);
+        byte[] rawHmac = mac.doFinal(data.getBytes());
+        return Hex.encodeHexString(rawHmac);
+    }
     /**
      * 生成随机字符串
      *

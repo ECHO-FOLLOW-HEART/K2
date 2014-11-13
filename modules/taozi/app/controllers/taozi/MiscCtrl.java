@@ -2,6 +2,7 @@ package controllers.taozi;
 
 import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
+import aizou.core.WeatherAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
@@ -14,10 +15,12 @@ import models.poi.Hotel;
 import models.poi.Restaurant;
 import models.poi.ViewSpot;
 import models.user.Favorite;
+import org.apache.commons.codec.binary.Base64;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -29,6 +32,8 @@ import utils.formatter.taozi.recom.RecomTypeFormatter;
 import utils.formatter.taozi.user.SelfFavoriteFormatter;
 
 import java.net.UnknownHostException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 /**
@@ -349,5 +354,107 @@ public class MiscCtrl extends Controller {
         }
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
+
+    /**
+     * 通过城市id获得天气情况
+     *
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
+    public static Result getWeatherDetail(String id) {
+        try {
+            YahooWeather weather = WeatherAPI.weatherDetails(new ObjectId(id));
+            return Utils.createResponse(ErrorCode.NORMAL, new WeatherFormatter().format(weather));
+        } catch (NullPointerException | TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
+
+    /**
+     * 获得资源上传凭证
+     *
+     * @param scenario 上传场景: PORTRAIT-上传头像
+     * @return
+     */
+    public static Result putPolicy(String scenario) {
+
+        Configuration config = Configuration.root();
+        try {
+            String userId = request().getHeader("UserId");
+            String picName = getPicName(userId);
+            Map qiniu = (Map) config.getObject("qiniu");
+            String secretKey = qiniu.get("secertKey").toString();
+            String accessKey = qiniu.get("accessKey").toString();
+            String scope,callbackUrl;
+            if (scenario.equals("portrait")) {
+                scope = qiniu.get("avaterScope").toString();
+                callbackUrl = qiniu.get("callbackUrl").toString();
+                callbackUrl = " http://" + callbackUrl;
+            } else
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid scenario.");
+            //取得上传策略
+            ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl);
+            // UrlBase64编码
+            String encodedPutPolicy = Base64.encodeBase64URLSafeString(policy.toString().trim().getBytes());
+            // 构造密钥
+            String sign = Utils.hmac_sha1(encodedPutPolicy, secretKey);
+            // UrlBase64编码
+            String encodedSign = Base64.encodeBase64URLSafeString(sign.getBytes());
+
+            StringBuffer uploadToken = new StringBuffer(10);
+            uploadToken.append(accessKey);
+            uploadToken.append(":");
+            uploadToken.append(encodedSign);
+            uploadToken.append(":");
+            uploadToken.append(encodedPutPolicy);
+
+            ObjectNode ret = Json.newObject();
+            ret.put("uploadToken", uploadToken.toString());
+            return Utils.createResponse(ErrorCode.NORMAL, ret);
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+
+    }
+
+    /**
+     * 上传用户头像，上传策略序列化为JSON
+     *
+     * @return
+     */
+    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl) {
+        //有效期两小时
+        Calendar calendar = new GregorianCalendar();
+        calendar.setTime(new Date());
+        calendar.add(Calendar.HOUR, 2);
+        Date deadline = calendar.getTime();
+
+        StringBuffer callbackBody = new StringBuffer(10);
+        callbackBody.append("name=$(fname)");
+        callbackBody.append("size=$(fsize)");
+        callbackBody.append("&h=$(imageInfo.height)");
+        callbackBody.append("&w=$(imageInfo.width)");
+        callbackBody.append("&hash=$(etag)");
+        ObjectNode info = Json.newObject();
+        info.put("scope ", scope + ":" + picName);
+        info.put("deadline", deadline.getTime());
+        info.put("callbackBody ", callbackBody.toString());
+        info.put("callbackUrl ", callbackUrl);
+        return info;
+    }
+
+    public static String getPicName(String userId) {
+        Date date = new Date();
+        return "avt_" + userId + date.getTime() + ".jpg";
+    }
+
+
+    public static Result getCallback(){
+        JsonNode fav = request().body().asJson();
+        return null;
+    }
+
 
 }
