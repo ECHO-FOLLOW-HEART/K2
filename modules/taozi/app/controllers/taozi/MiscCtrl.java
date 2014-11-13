@@ -8,10 +8,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.misc.Feedback;
-import models.misc.MiscInfo;
-import models.misc.Recommendation;
-import models.misc.TravelNote;
+import models.misc.*;
 import models.poi.AbstractPOI;
 import models.poi.Hotel;
 import models.poi.Restaurant;
@@ -25,9 +22,10 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
-import utils.DataFilter;
 import utils.MsgConstants;
 import utils.Utils;
+import utils.formatter.taozi.recom.RecomFormatter;
+import utils.formatter.taozi.recom.RecomTypeFormatter;
 import utils.formatter.taozi.user.SelfFavoriteFormatter;
 
 import java.net.UnknownHostException;
@@ -95,28 +93,51 @@ public class MiscCtrl extends Controller {
     /**
      * 获取推荐信息
      *
-     * @param type
-     * @param page
-     * @param pageSize
      * @return
      */
-    public static Result recommend(String type, int page, int pageSize) {
-        List<JsonNode> results = new ArrayList<>();
+    public static Result recommend(int page, int pageSize) {
+        List<ObjectNode> retNodeList = new ArrayList();
         Datastore ds;
         try {
             ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            Query<Recommendation> query = ds.createQuery(Recommendation.class);
+            Query<Recom> query = ds.createQuery(Recom.class);
 
-            query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
-            query.order(type).offset(page * pageSize).limit(pageSize);
-
-            for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
-                results.add(it.next().toJson());
+            query.field("enabled").equal(Boolean.TRUE);
+            query.order("weight").offset(page * pageSize).limit(pageSize);
+            Recom recom;
+            Map<ObjectId, List<Recom>> map = new HashMap<>();
+            Map<ObjectId, RecomType> typeMap = new HashMap<>();
+            List<Recom> tempList;
+            for (Iterator<Recom> it = query.iterator(); it.hasNext(); ) {
+                recom = it.next();
+                tempList = map.get(recom.type.id);
+                if (tempList == null)
+                    tempList = new ArrayList<>();
+                tempList.add(recom);
+                map.put(recom.type.id, tempList);
+                typeMap.put(recom.type.id, recom.type);
             }
+            ObjectId key;
+            ObjectNode tempNode;
+            List<Recom> recList;
+            List<ObjectNode> recNodeList;
+            for (Map.Entry<ObjectId, List<Recom>> entry : map.entrySet()) {
+                key = entry.getKey();
+                recList = entry.getValue();
+                recNodeList = new ArrayList();
+                for (Recom tem : recList) {
+                    recNodeList.add((ObjectNode) new RecomFormatter().format(tem));
+                }
+                tempNode = Json.newObject();
+                tempNode.put("type", new RecomTypeFormatter().format(typeMap.get(key)));
+                tempNode.put("localities", Json.toJson(recNodeList));
+                retNodeList.add(tempNode);
+            }
+
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(retNodeList));
     }
 
     /**

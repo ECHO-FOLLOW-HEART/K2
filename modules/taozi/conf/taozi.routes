@@ -52,7 +52,7 @@ GET           /misc/cover-stories                            controllers.taozi.M
 #反馈
 POST          /misc/feedback                                 controllers.taozi.MiscCtrl.postFeedback()
 #推荐
-GET           /recommend/hotcity                             controllers.taozi.MiscCtrl.recommend(sortType: String = "hotCity", page: Int?=0, pageSize: Int?=20)
+GET           /recommend                                     controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=6)
 
 
 #----------POI接口----------
@@ -96,7 +96,7 @@ POST          /im/chatgroups/groupId                         controllers.taozi.C
 DELETE        /im/chatgroups/groupId/members                 controllers.taozi.ChatGroupCtrl.deleteRememberFromChatGroup()
 #修改群组详情
 POST          /im/chatgroups/detail/groupId                  controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
-#地理信息
+#----------地理信息接口----------
 # 搜索城市
 GET           /geo/localities/search                         controllers.taozi.GeoCtrl.searchLocality(keyword: String?="",  prefix: Int?=1)
 # 查看城市详情
