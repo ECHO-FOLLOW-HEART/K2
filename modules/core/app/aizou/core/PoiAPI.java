@@ -455,10 +455,6 @@ public class PoiAPI {
             query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
 
         query.field("abroad").equal(abroad);
-
-//        if (poiType == POIType.VIEW_SPOT)
-//            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
-
         return query.offset(page * pageSize).limit(pageSize).order("-ratings.score").iterator();
     }
 

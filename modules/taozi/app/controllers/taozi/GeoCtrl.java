@@ -10,6 +10,8 @@ import exception.TravelPiException;
 import models.geo.Country;
 import models.geo.Locality;
 import models.poi.AbstractPOI;
+import org.bson.types.ObjectId;
+import org.omg.PortableInterceptor.LOCATION_FORWARD;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -18,14 +20,16 @@ import utils.DataFilter;
 import utils.Utils;
 import utils.formatter.taozi.geo.LocalityFormatter;
 import utils.formatter.taozi.geo.SimpleCountryFormatter;
+import utils.formatter.taozi.geo.SimpleLocalityFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
+import utils.formatter.taozi.user.SimplePOIFormatter;
 
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
 
 /**
  * 地理相关
- * <p>
+ * <p/>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
@@ -138,4 +142,63 @@ public class GeoCtrl extends Controller {
 
     }
 
+
+    /**
+     * 返回国内的城市信息
+     *
+     * @return
+     */
+    public static Result getLocalities() {
+        try {
+            List<JsonNode> result = new ArrayList<>();
+            List<Locality> localityList = GeoAPI.getLocalities();
+            for (Locality locality : localityList) {
+                result.add(new SimpleLocalityFormatter().format(locality));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
+
+    /**
+     * 特定地点美食、景点、购物发现
+     * @param locId
+     * @param vs
+     * @param hotel
+     * @param restaurant
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result explorePOI(String locId, boolean vs, boolean hotel, boolean restaurant,
+                                    int page, int pageSize) {
+        try {
+            ObjectNode results = Json.newObject();
+            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
+            if (vs)
+                poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
+
+            if (hotel)
+                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
+
+            if (restaurant)
+                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
+
+            for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
+                List<JsonNode> retPoiList = new ArrayList<>();
+                PoiAPI.POIType poiType = entry.getKey();
+                String poiTypeName = entry.getValue();
+
+                // TODO 暂时返回国内数据
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, new ObjectId(locId), false, page, pageSize);
+                     it.hasNext(); )
+                    retPoiList.add(new SimplePOIFormatter().format(it.next()));
+                results.put(poiTypeName, Json.toJson(retPoiList));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, results);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
 }

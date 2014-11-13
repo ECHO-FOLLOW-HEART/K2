@@ -130,4 +130,15 @@ public class GeoAPI {
             result.add(new SimpleCountryFormatter().format(c));
         return result;
     }
+
+    /**
+     * 获取国内城市
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Locality> getLocalities() throws TravelPiException {
+        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class);
+        return query.field("abroad").equal(false).field("level").equal(2).asList();
+    }
 }
