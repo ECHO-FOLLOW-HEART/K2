@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.poi.AbstractPOI;
+import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -16,10 +17,7 @@ import utils.Utils;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 import utils.formatter.taozi.user.SimplePOIFormatter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by topy on 2014/11/1.
@@ -290,5 +288,29 @@ public class POICtrl extends Controller {
         }
     }
 
+    /**
+     * 获取乘车指南/景点简介
+     *
+     * @param id
+     * @param desc
+     * @param traffic
+     * @return
+     */
+    public static Result getViewSpotDetail(String id, Boolean desc, Boolean traffic) {
+        try {
+            ObjectNode results = Json.newObject();
+            ObjectId oid=new ObjectId(id);
+            ViewSpot viewSpot = PoiAPI.getVsDetail(oid,Arrays.asList(ViewSpot.detDesc));
+            if (desc) {
+                results.put("desc",viewSpot.description.desc);
+            }
 
+            if (traffic) {
+                results.put("traffic", viewSpot.description.traffic);
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, results);
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
 }

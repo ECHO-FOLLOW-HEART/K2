@@ -163,26 +163,28 @@ public class GeoCtrl extends Controller {
 
     /**
      * 特定地点美食、景点、购物发现
+     *
      * @param locId
      * @param vs
-     * @param hotel
-     * @param restaurant
+     * @param dinning
+     * @param shopping
      * @param page
      * @param pageSize
      * @return
      */
-    public static Result explorePOI(String locId, boolean vs, boolean hotel, boolean restaurant,
+    public static Result explorePOI(String locId, boolean vs, boolean dinning, boolean shopping,
                                     int page, int pageSize) {
+        //TODO 没有美食/购物的数据
         try {
             ObjectNode results = Json.newObject();
             HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
             if (vs)
                 poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
 
-            if (hotel)
+            if (dinning)
                 poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
 
-            if (restaurant)
+            if (shopping)
                 poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
 
             for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {

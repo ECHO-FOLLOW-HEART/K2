@@ -9,6 +9,7 @@ import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
 import models.poi.*;
+import models.user.ChatGroupInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -719,6 +720,28 @@ public class PoiAPI {
         query = query.field(AbstractPOI.fnLocation).near(lng, lat, 1000, true);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
+    }
+
+    /**
+     *获取景点简介
+     * @param id
+     * @param list
+     * @return
+     * @throws TravelPiException
+     */
+    public static ViewSpot getVsDetail(ObjectId id,List<String> list) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<ViewSpot> query = ds.createQuery(ViewSpot.class).field("_id").equal(id);
+        if (list != null && !list.isEmpty()) {
+            query.retrievedFields(true, list.toArray(new String[list.size()]));
+        }
+        return query.get();
+    }
+
+    public static ViewSpot getVsDetails(ObjectId id) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<ViewSpot> query = ds.createQuery(ViewSpot.class).field("_id").equal(id);
+        return query.get();
     }
 
     public enum SortField {

@@ -390,6 +390,13 @@ public class MiscCtrl extends Controller {
         }
     }
 
+    /**
+     * 显示评论信息
+     * @param poiId
+     * @param page
+     * @param pageSize
+     * @return
+     */
     public static Result displayComment(String poiId, int page, int pageSize) {
         try {
             List<Comment> commentList = MiscAPI.displayCommentApi(poiId, page, pageSize);

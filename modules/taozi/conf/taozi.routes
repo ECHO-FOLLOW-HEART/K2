@@ -135,5 +135,7 @@ GET           /columns                                       controllers.taozi.M
 POST          /comments                                      controllers.taozi.MiscCtrl.saveComment()
 #查看poi的评价
 GET           /poi/:id/comment                               controllers.taozi.MiscCtrl.displayComment(id :String,page :Int?=0,pageSize :Int?=15)
-#特定地区的poi发现
-GET           /poi/:locId/details                            controllers.taozi.GeoCtrl.explorePOI(locId:String,vs: Boolean?=false, hotel: Boolean?=true, restaurant: Boolean?=true, page: Int?=0, pageSize: Int?=15)
+#特定地区的美食、购物发现
+GET           /poi/:locId/details                            controllers.taozi.GeoCtrl.explorePOI(locId:String,vs: Boolean?=false, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
+#获取特定景点的交通与简介
+GET          /view-spot/:id/details                          controllers.taozi.POICtrl.getViewSpotDetail(id:String,desc :Boolean?=true,traffic :Boolean?=false)

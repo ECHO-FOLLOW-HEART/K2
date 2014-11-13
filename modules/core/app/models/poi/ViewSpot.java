@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.misc.Description;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 import utils.DataFilter;
 
@@ -17,6 +18,7 @@ import java.util.*;
  * @author Zephyre
  */
 public class ViewSpot extends AbstractPOI {
+
     public Boolean worldHeritage;
 
     public Integer spotId;
