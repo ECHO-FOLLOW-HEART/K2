@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat;
 /**
  * Created by lxf on 14-11-12.
  */
-@JsonFilter("commentFilter")
+@JsonFilter("commentsFilter")
 @Entity
 public class Comment extends TravelPiBaseItem implements ITravelPiFormatter {
 
