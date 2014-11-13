@@ -86,11 +86,28 @@ GET           /poi/view-restaurants/localities/:locId        controllers.taozi.P
 GET           /poi/view-spots/localities/:locId              controllers.taozi.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="price", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 
 #获得景点周边的POI列表
-GET           /poi/nearby                                    controllers.taozi.POICtrl.getPoiNear(lng: Double,lat: Double,spot:Boolean=        true,        hotel:        Boolean        ?=        false,        restaurant:        Boolean        ?=        false,        page:        Int        ?=0,        pageSize :        Int        ?=20)
-
+GET           /poi/nearby                                    controllers.taozi.POICtrl.getPoiNear(lng: Double,lat: Double,spot:Boolean=true,hotel:Boolean?=false,restaurant:Boolean?=false,page:Int?=0,pageSize :Int?=20)
 #----------数据脚本----------
 #添加首页图片
 GET           /bache/addHomeImage                            controllers.taozi.BacheCtrl.addHomeImage()
+
+#----------攻略接口----------
+#获得攻略列表
+GET           /guides                                        controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
+#查看攻略详情
+GET           /guides/:id/:part                              controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
+#修改攻略标题
+PUT           /guides/:id                                    controllers.taozi.GuideCtrl.setGuideTitle(id:String)
+#删除攻略
+DELETE        /guides/:id                                    controllers.taozi.GuideCtrl.deleteGuide(id: String)
+#更新行程单
+PUT           /guides/:id/itinerary                          controllers.taozi.GuideCtrl.updateGuide(id: String, typeInfo: String="itinerary")
+#更新购物单
+PUT           /guides/:id/shopping                           controllers.taozi.GuideCtrl.updateGuide(id:String,typeInfo:String?="shopping")
+#更新美食单
+PUT           /guides/:id/dinning                            controllers.taozi.GuideCtrl.updateGuide(id:String,typeInfo:String?="dinning")
+
+
 #创建群组
 POST          /im/chatgroups                                 controllers.taozi.ChatGroupCtrl.createChatGroup()
 #删除群组
@@ -105,9 +122,10 @@ DELETE        /im/chatgroups/groupId/members                 controllers.taozi.C
 POST          /im/chatgroups/detail/groupId                  controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
 #----------地理信息接口----------
 # 搜索城市
-GET           /geo/localities/search                         controllers.taozi.GeoCtrl.searchLocality(keyword: String?="",  prefix: Int?=1)
+# TODO localitites/search弃用了吗？
+GET           /geo/search                                    controllers.taozi.GeoCtrl.searchGeo(keyword: String?="", prefix: Boolean?=true, page: Int?=0, pageSize: Int?=10)
+#GET           /geo/localities/search                         controllers.taozi.GeoCtrl.searchGeo(keyword: String?="",  prefix: Int?=1)
 # 查看城市详情
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
 #发现城市、国家、poi详情
-GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Int?=1, loc: Int?=1, vs: Int?=1, hotel: Int?=1, restaurant: Int?=1, country:Int?=1, page: Int?=0, pageSize: Int?=5)
-
+GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Boolean?=true, loc: Boolean?=true, vs: Boolean?=false, hotel: Boolean?=true, restaurant: Boolean?=true, country:Boolean?=true, page: Int?=0, pageSize: Int?=10)

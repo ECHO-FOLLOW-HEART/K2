@@ -1,12 +1,15 @@
 package models.poi;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.geo.Address;
+import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.CheckinRatings;
 import models.misc.Contact;
@@ -29,7 +32,24 @@ import java.util.*;
  *         Created by zephyre on 7/16/14.
  */
 @JsonFilter("abstractPOIFilter")
+// For deserialize a JSON
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type")
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = ViewSpot.class, name = "vs"),
+        @JsonSubTypes.Type(value = Hotel.class, name = "hotel"),
+        @JsonSubTypes.Type(value = Restaurant.class, name = "restaurant"),
+        @JsonSubTypes.Type(value = Shopping.class, name = "shopping"),
+        @JsonSubTypes.Type(value = Dinning.class, name = "dinning")
+})
 public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
+
+    /**
+     * 标识POI的种类
+     */
+    public String type;
 
     @Transient
     public static String simpID = "id";
@@ -45,6 +65,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String detAddr = "addr";
+
+    @Transient
+    public static String fnLocation = "location";
 
     @Transient
     public static String detDesc = "description";
@@ -70,6 +93,15 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Transient
     public static String detTrafficInfo = "trafficInfo";
 
+    @Transient
+    public static String simpEnName = "enName";
+
+    @Transient
+    public static String simpCover = "cover";
+
+    @Transient
+    public static String simpRating = "rating";
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -86,6 +118,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public String name;
 
+    public String enName;
+
     public String url;
 
     public Double price;
@@ -93,6 +127,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public String priceDesc;
 
     public String desc;
+
+    /**
+     * 坐标
+     */
+    public GeoJsonPoint location;
 
     /**
      * 电话
@@ -118,9 +157,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public String trafficInfo;
 
-    public List<String> imageList;
+//    public List<String> imageList;
 
     public List<ImageItem> images;
+
+    public String cover;
 
     public List<String> tags;
 
@@ -134,7 +175,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p/>
+     * <p>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -149,14 +190,17 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      */
     public Map<String, Object> extra;
 
+
+    public Double rating;
+
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:
                 return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
             case 2:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags"));
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags"));
             case 3:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "imageList", "images", "tags", "contact", "url",
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact", "url",
                         "price", "priceDesc", "alias"));
         }
         return new ArrayList<>();
@@ -193,19 +237,19 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return trafficInfo;
     }
 
-    public List<String> getImages() {
-        if (images == null) {
-            if (imageList == null)
-                return new ArrayList();
-            else
-                return imageList;
-        } else {
-            ArrayList<String> tmpList = new ArrayList<String>();
-            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
-                tmpList.add(img.url);
-            return tmpList;
-        }
-    }
+//    public List<String> getImages() {
+//        if (images == null) {
+//            if (imageList == null)
+//                return new ArrayList();
+//            else
+//                return imageList;
+//        } else {
+//            ArrayList<String> tmpList = new ArrayList<String>();
+//            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
+//                tmpList.add(img.url);
+//            return tmpList;
+//        }
+//    }
 
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
@@ -234,6 +278,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                         isNull = ((Collection) val).isEmpty();
                     builder.add(k, (isNull ? new ArrayList<>() : val));
                 } catch (NoSuchFieldException | IllegalAccessException ignored) {
+                    builder.add(k, new ArrayList<>());
                 }
             }
 

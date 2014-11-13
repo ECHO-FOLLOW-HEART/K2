@@ -191,6 +191,7 @@ public class POICtrl extends Controller {
                 node.put("geo", Json.toJson(tmp));
             }
 
+            // TODO 此处的imageList和images，应该用哪一个？
             tmp = (DBObject) item.get("imageList");
             if (tmp != null)
                 node.put("imageList", Json.toJson(tmp));

@@ -1,11 +1,13 @@
 package models.misc;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
@@ -21,8 +23,17 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
+@JsonFilter("weatherFilter")
 public class YahooWeather extends TravelPiBaseItem implements ITravelPiFormatter {
 
+    @Transient
+    public static String fnLoc="loc";
+    @Transient
+    public static String fnCurrent="current";
+    @Transient
+    public static String fnForecase="forecast";
+    @Transient
+    public static String fnUpdateTime="updateTime";
     /**
      * 地点
      */
@@ -47,6 +58,15 @@ public class YahooWeather extends TravelPiBaseItem implements ITravelPiFormatter
      */
     @Constraints.Required
     public Date updateTime;
+
+    public  String getUpdateTime(){
+        if (updateTime==null)
+            return "";
+        else{
+            DateFormat timeFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+            return timeFormat.format(updateTime);
+        }
+    }
 
     @Override
     public JsonNode toJson() {

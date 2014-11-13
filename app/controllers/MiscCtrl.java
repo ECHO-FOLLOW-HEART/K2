@@ -225,30 +225,30 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(ret));
     }
 
-    /**
-     * 根据搜索词获得提示
-     *
-     * @param word
-     * @param pageSize
-     * @return
-     * @throws UnknownHostException
-     */
-    public static Result getSuggestionsOld(String word, int loc, int vs, int hotel, int restaurant, int pageSize) throws UnknownHostException, TravelPiException {
-        int y = 0;
-        ObjectNode ret = Json.newObject();
-        if (loc != 0) {
-            DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gte", 1).get()).get();
-            List<JsonNode> locSug = getSpecSug(word, pageSize, "zhName", "geo", "locality", extra);
-            ret.put("loc", Json.toJson(locSug));
-        }
-        if (vs != 0)
-            ret.put("vs", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.VIEW_SPOT, word, 0, pageSize)));
-        if (hotel != 0)
-            ret.put("hotel", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.HOTEL, word, 0, pageSize)));
-        if (restaurant != 0)
-            ret.put("restaurant", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.RESTAURANT, word, 0, pageSize)));
-        return Utils.createResponse(ErrorCode.NORMAL, ret);
-    }
+//    /**
+//     * 根据搜索词获得提示
+//     *
+//     * @param word
+//     * @param pageSize
+//     * @return
+//     * @throws UnknownHostException
+//     */
+//    public static Result getSuggestionsOld(String word, int loc, int vs, int hotel, int restaurant, int pageSize) throws UnknownHostException, TravelPiException {
+//        int y = 0;
+//        ObjectNode ret = Json.newObject();
+//        if (loc != 0) {
+//            DBObject extra = BasicDBObjectBuilder.start("level", BasicDBObjectBuilder.start("$gte", 1).get()).get();
+//            List<JsonNode> locSug = getSpecSug(word, pageSize, "zhName", "geo", "locality", extra);
+//            ret.put("loc", Json.toJson(locSug));
+//        }
+//        if (vs != 0)
+//            ret.put("vs", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.VIEW_SPOT, word, 0, pageSize)));
+//        if (hotel != 0)
+//            ret.put("hotel", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.HOTEL, word, 0, pageSize)));
+//        if (restaurant != 0)
+//            ret.put("restaurant", Json.toJson(PoiAPI.getSuggestionsOld(PoiAPI.POIType.RESTAURANT, word, 0, pageSize)));
+//        return Utils.createResponse(ErrorCode.NORMAL, ret);
+//    }
 
     private static List<JsonNode> getSpecSug(String word, int pageSize, String nameField, String dbName, String colName, DBObject extra) throws UnknownHostException, TravelPiException {
         Pattern pattern = Pattern.compile("^" + word);

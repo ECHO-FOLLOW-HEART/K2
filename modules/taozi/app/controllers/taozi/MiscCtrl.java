@@ -29,6 +29,7 @@ import utils.MsgConstants;
 import utils.Utils;
 import utils.formatter.taozi.recom.RecomFormatter;
 import utils.formatter.taozi.recom.RecomTypeFormatter;
+import utils.formatter.taozi.misc.WeatherFormatter;
 import utils.formatter.taozi.user.SelfFavoriteFormatter;
 
 import java.net.UnknownHostException;
@@ -235,9 +236,10 @@ public class MiscCtrl extends Controller {
                     .field("userId").equal(userID).get();
             Favorite retFa = createFavorite(fa);
             List<? extends AbstractPOI> pois;
-            List<String> fields = Arrays.asList("id", "name", "description", "images", "desc", "imageList");
+            // TODO 注意此处的images和imagesList，需要更新
+            List<String> fields = Arrays.asList("id", "name", "description", "images", "desc", "images");
             List<String> tnFields = Arrays.asList("id", "title", "summary");
-            List<String> locFields = Arrays.asList("id", "zhName", "imageList", "desc");
+            List<String> locFields = Arrays.asList("id", "zhName", "images", "desc");
             switch (faType) {
                 case "vs":
                     pois = PoiAPI.getPOIInfoListByPOI(fa.getVs(), faType, fields, page, pageSize);
@@ -357,7 +359,6 @@ public class MiscCtrl extends Controller {
 
     /**
      * 通过城市id获得天气情况
-     *
      * @param id
      * @return
      * @throws TravelPiException
@@ -455,6 +456,5 @@ public class MiscCtrl extends Controller {
         JsonNode fav = request().body().asJson();
         return null;
     }
-
 
 }
