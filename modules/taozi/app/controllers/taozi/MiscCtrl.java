@@ -25,11 +25,12 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
+import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
+import utils.formatter.taozi.misc.WeatherFormatter;
 import utils.formatter.taozi.recom.RecomFormatter;
 import utils.formatter.taozi.recom.RecomTypeFormatter;
-import utils.formatter.taozi.misc.WeatherFormatter;
 import utils.formatter.taozi.user.SelfFavoriteFormatter;
 
 import java.net.UnknownHostException;
@@ -359,6 +360,7 @@ public class MiscCtrl extends Controller {
 
     /**
      * 通过城市id获得天气情况
+     *
      * @param id
      * @return
      * @throws TravelPiException
@@ -387,7 +389,7 @@ public class MiscCtrl extends Controller {
             Map qiniu = (Map) config.getObject("qiniu");
             String secretKey = qiniu.get("secertKey").toString();
             String accessKey = qiniu.get("accessKey").toString();
-            String scope,callbackUrl;
+            String scope, callbackUrl;
             if (scenario.equals("portrait")) {
                 scope = qiniu.get("avaterScope").toString();
                 callbackUrl = qiniu.get("callbackUrl").toString();
@@ -452,9 +454,18 @@ public class MiscCtrl extends Controller {
     }
 
 
-    public static Result getCallback(){
-        JsonNode fav = request().body().asJson();
-        return null;
+    public static Result getCallback() {
+        Map<String, String[]> fav = request().body().asFormUrlEncoded();
+        ObjectNode ret = Json.newObject();
+        for (Map.Entry<String, String[]> entry : fav.entrySet()) {
+            String key = entry.getKey();
+            String[] value = entry.getValue();
+            // TODO 日志
+            LogUtils.info(MiscCtrl.class, key + value);
+            ret.put(key, value[0]);
+        }
+        ret.put("success", true);
+        return ok(ret);
     }
 
 }
