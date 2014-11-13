@@ -109,7 +109,7 @@ public class LocalityAPI {
     public static Iterator<Locality> getSuggestion(String searchWord, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord));
-        query.field("relPlanCnt").greaterThan(0);
+//        query.field("relPlanCnt").greaterThan(0);
         return query.retrievedFields(true, "zhName", "enName", "level", "superAdm", "abroad")
                 .limit(pageSize).iterator();
     }
@@ -171,12 +171,24 @@ public class LocalityAPI {
         Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
             Collections.addAll(fields, "superAdm", "images", "imageList", "tags", "desc", "country", "coords");
-        Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
-                .field("abroad").equal(abroad)
+        // TODO 发现城市。境内和境外区别对待
+        Query<Locality> query;
+        if (abroad) {
+            query = ds.createQuery(Locality.class)
+                    .field("abroad").equal(true)
+                    .field("images.url").equal(Pattern.compile("^http"))
+//                    .field("images").notEqual(new ArrayList<>())
+//                .field("relPlanCnt").greaterThan(0)
+                    .retrievedFields(true, fields.toArray(new String[]{""}))
+                    .offset(page * pageSize).limit(pageSize).order("-isHot");
+        } else {
+            query = ds.createQuery(Locality.class).field("level").equal(2)
+                    .field("abroad").equal(false)
 //                .field("imageList").notEqual(null)
 //                .field("relPlanCnt").greaterThan(0)
-                .retrievedFields(true, fields.toArray(new String[]{""}))
-                .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score, -relPlanCnt");
+                    .retrievedFields(true, fields.toArray(new String[]{""}))
+                    .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score, -relPlanCnt");
+        }
 
         return query.asList();
     }

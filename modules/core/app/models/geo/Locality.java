@@ -72,11 +72,19 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnCoords = "coords";
 
+    @Transient
+    public static String fnIsHot = "isHot";
+
     public String zhName;
 
     public String enName;
 
     public String shortName;
+
+    /**
+     * 是否为热门城市
+     */
+    public Boolean isHot;
 
     public List<String> alias;
 

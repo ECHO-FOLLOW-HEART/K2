@@ -15,7 +15,6 @@ import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * Created by zephyre on 7/10/14.
@@ -93,7 +92,8 @@ public class GeoAPI {
             query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
         if (countryId != null)
             query.field(String.format("%s.%s", Locality.fnCountry, SimpleRef.simpID)).equal(countryId);
-        return query.order("level").offset(page * pageSize).limit(pageSize).iterator();
+        return query.order(String.format("-%s, %s", Locality.fnIsHot, Locality.fnLevel))
+                .offset(page * pageSize).limit(pageSize).iterator();
     }
 
     /**

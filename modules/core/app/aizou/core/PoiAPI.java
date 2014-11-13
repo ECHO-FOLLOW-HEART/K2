@@ -625,7 +625,7 @@ public class PoiAPI {
      */
     public static Map<String, List<Locality>> destRecommend() throws TravelPiException {
         List countryList = Utils.getMongoClient().getDB("geo").getCollection("Locality")
-                .distinct(String.format("%s.id", Locality.fnCountry));
+                .distinct(String.format("%s._id", Locality.fnCountry));
 
         Map<String, List<Locality>> results = new HashMap<>();
         for (Object obj : countryList) {
