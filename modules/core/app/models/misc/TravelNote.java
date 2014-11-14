@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
+import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
+import utils.Constants;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,13 +24,36 @@ import java.util.List;
 @JsonFilter("travelNoteFilter")
 public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
 
+    @Transient
+    public static String fnId = "id";
 
     @Transient
-    public static String simpId = "id";
-
+    public static String fnName = "name";
 
     @Transient
-    public static String simpTitle = "name";
+    public static String fnTitle = "title";
+
+    @Transient
+    public static String fnDesc = "desc";
+
+    @Transient
+    public static String fnCover = "cover";
+
+    @Transient
+    public static String fnAuthorName = "authorName";
+
+    @Transient
+    public static String fnAuthorAvatar = "authorAvatar";
+
+    @Transient
+    public static String fnSource = "source";
+
+    @Transient
+    public static String fnSourceUrl = "sourceUrl";
+
+    @Transient
+    public static String fnPublishDate = "publishDate";
+
 
     /**
      * 名称(与Title名称一致)
@@ -124,11 +149,34 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public Boolean elite;
 
+    public String cover;
+
+    public String getId() {
+        if (id == null)
+            return "";
+        else
+            return id.toString();
+    }
+
     public String getName() {
         if (title == null)
             return "";
         else
             return title;
+    }
+
+    public String getCover() {
+        if (cover == null)
+            return "";
+        else
+            return cover;
+    }
+
+    public String getDesc() {
+        if (summary == null)
+            return "";
+        else
+            return StringUtils.abbreviate(summary, Constants.ABBREVIATE_LEN);
     }
 
     public JsonNode toJson() {

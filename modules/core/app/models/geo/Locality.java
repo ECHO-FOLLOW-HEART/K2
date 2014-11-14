@@ -37,7 +37,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String fnEnName = "enName";
 
     @Transient
-    public static String fnZhName = "zhName";
+    public static String fnZhName = "name";
 
     @Transient
     public static String fnCountry = "country";
@@ -71,6 +71,18 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnCoords = "coords";
+
+    @Transient
+    public static String fntimeCost = "timeCost";
+
+    @Transient
+    public static String fntravelMonth = "travelMonth";
+
+    @Transient
+    public static String fnCover = "cover";
+
+    @Transient
+    public static String fnimageCnt = "imageCnt";
 
     public String zhName;
 
@@ -128,6 +140,10 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public Coords bCoords;
 
     public String desc;
+
+    public Double timeCost;
+
+    public String cover;
 
     /**
      * 该locality对应路线的
@@ -223,6 +239,23 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public Boolean getAbroad() {
         return abroad != null && abroad;
+    }
+
+    public Double getTimeCost() {
+        return timeCost != null ? timeCost : 0;
+    }
+
+    public Integer getImageCnt() {
+        return images != null ? images.size() : 0;
+    }
+
+    public String getCover() {
+        return cover != null ? cover : "";
+    }
+
+    // TODO
+    public String getTravelMonth() {
+        return travelMonth != null ? "" : "";
     }
 
     public JsonNode getJsonNode() {

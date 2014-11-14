@@ -114,8 +114,8 @@ public class SelfFavoriteFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(TravelNote.simpId);
-                includedFields.add(TravelNote.simpTitle);
+                includedFields.add(TravelNote.fnId);
+                includedFields.add(TravelNote.fnName);
                 return (includedFields.contains(writer.getName()));
             }
 
