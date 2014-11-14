@@ -8,7 +8,6 @@ import com.mongodb.MongoClient;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.dom4j.Document;
@@ -265,20 +264,37 @@ public class Utils {
 
     /**
      * 生成签名数据
+     *
      * @param data 待加密的数据
-     * @param key 加密使用的key
+     * @param key  加密使用的key
      * @return
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeyException
      */
-    public static String hmac_sha1(String data,String key) throws NoSuchAlgorithmException, InvalidKeyException {
-        byte[] keyBytes=key.getBytes();
-        SecretKeySpec signingKey = new SecretKeySpec(keyBytes, "HmacSHA1");
+    public static byte[] hmac_sha1(String data, String key) throws NoSuchAlgorithmException, InvalidKeyException {
+        SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), "HmacSHA1");
         Mac mac = Mac.getInstance("HmacSHA1");
         mac.init(signingKey);
-        byte[] rawHmac = mac.doFinal(data.getBytes());
-        return Hex.encodeHexString(rawHmac);
+        return mac.doFinal(data.getBytes());
+        //return Hex.encodeHexString(rawHmac);
     }
+
+    /**
+     * URL安全的Base64编码，手动加“=”
+     * @param str
+     * @return
+     */
+    public static String base64Padding(String str) {
+        int len = str.length();
+        int cnt = len % 4;
+        if (cnt == 2)
+            return str + "==";
+        else if (cnt == 3)
+            return str + "=";
+        else
+            return str;
+    }
+
     /**
      * 生成随机字符串
      *

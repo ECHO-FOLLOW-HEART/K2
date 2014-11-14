@@ -393,17 +393,17 @@ public class MiscCtrl extends Controller {
             if (scenario.equals("portrait")) {
                 scope = qiniu.get("avaterScope").toString();
                 callbackUrl = qiniu.get("callbackUrl").toString();
-                callbackUrl = " http://" + callbackUrl;
+                callbackUrl = "http://" + callbackUrl;
             } else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid scenario.");
             //取得上传策略
             ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl);
             // UrlBase64编码
             String encodedPutPolicy = Base64.encodeBase64URLSafeString(policy.toString().trim().getBytes());
-            // 构造密钥
-            String sign = Utils.hmac_sha1(encodedPutPolicy, secretKey);
-            // UrlBase64编码
-            String encodedSign = Base64.encodeBase64URLSafeString(sign.getBytes());
+            encodedPutPolicy = Utils.base64Padding(encodedPutPolicy);
+            // 构造密钥并UrlBase64编码
+            String encodedSign = Base64.encodeBase64URLSafeString(Utils.hmac_sha1(encodedPutPolicy, secretKey));
+            encodedSign = Utils.base64Padding(encodedSign);
 
             StringBuffer uploadToken = new StringBuffer(10);
             uploadToken.append(accessKey);
@@ -414,46 +414,70 @@ public class MiscCtrl extends Controller {
 
             ObjectNode ret = Json.newObject();
             ret.put("uploadToken", uploadToken.toString());
+            ret.put("key", picName);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
 
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-
     }
 
     /**
-     * 上传用户头像，上传策略序列化为JSON
+     * 回调方式，上传用户头像，上传策略序列化为JSON
      *
      * @return
      */
     private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl) {
-        //有效期两小时
-        Calendar calendar = new GregorianCalendar();
-        calendar.setTime(new Date());
-        calendar.add(Calendar.HOUR, 2);
-        Date deadline = calendar.getTime();
 
-        StringBuffer callbackBody = new StringBuffer(10);
-        callbackBody.append("name=$(fname)");
-        callbackBody.append("size=$(fsize)");
-        callbackBody.append("&h=$(imageInfo.height)");
-        callbackBody.append("&w=$(imageInfo.width)");
-        callbackBody.append("&hash=$(etag)");
         ObjectNode info = Json.newObject();
-        info.put("scope ", scope + ":" + picName);
-        info.put("deadline", deadline.getTime());
-        info.put("callbackBody ", callbackBody.toString());
-        info.put("callbackUrl ", callbackUrl);
+        info.put("scope", scope + ":" + picName);
+        info.put("deadline", System.currentTimeMillis() / 1000 + 2 * 3600);
+        info.put("callBackBody", getCallBackBody());
+        info.put("callbackUrl", callbackUrl);
         return info;
     }
 
+    /**
+     * 定义回调Body
+     *
+     * @return
+     */
+    private static String getCallBackBody() {
+        StringBuffer callbackBody = new StringBuffer(10);
+        callbackBody.append("name=$(fname)");
+        callbackBody.append("&size=$(fsize)");
+        callbackBody.append("&h=$(imageInfo.height)");
+        callbackBody.append("&w=$(imageInfo.width)");
+        callbackBody.append("&hash=$(etag)");
+        return callbackBody.toString();
+    }
+
+    private static String getReturnBody() {
+        ObjectNode info = Json.newObject();
+        info.put("name", "$(fname)");
+        info.put("size", "$(fsize)");
+        info.put("w", "$(imageInfo.width)");
+        info.put("h", "$(imageInfo.height)");
+        info.put("hash", "$(etag)");
+        return info.toString();
+    }
+
+    /**
+     * 取得文件名
+     *
+     * @param userId
+     * @return
+     */
     public static String getPicName(String userId) {
         Date date = new Date();
         return "avt_" + userId + date.getTime() + ".jpg";
     }
 
-
+    /**
+     * 上传回调
+     *
+     * @return
+     */
     public static Result getCallback() {
         Map<String, String[]> fav = request().body().asFormUrlEncoded();
         ObjectNode ret = Json.newObject();
