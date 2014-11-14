@@ -27,6 +27,7 @@ public class Comment extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String fnCommentDetails="commentDetails";
     @Transient
     public static String fnCommentTime="commentTime";
+
     /**
      * 评论的用户
      */

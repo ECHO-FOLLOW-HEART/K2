@@ -61,14 +61,13 @@ public class MiscAPI {
      * @return
      * @throws TravelPiException
      */
-    public static List<Comment> displayCommentApi(String poiId, Boolean goodComment,
-                                                  Boolean midComment, Boolean badComment, int page, int pageSize)
+    public static List<Comment> displayCommentApi(String poiId, Double lower,Double upper, int page, int pageSize)
             throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class).field("poiId").equal(poiId);
-        query = query.order("-commentTime");
-        if (goodComment) {
+        query = query.order(Comment.fnCommentTime);
+        /*if (goodComment) {
             query = query.filter("score >=", 0.7).filter("score <", 1.0);
             return query.offset(page * pageSize).limit(pageSize).asList();
         }
@@ -79,8 +78,9 @@ public class MiscAPI {
         if (midComment) {
             query = query.filter("score <", 0.3);
             return query.offset(page * pageSize).limit(pageSize).asList();
-        }
-        return query.offset(page * pageSize).limit(page).asList();
+        }*/
+
+        return query.filter(Comment.fnScore+" >=",lower).filter(Comment.fnScore+" <",upper).offset(page * pageSize).limit(page).asList();
     }
 
 

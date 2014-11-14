@@ -398,9 +398,9 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result displayComment(String poiId, Boolean goodComment, Boolean midComment, Boolean badComment, int page, int pageSize) {
+    public static Result displayComment(String poiId,Double lower,Double upper,int page, int pageSize) {
         try {
-            List<Comment> commentList = MiscAPI.displayCommentApi(poiId, goodComment, midComment, badComment, page, pageSize);
+            List<Comment> commentList = MiscAPI.displayCommentApi(poiId,lower,upper, page, pageSize);
             List<JsonNode> list = new ArrayList<>();
             for (Comment comment : commentList) {
                 list.add(new MiscFormatter().format(comment));
