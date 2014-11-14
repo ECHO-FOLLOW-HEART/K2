@@ -59,6 +59,8 @@ GET           /misc/weather/:id                              controllers.taozi.M
 GET           /misc/put-policy/:scenario                     controllers.taozi.MiscCtrl.putPolicy(scenario:String)
 #处理资源上传的回调
 POST          /misc/upload-callback                          controllers.taozi.MiscCtrl.getCallback()
+#游记
+GET           /misc/notes/search                             controllers.taozi.TravelNoteCtrl.searchNotes(locId: String,pageSize: Int)
 
 #----------POI接口----------
 #查看POI详情
