@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.poi.AbstractPOI;
+import models.poi.TravelGuide;
 import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -299,14 +300,42 @@ public class POICtrl extends Controller {
     public static Result getViewSpotDetail(String id, Boolean desc, Boolean traffic) {
         try {
             ObjectNode results = Json.newObject();
-            ObjectId oid=new ObjectId(id);
-            ViewSpot viewSpot = PoiAPI.getVsDetail(oid,Arrays.asList(ViewSpot.detDesc));
+            ObjectId oid = new ObjectId(id);
+            ViewSpot viewSpot = PoiAPI.getVsDetail(oid, Arrays.asList(ViewSpot.detDesc));
             if (desc) {
-                results.put("desc",viewSpot.description.desc);
+                results.put("desc", viewSpot.description.desc);
             }
 
             if (traffic) {
                 results.put("traffic", viewSpot.description.traffic);
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, results);
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
+
+    public static Result getTravelGuide(String id, Boolean arrive, Boolean traffic, Boolean bright, Boolean activity, Boolean tips, Boolean culture) {
+        try {
+            ObjectNode results = Json.newObject();
+            TravelGuide travelGuide = PoiAPI.getTravelGuideApi(new ObjectId(id));
+            if (arrive) {
+                results.put("arrive", travelGuide.arrive);
+            }
+            if (traffic) {
+                results.put("traffic", travelGuide.traffic);
+            }
+            if (bright) {
+                results.put("bright", travelGuide.bright);
+            }
+            if (activity) {
+                results.put("activity", travelGuide.activity);
+            }
+            if (tips) {
+                results.put("tips", travelGuide.tips);
+            }
+            if (culture) {
+                results.put("culture", travelGuide.cultrue);
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (TravelPiException | NullPointerException e) {

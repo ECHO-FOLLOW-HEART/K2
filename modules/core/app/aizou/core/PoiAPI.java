@@ -723,13 +723,14 @@ public class PoiAPI {
     }
 
     /**
-     *获取景点简介
+     * 获取景点简介
+     *
      * @param id
      * @param list
      * @return
      * @throws TravelPiException
      */
-    public static ViewSpot getVsDetail(ObjectId id,List<String> list) throws TravelPiException {
+    public static ViewSpot getVsDetail(ObjectId id, List<String> list) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<ViewSpot> query = ds.createQuery(ViewSpot.class).field("_id").equal(id);
         if (list != null && !list.isEmpty()) {
@@ -738,10 +739,31 @@ public class PoiAPI {
         return query.get();
     }
 
+    /**
+     * 通过id获取景点简介和交通
+     *
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
     public static ViewSpot getVsDetails(ObjectId id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<ViewSpot> query = ds.createQuery(ViewSpot.class).field("_id").equal(id);
         return query.get();
+    }
+
+    /**
+     * 通过id返回游玩攻略
+     *
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
+    public static TravelGuide getTravelGuideApi(ObjectId id) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<TravelGuide> query = ds.createQuery(TravelGuide.class).field("id").equal(id);
+        return query.get();
+
     }
 
     public enum SortField {
