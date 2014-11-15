@@ -35,15 +35,17 @@ public class GeoCtrl extends Controller {
     /**
      * 根据id查看城市详情
      *
-     * @param id
+     * @param id      城市ID
+     * @param noteCnt 游记个数
      * @return
      */
-    public static Result getLocality(String id,int noteCnt) {
+    public static Result getLocality(String id, int noteCnt) {
         try {
             Locality locality = GeoAPI.locDetails(id);
+            if (locality == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
             ObjectNode response = (ObjectNode) new LocalityFormatter().format(locality);
-            // TODO 数量
-            List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName, locality.enName), null, noteCnt);
+            List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName), null, noteCnt);
             List<ObjectNode> objs = new ArrayList<>();
             for (TravelNote tra : tras) {
                 objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
