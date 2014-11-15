@@ -38,12 +38,12 @@ public class GeoCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result getLocality(String id) {
+    public static Result getLocality(String id,int noteCnt) {
         try {
             Locality locality = GeoAPI.locDetails(id);
             ObjectNode response = (ObjectNode) new LocalityFormatter().format(locality);
             // TODO 数量
-            List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName, locality.enName), null, 4);
+            List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName, locality.enName), null, noteCnt);
             List<ObjectNode> objs = new ArrayList<>();
             for (TravelNote tra : tras) {
                 objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
