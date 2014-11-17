@@ -128,6 +128,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Embedded
     public Coords coords;
 
+    @Transient
+    public static String simpAddress = "address";
+
     /**
      * 是否位于国外
      */
@@ -226,6 +229,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      * 防坑攻略URL
      */
     public String kengdieUrl;
+
+    public String address;
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
