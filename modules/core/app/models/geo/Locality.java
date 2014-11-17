@@ -37,7 +37,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String fnEnName = "enName";
 
     @Transient
-    public static String fnZhName = "name";
+    public static String fnZhName = "zhName";
 
     @Transient
     public static String fnCountry = "country";

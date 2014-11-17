@@ -9,6 +9,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.geo.Address;
+import models.geo.Coords;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.CheckinRatings;
@@ -53,9 +54,10 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String simpID = "id";
-
     @Transient
     public static String simpName = "name";
+    @Transient
+    public static String simpZhName = "zhName";
 
     @Transient
     public static String simpDesc = "desc";
@@ -91,7 +93,13 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String detTargets = "targets";
 
     @Transient
-    public static String detTrafficInfo = "trafficInfo";
+    public static String detTrafficInfoUrl = "trafficInfoUrl";
+
+    @Transient
+    public static String detGuideInfoUrl = "guideUrl";
+
+    @Transient
+    public static String detKengDieInfoUrl = "kengdieUrl";
 
     @Transient
     public static String simpEnName = "enName";
@@ -102,6 +110,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Transient
     public static String simpRating = "rating";
 
+    @Transient
+    public static String simpCoords = "coords";
+
+    @Transient
+    public static String simpTravelMonth = "travelMonth";
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -111,12 +125,17 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Embedded
     public Address addr;
 
+    @Embedded
+    public Coords coords;
+
     /**
      * 是否位于国外
      */
     public Boolean abroad;
 
     public String name;
+
+    public String zhName;
 
     public String enName;
 
@@ -193,6 +212,21 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public Double rating;
 
+    /**
+     * 交通指南URL
+     */
+    public String trafficInfoUrl;
+
+    /**
+     * 旅行指南URL
+     */
+    public String guideUrl;
+
+    /**
+     * 防坑攻略URL
+     */
+    public String kengdieUrl;
+
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:
@@ -206,6 +240,28 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         return new ArrayList<>();
     }
 
+    public String getTrafficInfoUrl() {
+        if (trafficInfoUrl == null) {
+            return "";
+
+        } else
+            return trafficInfoUrl;
+    }
+
+    public String getGuideUrl() {
+        if (guideUrl == null) {
+            return "";
+        } else
+            return guideUrl;
+    }
+
+    public String getKengdieUrl() {
+        if (kengdieUrl == null) {
+            return "";
+        } else
+            return kengdieUrl;
+    }
+
     public String getDesc() {
         if (description == null) {
             if (desc == null)
@@ -215,6 +271,14 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         } else
             return StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN);
     }
+
+    public String getEnName() {
+        if (enName == null)
+            return "";
+        else
+            return enName;
+    }
+
 
     public Contact getContact() {
         if (contact == null)
@@ -236,20 +300,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         else
             return trafficInfo;
     }
-
-//    public List<String> getImages() {
-//        if (images == null) {
-//            if (imageList == null)
-//                return new ArrayList();
-//            else
-//                return imageList;
-//        } else {
-//            ArrayList<String> tmpList = new ArrayList<String>();
-//            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
-//                tmpList.add(img.url);
-//            return tmpList;
-//        }
-//    }
 
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
