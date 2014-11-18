@@ -42,11 +42,11 @@ GET           /users/contacts                                controllers.taozi.U
 #----------其他接口----------
 #其他
 #添加收藏
-POST          /misc/favorite/$uid<[0-9]+>                    controllers.taozi.MiscCtrl.addFavorite(uid: Integer)
+PUT          /misc/favorites                                 controllers.taozi.MiscCtrl.addFavorite()
 #取得收藏
-GET           /misc/favorite/$uid<[0-9]+>                    controllers.taozi.MiscCtrl.getFavorite(uid: Integer,faType: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /misc/favorites                                 controllers.taozi.MiscCtrl.getFavorite(faType: String?="", page: Int?=0, pageSize: Int?=20)
 #删除收藏
-POST          /misc/favorite/del/$uid<[0-9]+>                controllers.taozi.MiscCtrl.delFavorite(uid: Integer)
+DELETE        /misc/favorites/$id<[0-9]+>                     controllers.taozi.MiscCtrl.delFavorite(id: String)
 #获得封面故事
 GET           /misc/cover-stories                            controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #反馈
