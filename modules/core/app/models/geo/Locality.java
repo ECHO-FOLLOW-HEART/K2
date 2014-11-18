@@ -20,6 +20,8 @@ import play.libs.Json;
 import utils.Constants;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -71,6 +73,18 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnCoords = "coords";
+
+    @Transient
+    public static String fntimeCost = "timeCost";
+
+    @Transient
+    public static String fntravelMonth = "travelMonth";
+
+    @Transient
+    public static String fnCover = "cover";
+
+    @Transient
+    public static String fnimageCnt = "imageCnt";
 
     public String zhName;
 
@@ -128,6 +142,10 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public Coords bCoords;
 
     public String desc;
+
+    public Double timeCost;
+
+    public String cover;
 
     /**
      * 该locality对应路线的
@@ -225,6 +243,23 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         return abroad != null && abroad;
     }
 
+    public Double getTimeCost() {
+        return timeCost != null ? timeCost : 0;
+    }
+
+    public Integer getImageCnt() {
+        return images != null ? images.size() : 0;
+    }
+
+    public String getCover() {
+        return cover != null ? cover : "";
+    }
+
+    // TODO
+    public String getTravelMonth() {
+        return travelMonth != null ? "" : "";
+    }
+
     public JsonNode getJsonNode() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         builder.add("_id", id.toString()).add("name", zhName).add("level", level);
@@ -280,7 +315,25 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
             else
                 builder.add("ratings", new BasicDBObject());
 
-            builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? imageList : new ArrayList<>());
+
+            // 如果存在更高阶的images字段，则使用之
+            if (images != null && !images.isEmpty()) {
+                List<ImageItem> imgList = new ArrayList<>();
+                for (ImageItem img : images) {
+                    if (img.enabled != null && !img.enabled)
+                        continue;
+                    imgList.add(img);
+                }
+
+                List<String> ret = new ArrayList<>();
+                for (ImageItem img : imgList.subList(0, imgList.size() >= 5 ? 5 : imgList.size())) {
+                    if (img.url != null)
+                        ret.add(img.url);
+                }
+
+                builder.add("imageList", ret);
+            }
+            //builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? imageList : new ArrayList<>());
             builder.add("tags", (tags != null && !tags.isEmpty()) ? tags : new ArrayList<>());
         }
 

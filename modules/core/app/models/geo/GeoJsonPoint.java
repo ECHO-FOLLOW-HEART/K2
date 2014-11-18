@@ -4,7 +4,7 @@ import org.mongodb.morphia.annotations.Embedded;
 
 /**
  * 符合GeoJson规范的坐标
- *
+ * <p/>
  * Created by zephyre on 11/11/14.
  */
 @Embedded
@@ -17,7 +17,9 @@ public class GeoJsonPoint {
 
     private double[] coordinates;
 
-    public GeoJsonPoint(){}
+    public GeoJsonPoint() {
+    }
+
     private GeoJsonPoint(double lng, double lat) {
         coordinates = new double[]{lng, lat};
     }

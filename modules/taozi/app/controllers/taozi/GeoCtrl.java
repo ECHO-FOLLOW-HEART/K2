@@ -3,12 +3,14 @@ package controllers.taozi;
 import aizou.core.GeoAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
+import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.geo.Country;
 import models.geo.Locality;
+import models.misc.TravelNote;
 import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
 import org.omg.PortableInterceptor.LOCATION_FORWARD;
@@ -21,6 +23,7 @@ import utils.Utils;
 import utils.formatter.taozi.geo.LocalityFormatter;
 import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.geo.SimpleLocalityFormatter;
+import utils.formatter.taozi.misc.TravelNoteFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 import utils.formatter.taozi.user.SimplePOIFormatter;
 
@@ -36,14 +39,22 @@ public class GeoCtrl extends Controller {
     /**
      * 根据id查看城市详情
      *
-     * @param id
+     * @param id      城市ID
+     * @param noteCnt 游记个数
      * @return
      */
-    public static Result getLocality(String id) {
+    public static Result getLocality(String id, int noteCnt) {
         try {
             Locality locality = GeoAPI.locDetails(id);
-            //JsonNode response = locality.toJson(3);
-            JsonNode response = new LocalityFormatter().format(locality);
+            if (locality == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
+            ObjectNode response = (ObjectNode) new LocalityFormatter().format(locality);
+            List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName), null, noteCnt);
+            List<ObjectNode> objs = new ArrayList<>();
+            for (TravelNote tra : tras) {
+                objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
+            }
+            response.put("travelNote", Json.toJson(objs));
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());

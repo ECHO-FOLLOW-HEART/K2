@@ -18,12 +18,13 @@ import java.util.*;
  * @author Zephyre
  */
 public class ViewSpot extends AbstractPOI {
-
     public Boolean worldHeritage;
 
+    @Transient
+    public static String detTimeCost = "timeCostStr";
     public Integer spotId;
 
-    public List<Integer> travelMonth;
+    public String travelMonth;
 
     public String trafficInfo;
 
@@ -52,6 +53,11 @@ public class ViewSpot extends AbstractPOI {
     public Double timeCost;
 
     /**
+     * 建议游玩时间，单位为小时。
+     */
+    public String timeCostStr;
+
+    /**
      * 标识Description各项是否存在
      */
     public Description descriptionFlag;
@@ -63,11 +69,19 @@ public class ViewSpot extends AbstractPOI {
         return fieldList;
     }
 
-    public String getTrafficInfo() {
-        if (trafficInfo == null)
-            return "";
+    public String getTravelMonth() {
+        if (travelMonth == null)
+            // TODO
+            return "假数据";
         else
-            return trafficInfo;
+            return travelMonth;
+    }
+
+    public String getTimeCostStr() {
+        if (timeCostStr == null)
+            return "假数据";
+        else
+            return timeCostStr;
     }
 
     @Override

@@ -160,6 +160,11 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     private Boolean isHot;
 
+    /**
+     * 相邻的国家
+     */
+    public List<String> citys;
+
     public String getId() {
         return id.toString();
     }

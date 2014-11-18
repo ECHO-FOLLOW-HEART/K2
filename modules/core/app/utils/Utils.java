@@ -20,11 +20,14 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Result;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
@@ -257,6 +260,39 @@ public class Utils {
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalArgumentException();
         }
+    }
+
+    /**
+     * 生成签名数据
+     *
+     * @param data 待加密的数据
+     * @param key  加密使用的key
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws InvalidKeyException
+     */
+    public static byte[] hmac_sha1(String data, String key) throws NoSuchAlgorithmException, InvalidKeyException {
+        SecretKeySpec signingKey = new SecretKeySpec(key.getBytes(), "HmacSHA1");
+        Mac mac = Mac.getInstance("HmacSHA1");
+        mac.init(signingKey);
+        return mac.doFinal(data.getBytes());
+        //return Hex.encodeHexString(rawHmac);
+    }
+
+    /**
+     * URL安全的Base64编码，手动加“=”
+     * @param str
+     * @return
+     */
+    public static String base64Padding(String str) {
+        int len = str.length();
+        int cnt = len % 4;
+        if (cnt == 2)
+            return str + "==";
+        else if (cnt == 3)
+            return str + "=";
+        else
+            return str;
     }
 
     /**

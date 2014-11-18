@@ -42,19 +42,25 @@ GET           /users/contacts                                controllers.taozi.U
 #----------其他接口----------
 #其他
 #添加收藏
-POST          /misc/favorite/$uid<[0-9]+>                    controllers.taozi.MiscCtrl.addFavorite(uid: Integer)
+PUT          /misc/favorites                                 controllers.taozi.MiscCtrl.addFavorite()
 #取得收藏
-GET           /misc/favorite/$uid<[0-9]+>                    controllers.taozi.MiscCtrl.getFavorite(uid: Integer,faType: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /misc/favorites                                 controllers.taozi.MiscCtrl.getFavorite(faType: String?="", page: Int?=0, pageSize: Int?=20)
 #删除收藏
-POST          /misc/favorite/del/$uid<[0-9]+>                controllers.taozi.MiscCtrl.delFavorite(uid: Integer)
+DELETE        /misc/favorites/$id<[0-9]+>                     controllers.taozi.MiscCtrl.delFavorite(id: String)
 #获得封面故事
 GET           /misc/cover-stories                            controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #反馈
 POST          /misc/feedback                                 controllers.taozi.MiscCtrl.postFeedback()
 #推荐
-GET           /recommend/hotcity                             controllers.taozi.MiscCtrl.recommend(sortType: String = "hotCity", page: Int?=0, pageSize: Int?=20)
+GET           /recommend                                     controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=6)
 #天气
 GET           /misc/weather/:id                              controllers.taozi.MiscCtrl.getWeatherDetail(id :String)
+#获得资源上传凭证
+GET           /misc/put-policy/:scenario                     controllers.taozi.MiscCtrl.putPolicy(scenario:String)
+#处理资源上传的回调
+POST          /misc/upload-callback                          controllers.taozi.MiscCtrl.getCallback()
+#游记
+GET           /misc/notes/search                             controllers.taozi.TravelNoteCtrl.searchNotes(locId: String,pageSize: Int)
 
 #----------POI接口----------
 #查看POI详情
@@ -116,13 +122,13 @@ POST          /im/chatgroups/groupId                         controllers.taozi.C
 DELETE        /im/chatgroups/groupId/members                 controllers.taozi.ChatGroupCtrl.deleteRememberFromChatGroup()
 #修改群组详情
 POST          /im/chatgroups/detail/groupId                  controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
-#地理信息
+#----------地理信息接口----------
 # 搜索城市
 # TODO localitites/search弃用了吗？
 GET           /geo/search                                    controllers.taozi.GeoCtrl.searchGeo(keyword: String?="", prefix: Boolean?=true, page: Int?=0, pageSize: Int?=10)
 #GET           /geo/localities/search                         controllers.taozi.GeoCtrl.searchGeo(keyword: String?="",  prefix: Int?=1)
 # 查看城市详情
-GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String)
+GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
 #发现城市、国家、poi详情
 GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Boolean?=true, loc: Boolean?=true, vs: Boolean?=false, hotel: Boolean?=true, restaurant: Boolean?=true, country:Boolean?=true, page: Int?=0, pageSize: Int?=10)
 #获取国内城市

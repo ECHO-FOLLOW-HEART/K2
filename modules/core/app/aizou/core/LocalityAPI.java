@@ -170,14 +170,13 @@ public class LocalityAPI {
         List<String> fields = new ArrayList<>();
         Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
-            Collections.addAll(fields, "superAdm", "images", "imageList", "tags", "desc", "country", "coords");
+            Collections.addAll(fields, "images",  "tags", "desc", "country", "coords");
         Query<Locality> query = ds.createQuery(Locality.class).field("level").equal(2)
-                .field("abroad").equal(abroad)
+                .field("abroad").equal(abroad).field("enabled").equal(true)
 //                .field("imageList").notEqual(null)
 //                .field("relPlanCnt").greaterThan(0)
                 .retrievedFields(true, fields.toArray(new String[]{""}))
                 .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score, -relPlanCnt");
-
         return query.asList();
     }
 

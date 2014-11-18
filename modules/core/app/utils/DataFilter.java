@@ -170,7 +170,7 @@ public class DataFilter {
                 for (JsonNode node : oNode) {
                     tempObjNode = (ObjectNode) node;
                     tempJsImg = tempObjNode.get("imageList");
-                    if (!tempJsImg.isArray())
+                    if (tempJsImg == null || !tempJsImg.isArray())
                         continue;
 
                     newNodeList = new ArrayList<>();

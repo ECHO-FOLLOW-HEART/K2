@@ -717,7 +717,7 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        query = query.field(AbstractPOI.fnLocation).near(lng, lat, 1000, true);
+        query = query.field(AbstractPOI.fnLocation).near(lng, lat, true);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }
