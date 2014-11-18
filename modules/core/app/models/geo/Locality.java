@@ -20,6 +20,8 @@ import play.libs.Json;
 import utils.Constants;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -313,7 +315,25 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
             else
                 builder.add("ratings", new BasicDBObject());
 
-            builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? imageList : new ArrayList<>());
+
+            // 如果存在更高阶的images字段，则使用之
+            if (images != null && !images.isEmpty()) {
+                List<ImageItem> imgList = new ArrayList<>();
+                for (ImageItem img : images) {
+                    if (img.enabled != null && !img.enabled)
+                        continue;
+                    imgList.add(img);
+                }
+
+                List<String> ret = new ArrayList<>();
+                for (ImageItem img : imgList.subList(0, imgList.size() >= 5 ? 5 : imgList.size())) {
+                    if (img.url != null)
+                        ret.add(img.url);
+                }
+
+                builder.add("imageList", ret);
+            }
+            //builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? imageList : new ArrayList<>());
             builder.add("tags", (tags != null && !tags.isEmpty()) ? tags : new ArrayList<>());
         }
 
