@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.geo.Country;
+import models.geo.Destination;
 import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.AbstractPOI;
@@ -18,6 +19,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.taozi.geo.DestinationFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
 import utils.formatter.taozi.geo.SimpleCountryFormatter;
 import utils.formatter.taozi.misc.TravelNoteFormatter;
@@ -145,6 +147,23 @@ public class GeoCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
         } catch (NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+
+    }
+
+    public static Result exploreDestinations(boolean abroad,String countryId,int  page, int pageSize){
+
+        try {
+            List<Destination> destinations = GeoAPI.getDestinations(abroad, page, pageSize);
+
+            List<ObjectNode> objs = new ArrayList<>();
+            for (Destination des : destinations) {
+                objs.add((ObjectNode) new DestinationFormatter().format(des));
+            }
+
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
 
     }

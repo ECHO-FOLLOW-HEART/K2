@@ -5,6 +5,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
+import models.geo.Destination;
 import models.geo.Locality;
 import models.misc.SimpleRef;
 import org.bson.types.ObjectId;
@@ -129,5 +130,36 @@ public class GeoAPI {
         for (Country c : countryList)
             result.add(new SimpleCountryFormatter().format(c));
         return result;
+    }
+
+    /**
+     * 搜索目的地
+     *
+     * @param
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static List<Destination> getDestinations(boolean abroad ,int page, int pageSize) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Destination> query = ds.createQuery(Destination.class);
+        query.field("abroad").equal(abroad).field("enabled").equal(true);
+        if(abroad)
+            query.field("level").equal(1);
+        query.offset(page*pageSize).limit(pageSize);
+
+       return query.asList();
+    }
+
+    public static List<Destination> getDestinationsByCountry(String countryID,int page, int pageSize) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Destination> query = ds.createQuery(Destination.class);
+        query.field("abroad").equal(true).field("enabled").equal(true);
+            query.field("level").equal(1);
+        query.offset(page*pageSize).limit(pageSize);
+
+        return query.asList();
     }
 }
