@@ -170,7 +170,7 @@ public class LocalityAPI {
         List<String> fields = new ArrayList<>();
         Collections.addAll(fields, "zhName", "enName", "ratings");
         if (showDetails)
-            Collections.addAll(fields, "superAdm", "images", "imageList", "tags", "desc", "country", "coords");
+            Collections.addAll(fields, "images", "tags", "desc", "country", "coords");
         // TODO 发现城市。境内和境外区别对待
         Query<Locality> query;
         if (abroad) {

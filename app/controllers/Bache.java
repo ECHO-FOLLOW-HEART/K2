@@ -154,15 +154,9 @@ public class Bache extends Controller {
             Query<Locality> query1 = ds.createQuery(Locality.class);
             depLoc = query.field("_id").equal(depOid).get();
             arrLoc = query1.field("_id").equal(arrOid).get();
-            if (null != depLoc && null != arrLoc) {
-//                kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
-                try {
-                    double[] depCoords = depLoc.location.getCoordinates();
-                    double[] arrCoords = arrLoc.location.getCoordinates();
-                    kmMount = Utils.getDistatce(depCoords[1], depCoords[0], arrCoords[1], arrCoords[0]);
-                } catch (NullPointerException | IndexOutOfBoundsException e) {
-                    kmMount = 0;
-                }
+
+            if (null != depLoc && null != arrLoc && depLoc.coords != null && arrLoc.coords != null) {
+                kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
             }
             trafficBudget = kmMount * trafficRatio;
         }

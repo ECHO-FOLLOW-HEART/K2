@@ -83,7 +83,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     private String avatar;
 
     /**
-     * 性别： F\M
+     * 性别： F\M\Both\None
      */
     private String gender;
 
