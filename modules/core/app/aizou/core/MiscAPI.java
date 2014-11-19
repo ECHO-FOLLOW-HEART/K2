@@ -16,6 +16,7 @@ import java.util.Queue;
  * Created by lxf on 14-11-12.
  */
 public class MiscAPI {
+
     /**
      * 取得旅行专栏图片的url以及跳转链接的url
      *

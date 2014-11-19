@@ -102,7 +102,7 @@ public class MiscFormatter implements JsonFormatter{
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Comment.fnUserInfo,Comment.fnScore,Comment.fnCommentDetails,Comment.fnCommentTime);
+                Collections.addAll(includedFields, Comment.fnNickName,Comment.fnScore,Comment.fnCommentDetails,Comment.fnCommentTime,Comment.fnAvatar);
                 return (includedFields.contains(writer.getName()));
             }
 

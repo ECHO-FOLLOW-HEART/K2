@@ -183,7 +183,7 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePOI(String locId, boolean vs, boolean dinning, boolean shopping,
+    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping,
                                     int page, int pageSize) {
         //TODO 没有美食/购物的数据
         try {
@@ -193,10 +193,10 @@ public class GeoCtrl extends Controller {
                 poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
 
             if (dinning)
-                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
+                poiMap.put(PoiAPI.POIType.DINNING, "dinning");
 
             if (shopping)
-                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
+                poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
 
             for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
                 List<JsonNode> retPoiList = new ArrayList<>();

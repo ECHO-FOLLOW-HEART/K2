@@ -315,10 +315,10 @@ public class POICtrl extends Controller {
         }
     }
 
-    public static Result getTravelGuide(String id, Boolean arrive, Boolean traffic, Boolean bright, Boolean activity, Boolean tips, Boolean culture) {
+    public static Result getTravelGuide(String locId, Boolean arrive, Boolean traffic, Boolean bright, Boolean activity, Boolean tips, Boolean culture) {
         try {
             ObjectNode results = Json.newObject();
-            TravelGuide travelGuide = PoiAPI.getTravelGuideApi(new ObjectId(id));
+            TravelGuide travelGuide = PoiAPI.getTravelGuideApi(new ObjectId(locId));
             if (arrive) {
                 results.put("arrive", travelGuide.arrive);
             }

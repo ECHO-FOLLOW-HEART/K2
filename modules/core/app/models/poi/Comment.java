@@ -20,19 +20,31 @@ import java.text.SimpleDateFormat;
 public class Comment extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
-    public static String fnUserInfo="userInfo";
+    public static String fnAvatar = "avatar";
     @Transient
-    public static String fnScore="score";
+    public static String fnNickName = "nickName";
     @Transient
-    public static String fnCommentDetails="commentDetails";
+    public static String fnScore = "score";
     @Transient
-    public static String fnCommentTime="commentTime";
+    public static String fnCommentDetails = "commentDetails";
+    @Transient
+    public static String fnCommentTime = "commentTime";
 
     /**
      * 评论的用户
      */
     @Embedded
     public UserInfo userInfo;
+
+    /**
+     * 用户头像
+     */
+    public String avatar;
+
+    /**
+     * 用户昵称
+     */
+    public String nickName;
 
     /**
      * 评论的类型
@@ -58,8 +70,8 @@ public class Comment extends TravelPiBaseItem implements ITravelPiFormatter {
     public String poiId;
 
 
-    public String getCommentTime(){
-        DateFormat timeFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    public String getCommentTime() {
+        DateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         return timeFormat.format(commentTime);
     }
 

@@ -440,6 +440,12 @@ public class PoiAPI {
             case RESTAURANT:
                 poiClass = Restaurant.class;
                 break;
+            case DINNING:
+                poiClass=Dinning.class;
+                break;
+            case SHOPPING:
+                poiClass=Shopping.class;
+                break;
         }
         if (poiClass == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
@@ -768,6 +774,7 @@ public class PoiAPI {
         HOTEL,
         RESTAURANT,
         SHOPPING,
-        ENTERTAINMENT
+        ENTERTAINMENT,
+        DINNING
     }
 }
