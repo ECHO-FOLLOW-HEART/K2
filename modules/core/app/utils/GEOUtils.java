@@ -60,8 +60,10 @@ public class GEOUtils {
         int nearDistance = Constants.MAX_COUNT;
         int tempDistance = 0;
         for (Iterator<Locality> it = query.iterator(); it.hasNext(); ) {
-            tempLocality = (Locality) it.next();
-            tempDistance = Utils.getDistatce(travelLoc.coords.lat, tempLocality.coords.lat, travelLoc.coords.lng, tempLocality.coords.lng);
+            tempLocality = it.next();
+            double[] travelLocCoords = travelLoc.location.getCoordinates();
+            double[] tempLocCoords = tempLocality.location.getCoordinates();
+            tempDistance = Utils.getDistatce(travelLocCoords[1], tempLocCoords[1], travelLocCoords[0], tempLocCoords[0]);
             if (tempDistance < nearDistance) {
                 nearDistance = tempDistance;
                 nearLocality = tempLocality;

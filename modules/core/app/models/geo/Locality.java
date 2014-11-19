@@ -75,6 +75,9 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String fnCoords = "coords";
 
     @Transient
+    public static String fnIsHot = "isHot";
+
+    @Transient
     public static String fntimeCost = "timeCost";
 
     @Transient
@@ -91,6 +94,11 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public String enName;
 
     public String shortName;
+
+    /**
+     * 是否为热门城市
+     */
+    public Boolean isHot;
 
     public List<String> alias;
 
@@ -134,6 +142,9 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public Integer qunarId;
 
     public Integer areaCode;
+
+    @Embedded
+    public GeoJsonPoint location;
 
     @Embedded
     public Coords coords;

@@ -154,6 +154,7 @@ public class Bache extends Controller {
             Query<Locality> query1 = ds.createQuery(Locality.class);
             depLoc = query.field("_id").equal(depOid).get();
             arrLoc = query1.field("_id").equal(arrOid).get();
+
             if (null != depLoc && null != arrLoc && depLoc.coords != null && arrLoc.coords != null) {
                 kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
             }
