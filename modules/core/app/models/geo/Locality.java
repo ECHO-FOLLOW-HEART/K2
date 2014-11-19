@@ -124,6 +124,9 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public SimpleRef superAdm;
 
     @Embedded
+    public List<Locality> locList;
+
+    @Embedded
     public List<SimpleRef> sib;
 
 //    @Reference(lazy = true)

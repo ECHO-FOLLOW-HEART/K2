@@ -15,7 +15,10 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.mvc.Http;
-import utils.*;
+import utils.AdapterUtils;
+import utils.DataFactory;
+import utils.DataFilter;
+import utils.PlanUtils;
 
 import java.util.*;
 
@@ -504,66 +507,67 @@ public class PlanAPI {
             route = epDep ? searchOneWayRoutes(remoteLoc, travelLoc, calLower, null, TrafficAPI.SortField.PRICE) :
                     searchOneWayRoutes(travelLoc, remoteLoc, calLower, null, TrafficAPI.SortField.PRICE);
         }
-        //如果没有交通，就添加转乘交通
-        if (route == null) {
-            //取得中转站
-            Locality midLocality = GEOUtils.getInstance().getNearCap(travelLoc);
-            //取得转乘交通
-            List<AbstractRoute> twoRoutes = searchMoreWayRoutes(epDep, midLocality, remoteLoc, travelLoc, calLower, timeLimits);
-            if (twoRoutes.isEmpty()) {
-                return plan;
+//        //如果没有交通，就添加转乘交通
+//        if (route == null) {
+//            //取得中转站
+//            Locality midLocality = GEOUtils.getInstance().getNearCap(travelLoc);
+//            //取得转乘交通
+//            List<AbstractRoute> twoRoutes = searchMoreWayRoutes(epDep, midLocality, remoteLoc, travelLoc, calLower, timeLimits);
+//            if (twoRoutes.isEmpty()) {
+//                return plan;
+//            } else {
+//                PlanItem depItem = DataFactory.createDepStop(twoRoutes.get(0));
+//                PlanItem arrItem = DataFactory.createArrStop(twoRoutes.get(0));
+//                PlanItem trafficInfo = DataFactory.createTrafficInfo(twoRoutes.get(0));
+//                depItem.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
+//                arrItem.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
+//                trafficInfo.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
+//
+//                PlanItem depItemTwo = DataFactory.createDepStop(twoRoutes.get(1));
+//                PlanItem arrItemTwo = DataFactory.createArrStop(twoRoutes.get(1));
+//                PlanItem trafficInfoTwo = DataFactory.createTrafficInfo(twoRoutes.get(1));
+//                depItemTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
+//                arrItemTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
+//                trafficInfoTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
+//
+//                if (epDep) {
+//                    addTrafficItem(epDep, plan, arrItemTwo);
+//                    addTrafficItem(epDep, plan, trafficInfoTwo);
+//                    addTrafficItem(epDep, plan, depItemTwo);
+//                    addTrafficItem(epDep, plan, arrItem);
+//                    addTrafficItem(epDep, plan, trafficInfo);
+//                    addTrafficItem(epDep, plan, depItem);
+//                } else {
+//                    addTrafficItem(epDep, plan, depItem);
+//                    addTrafficItem(epDep, plan, trafficInfo);
+//                    addTrafficItem(epDep, plan, arrItem);
+//                    addTrafficItem(epDep, plan, depItemTwo);
+//                    addTrafficItem(epDep, plan, trafficInfoTwo);
+//                    addTrafficItem(epDep, plan, arrItemTwo);
+//                }
+//                return plan;
+//            }
+//
+//        }
+
+        if (route != null) {
+            // 构造出发、到达和交通信息三个item
+            PlanItem depItem = DataFactory.createDepStop(route);
+            PlanItem arrItem = DataFactory.createArrStop(route);
+            PlanItem trafficInfo = DataFactory.createTrafficInfo(route);
+            depItem.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
+            arrItem.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
+            trafficInfo.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
+
+            if (epDep) {
+                addTrafficItem(true, plan, arrItem);
+                addTrafficItem(true, plan, trafficInfo);
+                addTrafficItem(true, plan, depItem);
             } else {
-                PlanItem depItem = DataFactory.createDepStop(twoRoutes.get(0));
-                PlanItem arrItem = DataFactory.createArrStop(twoRoutes.get(0));
-                PlanItem trafficInfo = DataFactory.createTrafficInfo(twoRoutes.get(0));
-                depItem.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
-                arrItem.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
-                trafficInfo.transfer = epDep ? PlanUtils.TRANS_FROM_FIRST : PlanUtils.TRANS_BACK_FIRST;
-
-                PlanItem depItemTwo = DataFactory.createDepStop(twoRoutes.get(1));
-                PlanItem arrItemTwo = DataFactory.createArrStop(twoRoutes.get(1));
-                PlanItem trafficInfoTwo = DataFactory.createTrafficInfo(twoRoutes.get(1));
-                depItemTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
-                arrItemTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
-                trafficInfoTwo.transfer = epDep ? PlanUtils.TRANS_FROM_NEXT : PlanUtils.TRANS_BACK_NEXT;
-
-                if (epDep) {
-                    addTrafficItem(epDep, plan, arrItemTwo);
-                    addTrafficItem(epDep, plan, trafficInfoTwo);
-                    addTrafficItem(epDep, plan, depItemTwo);
-                    addTrafficItem(epDep, plan, arrItem);
-                    addTrafficItem(epDep, plan, trafficInfo);
-                    addTrafficItem(epDep, plan, depItem);
-                } else {
-                    addTrafficItem(epDep, plan, depItem);
-                    addTrafficItem(epDep, plan, trafficInfo);
-                    addTrafficItem(epDep, plan, arrItem);
-                    addTrafficItem(epDep, plan, depItemTwo);
-                    addTrafficItem(epDep, plan, trafficInfoTwo);
-                    addTrafficItem(epDep, plan, arrItemTwo);
-                }
-                return plan;
+                addTrafficItem(false, plan, depItem);
+                addTrafficItem(false, plan, trafficInfo);
+                addTrafficItem(false, plan, arrItem);
             }
-
-        }
-
-
-        // 构造出发、到达和交通信息三个item
-        PlanItem depItem = DataFactory.createDepStop(route);
-        PlanItem arrItem = DataFactory.createArrStop(route);
-        PlanItem trafficInfo = DataFactory.createTrafficInfo(route);
-        depItem.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
-        arrItem.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
-        trafficInfo.transfer = epDep ? PlanUtils.NO_TRANS_FROM : PlanUtils.NO_TRANS_BACK;
-
-        if (epDep) {
-            addTrafficItem(true, plan, arrItem);
-            addTrafficItem(true, plan, trafficInfo);
-            addTrafficItem(true, plan, depItem);
-        } else {
-            addTrafficItem(false, plan, depItem);
-            addTrafficItem(false, plan, trafficInfo);
-            addTrafficItem(false, plan, arrItem);
         }
 
         return plan;
