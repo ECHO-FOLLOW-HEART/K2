@@ -1,5 +1,6 @@
 package controllers;
 
+import aizou.core.GeoAPI;
 import aizou.core.PlanAPI;
 import aizou.core.PoiAPI;
 import aizou.core.TrafficAPI;
@@ -8,6 +9,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.geo.Locality;
 import models.misc.Share;
 import models.misc.SimpleRef;
 import models.plan.*;
@@ -863,19 +865,39 @@ public class PlanCtrl extends Controller {
             } catch (ClassCastException ignored) {
             }
 
+
+            List<Plan> planList = new ArrayList<>();
             for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, minDays, maxDays, page,
-                    pageSize, sortField); it.hasNext(); ) {
-                //加入交通预算,住宿预算
-                if (null != fromLoc && !fromLoc.trim().equals("")) {
-                    try {
-                        results.add(addTrafficBudget(it, trafficBudget, stayBudgetDefault));
-                    } catch (ClassCastException e) {
-                        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+                    pageSize, sortField); it.hasNext(); )
+                planList.add(it.next());
+
+            if (planList.isEmpty()) {
+                // 退而求其次，从上级Locality找
+                List<Locality> locList = GeoAPI.locDetails(locId).locList;
+                if (locList != null && !locList.isEmpty()) {
+                    for (int idx = locList.size() - 1; idx >= 0; idx--) {
+                        String itrLocId = locList.get(idx).id.toString();
+                        planList = new ArrayList<>();
+                        for (Iterator<Plan> itr = PlanAPI.explore(itrLocId, poiId, sort, tag, minDays, maxDays, page,
+                                pageSize, sortField); itr.hasNext(); )
+                            planList.add(itr.next());
+
+                        if (!planList.isEmpty())
+                            break;
                     }
-                } else {
-                    results.add(it.next().toJson(false));
                 }
             }
+
+            for (Plan plan : planList) {
+                //加入交通预算,住宿预算
+                if (null != fromLoc && !fromLoc.trim().equals("")) {
+                    addTrafficBudget(plan, trafficBudget, stayBudgetDefault);
+                    results.add(plan.toJson(false));
+                } else {
+                    results.add(plan.toJson(false));
+                }
+            }
+
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -886,19 +908,17 @@ public class PlanCtrl extends Controller {
     /**
      * 路线中加入交通预算和食宿预算
      *
-     * @param it
+     * @param plan
      * @param trafficBudg
      * @param stayBudgetDefault
      * @return
      * @throws ClassCastException
      */
-    private static JsonNode addTrafficBudget(Iterator<Plan> it, Double trafficBudg, int stayBudgetDefault) throws ClassCastException {
-        Plan plan = it.next();
+    private static void addTrafficBudget(Plan plan, Double trafficBudg, int stayBudgetDefault) {
         if (null != plan) {
-            plan.trafficBudget = Integer.valueOf((int) trafficBudg.doubleValue());
+            plan.trafficBudget = (int) trafficBudg.doubleValue();
             plan.stayBudget = plan.days == null ? 0 : plan.days * stayBudgetDefault;
         }
-        return plan.toJson(false);
     }
 
 //    /**
