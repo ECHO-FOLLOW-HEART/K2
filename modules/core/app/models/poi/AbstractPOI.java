@@ -197,7 +197,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p>
+     * <p/>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -406,10 +406,24 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             }
         }
 
+        // 历史性兼容
+        if (addr == null) {
+            addr = new Address();
+            if (location != null) {
+                addr.coords = new Coords();
+                double[] c = location.getCoordinates();
+                addr.coords.lng = c[0];
+                addr.coords.lat = c[1];
+            }
+            if (address != null) {
+                addr.address = address;
+            }
+        }
         if (level == 1)
             builder.add("addr", (addr != null ? addr.toJson(1) : new BasicDBObject()));
         else if (level > 1)
             builder.add("addr", (addr != null ? addr.toJson(3) : new BasicDBObject()));
+
 
         return Json.toJson(builder.get());
     }
