@@ -8,10 +8,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
-import models.geo.Address;
-import models.geo.Coords;
-import models.geo.GeoJsonPoint;
-import models.geo.Locality;
+import models.geo.*;
 import models.misc.CheckinRatings;
 import models.misc.Contact;
 import models.misc.Description;
@@ -114,7 +111,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simpCoords = "coords";
 
     @Transient
-    public static String simpTravelMonth = "travelMonth";
+    public static String simpAddress = "address";
 
     @Embedded
     public CheckinRatings ratings;
@@ -127,9 +124,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Embedded
     public Coords coords;
-
-    @Transient
-    public static String simpAddress = "address";
 
     /**
      * 是否位于国外
@@ -178,8 +172,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public Description description;
 
     public String trafficInfo;
-
-//    public List<String> imageList;
 
     public List<ImageItem> images;
 
@@ -230,7 +222,27 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      */
     public String kengdieUrl;
 
+    /**
+     * 地址
+     */
     public String address;
+
+    /**
+     * 电话
+     */
+    public String telephone;
+
+    /**
+     * 国家
+     */
+    public Country country;
+
+    /**
+     * 从属行政关系
+     */
+    public List<Locality> locList;
+
+    public Map<String,Object> miscInfo;
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {

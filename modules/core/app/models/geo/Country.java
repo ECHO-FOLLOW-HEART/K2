@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
+import models.misc.ImageItem;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
@@ -49,6 +50,9 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnEnName = "enName";
+
+    @Transient
+    public static String fnId = "id";
 
     /**
      * ISO 3166-2标准的国家代码
@@ -164,6 +168,11 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      * 相邻的国家
      */
     public List<String> citys;
+
+    /**
+     * 图片
+     */
+    public List<ImageItem> images;
 
     public String getId() {
         return id.toString();
