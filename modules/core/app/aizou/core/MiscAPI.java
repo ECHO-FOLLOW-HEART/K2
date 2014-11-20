@@ -2,15 +2,13 @@ package aizou.core;
 
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.misc.TravelColumns;
+import models.misc.PageFirst;
 import models.poi.Comment;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
 import java.util.List;
-import java.util.Queue;
 
 /**
  * Created by lxf on 14-11-12.
@@ -23,11 +21,17 @@ public class MiscAPI {
      * @return
      * @throws TravelPiException
      */
-    public static TravelColumns getColumns() throws TravelPiException {
-        return MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC).
-                createQuery(TravelColumns.class).get();
+    public static List<PageFirst> getColumns() throws TravelPiException {
+         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+         Query<PageFirst> query=ds.createQuery(PageFirst.class);
+         return query.asList();
+
     }
 
+    public static void saveColumns(PageFirst pageFirst) throws TravelPiException {
+        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        ds.save(pageFirst);
+    }
     /**
      * 储存评论信息
      *

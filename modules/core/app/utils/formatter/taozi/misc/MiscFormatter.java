@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.misc.TravelColumns;
+import models.misc.PageFirst;
 import models.poi.Comment;
 import models.user.UserInfo;
 import utils.formatter.JsonFormatter;
@@ -45,7 +45,7 @@ public class MiscFormatter implements JsonFormatter{
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, TravelColumns.fnCover,TravelColumns.fnLink);
+                Collections.addAll(includedFields, PageFirst.fnCover, PageFirst.fnLink,PageFirst.fnTitle);
 
                 return (includedFields.contains(writer.getName()));
             }

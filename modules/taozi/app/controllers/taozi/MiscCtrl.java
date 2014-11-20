@@ -377,15 +377,42 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    public static Result getTravelColumns() {
+    public static Result getPageFirst() {
         try {
-            TravelColumns travelColumns = MiscAPI.getColumns();
-            return Utils.createResponse(ErrorCode.NORMAL, new MiscFormatter().format(travelColumns));
+            List<PageFirst> pageFirsts = MiscAPI.getColumns();
+            List<JsonNode> list = new ArrayList<>();
+            for (PageFirst first : pageFirsts) {
+                list.add(new MiscFormatter().format(first));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(list));
         } catch (TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
 
+    /**
+     * 保存专栏信息
+     *
+     * @return
+     */
+    public static Result saveColumns() {
+        try {
+            JsonNode req = request().body().asJson();
+            String title=req.get("title").asText();
+            String cover=req.get("cover").asText();
+            String link=req.get("link").asText();
+
+            PageFirst pageFirst=new PageFirst();
+            pageFirst.cover=cover;
+            pageFirst.title=title;
+            pageFirst.link=link;
+
+            MiscAPI.saveColumns(pageFirst);
+            return Utils.createResponse(ErrorCode.NORMAL, "success");
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
 
     /**
      * 保存用户的评论

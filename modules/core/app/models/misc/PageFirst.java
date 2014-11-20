@@ -10,12 +10,19 @@ import org.mongodb.morphia.annotations.Transient;
  */
 @JsonFilter("travelColumnsFilter")
 @Entity
-public class TravelColumns extends TravelPiBaseItem{
+public class PageFirst extends TravelPiBaseItem{
 
     @Transient
     public static String fnCover="cover";
     @Transient
     public static String fnLink="link";
+    @Transient
+    public static String fnTitle="title";
+
+    /**
+     * 标题
+     */
+    public String title;
     /**
      * 图片的url
      */
