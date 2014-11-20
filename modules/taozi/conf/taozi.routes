@@ -124,10 +124,10 @@ DELETE        /im/chatgroups/groupId/members                 controllers.taozi.C
 POST          /im/chatgroups/detail/groupId                  controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
 #----------地理信息接口----------
 # 搜索城市
-# TODO localitites/search弃用了吗？
 GET           /geo/search                                    controllers.taozi.GeoCtrl.searchGeo(keyword: String?="", prefix: Boolean?=true, page: Int?=0, pageSize: Int?=10)
-#GET           /geo/localities/search                         controllers.taozi.GeoCtrl.searchGeo(keyword: String?="",  prefix: Int?=1)
 # 查看城市详情
 GET           /geo/localities/:id                            controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
 #发现城市、国家、poi详情
 GET           /explore                                       controllers.taozi.GeoCtrl.explore(showDetails: Boolean?=true, loc: Boolean?=true, vs: Boolean?=false, hotel: Boolean?=true, restaurant: Boolean?=true, country:Boolean?=true, page: Int?=0, pageSize: Int?=10)
+#展示目的地
+GET           /destinations                                  controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page: Int?=0, pageSize: Int?=10)

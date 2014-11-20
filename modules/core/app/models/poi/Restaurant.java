@@ -3,7 +3,7 @@ package models.poi;
 import org.mongodb.morphia.annotations.Entity;
 
 /**
- * 酒店。
+ * 餐厅。
  *
  * @author Zephyre
  */

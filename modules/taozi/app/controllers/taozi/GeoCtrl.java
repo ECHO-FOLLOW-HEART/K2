@@ -19,6 +19,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.taozi.geo.CountryFormatter;
 import utils.formatter.taozi.geo.DestinationFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
 import utils.formatter.taozi.geo.SimpleCountryFormatter;
@@ -151,15 +152,23 @@ public class GeoCtrl extends Controller {
 
     }
 
-    public static Result exploreDestinations(boolean abroad,String countryId,int  page, int pageSize){
+    public static Result exploreDestinations(boolean abroad,int  page, int pageSize){
 
         try {
-            List<Destination> destinations = GeoAPI.getDestinations(abroad, page, pageSize);
 
             List<ObjectNode> objs = new ArrayList<>();
-            for (Destination des : destinations) {
-                objs.add((ObjectNode) new DestinationFormatter().format(des));
+            if(abroad){
+                List<Country> countrys = GeoAPI.searchCountryByName("",page,pageSize);
+                for (Country des : countrys) {
+                    objs.add((ObjectNode) new CountryFormatter().format(des));
+                }
+            }else{
+                List<Destination> destinations = GeoAPI.getDestinations(abroad, page, pageSize);
+                for (Destination des : destinations) {
+                    objs.add((ObjectNode) new DestinationFormatter().format(des));
+                }
             }
+
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
         } catch (TravelPiException e) {
