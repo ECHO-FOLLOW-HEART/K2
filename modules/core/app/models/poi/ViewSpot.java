@@ -18,13 +18,16 @@ import java.util.*;
  * @author Zephyre
  */
 public class ViewSpot extends AbstractPOI {
-    public Boolean worldHeritage;
 
     @Transient
-    public static String detTimeCost = "timeCostDesc";
+    public static String fnTimeCostDesc = "timeCostDesc";
 
     @Transient
-    public static String simpTravelMonth = "travelMonth";
+    public static String fnTravelMonth = "travelMonth";
+
+    @Transient
+    public static String fnOpenTime = "openTime";
+
     public Integer spotId;
 
     public String trafficInfo;

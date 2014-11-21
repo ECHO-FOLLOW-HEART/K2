@@ -15,8 +15,8 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.user.DetailedPOIFormatter;
-import utils.formatter.taozi.user.SimplePOIFormatter;
+import utils.formatter.taozi.poi.DetailedPOIFormatter;
+import utils.formatter.taozi.poi.SimplePOIFormatter;
 
 import java.util.*;
 
@@ -64,7 +64,7 @@ public class POICtrl extends Controller {
             AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
             if (poiInfo == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
-            JsonNode info = details ? new DetailedPOIFormatter().format(poiInfo) : new SimplePOIFormatter().format(poiInfo);
+            JsonNode info = details ? new DetailedPOIFormatter().format(poiInfo, poiDesc) : new SimplePOIFormatter().format(poiInfo);
             ObjectNode ret = (ObjectNode) info;
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (TravelPiException e) {
@@ -165,7 +165,7 @@ public class POICtrl extends Controller {
         try {
             it = PoiAPI.poiSearch(type, tag, keyword, sf, sort, page, pageSize, true, hotelType);
             while (it.hasNext())
-                results.add(new DetailedPOIFormatter().format(it.next()));
+                results.add(new DetailedPOIFormatter().format(it.next(), poiType));
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
@@ -219,7 +219,7 @@ public class POICtrl extends Controller {
         try {
             it = PoiAPI.poiList(type, new ObjectId(locId), tagFilter, sf, sort, true, page, pageSize);
             while (it.hasNext())
-                results.add(new DetailedPOIFormatter().format(it.next()));
+                results.add(new DetailedPOIFormatter().format(it.next(), poiType));
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
@@ -278,7 +278,7 @@ public class POICtrl extends Controller {
                 Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lng, lat, page, pageSize);
                 if (iterator != null) {
                     for (; iterator.hasNext(); )
-                        retPoiList.add(new DetailedPOIFormatter().format(iterator.next()));
+                        retPoiList.add(new SimplePOIFormatter().format(iterator.next()));
                     results.put(poiMap.get(poiType), Json.toJson(retPoiList));
                 }
 

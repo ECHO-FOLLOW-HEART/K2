@@ -78,12 +78,28 @@ public class Destination extends TravelPiBaseItem {
 
     public boolean abroad;
 
+    /**
+     * 评价
+     */
     public Double rating;
+    /**
+     * 热门程度
+     */
+    public Double hotness;
 
-    public Integer favoriteCnt;
+    /**
+     * 收藏数量
+     */
+    public Integer favorCnt;
 
+    /**
+     * 去过人数
+     */
     public Integer visitCnt;
 
+    /**
+     * 评价数量
+     */
     public Integer commentCnt;
 
     /**

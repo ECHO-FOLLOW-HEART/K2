@@ -1,4 +1,4 @@
-package utils.formatter.taozi.user;
+package utils.formatter.taozi.poi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,12 +12,10 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Address;
-import models.geo.Coords;
-import models.misc.Contact;
-import models.misc.Description;
+import models.geo.Country;
+import models.geo.GeoJsonPoint;
+import models.geo.Locality;
 import models.misc.ImageItem;
-import models.misc.SimpleRef;
 import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
 import utils.formatter.JsonFormatter;
@@ -27,12 +25,17 @@ import java.util.Set;
 
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p/>
+ * <p>
  * Created by zephyre on 10/28/14.
  */
 public class DetailedPOIFormatter implements JsonFormatter {
+
     @Override
     public JsonNode format(TravelPiBaseItem item) {
+        return null;
+    }
+
+    public JsonNode format(TravelPiBaseItem item, final String poiType) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -56,14 +59,24 @@ public class DetailedPOIFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.simpEnName);
                 includedFields.add(AbstractPOI.simpDesc);
                 includedFields.add(AbstractPOI.simpImg);
-                includedFields.add(AbstractPOI.simpCoords);
-                includedFields.add(ViewSpot.detTimeCost);
+                includedFields.add(AbstractPOI.fnLocation);
+                includedFields.add(AbstractPOI.detAlias);
+
                 includedFields.add(AbstractPOI.simpAddress);
                 includedFields.add(AbstractPOI.detPriceDesc);
-                includedFields.add(AbstractPOI.detOpenTime);
-                includedFields.add(AbstractPOI.detGuideInfoUrl);
-                includedFields.add(AbstractPOI.detTrafficInfoUrl);
-                includedFields.add(AbstractPOI.detKengDieInfoUrl);
+                includedFields.add(AbstractPOI.simpTelephone);
+                includedFields.add(AbstractPOI.simpCountry);
+                includedFields.add(AbstractPOI.simplocList);
+
+                if (poiType.equals("vs")) {
+                    includedFields.add(ViewSpot.fnOpenTime);
+                    includedFields.add(ViewSpot.fnTimeCostDesc);
+                    includedFields.add(ViewSpot.fnTravelMonth);
+                    includedFields.add(AbstractPOI.detGuideInfoUrl);
+                    includedFields.add(AbstractPOI.detTrafficInfoUrl);
+                    includedFields.add(AbstractPOI.detKengDieInfoUrl);
+                }
+
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -78,7 +91,7 @@ public class DetailedPOIFormatter implements JsonFormatter {
             }
         };
 
-        PropertyFilter descriptionFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter geoJsonPointFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -91,126 +104,8 @@ public class DetailedPOIFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Description.simpDesc);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        PropertyFilter contactFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(Contact.simpPhoneList);
-                includedFields.add(Contact.simpFax);
-                includedFields.add(Contact.simpEmail);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        PropertyFilter simpleRefFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-
-                includedFields.add(SimpleRef.simpID);
-                includedFields.add(SimpleRef.simpZhName);
-                includedFields.add(SimpleRef.simpEnName);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        PropertyFilter addressFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(Address.simpAddress);
-                includedFields.add(Address.simpCoords);
-                includedFields.add(Address.simpLoc);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-        PropertyFilter coordsFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(Coords.simpLat);
-                includedFields.add(Coords.simpLng);
+                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.fnType);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -253,11 +148,72 @@ public class DetailedPOIFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", theFilter).addFilter("descriptionFilter", descriptionFilter)
-                .addFilter("contactFilter", contactFilter).addFilter("simpleRefFilter", simpleRefFilter).addFilter("addressFilter", addressFilter)
-                .addFilter("coordsFilter", coordsFilter).addFilter("imageItemPOIFilter", imgFilter);
+        PropertyFilter localityFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(Locality.fnZhName);
+                includedFields.add(Locality.fnEnName);
+                includedFields.add(Locality.fnId);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+
+        PropertyFilter countryFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(Country.fnId);
+                includedFields.add(Country.fnZhName);
+                includedFields.add(Country.fnEnName);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", theFilter)
+                .addFilter("geoJsonPointFilter", geoJsonPointFilter).addFilter("imageItemPOIFilter", imgFilter)
+                .addFilter("localityFilter", localityFilter).addFilter("countryFilter", countryFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);
     }
+
 }

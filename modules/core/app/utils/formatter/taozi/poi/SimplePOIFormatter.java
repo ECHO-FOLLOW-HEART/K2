@@ -1,4 +1,4 @@
-package utils.formatter.taozi.user;
+package utils.formatter.taozi.poi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;

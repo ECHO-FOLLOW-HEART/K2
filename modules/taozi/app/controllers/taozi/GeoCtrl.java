@@ -14,7 +14,6 @@ import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
-import org.omg.PortableInterceptor.LOCATION_FORWARD;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -25,10 +24,8 @@ import utils.formatter.taozi.geo.CountryFormatter;
 import utils.formatter.taozi.geo.DestinationFormatter;
 import utils.formatter.taozi.geo.LocalityFormatter;
 import utils.formatter.taozi.geo.SimpleCountryFormatter;
-import utils.formatter.taozi.geo.SimpleLocalityFormatter;
 import utils.formatter.taozi.misc.TravelNoteFormatter;
-import utils.formatter.taozi.user.DetailedPOIFormatter;
-import utils.formatter.taozi.user.SimplePOIFormatter;
+import utils.formatter.taozi.poi.SimplePOIFormatter;
 
 import java.util.*;
 import java.util.regex.PatternSyntaxException;
@@ -137,7 +134,7 @@ public class GeoCtrl extends Controller {
                 // TODO 暂时返回国内数据
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, null, false, page, pageSize);
                      it.hasNext(); )
-                    retPoiList.add(new DetailedPOIFormatter().format(it.next()));
+                    retPoiList.add(new SimplePOIFormatter().format(it.next()));
                 results.put(poiTypeName, Json.toJson(retPoiList));
             }
 
