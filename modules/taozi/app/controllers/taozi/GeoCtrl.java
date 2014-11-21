@@ -168,7 +168,7 @@ public class GeoCtrl extends Controller {
      * @return
      */
     public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping,
-                                    int page, int pageSize) {
+                                        int page, int pageSize) {
         //TODO 没有美食/购物的数据
         try {
             ObjectNode results = Json.newObject();
@@ -199,17 +199,17 @@ public class GeoCtrl extends Controller {
         }
     }
 
-    public static Result exploreDestinations(boolean abroad,int  page, int pageSize){
+    public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
 
         try {
 
             List<ObjectNode> objs = new ArrayList<>();
-            if(abroad){
-                List<Country> countrys = GeoAPI.searchCountryByName("",page,pageSize);
+            if (abroad) {
+                List<Country> countrys = GeoAPI.searchCountryByName("", page, pageSize);
                 for (Country des : countrys) {
                     objs.add((ObjectNode) new CountryFormatter().format(des));
                 }
-            }else{
+            } else {
                 List<Destination> destinations = GeoAPI.getDestinations(abroad, page, pageSize);
                 for (Destination des : destinations) {
                     objs.add((ObjectNode) new DestinationFormatter().format(des));

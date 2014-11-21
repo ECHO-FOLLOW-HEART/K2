@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import models.geo.Destination;
 import models.poi.AbstractPOI;
 import models.poi.TravelGuide;
 import models.poi.ViewSpot;
@@ -15,6 +16,8 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.taozi.geo.DestinationGuideFormatter;
+import utils.formatter.taozi.geo.SimpleDestinationFormatter;
 import utils.formatter.taozi.user.DetailedPOIFormatter;
 import utils.formatter.taozi.user.SimplePOIFormatter;
 
@@ -315,30 +318,53 @@ public class POICtrl extends Controller {
         }
     }
 
-    public static Result getTravelGuide(String locId, Boolean arrive, Boolean traffic, Boolean bright, Boolean activity, Boolean tips, Boolean culture) {
+    /**
+     * 游玩攻略
+     *
+     * @param locId
+     * @param remoteTraffic
+     * @param localTraffic
+     * @param activity
+     * @param tips
+     * @param culture
+     * @return
+     */
+    public static Result getTravelGuide(String locId, Boolean remoteTraffic, Boolean localTraffic, Boolean activity, Boolean tips, Boolean culture) {
         try {
             ObjectNode results = Json.newObject();
-            TravelGuide travelGuide = PoiAPI.getTravelGuideApi(new ObjectId(locId));
-            if (arrive) {
-                results.put("arrive", travelGuide.arrive);
+            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
+            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
+            if (remoteTraffic) {
+                destKeyList.add(PoiAPI.DestinationType.REMOTE_TRAFFIC);
+                poiMap.put(PoiAPI.DestinationType.REMOTE_TRAFFIC, "remoteTraffic");
             }
-            if (traffic) {
-                results.put("traffic", travelGuide.traffic);
+
+            if (localTraffic) {
+                destKeyList.add(PoiAPI.DestinationType.LOCAL_TRAFFIC);
+                poiMap.put(PoiAPI.DestinationType.LOCAL_TRAFFIC, "localTraffic");
             }
-            if (bright) {
-                results.put("bright", travelGuide.bright);
-            }
+
             if (activity) {
-                results.put("activity", travelGuide.activity);
+                destKeyList.add(PoiAPI.DestinationType.ACTIVITY);
+                poiMap.put(PoiAPI.DestinationType.ACTIVITY, "activity");
             }
+
             if (tips) {
-                results.put("tips", travelGuide.tips);
+                destKeyList.add(PoiAPI.DestinationType.TIPS);
+                poiMap.put(PoiAPI.DestinationType.TIPS, "tips");
             }
-            if (culture) {
-                results.put("culture", travelGuide.cultrue);
+            //TODO 文化部分暂时未添加到bean中
+            /*if (culture){
+                destKeyList.add(PoiAPI.DestinationType.CULTURE);
+                poiMap.put(PoiAPI.DestinationType.CULTURE,Destination.fnCulture);
+            }*/
+            for (PoiAPI.DestinationType type : destKeyList) {
+                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), type);
+
+                results.put(poiMap.get(type), new DestinationGuideFormatter().format(destination));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (TravelPiException | NullPointerException | NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
