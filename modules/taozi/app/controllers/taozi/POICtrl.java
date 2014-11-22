@@ -319,6 +319,42 @@ public class POICtrl extends Controller {
     }
 
     /**
+     * 特定地点美食、购物发现
+     *
+     * @param locId
+     * @param dinning
+     * @param shopping
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result getDinShop(String locId, boolean dinning, boolean shopping,
+                                        int page, int pageSize) {
+        //TODO 缺少店铺推荐数据
+        try {
+            ObjectNode results = Json.newObject();
+            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
+            if (dinning)
+                poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
+
+            if (shopping)
+                poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
+
+            for (Map.Entry<PoiAPI.DestinationType, String> entry : poiMap.entrySet()) {
+                PoiAPI.DestinationType poiType = entry.getKey();
+                String poiTypeName = entry.getValue();
+
+                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), poiType,page, pageSize);
+
+                results.put(poiTypeName,new DestinationGuideFormatter().format(destination));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, results);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
+
+    /**
      * 游玩攻略
      *
      * @param locId
@@ -329,7 +365,8 @@ public class POICtrl extends Controller {
      * @param culture
      * @return
      */
-    public static Result getTravelGuide(String locId, Boolean remoteTraffic, Boolean localTraffic, Boolean activity, Boolean tips, Boolean culture) {
+    public static Result getTravelGuide(String locId, Boolean remoteTraffic, Boolean localTraffic,
+                                        Boolean activity, Boolean tips, Boolean culture,int page,int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
@@ -359,7 +396,7 @@ public class POICtrl extends Controller {
                 poiMap.put(PoiAPI.DestinationType.CULTURE,Destination.fnCulture);
             }*/
             for (PoiAPI.DestinationType type : destKeyList) {
-                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), type);
+                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), type,page,pageSize);
 
                 results.put(poiMap.get(type), new DestinationGuideFormatter().format(destination));
             }

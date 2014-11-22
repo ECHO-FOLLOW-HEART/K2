@@ -45,7 +45,8 @@ public class DestinationGuideFormatter implements JsonFormatter {
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
                 Collections.addAll(includedFields, Destination.fnActivities, Destination.fnActivityIntro
-                        , Destination.fnRemoteTraffic, Destination.fnLocalTraffic, Destination.fnTips);
+                        , Destination.fnRemoteTraffic, Destination.fnLocalTraffic, Destination.fnTips,
+                        Destination.fnShoppingIntro,Destination.fnCommodities,Destination.fnDinningIntro,Destination.fnCuisines);
 
                 return (includedFields.contains(writer.getName()));
             }

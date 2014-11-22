@@ -54,7 +54,8 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnPublishDate = "publishDate";
 
-
+    @Transient
+    public static String fnSummary = "summary";
     /**
      * 名称(与Title名称一致)
      */
@@ -177,6 +178,14 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
             return "";
         else
             return StringUtils.abbreviate(summary, Constants.ABBREVIATE_LEN);
+    }
+
+    public String getPublishDate() {
+        if (publishDate == null)
+            return "";
+        else
+            return new SimpleDateFormat("yyyy-MM-dd").format(publishDate);
+
     }
 
     public JsonNode toJson() {

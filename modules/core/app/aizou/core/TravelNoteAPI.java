@@ -219,4 +219,76 @@ public class TravelNoteAPI {
         }
     }
 
+    public static List<TravelNote> getTravelNote(List<String> locNames, List<String> vsNames, int pageSize) throws TravelPiException {
+
+        List<TravelNote> results = new ArrayList<>();
+        SolrDocumentList docs;
+        try {
+            Configuration config = Configuration.root().getConfig("solr");
+            String host = config.getString("host", "localhost");
+            Integer port = config.getInt("port", 8983);
+            String url = String.format("http://%s:%d/solr", host, port);
+            SolrServer server = new HttpSolrServer(url);
+            SolrQuery query = new SolrQuery();
+
+            StringBuilder sb = new StringBuilder();
+            if (locNames != null) {
+                for (String t : locNames)
+                    sb.append(String.format(" title:%s toLoc:%s", t, t));
+            }
+
+            if (vsNames != null) {
+                for (String t : vsNames)
+                    sb.append(String.format(" contents:%s", t));
+            }
+
+            query.setQuery(sb.toString().trim()).addField("authorName").addField("title")
+                    .addField("authorAvatar").addField("contents").addField("cover").addField("elite");
+            //设置分页
+            query.setRows(pageSize);
+
+            docs = server.query(query).getResults();
+
+            for (SolrDocument doc : docs) {
+                Boolean elite = (Boolean) doc.get("elite");
+                if (!elite)
+                    continue;
+                TravelNote note = new TravelNote();
+                Object tmp;
+                note.authorName = (String) doc.get("authorName");
+                note.title = (String) doc.get("title");
+                tmp = doc.get("authorAvatar");
+                note.authorAvatar = (tmp != null ? (String) tmp : "");
+                if (!note.authorAvatar.startsWith("http://"))
+                    note.authorAvatar = "http://" + note.authorAvatar;
+                note.contents = (List) doc.get("contents");
+                note.source = "百度";
+                note.publishDate = new Date();
+
+                if (note.contents.size() > 1) {
+                    sb = new StringBuilder();
+                    for (int i = 1; i < note.contents.size(); i++) {
+                        String c = note.contents.get(i);
+                        if (Pattern.matches("^\\s*http.+", c))
+                            continue;
+                        sb.append(c);
+                        sb.append('\n');
+                        if (sb.length() > 200)
+                            break;
+                    }
+                    String summary = sb.toString().trim();
+                    if (summary.length() > 200)
+                        summary = summary.substring(0, 200) + "……";
+                    note.summary = summary;
+                }
+                results.add(note);
+            }
+
+            return results;
+
+        } catch (SolrServerException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, e.getMessage());
+        }
+    }
+
 }

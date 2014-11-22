@@ -156,48 +156,6 @@ public class GeoCtrl extends Controller {
 
     }
 
-    /**
-     * 特定地点美食、景点、购物发现
-     *
-     * @param locId
-     * @param vs
-     * @param dinning
-     * @param shopping
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping,
-                                        int page, int pageSize) {
-        //TODO 没有美食/购物的数据
-        try {
-            ObjectNode results = Json.newObject();
-            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
-            if (vs)
-                poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
-
-            if (dinning)
-                poiMap.put(PoiAPI.POIType.DINNING, "dinning");
-
-            if (shopping)
-                poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
-
-            for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
-                List<JsonNode> retPoiList = new ArrayList<>();
-                PoiAPI.POIType poiType = entry.getKey();
-                String poiTypeName = entry.getValue();
-
-                // TODO 暂时返回国内数据
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, new ObjectId(locId), false, page, pageSize);
-                     it.hasNext(); )
-                    retPoiList.add(new SimplePOIFormatter().format(it.next()));
-                results.put(poiTypeName, Json.toJson(retPoiList));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
 
     public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
 

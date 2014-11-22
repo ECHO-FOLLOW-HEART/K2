@@ -761,37 +761,41 @@ public class PoiAPI {
      * @return
      * @throws TravelPiException
      */
-    public static Destination getDestinationByField(ObjectId id, List<String> fieldList) throws TravelPiException {
+    public static Destination getDestinationByField(ObjectId id, List<String> fieldList, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Destination> query = ds.createQuery(Destination.class).field("_id").equal(id);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
 
-        return query.get();
+        return query.offset(page * pageSize).limit(page).get();
     }
 
 
-    public static Destination getTravelGuideApi(ObjectId id, DestinationType type) throws TravelPiException {
+    public static Destination getTravelGuideApi(ObjectId id, DestinationType type, int page, int pageSize) throws TravelPiException {
         Destination destination;
         switch (type) {
             case REMOTE_TRAFFIC:
-                destination = getDestinationByField(id, Arrays.asList(Destination.fnRemoteTraffic));
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnRemoteTraffic), page, pageSize);
                 break;
             case LOCAL_TRAFFIC:
-                destination = getDestinationByField(id, Arrays.asList(Destination.fnLocalTraffic));
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnLocalTraffic), page, pageSize);
                 break;
             case ACTIVITY:
-                destination = getDestinationByField(id, Arrays.asList(Destination.fnActivityIntro,Destination.fnActivities));
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnActivityIntro, Destination.fnActivities), page, pageSize);
                 break;
             case TIPS:
-                destination = getDestinationByField(id, Arrays.asList(Destination.fnTips));
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnTips), page, pageSize);
                 break;
             /*case CULTURE:
                 destination = getDestinationByField(id, Arrays.asList(Destination.fnCulture);
                 break;*/
+            case DINNING:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnDinningIntro, Destination.fnCuisines), page, pageSize);
+            case SHOPPING:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnShoppingIntro, Destination.fnCommodities), page, pageSize);
             default:
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT,"INVALID_ARGUMENT");
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
         return destination;
     }
@@ -814,6 +818,8 @@ public class PoiAPI {
         LOCAL_TRAFFIC,
         ACTIVITY,
         TIPS,
-        CULTURE
+        CULTURE,
+        DINNING,
+        SHOPPING
     }
 }

@@ -56,13 +56,25 @@ public class Destination extends TravelPiBaseItem {
     public static String fnLocalTraffic = "localTraffic";
 
     @Transient
-    public static String fnActivityIntro ="activityIntro";
+    public static String fnActivityIntro = "activityIntro";
 
     @Transient
     public static String fnActivities = "activities";
 
     @Transient
-    public static String fnTips="tips";
+    public static String fnTips = "tips";
+
+    @Transient
+    public static String fnDinningIntro = "dinningIntro";
+
+    @Transient
+    public static String fnCuisines = "cuisines";
+
+    @Transient
+    public static String fnShoppingIntro = "shoppingIntro";
+
+    @Transient
+    public static String fnCommodities = "commodities";
 
     public String zhName;
 
