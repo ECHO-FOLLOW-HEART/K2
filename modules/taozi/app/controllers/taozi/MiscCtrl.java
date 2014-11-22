@@ -424,6 +424,7 @@ public class MiscCtrl extends Controller {
             JsonNode req = request().body().asJson();
             String userId = request().getHeader("userId");
             String poiId = req.get("poiId").asText();
+            ObjectId poiObjid = new ObjectId(poiId);
             Double score = req.get("score").asDouble();
             String commentDetails = req.get("commentDetails").asText();
             String type = req.get("type").asText();
@@ -431,11 +432,11 @@ public class MiscCtrl extends Controller {
             UserInfo userInfo = UserAPI.getUserInfo(Integer.parseInt(userId), Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar));
 
             Comment comment = new Comment();
-            comment.userInfo = userInfo;
-            comment.poiId = poiId;
+            comment.userId = userInfo.getUserId();
+            comment.poiId = poiObjid;
             comment.commentDetails = commentDetails;
             comment.poiType = type;
-            comment.score = score;
+            comment.rating = score;
             comment.commentTime = commentTime;
 
             MiscAPI.saveComment(comment);

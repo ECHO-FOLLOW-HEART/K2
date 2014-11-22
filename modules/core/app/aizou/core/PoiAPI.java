@@ -170,6 +170,9 @@ public class PoiAPI {
             case RESTAURANT:
                 poiClass = Restaurant.class;
                 break;
+            case SHOPPING:
+                poiClass = Restaurant.class;
+                break;
         }
         if (poiClass == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
@@ -292,6 +295,66 @@ public class PoiAPI {
         return getPOIInfo(id, poiType, showDetails);
     }
 
+    /**
+     * 获得POI信息相关的推荐
+     *
+     * @param poiId
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<POIRmd> getPOIRmd(String poiId, int page, int pageSize) throws TravelPiException {
+        ObjectId id = new ObjectId(poiId);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<POIRmd> query = ds.createQuery(POIRmd.class);
+        query.field("poiId").equal(id).offset(page * pageSize).limit(pageSize);
+
+        return query.asList();
+    }
+
+    /**
+     * 获得POI信息相关的推荐条数
+     *
+     * @param poiId
+     * @return
+     * @throws TravelPiException
+     */
+    public static long getPOIRmdCount(String poiId) throws TravelPiException {
+        ObjectId id = new ObjectId(poiId);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<POIRmd> query = ds.createQuery(POIRmd.class);
+        query.field("poiId").equal(id);
+        return ds.getCount(query);
+    }
+    /**
+     * 获得POI信息相关的评论
+     *
+     * @param poiId
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Comment> getPOIComment(String poiId, int page, int pageSize) throws TravelPiException {
+       ObjectId id = new ObjectId(poiId);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Comment> query = ds.createQuery(Comment.class);
+        query.field("poiId").equal(id).offset(page * pageSize).limit(pageSize);
+
+        return query.asList();
+    }
+
+    /**
+     * 获得POI信息相关的评论条数
+     *
+     * @param poiId
+     * @return
+     * @throws TravelPiException
+     */
+    public static long getPOICommentCount(String poiId) throws TravelPiException {
+        ObjectId id = new ObjectId(poiId);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Comment> query = ds.createQuery(Comment.class);
+        query.field("poiId").equal(id);
+        return ds.getCount(query);
+    }
     /**
      * 获得地区的poi
      *
@@ -437,10 +500,10 @@ public class PoiAPI {
                 poiClass = Restaurant.class;
                 break;
             case DINNING:
-                poiClass=Dinning.class;
+                poiClass = Dinning.class;
                 break;
             case SHOPPING:
-                poiClass=Shopping.class;
+                poiClass = Shopping.class;
                 break;
         }
         if (poiClass == null)

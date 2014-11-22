@@ -5,9 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.poi.AbstractPOI;
-import models.poi.TravelGuide;
-import models.poi.ViewSpot;
+import models.poi.*;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -15,7 +13,9 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.taozi.poi.CommentFormatter;
 import utils.formatter.taozi.poi.DetailedPOIFormatter;
+import utils.formatter.taozi.poi.POIRmdFormatter;
 import utils.formatter.taozi.poi.SimplePOIFormatter;
 
 import java.util.*;
@@ -37,7 +37,7 @@ public class POICtrl extends Controller {
      * @param spotId      POI的ID。
      * @param showDetails 获得更多的详情。
      */
-    public static Result viewPOIInfo(String poiDesc, String spotId, int showDetails, int pageSize) {
+    public static Result viewPOIInfo(String poiDesc, String spotId, int showDetails, int commentPage, int commentPageSize, int rmdPage, int rmdPageSize) {
         try {
             PoiAPI.POIType poiType = null;
             switch (poiDesc) {
@@ -65,7 +65,28 @@ public class POICtrl extends Controller {
             if (poiInfo == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
             JsonNode info = details ? new DetailedPOIFormatter().format(poiInfo, poiDesc) : new SimplePOIFormatter().format(poiInfo);
+
+            //取得推荐
+            List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
+            int rmdCnt = (int)PoiAPI.getPOIRmdCount(spotId);
+            List<JsonNode> recommends = new ArrayList<>();
+            for (POIRmd temp : rmdEntities) {
+                recommends.add(new POIRmdFormatter().format(temp));
+            }
+
+            // 取得评论
+            List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
+            int commCnt = (int)PoiAPI.getPOICommentCount(spotId);
+            List<JsonNode> comments = new ArrayList<>();
+            for (Comment temp : commentsEntities) {
+                comments.add(new CommentFormatter().format(temp));
+            }
             ObjectNode ret = (ObjectNode) info;
+            ret.put("recommends", Json.toJson(recommends));
+            ret.put("recommendCnt", rmdCnt);
+
+            ret.put("comments", Json.toJson(comments));
+            ret.put("commentCnt", commCnt);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -139,6 +160,9 @@ public class POICtrl extends Controller {
             case "restaurant":
                 type = PoiAPI.POIType.RESTAURANT;
                 break;
+            case "shopping":
+                type = PoiAPI.POIType.SHOPPING;
+                break;
         }
         if (type == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
@@ -165,7 +189,7 @@ public class POICtrl extends Controller {
         try {
             it = PoiAPI.poiSearch(type, tag, keyword, sf, sort, page, pageSize, true, hotelType);
             while (it.hasNext())
-                results.add(new DetailedPOIFormatter().format(it.next(), poiType));
+                results.add(new SimplePOIFormatter().format(it.next()));
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));

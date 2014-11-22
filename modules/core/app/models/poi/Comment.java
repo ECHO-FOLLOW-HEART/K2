@@ -1,11 +1,8 @@
 package models.poi;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.databind.JsonNode;
-import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
-import models.user.UserInfo;
-import org.mongodb.morphia.annotations.Embedded;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
@@ -13,28 +10,28 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 /**
+ * 推薦
  * Created by lxf on 14-11-12.
  */
 @JsonFilter("commentsFilter")
 @Entity
-public class Comment extends TravelPiBaseItem implements ITravelPiFormatter {
+public class Comment extends TravelPiBaseItem {
 
     @Transient
     public static String fnAvatar = "avatar";
     @Transient
     public static String fnNickName = "nickName";
     @Transient
-    public static String fnScore = "score";
+    public static String fnScore = "rating";
     @Transient
     public static String fnCommentDetails = "commentDetails";
     @Transient
     public static String fnCommentTime = "commentTime";
 
     /**
-     * 评论的用户
+     * 用户ID
      */
-    @Embedded
-    public UserInfo userInfo;
+    public Integer userId;
 
     /**
      * 用户头像
@@ -54,7 +51,7 @@ public class Comment extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 评分数
      */
-    public Double score;
+    public Double rating;
     /**
      * 评价的详情
      */
@@ -67,7 +64,7 @@ public class Comment extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 评价的poiId
      */
-    public String poiId;
+    public ObjectId poiId;
 
 
     public String getCommentTime() {
@@ -75,8 +72,4 @@ public class Comment extends TravelPiBaseItem implements ITravelPiFormatter {
         return timeFormat.format(commentTime);
     }
 
-    @Override
-    public JsonNode toJson() {
-        return null;
-    }
 }
