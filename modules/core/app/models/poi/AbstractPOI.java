@@ -63,12 +63,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simpImg = "images";
 
     @Transient
-    public static String detAddr = "addr";
-
-    @Transient
-    public static String fnLocation = "location";
-
-    @Transient
     public static String detDesc = "description";
 
     @Transient
@@ -79,9 +73,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String detContact = "contact";
-
-    @Transient
-    public static String detOpenTime = "openTime";
 
     @Transient
     public static String detAlias = "alias";
@@ -108,10 +99,19 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simpRating = "rating";
 
     @Transient
-    public static String simpCoords = "coords";
+    public static String fnLocation = "location";
 
     @Transient
     public static String simpAddress = "address";
+
+    @Transient
+    public static String simpTelephone = "telephone";
+
+    @Transient
+    public static String simpCountry = "country";
+
+    @Transient
+    public static String simplocList = "locList";
 
     @Embedded
     public CheckinRatings ratings;

@@ -36,6 +36,9 @@ import java.util.regex.Pattern;
 public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
+    public static String fnId = "id";
+
+    @Transient
     public static String fnEnName = "enName";
 
     @Transient

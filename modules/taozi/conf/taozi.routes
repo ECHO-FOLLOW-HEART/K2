@@ -68,8 +68,8 @@ GET           /misc/notes/search                             controllers.taozi.T
 GET           /poi/vs/:spotId                                controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, showDetails: Int=1, pageSize: Int?=10)
 # 酒店详情
 GET           /poi/hotels/:spotId                            controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
-#餐厅详情
-GET           /poi/restaurants/:spotId                       controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="restaurants", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
+#美食详情
+GET           /poi/restaurants/:spotId                       controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="restaurant", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
 #购物详情
 GET           /poi/shopping/:spotId                          controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
 #美食详情

@@ -391,10 +391,6 @@ public class PoiAPI {
                 // TODO
                 poiClass = Shopping.class;
                 break;
-            case ENTERTAINMENT:
-                //TODO
-                poiClass = Entertainment.class;
-                break;
             default:
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         }

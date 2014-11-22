@@ -17,7 +17,7 @@ import java.util.List;
  *
  * @author Zephyre
  */
-@JsonFilter("shoppingFilter")
 public class Shopping extends AbstractPOI {
+
 
 }
