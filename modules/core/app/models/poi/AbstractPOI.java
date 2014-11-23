@@ -113,6 +113,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Transient
     public static String simplocList = "locList";
 
+    @Transient
+    public static String fnTags = "tags";
+
     @Embedded
     public CheckinRatings ratings;
 
@@ -189,7 +192,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p>
+     * <p/>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -242,7 +245,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      */
     public List<Locality> locList;
 
-    public Map<String,Object> miscInfo;
+    public Map<String, Object> miscInfo;
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {

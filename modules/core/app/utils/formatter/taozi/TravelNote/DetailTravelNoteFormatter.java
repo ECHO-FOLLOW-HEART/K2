@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Destination;
 import models.misc.TravelNote;
 import utils.formatter.JsonFormatter;
 
@@ -23,7 +22,7 @@ import java.util.Set;
 /**
  * Created by lxf on 14-11-1.
  */
-public class TravelNoteFormatter implements JsonFormatter {
+public class DetailTravelNoteFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -44,8 +43,9 @@ public class TravelNoteFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, TravelNote.fnAuthorAvatar,TravelNote.fnAuthorName,TravelNote.fnCover,
-                        TravelNote.fnTitle,TravelNote.fnPublishDate,TravelNote.fnSource,TravelNote.fnSummary);
+                Collections.addAll(includedFields, TravelNote.fnId,TravelNote.fnAuthorAvatar,TravelNote.fnAuthorName,TravelNote.fnCover,
+                        TravelNote.fnTitle,TravelNote.fnPublishDate,TravelNote.fnSource,TravelNote.fnContents,TravelNote.fnCostLower,
+                        TravelNote.fnCostUpper,TravelNote.fnSourceUrl,TravelNote.fnCommentCnt,TravelNote.fnViewCnt,TravelNote.fnFavorCnt);
 
                 return (includedFields.contains(writer.getName()));
             }

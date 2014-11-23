@@ -149,3 +149,5 @@ GET           /travel-guide/:id                              controllers.taozi.P
 GET           /destinations                                  controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page: Int?=0, pageSize: Int?=10)
 #更多精选游记
 GET           /travel-note/:id                               controllers.taozi.TravelNoteCtrl.getNotes(id:String,pageSize:Int?=10)
+#返回单篇游记详情
+GET           /travel-note/detail/:id                        controllers.taozi.TravelNoteCtrl.getTravelNoteDetail(id:String)

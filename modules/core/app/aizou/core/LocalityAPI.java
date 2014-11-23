@@ -10,6 +10,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 
+import javax.activation.DataSource;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
@@ -155,6 +156,21 @@ public class LocalityAPI {
     public static Locality getLocality(ObjectId locId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         return ds.createQuery(Locality.class).field("_id").equal(locId).field("enabled").equal(Boolean.TRUE).get();
+    }
+
+    /**
+     * 返回特定字段的locality
+     * @param locId
+     * @param fieldList
+     * @return
+     */
+    public static Locality getLocality(ObjectId locId,List<String> fieldList) throws TravelPiException {
+        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+
+        return query.get();
     }
 
     /**

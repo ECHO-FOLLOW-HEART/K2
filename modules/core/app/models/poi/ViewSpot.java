@@ -28,6 +28,7 @@ public class ViewSpot extends AbstractPOI {
     @Transient
     public static String fnOpenTime = "openTime";
 
+
     public Integer spotId;
 
     public String trafficInfo;

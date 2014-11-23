@@ -55,7 +55,29 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String fnPublishDate = "publishDate";
 
     @Transient
+    public static String fnStartDate = "startDate";
+
+    @Transient
     public static String fnSummary = "summary";
+
+    @Transient
+    public static String fnContents = "contents";
+
+    @Transient
+    public static String fnCostLower = "costLower";
+
+    @Transient
+    public static String fnCostUpper = "costUpper";
+
+    @Transient
+    public static String fnFavorCnt = "favorCnt";
+
+    @Transient
+    public static String fnCommentCnt = "commentCnt";
+
+    @Transient
+    public static String fnViewCnt = "viewCnt";
+
     /**
      * 名称(与Title名称一致)
      */
@@ -80,6 +102,10 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public Date publishDate;
 
+    /**
+     * 发表时间
+     */
+    public String startDate;
     /**
      * 收藏次数
      */
@@ -184,7 +210,7 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
         if (publishDate == null)
             return "";
         else
-            return new SimpleDateFormat("yyyy-MM-dd").format(publishDate);
+            return new SimpleDateFormat("yyyy-MM-dd EE z").format(publishDate);
 
     }
 

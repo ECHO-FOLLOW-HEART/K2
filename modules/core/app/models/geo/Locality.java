@@ -92,6 +92,9 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnimageCnt = "imageCnt";
 
+    @Transient
+    public static String fnAlias="alias";
+
     public String zhName;
 
     public String enName;
