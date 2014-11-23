@@ -82,7 +82,7 @@ public class ItineraryFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.simpID);
                 includedFields.add(AbstractPOI.simpName);
                 includedFields.add(AbstractPOI.simpEnName);
-                includedFields.add(AbstractPOI.simpCover);
+                includedFields.add(AbstractPOI.simpImg);
                 includedFields.add(AbstractPOI.simpRating);
                 return (includedFields.contains(writer.getName()));
             }

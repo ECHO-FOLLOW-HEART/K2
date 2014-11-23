@@ -65,28 +65,21 @@ GET           /misc/notes/search                             controllers.taozi.T
 #----------POI接口----------
 #查看POI详情
 # 景点详情
-GET           /poi/vs/:spotId                                controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, showDetails: Int=1, pageSize: Int?=10)
+GET           /poi/vs/:spotId                                controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, showDetails: Int=1, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 # 酒店详情
-GET           /poi/hotels/:spotId                            controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
+GET           /poi/hotels/:spotId                            controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, showDetails: Int=1, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #美食详情
-GET           /poi/restaurants/:spotId                       controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="restaurant", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
+GET           /poi/restaurants/:spotId                       controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="restaurant", spotId: String, showDetails: Int=1, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #购物详情
-GET           /poi/shopping/:spotId                          controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
-#美食详情
-GET           /poi/entertainment/:spotId                     controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="entertainment", spotId: String, showDetails: Int=1,  pageSize: Int?=10)
-# 搜索景点
-GET           /poi/search-spots/search                       controllers.taozi.POICtrl.poiSearch(poiType: String="vs",tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
-# 搜索酒店
-GET           /poi/search-hotels/search                      controllers.taozi.POICtrl.poiSearch(poiType: String="hotel", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
-# 搜索餐厅
-GET           /poi/search-restaurants/search                 controllers.taozi.POICtrl.poiSearch(poiType: String="restaurant",tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelTypeStr: String?="")
+GET           /poi/shopping/:spotId                          controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, showDetails: Int=1, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
+# POI的搜索
+GET           /poi/search                                    controllers.taozi.POICtrl.poiSearch(poiType: String,tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
 #酒店列表
-GET           /poi/view-hotels/localities/:locId             controllers.taozi.POICtrl.viewHotelList(locId: String, tagFilter: String?="", sortField: String?="price",sortType:String?="asc",page: Int?=0, pageSize: Int?=20)
-# 餐厅列表
-GET           /poi/view-restaurants/localities/:locId        controllers.taozi.POICtrl.viewRestaurantList(locId: String, tagFilter: String?="", sortFilter: String?="price", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
+GET           /poi/hotels/localities/:locId                  controllers.taozi.POICtrl.viewHotelList(locId: String, tagFilter: String?="", sortField: String?="price",sortType:String?="asc",page: Int?=0, pageSize: Int?=20)
+# 美食列表
+GET           /poi/restaurants/localities/:locId             controllers.taozi.POICtrl.viewRestaurantList(locId: String, tagFilter: String?="", sortFilter: String?="price", sort: String?="asc", page: Int?=0, pageSize: Int?=20)
 # 景点列表
-GET           /poi/view-spots/localities/:locId              controllers.taozi.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="price", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
-
+GET           /poi/vs/localities/:locId                      controllers.taozi.POICtrl.viewSpotList(locId: String, tagFilter: String?="", sortFilter: String?="price", sort: String?="desc", page: Int?=0, pageSize: Int?=20)
 #获得景点周边的POI列表
 GET           /poi/nearby                                    controllers.taozi.POICtrl.getPoiNear(lng: Double,lat: Double,spot:Boolean=true,hotel:Boolean?=false,restaurant:Boolean?=false,page:Int?=0,pageSize :Int?=20)
 #----------数据脚本----------

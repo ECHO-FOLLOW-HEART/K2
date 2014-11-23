@@ -93,9 +93,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simpEnName = "enName";
 
     @Transient
-    public static String simpCover = "cover";
-
-    @Transient
     public static String simpRating = "rating";
 
     @Transient
@@ -250,9 +247,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
+                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id"));
             case 2:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags"));
+                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id", "desc", "images", "tags", "location", "locList"));
             case 3:
                 return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact", "url",
                         "price", "priceDesc", "alias"));
