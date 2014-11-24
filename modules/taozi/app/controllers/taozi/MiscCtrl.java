@@ -196,7 +196,7 @@ public class MiscCtrl extends Controller {
             Integer userId = Integer.parseInt(request().getHeader("UserId"));
             Query<Favorite> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).createQuery(Favorite.class);
             query.field("userId").equal(userId);
-            if (faType.equals("all")||faType.equals("")) {
+            if (faType.equals("all") || faType.equals("")) {
                 List<CriteriaContainerImpl> criList = new ArrayList<>();
                 List<String> allTypes = Arrays.asList(Favorite.TYPE_VS, Favorite.TYPE_HOTEL, Favorite.TYPE_TRAVELNOTE, Favorite.TYPE_SHOPPING
                         , Favorite.TYPE_RESTAURANT, Favorite.TYPE_LOCALITY, Favorite.TYPE_ENTERTAINMENT);
@@ -398,14 +398,14 @@ public class MiscCtrl extends Controller {
     public static Result saveColumns() {
         try {
             JsonNode req = request().body().asJson();
-            String title=req.get("title").asText();
-            String cover=req.get("cover").asText();
-            String link=req.get("link").asText();
+            String title = req.get("title").asText();
+            String cover = req.get("cover").asText();
+            String link = req.get("link").asText();
 
-            PageFirst pageFirst=new PageFirst();
-            pageFirst.cover=cover;
-            pageFirst.title=title;
-            pageFirst.link=link;
+            PageFirst pageFirst = new PageFirst();
+            pageFirst.cover = cover;
+            pageFirst.title = title;
+            pageFirst.link = link;
 
             MiscAPI.saveColumns(pageFirst);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
@@ -454,9 +454,9 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result displayComment(String poiId,Double lower,Double upper,int page, int pageSize) {
+    public static Result displayComment(String poiId, Double lower, Double upper, int page, int pageSize) {
         try {
-            List<Comment> commentList = MiscAPI.displayCommentApi(poiId,lower,upper, page, pageSize);
+            List<Comment> commentList = MiscAPI.displayCommentApi(poiId, lower, upper, page, pageSize);
             List<JsonNode> list = new ArrayList<>();
             for (Comment comment : commentList) {
                 list.add(new MiscFormatter().format(comment));

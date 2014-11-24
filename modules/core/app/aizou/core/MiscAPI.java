@@ -4,6 +4,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.misc.PageFirst;
 import models.poi.Comment;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
@@ -22,16 +23,17 @@ public class MiscAPI {
      * @throws TravelPiException
      */
     public static List<PageFirst> getColumns() throws TravelPiException {
-         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-         Query<PageFirst> query=ds.createQuery(PageFirst.class);
-         return query.asList();
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<PageFirst> query = ds.createQuery(PageFirst.class);
+        return query.asList();
 
     }
 
     public static void saveColumns(PageFirst pageFirst) throws TravelPiException {
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ds.save(pageFirst);
     }
+
     /**
      * 储存评论信息
      *
@@ -66,11 +68,11 @@ public class MiscAPI {
      * @return
      * @throws TravelPiException
      */
-    public static List<Comment> displayCommentApi(String poiId, Double lower,Double upper, int page, int pageSize)
+    public static List<Comment> displayCommentApi(String poiId, Double lower, Double upper, int page, int pageSize)
             throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        Query<Comment> query = ds.createQuery(Comment.class).field("poiId").equal(poiId);
+        Query<Comment> query = ds.createQuery(Comment.class).field("poiId").equal(new ObjectId(poiId));
         query = query.order(Comment.fnCommentTime);
         /*if (goodComment) {
             query = query.filter("score >=", 0.7).filter("score <", 1.0);
@@ -85,7 +87,7 @@ public class MiscAPI {
             return query.offset(page * pageSize).limit(pageSize).asList();
         }*/
 
-        return query.filter(Comment.fnScore+" >=",lower).filter(Comment.fnScore+" <",upper).offset(page * pageSize).limit(page).asList();
+        return query.filter(Comment.fnScore + " >=", lower).filter(Comment.fnScore + " <", upper).offset(page * pageSize).limit(page).asList();
     }
 
 

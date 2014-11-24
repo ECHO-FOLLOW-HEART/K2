@@ -118,6 +118,7 @@ public class TravelNoteCtrl extends Controller {
             for (TravelNote note : travelNoteList) {
                 nodeList.add(new DetailTravelNoteFormatter().format(note));
             }
+
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
         } catch (ParseException | SolrServerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");

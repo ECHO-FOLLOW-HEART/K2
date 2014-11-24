@@ -328,6 +328,7 @@ public class PoiAPI {
         query.field("poiId").equal(id);
         return ds.getCount(query);
     }
+
     /**
      * 获得POI信息相关的评论
      *
@@ -336,7 +337,7 @@ public class PoiAPI {
      * @throws TravelPiException
      */
     public static List<Comment> getPOIComment(String poiId, int page, int pageSize) throws TravelPiException {
-       ObjectId id = new ObjectId(poiId);
+        ObjectId id = new ObjectId(poiId);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class);
         query.field("poiId").equal(id).offset(page * pageSize).limit(pageSize);
@@ -358,6 +359,7 @@ public class PoiAPI {
         query.field("poiId").equal(id);
         return ds.getCount(query);
     }
+
     /**
      * 获得地区的poi
      *
@@ -850,9 +852,11 @@ public class PoiAPI {
                 destination = getDestinationByField(id, Arrays.asList(Destination.fnCulture);
                 break;*/
             case DINNING:
-                destination = getDestinationByField(id, Arrays.asList(Destination.fnDinningIntro, Destination.fnCuisines), page, pageSize);
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnDinningIntro, Destination.fnCommodities), page, pageSize);
+                break;
             case SHOPPING:
-                destination = getDestinationByField(id, Arrays.asList(Destination.fnShoppingIntro, Destination.fnCommodities), page, pageSize);
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnShoppingIntro, Destination.fnCuisines), page, pageSize);
+                break;
             default:
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }

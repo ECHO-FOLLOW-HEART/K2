@@ -258,7 +258,7 @@ public class TravelNoteAPI {
         }
 
         query.setQuery(sb.toString().trim()).addField("id").addField("authorName").addField("title")
-                .addField("authorAvatar").addField("contents").addField("cover").addField("elite")
+                .addField("authorAvatar").addField("contents").addField("elite")
                 .addField("source").addField("publishDate");
         //设置分页
         query.setRows(pageSize);
@@ -377,7 +377,7 @@ public class TravelNoteAPI {
                 note.authorAvatar = "http://" + note.authorAvatar;
             tmp = doc.get("favorCnt");
             note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-            note.contents = (List) doc.get("contents");
+            note.contents = procContents((List) doc.get("contents"));
             note.sourceUrl = (String) doc.get("url");
             note.source = getSource((String) doc.get("source"));
             tmp = doc.get("commentCnt");
@@ -395,6 +395,30 @@ public class TravelNoteAPI {
         }
         return results;
 
+    }
+
+    /**
+     * 处理游记正文
+     *
+     * @param contents
+     * @return
+     */
+    public static List<String> procContents(List<String> contents) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div>");
+        for (String line : contents) {
+            if (line.startsWith("img src")) {
+                line = line.replaceAll("\\\\", "");
+                sb.append("<" + line + ">");
+            } else if (line.startsWith("http://")) {
+                sb.append("<img src=" + line + " >");
+            } else
+                sb.append("<p> " + line + "</p>");
+        }
+        sb.append("</div>");
+        List<String> list = new ArrayList<>();
+        list.add(sb.toString().trim());
+        return list;
     }
 
 }

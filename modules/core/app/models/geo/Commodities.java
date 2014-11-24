@@ -12,6 +12,7 @@ import java.util.List;
  * Created by topy on 2014/11/20.
  */
 @Embedded
+
 public class Commodities extends TravelPiBaseItem {
 
     public String zhName;

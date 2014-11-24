@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {

@@ -71,7 +71,7 @@ public class POICtrl extends Controller {
 
             //取得推荐
             List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
-            int rmdCnt = (int)PoiAPI.getPOIRmdCount(spotId);
+            int rmdCnt = (int) PoiAPI.getPOIRmdCount(spotId);
             List<JsonNode> recommends = new ArrayList<>();
             for (POIRmd temp : rmdEntities) {
                 recommends.add(new POIRmdFormatter().format(temp));
@@ -79,7 +79,7 @@ public class POICtrl extends Controller {
 
             // 取得评论
             List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-            int commCnt = (int)PoiAPI.getPOICommentCount(spotId);
+            int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
             List<JsonNode> comments = new ArrayList<>();
             for (Comment temp : commentsEntities) {
                 comments.add(new CommentFormatter().format(temp));
@@ -353,24 +353,28 @@ public class POICtrl extends Controller {
      * @return
      */
     public static Result getDinShop(String locId, boolean dinning, boolean shopping,
-                                        int page, int pageSize) {
+                                    int page, int pageSize) {
         //TODO 缺少店铺推荐数据
         try {
             ObjectNode results = Json.newObject();
+            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
             HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
-            if (dinning)
+            if (dinning) {
+                destKeyList.add(PoiAPI.DestinationType.DINNING);
                 poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
+            }
 
-            if (shopping)
+            if (shopping) {
+                destKeyList.add(PoiAPI.DestinationType.SHOPPING);
                 poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
+            }
+            ObjectId oid = new ObjectId(locId);
+            for (PoiAPI.DestinationType type : destKeyList) {
 
-            for (Map.Entry<PoiAPI.DestinationType, String> entry : poiMap.entrySet()) {
-                PoiAPI.DestinationType poiType = entry.getKey();
-                String poiTypeName = entry.getValue();
-
-                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), poiType,page, pageSize);
-
-                results.put(poiTypeName,new DestinationGuideFormatter().format(destination));
+                Destination destination = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
+                String kind = poiMap.get(type);
+                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
+                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (TravelPiException e) {
@@ -390,19 +394,19 @@ public class POICtrl extends Controller {
      * @return
      */
     public static Result getTravelGuide(String locId, Boolean remoteTraffic, Boolean localTraffic,
-                                        Boolean activity, Boolean tips, Boolean culture,int page,int pageSize) {
+                                        Boolean activity, Boolean tips, Boolean culture, int page, int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
             HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
             if (remoteTraffic) {
                 destKeyList.add(PoiAPI.DestinationType.REMOTE_TRAFFIC);
-                poiMap.put(PoiAPI.DestinationType.REMOTE_TRAFFIC, "remoteTraffic");
+                poiMap.put(PoiAPI.DestinationType.REMOTE_TRAFFIC, "remote");
             }
 
             if (localTraffic) {
                 destKeyList.add(PoiAPI.DestinationType.LOCAL_TRAFFIC);
-                poiMap.put(PoiAPI.DestinationType.LOCAL_TRAFFIC, "localTraffic");
+                poiMap.put(PoiAPI.DestinationType.LOCAL_TRAFFIC, "local");
             }
 
             if (activity) {
@@ -420,9 +424,10 @@ public class POICtrl extends Controller {
                 poiMap.put(PoiAPI.DestinationType.CULTURE,Destination.fnCulture);
             }*/
             for (PoiAPI.DestinationType type : destKeyList) {
-                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), type,page,pageSize);
-
-                results.put(poiMap.get(type), new DestinationGuideFormatter().format(destination));
+                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), type, page, pageSize);
+                String kind = poiMap.get(type);
+                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
+                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (TravelPiException | NullPointerException | NumberFormatException e) {
