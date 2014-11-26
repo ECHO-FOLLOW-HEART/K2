@@ -12,7 +12,6 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Coords;
 import models.geo.Destination;
 import utils.formatter.JsonFormatter;
 
@@ -44,7 +43,7 @@ public class SimpleDestinationFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Destination.fnId,Destination.fnZhName,Destination.fnEnName);
+                Collections.addAll(includedFields, Destination.fnId, Destination.fnZhName, Destination.fnEnName);
 
                 return (includedFields.contains(writer.getName()));
             }
@@ -59,36 +58,8 @@ public class SimpleDestinationFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
-        PropertyFilter coordsFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
 
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(Coords.simpLat);
-                includedFields.add(Coords.simpLng);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        FilterProvider filters = new SimpleFilterProvider().addFilter("destinationFilter", theFilter).addFilter("coordsFilter", coordsFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("destinationFilter", theFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

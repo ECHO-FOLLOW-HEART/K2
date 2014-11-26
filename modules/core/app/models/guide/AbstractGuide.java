@@ -1,7 +1,7 @@
 package models.guide;
 
 import models.TravelPiBaseItem;
-import models.poi.Dinning;
+import models.geo.Destination;
 import models.poi.Restaurant;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
@@ -30,11 +30,13 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     public static final String fdId = "id";
 
     @Transient
-    public static final String fnLocId = "locId";
+    public static final String fnDestinations = "destinations";
 
     public String title;
 
     public ObjectId locId;
+
+    public List<Destination> destinations;
 
     public List<ItinerItem> itinerary;
 
@@ -42,7 +44,4 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
 
     public List<Restaurant> restaurant;
 
-    public String getLocId() {
-        return locId.toString();
-    }
 }
