@@ -325,6 +325,7 @@ public class PoiAPI {
         query.field("poiId").equal(id);
         return ds.getCount(query);
     }
+
     /**
      * 获得POI信息相关的评论
      *
@@ -333,10 +334,34 @@ public class PoiAPI {
      * @throws TravelPiException
      */
     public static List<Comment> getPOIComment(String poiId, int page, int pageSize) throws TravelPiException {
-       ObjectId id = new ObjectId(poiId);
+        ObjectId id = new ObjectId(poiId);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class);
         query.field("poiId").equal(id).offset(page * pageSize).limit(pageSize);
+
+        return query.asList();
+    }
+
+    /**
+     * 批量获得POI信息相关的评论
+     *
+     * @param poiId
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Comment> getPOICommentBatch(List<String> poiId, int page, int pageSize) throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Comment> query = ds.createQuery(Comment.class);
+
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        ObjectId oId;
+        for (String tempId : poiId) {
+            oId = new ObjectId(tempId);
+            criList.add(query.criteria("poiId").equal(oId));
+        }
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        query.offset(page * pageSize).limit(pageSize);
 
         return query.asList();
     }
@@ -355,6 +380,7 @@ public class PoiAPI {
         query.field("poiId").equal(id);
         return ds.getCount(query);
     }
+
     /**
      * 获得地区的poi
      *
@@ -383,6 +409,9 @@ public class PoiAPI {
                 poiClass = Hotel.class;
                 break;
             case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+            case SHOPPING:
                 poiClass = Restaurant.class;
                 break;
         }
@@ -415,6 +444,9 @@ public class PoiAPI {
                     break;
                 case SCORE:
                     stKey = "ratings.score";
+                    break;
+                case RATING:
+                    stKey = "rating";
                     break;
             }
             query.order(String.format("%s%s", sort ? "" : "-", stKey));
@@ -824,8 +856,64 @@ public class PoiAPI {
 
     }
 
+
+    /**
+     * 获得地区的poi
+     * 桃子旅行用,与旅行派的有区别
+     *
+     * @param poiType
+     * @param locId
+     * @param sortField
+     * @param sort
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<? extends AbstractPOI> viewPoiList(POIType poiType, ObjectId locId, final SortField sortField,
+                                                          Boolean sort, int page, int pageSize)
+            throws TravelPiException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Class<? extends AbstractPOI> poiClass = null;
+        List<String> fieldList = new ArrayList<>();
+        Collections.addAll(fieldList,"_id", "zhName", "enName", "rating", "images",
+                "desc", "locList", "priceDesc", "address", "tags");
+        switch (poiType) {
+            case VIEW_SPOT:
+                fieldList.add("timeCostDesc");
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+            case SHOPPING:
+                poiClass = Shopping.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        query = query.field("locList.id").equal(locId);
+        query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        // 排序
+        String stKey = null;
+        switch (sortField) {
+            case RATING:
+                stKey = "rating";
+                break;
+        }
+        query.order(String.format("%s%s", sort ? "" : "-", stKey));
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
+    }
+
     public enum SortField {
-        SCORE, PRICE
+        SCORE, PRICE, RATING
     }
 
     public enum POIType {

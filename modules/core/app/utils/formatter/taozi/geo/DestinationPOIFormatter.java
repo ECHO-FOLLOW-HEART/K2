@@ -1,4 +1,4 @@
-package utils.formatter.taozi.guide;
+package utils.formatter.taozi.geo;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,20 +12,19 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.guide.AbstractGuide;
-import models.guide.Guide;
-import models.poi.AbstractPOI;
+import models.geo.Coords;
+import models.geo.Destination;
+import models.misc.ImageItem;
 import utils.formatter.JsonFormatter;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回攻略中行程单内容
- * <p>
- * Created by zephyre on 10/28/14.
+ * Created by lxf on 14-11-1.
  */
-public class DinningFormatter implements JsonFormatter {
+public class DestinationPOIFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -33,7 +32,7 @@ public class DinningFormatter implements JsonFormatter {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
-        PropertyFilter guideFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter theFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -46,10 +45,9 @@ public class DinningFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(AbstractGuide.fdId);
-                includedFields.add(Guide.fnUserId);
-                includedFields.add(AbstractGuide.fnTitle);
-                includedFields.add(AbstractGuide.fnDinning);
+                Collections.addAll(includedFields, Destination.fnId,Destination.fnZhName,Destination.fnEnName,Destination.fnDesc,
+                        Destination.fnImage);
+
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -63,7 +61,7 @@ public class DinningFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
-        PropertyFilter poiFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter coordsFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -76,12 +74,8 @@ public class DinningFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(AbstractPOI.simpDesc);
-                includedFields.add(AbstractPOI.simpID);
-                includedFields.add(AbstractPOI.simpName);
-                includedFields.add(AbstractPOI.simpEnName);
-                includedFields.add(AbstractPOI.simpImg);
-                includedFields.add(AbstractPOI.simpRating);
+                includedFields.add(Coords.simpLat);
+                includedFields.add(Coords.simpLng);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -96,7 +90,34 @@ public class DinningFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("guideFilter", guideFilter).addFilter("abstractPOIFilter", poiFilter);
+        PropertyFilter imgFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(ImageItem.fnUrl);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+        FilterProvider filters = new SimpleFilterProvider().addFilter("destinationFilter", theFilter).addFilter("coordsFilter", coordsFilter).addFilter("imageItemPOIFilter", imgFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

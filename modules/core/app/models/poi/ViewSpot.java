@@ -28,6 +28,15 @@ public class ViewSpot extends AbstractPOI {
     @Transient
     public static String fnOpenTime = "openTime";
 
+    @Transient
+    public static String detTrafficInfoUrl = "trafficInfoUrl";
+
+    @Transient
+    public static String detGuideInfoUrl = "guideUrl";
+
+    @Transient
+    public static String detKengDieInfoUrl = "kengdieUrl";
+
     public Integer spotId;
 
     public String trafficInfo;
@@ -91,6 +100,28 @@ public class ViewSpot extends AbstractPOI {
             return "假数据";
         else
             return timeCostDesc;
+    }
+
+    public String getTrafficInfoUrl() {
+        if (trafficInfoUrl == null) {
+            return "";
+
+        } else
+            return trafficInfoUrl;
+    }
+
+    public String getGuideUrl() {
+        if (guideUrl == null) {
+            return "";
+        } else
+            return guideUrl;
+    }
+
+    public String getKengdieUrl() {
+        if (kengdieUrl == null) {
+            return "";
+        } else
+            return kengdieUrl;
     }
 
     @Override

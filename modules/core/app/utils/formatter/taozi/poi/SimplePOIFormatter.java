@@ -12,7 +12,9 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
+import models.misc.ImageItem;
 import models.poi.AbstractPOI;
+import models.poi.ViewSpot;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
@@ -20,12 +22,16 @@ import java.util.Set;
 
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p/>
+ * <p>
  * Created by zephyre on 10/28/14.
  */
 public class SimplePOIFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
+        return null;
+    }
+
+    public JsonNode format(TravelPiBaseItem item, final String poiType) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -46,9 +52,18 @@ public class SimplePOIFormatter implements JsonFormatter {
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractPOI.simpID);
-                includedFields.add(AbstractPOI.simpName);
+                includedFields.add(AbstractPOI.simpEnName);
+                includedFields.add(AbstractPOI.simpZhName);
                 includedFields.add(AbstractPOI.simpDesc);
                 includedFields.add(AbstractPOI.simpImg);
+                includedFields.add(AbstractPOI.simpRating);
+                if (poiType.equals("vs")) {
+                    includedFields.add(ViewSpot.fnTimeCostDesc);
+                } else {
+                    includedFields.add(AbstractPOI.detPriceDesc);
+                    includedFields.add(AbstractPOI.simpAddress);
+                    includedFields.add(AbstractPOI.fnTags);
+                }
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -63,7 +78,34 @@ public class SimplePOIFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", poiFilter).addFilter("abstractPOIFilter", poiFilter);
+        PropertyFilter imgFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(ImageItem.fnUrl);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", poiFilter).addFilter("imageItemPOIFilter", imgFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

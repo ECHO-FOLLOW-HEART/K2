@@ -39,8 +39,7 @@ import java.util.*;
         @JsonSubTypes.Type(value = ViewSpot.class, name = "vs"),
         @JsonSubTypes.Type(value = Hotel.class, name = "hotel"),
         @JsonSubTypes.Type(value = Restaurant.class, name = "restaurant"),
-        @JsonSubTypes.Type(value = Shopping.class, name = "shopping"),
-        @JsonSubTypes.Type(value = Dinning.class, name = "dinning")
+        @JsonSubTypes.Type(value = Shopping.class, name = "shopping")
 })
 public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
 
@@ -81,15 +80,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String detTargets = "targets";
 
     @Transient
-    public static String detTrafficInfoUrl = "trafficInfoUrl";
-
-    @Transient
-    public static String detGuideInfoUrl = "guideUrl";
-
-    @Transient
-    public static String detKengDieInfoUrl = "kengdieUrl";
-
-    @Transient
     public static String simpEnName = "enName";
 
     @Transient
@@ -109,6 +99,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String simplocList = "locList";
+
+    @Transient
+    public static String fnTags = "tags";
+
+    @Transient
+    public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
 
     @Embedded
     public CheckinRatings ratings;
@@ -241,6 +237,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public Map<String, Object> miscInfo;
 
+    public String moreCommentsUrl;
+
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:
@@ -254,36 +252,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         return new ArrayList<>();
     }
 
-    public String getTrafficInfoUrl() {
-        if (trafficInfoUrl == null) {
-            return "";
-
-        } else
-            return trafficInfoUrl;
-    }
-
-    public String getGuideUrl() {
-        if (guideUrl == null) {
-            return "";
-        } else
-            return guideUrl;
-    }
-
-    public String getKengdieUrl() {
-        if (kengdieUrl == null) {
-            return "";
-        } else
-            return kengdieUrl;
-    }
 
     public String getDesc() {
-        if (description == null) {
-            if (desc == null)
-                return "";
-            else
-                return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
-        } else
-            return StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN);
+        if (desc == null)
+            return "";
+        else
+            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
 
     public String getEnName() {

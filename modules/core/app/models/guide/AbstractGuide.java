@@ -2,6 +2,7 @@ package models.guide;
 
 import models.TravelPiBaseItem;
 import models.poi.Dinning;
+import models.poi.Restaurant;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Transient;
@@ -23,10 +24,13 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     public static final String fnShopping = "shopping";
 
     @Transient
-    public static final String fnDinning = "dinning";
+    public static final String fnRestaurant = "restaurant";
 
     @Transient
     public static final String fdId = "id";
+
+    @Transient
+    public static final String fnLocId = "locId";
 
     public String title;
 
@@ -36,5 +40,9 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
 
     public List<Shopping> shopping;
 
-    public List<Dinning> dinning;
+    public List<Restaurant> restaurant;
+
+    public String getLocId() {
+        return locId.toString();
+    }
 }

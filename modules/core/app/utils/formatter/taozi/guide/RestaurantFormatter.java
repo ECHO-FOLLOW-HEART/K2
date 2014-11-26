@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
-import models.guide.ItinerItem;
 import models.poi.AbstractPOI;
 import utils.formatter.JsonFormatter;
 
@@ -26,7 +25,7 @@ import java.util.Set;
  * <p>
  * Created by zephyre on 10/28/14.
  */
-public class ItineraryFormatter implements JsonFormatter {
+public class RestaurantFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -50,8 +49,7 @@ public class ItineraryFormatter implements JsonFormatter {
                 includedFields.add(AbstractGuide.fdId);
                 includedFields.add(Guide.fnUserId);
                 includedFields.add(AbstractGuide.fnTitle);
-                //行程单
-                includedFields.add(AbstractGuide.fnItinerary);
+                includedFields.add(AbstractGuide.fnRestaurant);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -98,38 +96,7 @@ public class ItineraryFormatter implements JsonFormatter {
             }
         };
 
-        PropertyFilter itinerItemFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(ItinerItem.fdDayIndex);
-                includedFields.add(ItinerItem.fdPoi);
-                includedFields.add(ItinerItem.fdType);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        FilterProvider filters = new SimpleFilterProvider().addFilter("guideFilter", guideFilter).addFilter("abstractPOIFilter", poiFilter)
-                .addFilter("itinerItemFilter", itinerItemFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("guideFilter", guideFilter).addFilter("abstractPOIFilter", poiFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

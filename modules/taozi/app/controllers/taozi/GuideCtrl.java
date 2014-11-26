@@ -8,48 +8,64 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
-import models.guide.ItinerItem;
-import models.poi.AbstractPOI;
 import models.poi.Dinning;
 import models.poi.Shopping;
-import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 import utils.formatter.JsonFormatter;
-import utils.formatter.taozi.guide.DinningFormatter;
-import utils.formatter.taozi.guide.ItineraryFormatter;
-import utils.formatter.taozi.guide.ShoppingFormatter;
-import utils.formatter.taozi.guide.SimpleGuideFormatter;
+import utils.formatter.taozi.guide.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by topy on 2014/11/5.
  */
 public class GuideCtrl extends Controller {
+
+    /**
+     * 更新攻略中相应信息
+     *
+     * @return
+     */
+    public static Result createGuide() {
+        JsonNode data = request().body().asJson();
+        ObjectNode node;
+        try {
+            Iterator<JsonNode> iterator =  data.get("locId").iterator();
+            List<ObjectId> ids = new ArrayList<>();
+            for (; iterator.hasNext();) {ids.add(new ObjectId(iterator.next().asText()));}
+            String tmp = request().getHeader("UserId");
+            Integer selfId = null;
+            if (tmp != null)
+                selfId = Integer.parseInt(tmp);
+
+            Guide temp = GuideAPI.getGuideByDestination(ids,selfId);
+             node = (ObjectNode) new GuideFormatter().format(temp);
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+        return Utils.createResponse(ErrorCode.NORMAL, node);
+    }
     /**
      * 更新攻略中相应信息
      *
      * @param id 攻略ID
      * @return
      */
-    public static Result updateGuide(String id, String typeInfo) {
+    public static Result updateGuide(String id) {
 
         JsonNode data = request().body().asJson();
         try {
             ObjectId guideId = new ObjectId(id);
             ObjectMapper m = new ObjectMapper();
             Guide guideUpdate = m.convertValue(data, Guide.class);
-            List<String> guideParts = Arrays.asList(AbstractGuide.fnItinerary, AbstractGuide.fnShopping, AbstractGuide.fnDinning);
-            if (!guideParts.contains(typeInfo))
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("%s is not a part of guide.", typeInfo));
             //保存攻略
-            GuideAPI.updateGuide(guideId, guideUpdate, typeInfo);
+            GuideAPI.updateGuide(guideId, guideUpdate);
 
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
@@ -96,19 +112,20 @@ public class GuideCtrl extends Controller {
         try {
             JsonFormatter jsonFormatter;
             ObjectId guideId = new ObjectId(id);
-            List<String> fields = Arrays.asList(Guide.fdId, Guide.fnUserId, Guide.fnTitle);
+            List<String> fields = new ArrayList<>();
+            Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle);
             switch (part) {
-                case "itinerary":
+                case AbstractGuide.fnItinerary:
                     jsonFormatter = new ItineraryFormatter();
                     fields.add(Guide.fnItinerary);
                     break;
-                case "shopping":
+                case AbstractGuide.fnShopping:
                     jsonFormatter = new ShoppingFormatter();
                     fields.add(Guide.fnShopping);
                     break;
-                case "dinning":
-                    jsonFormatter = new DinningFormatter();
-                    fields.add(Guide.fnDinning);
+                case AbstractGuide.fnRestaurant:
+                    jsonFormatter = new RestaurantFormatter();
+                    fields.add(Guide.fnRestaurant);
                     break;
                 default:
                     throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Error guide part."));

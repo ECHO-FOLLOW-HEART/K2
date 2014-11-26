@@ -61,22 +61,24 @@ public class DetailedPOIFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.simpImg);
                 includedFields.add(AbstractPOI.fnLocation);
                 includedFields.add(AbstractPOI.detAlias);
+                includedFields.add(AbstractPOI.simpRating);
 
                 includedFields.add(AbstractPOI.simpAddress);
                 includedFields.add(AbstractPOI.detPriceDesc);
                 includedFields.add(AbstractPOI.simpTelephone);
-                includedFields.add(AbstractPOI.simpCountry);
-                includedFields.add(AbstractPOI.simplocList);
+                //includedFields.add(AbstractPOI.simpCountry);
+                //includedFields.add(AbstractPOI.simplocList);
 
                 if (poiType.equals("vs")) {
                     includedFields.add(ViewSpot.fnOpenTime);
                     includedFields.add(ViewSpot.fnTimeCostDesc);
                     includedFields.add(ViewSpot.fnTravelMonth);
-                    includedFields.add(AbstractPOI.detGuideInfoUrl);
-                    includedFields.add(AbstractPOI.detTrafficInfoUrl);
-                    includedFields.add(AbstractPOI.detKengDieInfoUrl);
+                    includedFields.add(ViewSpot.detGuideInfoUrl);
+                    includedFields.add(ViewSpot.detTrafficInfoUrl);
+                    includedFields.add(ViewSpot.detKengDieInfoUrl);
+                } else if (poiType.equals("restaurant") || poiType.equals("shopping")) {
+                    includedFields.add(AbstractPOI.fnMoreCommentsUrl);
                 }
-
                 return (includedFields.contains(writer.getName()));
             }
 

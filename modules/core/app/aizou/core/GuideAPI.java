@@ -5,7 +5,7 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
-import models.guide.ItinerItem;
+import models.guide.GuideTemplate;
 import models.poi.Dinning;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
@@ -20,6 +20,30 @@ import java.util.List;
  */
 public class GuideAPI {
 
+    /**
+     * 根据ID取得攻略
+     *
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
+    public static Guide getGuideByDestination(List<ObjectId> id,Integer userId) throws TravelPiException {
+        Query<GuideTemplate> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
+                .createQuery(GuideTemplate.class);
+        query.field("locId").equal(id);
+
+        GuideTemplate temp = query.get();
+        Guide ugcGuide = new Guide();
+        ugcGuide.id = new ObjectId();
+        ugcGuide.userId = userId;
+        ugcGuide.locId = temp.locId;
+        ugcGuide.title = temp.title;
+        ugcGuide.itinerary = temp.itinerary;
+        ugcGuide.shopping = temp.shopping;
+        ugcGuide.restaurant = temp.restaurant;
+
+        return ugcGuide;
+    }
     /**
      * 根据ID取得攻略
      *
@@ -75,21 +99,16 @@ public class GuideAPI {
      * @param guide
      * @throws TravelPiException
      */
-    public static void updateGuide(ObjectId guideId, Guide guide, String guidePart) throws TravelPiException {
+    public static void updateGuide(ObjectId guideId, Guide guide) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
         UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
-        switch (guidePart) {
-            case AbstractGuide.fnItinerary:
-                update.set(guidePart, guide.itinerary);
-                break;
-            case AbstractGuide.fnShopping:
-                update.set(guidePart, guide.shopping);
-                break;
-            case AbstractGuide.fnDinning:
-                update.set(guidePart, guide.dinning);
-                break;
-        }
+        if (guide.itinerary != null)
+            update.set(AbstractGuide.fnItinerary, guide.itinerary);
+        if (guide.shopping != null)
+            update.set(AbstractGuide.fnShopping, guide.shopping);
+        if (guide.restaurant != null)
+            update.set(AbstractGuide.fnRestaurant, guide.restaurant);
         ds.update(query, update);
     }
 
@@ -155,7 +174,7 @@ public class GuideAPI {
     public static void savaGuideDinning(ObjectId id, List<Dinning> dinningList) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set(Guide.fnDinning, dinningList);
+        uo.set(Guide.fnRestaurant, dinningList);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 }

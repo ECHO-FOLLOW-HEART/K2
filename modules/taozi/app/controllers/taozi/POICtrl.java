@@ -68,7 +68,7 @@ public class POICtrl extends Controller {
 
             //取得推荐
             List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
-            int rmdCnt = (int)PoiAPI.getPOIRmdCount(spotId);
+            int rmdCnt = (int) PoiAPI.getPOIRmdCount(spotId);
             List<JsonNode> recommends = new ArrayList<>();
             for (POIRmd temp : rmdEntities) {
                 recommends.add(new POIRmdFormatter().format(temp));
@@ -76,7 +76,7 @@ public class POICtrl extends Controller {
 
             // 取得评论
             List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-            int commCnt = (int)PoiAPI.getPOICommentCount(spotId);
+            int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
             List<JsonNode> comments = new ArrayList<>();
             for (Comment temp : commentsEntities) {
                 comments.add(new CommentFormatter().format(temp));
@@ -207,7 +207,7 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result viewPoiList(String poiType, String locId, String tagFilter, String sortField, String sortType, int page, int pageSize) {
+    public static Result viewPoiList(String poiType, String locId, String tagFilter, String sortField, String sortType, int page, int pageSize, int commentPage, int commentPageSize) {
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":
@@ -219,6 +219,9 @@ public class POICtrl extends Controller {
             case "restaurant":
                 type = PoiAPI.POIType.RESTAURANT;
                 break;
+            case "shopping":
+                type = PoiAPI.POIType.SHOPPING;
+                break;
         }
         if (type == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
@@ -226,46 +229,39 @@ public class POICtrl extends Controller {
         boolean sort = false;
         if (sortType != null && sortType.equals("asc"))
             sort = true;
-
         PoiAPI.SortField sf;
         switch (sortField) {
-            case "price":
-                sf = PoiAPI.SortField.PRICE;
-                break;
-            case "score":
-                sf = PoiAPI.SortField.SCORE;
+            case "rating":
+                sf = PoiAPI.SortField.RATING;
                 break;
             default:
                 sf = null;
         }
+
         List<JsonNode> results = new ArrayList<>();
-        Iterator<? extends AbstractPOI> it = null;
+        List<? extends AbstractPOI> it;
+        List<Comment> commentsEntities;
         try {
-            it = PoiAPI.poiList(type, new ObjectId(locId), tagFilter, sf, sort, true, page, pageSize);
-            while (it.hasNext())
-                results.add(new DetailedPOIFormatter().format(it.next(), poiType));
-            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
+            it = PoiAPI.viewPoiList(type, new ObjectId(locId), sf, sort, page, pageSize);
+            for (AbstractPOI temp : it) {
+                ObjectNode ret = (ObjectNode) new SimplePOIFormatter().format(temp, poiType);
+                if (poiType.equals("restaurant") || poiType.equals("shopping") ||
+                        poiType.equals("hotel")) {
+                    commentsEntities = PoiAPI.getPOIComment(temp.id.toString(), commentPage, commentPageSize);
+                    int commCnt = (int) PoiAPI.getPOICommentCount(temp.id.toString());
+                    List<JsonNode> comments = new ArrayList<>();
+                    for (Comment cmt : commentsEntities) {
+                        comments.add(new CommentFormatter().format(cmt));
+                    }
+                    ret.put("comments", Json.toJson(comments));
+                    ret.put("commentCnt", commCnt);
+                }
+                results.add(ret);
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
         }
-    }
-
-    public static Result viewSpotList(String locId, String tagFilter, String sortField,
-                                      String sortType, int page, int pageSize)
-            throws TravelPiException {
-        return viewPoiList("vs", locId, tagFilter, sortField, sortType, page, pageSize);
-    }
-
-    public static Result viewHotelList(String locId, String tagFilter, String sortField,
-                                       String sortType, int page, int pageSize)
-            throws TravelPiException {
-        return viewPoiList("hotel", locId, tagFilter, sortField, sortType, page, pageSize);
-    }
-
-    public static Result viewRestaurantList(String locId, String tagFilter, String sortField,
-                                            String sortType, int page, int pageSize)
-            throws TravelPiException {
-        return viewPoiList("restaurant", locId, tagFilter, sortField, sortType, page, pageSize);
     }
 
     /**

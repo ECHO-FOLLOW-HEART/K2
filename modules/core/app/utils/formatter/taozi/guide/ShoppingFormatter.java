@@ -79,7 +79,7 @@ public class ShoppingFormatter implements JsonFormatter {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractPOI.simpDesc);
                 includedFields.add(AbstractPOI.simpID);
-                includedFields.add(AbstractPOI.simpName);
+                includedFields.add(AbstractPOI.simpZhName);
                 includedFields.add(AbstractPOI.simpEnName);
                 includedFields.add(AbstractPOI.simpImg);
                 includedFields.add(AbstractPOI.simpRating);
