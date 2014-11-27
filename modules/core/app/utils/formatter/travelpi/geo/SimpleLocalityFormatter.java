@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
 import models.geo.Locality;
+import org.bson.types.ObjectId;
 import utils.formatter.AizouBeanPropertyFilter;
 import utils.formatter.travelpi.TravelPiBaseFormatter;
 
@@ -20,7 +21,7 @@ import java.util.Set;
 /**
  * @author Zephyre
  */
-public class SimpleLocalityFormatter  extends TravelPiBaseFormatter {
+public class SimpleLocalityFormatter extends TravelPiBaseFormatter {
 
     private static SimpleLocalityFormatter instance;
 
@@ -40,7 +41,13 @@ public class SimpleLocalityFormatter  extends TravelPiBaseFormatter {
 
     @Override
     public JsonNode format(TravelPiBaseItem item) {
+        return format(item, true);
+    }
+
+    private JsonNode format(TravelPiBaseItem item, boolean includeParents) {
         ObjectMapper mapper = new ObjectMapper();
+
+        Locality locItem = (Locality) item;
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
@@ -60,6 +67,25 @@ public class SimpleLocalityFormatter  extends TravelPiBaseFormatter {
         FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter);
         mapper.setFilters(filters);
 
-        return postProcess((ObjectNode) mapper.valueToTree(item));
+        ObjectNode result = postProcess((ObjectNode) mapper.valueToTree(item));
+        result.put("_id", result.get("id").asText());
+        result.put("name", result.get("zhName").asText());
+        result.put("fullName", result.get("zhName").asText());
+
+        // 加入父行政区信息
+        if (includeParents) {
+            Locality parent = locItem.getSuperAdm();
+            if (parent == null) {
+                parent = new Locality();
+                parent.setZhName("");
+                parent.setEnName("");
+                parent.setId(new ObjectId());
+            }
+            ObjectNode parentNode = (ObjectNode) format(parent, false);
+            parentNode.remove(Arrays.asList("id", "_id"));
+            result.put("parents", parentNode);
+        }
+
+        return result;
     }
 }

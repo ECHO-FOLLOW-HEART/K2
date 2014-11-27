@@ -160,12 +160,12 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getSuggestions(String word, int loc, int vs, int hotel, int restaurant, int pageSize) {
+    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant, int pageSize) {
         ObjectNode ret = Json.newObject();
 
         try {
             List<JsonNode> locList = new ArrayList<>();
-            if (loc != 0) {
+            if (loc) {
                 for (Iterator<Locality> it = LocalityAPI.getSuggestion(word, pageSize); it.hasNext(); ) {
                     // 如果locality为北京、上海、天津、重庆这四个直辖市，则忽略level=1的省级行政区
                     Locality item = it.next();
@@ -189,7 +189,7 @@ public class MiscCtrl extends Controller {
                 ret.put("loc", Json.toJson(new ArrayList<>()));
 
             List<JsonNode> vsList = new ArrayList<>();
-            if (vs != 0) {
+            if (vs) {
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, pageSize);
                      it.hasNext(); )
                     vsList.add(it.next().toJson(1));
@@ -200,7 +200,7 @@ public class MiscCtrl extends Controller {
                 ret.put("vs", Json.toJson(new ArrayList<>()));
 
             List<JsonNode> hotelList = new ArrayList<>();
-            if (hotel != 0) {
+            if (hotel) {
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, pageSize);
                      it.hasNext(); )
                     hotelList.add(it.next().toJson(1));
@@ -211,7 +211,7 @@ public class MiscCtrl extends Controller {
                 ret.put("hotel", Json.toJson(new ArrayList<>()));
 
             List<JsonNode> dinningList = new ArrayList<>();
-            if (restaurant != 0) {
+            if (restaurant) {
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, pageSize);
                      it.hasNext(); )
                     dinningList.add(it.next().toJson(1));

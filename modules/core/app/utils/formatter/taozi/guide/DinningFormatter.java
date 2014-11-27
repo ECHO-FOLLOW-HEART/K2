@@ -81,7 +81,7 @@ public class DinningFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.simpName);
                 includedFields.add(AbstractPOI.simpEnName);
                 includedFields.add(AbstractPOI.simpCover);
-                includedFields.add(AbstractPOI.simpRating);
+                includedFields.add(AbstractPOI.fnRating);
                 return (includedFields.contains(writer.getName()));
             }
 

@@ -6,6 +6,7 @@ import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
 
 import java.util.List;
 
@@ -19,39 +20,59 @@ import java.util.List;
 @JsonFilter("localityFilter")
 public class Locality extends TravelPiBaseItem {
 
+    @Transient
     public static String fnZhName = "zhName";
 
+    @Transient
     public static String fnEnName = "enName";
 
+    @Transient
     public static String fnAlias = "alias";
 
+    @Transient
     public static String fnVisitCnt = "visitCnt";
 
+    @Transient
     public static String fnCommentCnt = "commentCnt";
 
+    @Transient
     public static String fnFavorCnt = "favorCnt";
 
+    @Transient
     public static String fnRating = "rating";
 
+    @Transient
     public static String fnAbroad = "abroad";
 
+    @Transient
     public static String fnHotness = "hotness";
 
+    @Transient
     public static String fnLocation = "location";
 
+    @Transient
     public static String fnCountry = "country";
 
+    @Transient
     public static String fnLocList = "locList";
 
+    @Transient
     public static String fnTags = "tags";
 
+    @Transient
     public static String fnImages = "images";
 
+    @Transient
     public static String fnDesc = "desc";
 
+    @Transient
     public static String fnTravelMonth = "travelMonth";
 
+    @Transient
     public static String fnTimeCostDesc = "fnTimeCostDesc";
+
+    @Transient
+    public static String fnSuperAdm = "superAdm";
 
     /**
      * 中文名称
@@ -120,6 +141,11 @@ public class Locality extends TravelPiBaseItem {
     private List<Locality> locList;
 
     /**
+     * 父行政区
+     */
+    private Locality superAdm;
+
+    /**
      * 标签
      */
     private List<String> tags;
@@ -143,6 +169,19 @@ public class Locality extends TravelPiBaseItem {
      * 建议游玩时间
      */
     private String timeCostDesc;
+
+    /**
+     * 建议游玩时间
+     */
+    private Integer timeCost;
+
+    public Locality getSuperAdm() {
+        return superAdm;
+    }
+
+    public void setSuperAdm(Locality superAdm) {
+        this.superAdm = superAdm;
+    }
 
     public Integer getTimeCost() {
         return timeCost;
@@ -299,12 +338,6 @@ public class Locality extends TravelPiBaseItem {
     public void setTimeCostDesc(String timeCostDesc) {
         this.timeCostDesc = timeCostDesc;
     }
-
-    /**
-     * 建议游玩时间
-     */
-
-    private Integer timeCost;
 }
 
 ///**

@@ -1,21 +1,15 @@
 package aizou.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
 import models.poi.*;
-import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
-import play.libs.Json;
-import utils.Constants;
 import utils.Utils;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,12 +49,8 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        //名称或别名
-        query.or(query.criteria("name").equal(Pattern.compile(word)), query.criteria("alias").equal(Pattern.compile(word)));
-        // TODO 暂时不做数据过滤
-        //if (poiType == POIType.VIEW_SPOT)
-        //    query.field("rankingA").greaterThanOrEq(5);
-        //query.field("relPlanCnt").greaterThan(0);
+        query.filter(AbstractPOI.fnAlias, Pattern.compile("^" + word))
+                .order(String.format("-%s, -%s", AbstractPOI.fnHotness, AbstractPOI.fnRating));
         return query.limit(pageSize).iterator();
     }
 
