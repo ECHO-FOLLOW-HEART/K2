@@ -99,7 +99,7 @@ GET           /poi/restaurants/localities/:locId                 controllers.POI
 POST          /sys/feedback                                      controllers.MiscCtrl.postFeedback()
 GET           /sys/updates/:platform                             controllers.MiscCtrl.getUpdateInfo(platform: String)
 GET           /sys/updates                                       controllers.MiscCtrl.getUpdates()
-GET           /suggestions                                       controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
+GET           /suggestions                                       controllers.MiscCtrl.getSuggestions(word: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, pageSize: Int?=5)
 GET           /misc/weather/:locId                               controllers.MiscCtrl.getWeatherInfo(locId :String)
 
 POST          /app/misc/send-validation                          controllers.MiscCtrl.sendValidation()
@@ -169,7 +169,7 @@ GET           /web/itineraries/train-routes                      controllers.Tra
 GET           /web/itineraries/train-routes/:trainCode           controllers.TrafficCtrl.getTrainRouteByCode(trainCode: String, depTime: String?="")
 
 #联想：目的地，景点，酒店，餐馆
-GET           /web/suggestions                                   controllers.MiscCtrl.getSuggestions(word: String, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, pageSize: Int?=5)
+GET           /web/suggestions                                   controllers.MiscCtrl.getSuggestions(word: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, pageSize: Int?=5)
 
 #地理
 # 搜索城市
