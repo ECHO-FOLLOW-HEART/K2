@@ -87,7 +87,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String detOpenTime = "openTime";
 
     @Transient
-    public static String detAlias = "alias";
+    public static String fnAlias = "alias";
 
     @Transient
     public static String detTargets = "targets";
@@ -108,7 +108,10 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simpCover = "cover";
 
     @Transient
-    public static String simpRating = "rating";
+    public static String fnHotness = "hotness";
+
+    @Transient
+    public static String fnRating = "rating";
 
     @Transient
     public static String simpCoords = "coords";
@@ -216,6 +219,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public Double rating;
 
     /**
+     * 热门程度
+     */
+    private Double hotness;
+
+    /**
      * 交通指南URL
      */
     public String trafficInfoUrl;
@@ -243,6 +251,14 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                         "price", "priceDesc", "alias"));
         }
         return new ArrayList<>();
+    }
+
+    public Double getHotness() {
+        return hotness;
+    }
+
+    public void setHotness(Double hotness) {
+        this.hotness = hotness;
     }
 
     public String getTrafficInfoUrl() {
