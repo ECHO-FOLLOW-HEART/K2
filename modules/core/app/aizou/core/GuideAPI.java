@@ -104,6 +104,7 @@ public class GuideAPI {
         ugcGuide.shopping = shoppingList;
         ugcGuide.restaurant = restaurants;
         ugcGuide.itineraryDays = itineraryDaysCnt;
+        ugcGuide.updateTime = System.currentTimeMillis();
         return ugcGuide;
 
     }
@@ -173,9 +174,11 @@ public class GuideAPI {
                 update.set(AbstractGuide.fnShopping, guide.shopping);
             if (guide.restaurant != null)
                 update.set(AbstractGuide.fnRestaurant, guide.restaurant);
+            update.set(Guide.fnUpdateTime, System.currentTimeMillis());
             ds.update(query, update);
         } else {
             guide.userId = userId;
+            guide.updateTime = System.currentTimeMillis();
             ds.save(guide);
         }
 

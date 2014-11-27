@@ -55,6 +55,7 @@ public class RestaurantFormatter implements JsonFormatter {
                 includedFields.add(Guide.fnUserId);
                 includedFields.add(Guide.fnDestinations);
                 includedFields.add(AbstractGuide.fnTitle);
+                includedFields.add(Guide.fnUpdateTime);
                 includedFields.add(AbstractGuide.fnRestaurant);
                 return (includedFields.contains(writer.getName()));
             }

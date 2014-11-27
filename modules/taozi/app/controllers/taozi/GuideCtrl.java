@@ -73,7 +73,6 @@ public class GuideCtrl extends Controller {
             Guide guideUpdate = m.convertValue(data, Guide.class);
             //保存攻略
             GuideAPI.updateGuide(guideId, guideUpdate,selfId);
-
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
         } catch (TravelPiException e) {
@@ -93,7 +92,7 @@ public class GuideCtrl extends Controller {
             Integer selfId = null;
             if (tmp != null)
                 selfId = Integer.parseInt(tmp);
-            List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle);
+            List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle,Guide.fnUpdateTime);
             List<Guide> guides = GuideAPI.getGuideByUser(selfId, fields, page, pageSize);
 
             List<JsonNode> result = new ArrayList<>();
@@ -120,7 +119,7 @@ public class GuideCtrl extends Controller {
             JsonFormatter jsonFormatter;
             ObjectId guideId = new ObjectId(id);
             List<String> fields = new ArrayList<>();
-            Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle,Guide.fnDestinations);
+            Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle,Guide.fnDestinations,Guide.fnUpdateTime);
             switch (part) {
                 case AbstractGuide.fnItinerary:
                     jsonFormatter = new ItineraryFormatter();

@@ -55,6 +55,7 @@ public class ShoppingFormatter implements JsonFormatter {
                 includedFields.add(Guide.fnUserId);
                 includedFields.add(Guide.fnDestinations);
                 includedFields.add(AbstractGuide.fnTitle);
+                includedFields.add(Guide.fnUpdateTime);
                 // 购物
                 includedFields.add(AbstractGuide.fnShopping);
                 return (includedFields.contains(writer.getName()));

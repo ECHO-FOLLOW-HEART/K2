@@ -23,9 +23,14 @@ public class Guide extends AbstractGuide {
     @Transient
     public static final String fnItineraryDays = "itineraryDays";
 
+    @Transient
+    public static final String fnUpdateTime = "updateTime";
+
     public Integer userId;
 
     public Integer itineraryDays;
+
+    public long updateTime;
 
 
 }

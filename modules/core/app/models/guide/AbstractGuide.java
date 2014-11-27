@@ -32,6 +32,7 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     @Transient
     public static final String fnDestinations = "destinations";
 
+
     public String title;
 
     public ObjectId locId;
