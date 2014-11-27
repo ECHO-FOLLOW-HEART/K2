@@ -118,10 +118,9 @@ public class GuideAPI {
     public static Guide getGuideById(ObjectId id, List<String> fieldList) throws TravelPiException {
         Query<Guide> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
                 .createQuery(Guide.class);
-        query.field("_id").equal(id);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
-
+        query.field("_id").equal(id);
         return query.get();
     }
 
@@ -163,17 +162,23 @@ public class GuideAPI {
      * @param guide
      * @throws TravelPiException
      */
-    public static void updateGuide(ObjectId guideId, Guide guide) throws TravelPiException {
+    public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
-        UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
-        if (guide.itinerary != null)
-            update.set(AbstractGuide.fnItinerary, guide.itinerary);
-        if (guide.shopping != null)
-            update.set(AbstractGuide.fnShopping, guide.shopping);
-        if (guide.restaurant != null)
-            update.set(AbstractGuide.fnRestaurant, guide.restaurant);
-        ds.update(query, update);
+        if (query.iterator().hasNext()) {
+            UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
+            if (guide.itinerary != null)
+                update.set(AbstractGuide.fnItinerary, guide.itinerary);
+            if (guide.shopping != null)
+                update.set(AbstractGuide.fnShopping, guide.shopping);
+            if (guide.restaurant != null)
+                update.set(AbstractGuide.fnRestaurant, guide.restaurant);
+            ds.update(query, update);
+        } else {
+            guide.userId = userId;
+            ds.save(guide);
+        }
+
     }
 
     /**

@@ -44,14 +44,16 @@ import java.util.*;
 public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
 
     /**
-     * 标识POI的种类
+     * 标识POI的种类，jackson反序列还用
      */
     public String type;
 
     @Transient
     public static String simpID = "id";
+
     @Transient
     public static String simpName = "name";
+
     @Transient
     public static String simpZhName = "zhName";
 

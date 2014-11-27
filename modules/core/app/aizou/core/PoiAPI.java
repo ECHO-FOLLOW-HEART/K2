@@ -885,6 +885,7 @@ public class PoiAPI {
                 poiClass = ViewSpot.class;
                 break;
             case HOTEL:
+                fieldList.add("telephone");
                 poiClass = Hotel.class;
                 break;
             case RESTAURANT:

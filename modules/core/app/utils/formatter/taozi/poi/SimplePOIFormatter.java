@@ -59,9 +59,10 @@ public class SimplePOIFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.simpRating);
                 if (poiType.equals("vs")) {
                     includedFields.add(ViewSpot.fnTimeCostDesc);
-                } else {
+                }else {
                     includedFields.add(AbstractPOI.detPriceDesc);
                     includedFields.add(AbstractPOI.simpAddress);
+                    includedFields.add(AbstractPOI.simpTelephone);
                     includedFields.add(AbstractPOI.fnTags);
                 }
                 return (includedFields.contains(writer.getName()));

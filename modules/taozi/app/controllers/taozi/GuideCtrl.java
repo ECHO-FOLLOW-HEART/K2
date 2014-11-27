@@ -34,16 +34,18 @@ public class GuideCtrl extends Controller {
         JsonNode data = request().body().asJson();
         ObjectNode node;
         try {
-            Iterator<JsonNode> iterator =  data.get("locId").iterator();
+            Iterator<JsonNode> iterator = data.get("locId").iterator();
             List<ObjectId> ids = new ArrayList<>();
-            for (; iterator.hasNext();) {ids.add(new ObjectId(iterator.next().asText()));}
+            for (; iterator.hasNext(); ) {
+                ids.add(new ObjectId(iterator.next().asText()));
+            }
             String tmp = request().getHeader("UserId");
             Integer selfId = null;
             if (tmp != null)
                 selfId = Integer.parseInt(tmp);
 
-            Guide temp = GuideAPI.getGuideByDestination(ids,selfId);
-             node = (ObjectNode) new GuideFormatter().format(temp);
+            Guide temp = GuideAPI.getGuideByDestination(ids, selfId);
+            node = (ObjectNode) new GuideFormatter().format(temp);
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
         } catch (TravelPiException e) {
@@ -51,21 +53,26 @@ public class GuideCtrl extends Controller {
         }
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
+
     /**
-     * 更新攻略中相应信息
+     * 保存攻略或更新攻略
      *
-     * @param id 攻略ID
      * @return
      */
-    public static Result updateGuide(String id) {
+    public static Result saveGuide() {
 
         JsonNode data = request().body().asJson();
         try {
-            ObjectId guideId = new ObjectId(id);
+            String tmp = request().getHeader("UserId");
+            Integer selfId = null;
+            if (tmp != null)
+                selfId = Integer.parseInt(tmp);
+
+            ObjectId guideId = new ObjectId(data.get("id").asText());
             ObjectMapper m = new ObjectMapper();
             Guide guideUpdate = m.convertValue(data, Guide.class);
             //保存攻略
-            GuideAPI.updateGuide(guideId, guideUpdate);
+            GuideAPI.updateGuide(guideId, guideUpdate,selfId);
 
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
@@ -113,11 +120,12 @@ public class GuideCtrl extends Controller {
             JsonFormatter jsonFormatter;
             ObjectId guideId = new ObjectId(id);
             List<String> fields = new ArrayList<>();
-            Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle);
+            Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle,Guide.fnDestinations);
             switch (part) {
                 case AbstractGuide.fnItinerary:
                     jsonFormatter = new ItineraryFormatter();
                     fields.add(Guide.fnItinerary);
+                    fields.add(Guide.fnItineraryDays);
                     break;
                 case AbstractGuide.fnShopping:
                     jsonFormatter = new ShoppingFormatter();
@@ -125,6 +133,13 @@ public class GuideCtrl extends Controller {
                     break;
                 case AbstractGuide.fnRestaurant:
                     jsonFormatter = new RestaurantFormatter();
+                    fields.add(Guide.fnRestaurant);
+                    break;
+                case "all":
+                    jsonFormatter = new GuideFormatter();
+                    fields.add(Guide.fnItinerary);
+                    fields.add(Guide.fnItineraryDays);
+                    fields.add(Guide.fnShopping);
                     fields.add(Guide.fnRestaurant);
                     break;
                 default:

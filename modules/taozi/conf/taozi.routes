@@ -90,17 +90,17 @@ GET           /bache/addHomeImage                            controllers.taozi.B
 
 #----------攻略接口----------
 #根据目的地获得攻略
-POST          /create-guide                                  controllers.taozi.GuideCtrl.createGuide()
+POST          /create-guide                             controllers.taozi.GuideCtrl.createGuide()
 #获得攻略列表
-GET           /guides                                        controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
-#查看攻略详情
-GET           /guides/:id/:part                              controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
-#修改攻略标题
-PUT           /guides/:id                                    controllers.taozi.GuideCtrl.setGuideTitle(id:String)
-#删除攻略
-DELETE        /guides/:id                                    controllers.taozi.GuideCtrl.deleteGuide(id: String)
+GET           /guides                                   controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
 #更新行程单
-POST          /guides/:id                                     controllers.taozi.GuideCtrl.updateGuide(id: String)
+POST          /guides                                   controllers.taozi.GuideCtrl.saveGuide()
+#查看攻略详情
+GET           /guides/:id/:part                         controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
+#修改攻略标题
+PUT           /guides/info/:id                          controllers.taozi.GuideCtrl.setGuideTitle(id:String)
+#删除攻略
+DELETE        /guides/:id                               controllers.taozi.GuideCtrl.deleteGuide(id: String)
 
 
 #创建群组
