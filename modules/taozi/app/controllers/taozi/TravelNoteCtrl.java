@@ -29,7 +29,8 @@ public class TravelNoteCtrl extends Controller {
 
             ObjectId oid = new ObjectId(locId);
             Locality locality = LocalityAPI.getLocality(oid);
-            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName), null,pageSize);
+            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null,
+                    pageSize);
             List<JsonNode> ret = new ArrayList<>();
             for (TravelNote note : noteList)
                 ret.add(note.toJson());

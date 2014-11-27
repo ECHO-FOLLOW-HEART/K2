@@ -58,7 +58,7 @@ public class ImageItemFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("imageItemPOIFilter", travelNoteFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("imageItemFilter", travelNoteFilter);
         mapper.setFilters(filters);
         return mapper.valueToTree(item);
     }

@@ -56,7 +56,9 @@ public class Address implements ITravelPiFormatter {
             locName = (loc.zhName != null ? loc.zhName : null);
         }
         builder.add("locId", (locId != null ? locId : ""));
-        builder.add("locName", (locName != null ? Locality.stripLocName(locName) : ""));
+        // TODO
+        builder.add("locName", (locName != null ? locName : ""));
+//        builder.add("locName", (locName != null ? Locality.stripLocName(locName) : ""));
 
         if (level > 1) {
             builder.add("addr", (address != null ? address : ""));

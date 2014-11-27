@@ -49,8 +49,6 @@ public abstract class TravelPiBaseFormatter implements JsonFormatter {
         // 处理id
         result.put("_id", result.get("id"));
 
-        result.put("relVs", Json.toJson(new ArrayList<>()));
-
         return result;
     }
 }

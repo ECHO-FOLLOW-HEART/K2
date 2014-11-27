@@ -9,8 +9,9 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Destination;
 import models.geo.GeoJsonPoint;
+import models.geo.Locality;
+import models.misc.ImageItem;
 import play.libs.Json;
 import utils.formatter.AizouBeanPropertyFilter;
 import utils.formatter.travelpi.TravelPiBaseFormatter;
@@ -28,10 +29,10 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
 
     private LocalityFormatter() {
         stringFields = new HashSet<>();
-        stringFields.addAll(Arrays.asList(Destination.fnEnName, Destination.fnZhName));
+        stringFields.addAll(Arrays.asList(Locality.fnEnName, Locality.fnZhName));
 
         listFields = new HashSet<>();
-        listFields.addAll(Arrays.asList(Destination.fnTags, Destination.fnImages));
+        listFields.addAll(Arrays.asList(Locality.fnTags, Locality.fnImages, "relVs"));
     }
 
     public synchronized static LocalityFormatter getInstance() {
@@ -46,7 +47,7 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
-        Destination destItem = (Destination) item;
+        Locality destItem = (Locality) item;
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
@@ -55,27 +56,33 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Destination.fnEnName);
-                includedFields.add(Destination.fnZhName);
-                includedFields.add(Destination.fnDesc);
-                includedFields.add(Destination.fnRating);
-                includedFields.add(Destination.fnHotness);
-                includedFields.add(Destination.fnTags);
-                includedFields.add(Destination.fnAbroad);
-                includedFields.add("id");
+                Collections.addAll(includedFields, "id", Locality.fnEnName, Locality.fnZhName, Locality.fnDesc,
+                        Locality.fnRating, Locality.fnHotness, Locality.fnTags, Locality.fnAbroad,
+                        Locality.fnImages);
 
                 return (includedFields.contains(writer.getName()));
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter);
+        PropertyFilter imageFilter = new AizouBeanPropertyFilter() {
+            @Override
+            protected boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                Collections.addAll(includedFields, ImageItem.fnUrl);
+
+                return (includedFields.contains(writer.getName()));
+            }
+        };
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter)
+                .addFilter("imageItemFilter", imageFilter);
         mapper.setFilters(filters);
 
         ObjectNode result = postProcess((ObjectNode) mapper.valueToTree(destItem));
 
         String name;
         try {
-            name = result.get(Destination.fnZhName).asText();
+            name = result.get(Locality.fnZhName).asText();
         } catch (NullPointerException e) {
             name = "";
         }
@@ -90,12 +97,27 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
             result.put("lng", lng);
         }
 
-        JsonNode images = result.get(Destination.fnImages);
-        result.remove(Destination.fnImages);
+        ObjectNode ratings = Json.newObject();
+        Double r = destItem.getRating();
+        if (r == null)
+            r = destItem.getHotness() * 0.88 + (new Random().nextDouble() - 0.5) * 0.15;
+        if (r == null)
+            r = 0.6;
+        else if (r > 1)
+            r = 1.0;
+        ratings.put("ranking", r.doubleValue());
+        result.put("ratings", ratings);
+
+        JsonNode images = result.get(Locality.fnImages);
+        result.remove(Locality.fnImages);
         List<String> imageList = new ArrayList<>();
+        int idx = 0;
         for (JsonNode img : images) {
             String url = img.get("url").asText();
             imageList.add(url + "?imageView2/2/w/800");
+            idx++;
+            if (idx > 5)
+                break;
         }
         result.put("imageList", Json.toJson(imageList));
 

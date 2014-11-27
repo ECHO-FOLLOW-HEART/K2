@@ -26,6 +26,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.travelpi.geo.LocalityFormatter;
 import utils.formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.net.UnknownHostException;
@@ -168,17 +169,18 @@ public class MiscCtrl extends Controller {
                 for (Iterator<Locality> it = LocalityAPI.getSuggestion(word, pageSize); it.hasNext(); ) {
                     // 如果locality为北京、上海、天津、重庆这四个直辖市，则忽略level=1的省级行政区
                     Locality item = it.next();
-                    switch (item.zhName) {
-                        case "北京市":
-                        case "上海市":
-                        case "重庆市":
-                        case "天津市":
-                        case "香港特别行政区":
-                        case "澳门特别行政区":
-                            if (item.level == 1)
-                                continue;
-                    }
-                    locList.add(item.toJson(1));
+//                    switch (item.getZhName()) {
+//                        case "北京市":
+//                        case "上海市":
+//                        case "重庆市":
+//                        case "天津市":
+//                        case "香港特别行政区":
+//                        case "澳门特别行政区":
+//                            if (item.level == 1)
+//                                continue;
+//                    }
+                    locList.add(SimpleLocalityFormatter.getInstance().format(item));
+//                    locList.add(item.toJson(1));
                 }
             }
             if (!locList.isEmpty())
@@ -293,6 +295,7 @@ public class MiscCtrl extends Controller {
      * @param restaurant
      * @param page
      * @param pageSize
+     *
      * @return
      */
     public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws TravelPiException {
@@ -304,7 +307,8 @@ public class MiscCtrl extends Controller {
             List<JsonNode> retLocList = new ArrayList<>();
             // TODO 获得城市信息
             for (Locality locality : LocalityAPI.explore(detailsFlag, abroad, page, pageSize))
-                retLocList.add(locality.toJson(2));
+                retLocList.add(LocalityFormatter.getInstance().format(locality));
+//                retLocList.add(locality.toJson(2));
             results.put("loc", Json.toJson(retLocList));
         }
 
@@ -338,7 +342,7 @@ public class MiscCtrl extends Controller {
             }
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
     /**
@@ -404,7 +408,8 @@ public class MiscCtrl extends Controller {
                 Locality loc = LocalityAPI.locDetails(locId, 1);
                 if (loc == null)
                     return Utils.createResponse(ErrorCode.UNKOWN_ERROR, String.format("CANNOT FIND LOCALITY: %s.", locId));
-                data = colLoc.findOne(QueryBuilder.start("loc.id").is(loc.superAdm.id).get());
+                // TODO
+//                data = colLoc.findOne(QueryBuilder.start("loc.id").is(loc.superAdm.id).get());
             }
             if (data == null)
                 return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "NO RESULTS FOUND.");
@@ -624,7 +629,7 @@ public class MiscCtrl extends Controller {
             for (Map.Entry<String, List<Locality>> entry : ret.entrySet()) {
                 List<JsonNode> locNodeList = new ArrayList<>();
                 for (Locality loc : entry.getValue()) {
-                    JsonNode locNode = new SimpleLocalityFormatter().format(loc);
+                    JsonNode locNode = SimpleLocalityFormatter.getInstance().format(loc);
                     locNodeList.add(locNode);
                 }
                 results.put(entry.getKey(), Json.toJson(locNodeList));

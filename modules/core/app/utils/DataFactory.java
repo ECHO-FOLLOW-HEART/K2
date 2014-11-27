@@ -34,12 +34,12 @@ public class DataFactory {
         PlanItem nearCap = new PlanItem();
         SimpleRef ref = new SimpleRef();
         ref.id = locality.id;
-        ref.zhName = locality.zhName;
+        ref.zhName = locality.getZhName();
         nearCap.item = ref;
         nearCap.type = "loc";
         SimpleRef loc = new SimpleRef();
         loc.id = locality.id;
-        loc.zhName = locality.zhName;
+        loc.zhName = locality.getZhName();
         nearCap.loc = loc;
         return nearCap;
     }

@@ -14,6 +14,8 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
+import utils.formatter.travelpi.geo.LocalityFormatter;
+import utils.formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -89,7 +91,7 @@ public class GeoCtrl extends Controller {
      * @param scope      搜索国外城市还是国内城市。1：国内，2：国外，3：both。
      * @param prefix     是否为前缀搜索。
      */
-    public static Result searchLocality(String searchWord, String country, int scope, int prefix, int page, int pageSize) {
+    public static Result searchLocality(String searchWord, String country, int scope, boolean prefix, int page, int pageSize) {
         if (scope < 1 || scope > 3)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search scope: %d", scope));
 
@@ -108,9 +110,9 @@ public class GeoCtrl extends Controller {
         List<JsonNode> results = new ArrayList<>();
         try {
             for (Iterator<models.geo.Locality> it =
-                         LocalityAPI.searchLocalities(searchWord, countryId, scope, (prefix != 0), page, pageSize);
+                         LocalityAPI.searchLocalities(searchWord, countryId, scope, prefix, page, pageSize);
                  it.hasNext(); )
-                results.add(it.next().toJson(1));
+                results.add(SimpleLocalityFormatter.getInstance().format(it.next()));
         } catch (PatternSyntaxException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "KeyWord Pattern Error.");
         } catch (TravelPiException e) {
@@ -129,7 +131,11 @@ public class GeoCtrl extends Controller {
      */
     public static Result getLocality(String id, int relVs, int relHotel, int relRestaurant) {
         try {
-            ObjectNode result = (ObjectNode) LocalityAPI.locDetails(id, 3).toJson(3);
+            models.geo.Locality loc = LocalityAPI.locDetails(id, 3);
+            if (loc==null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+
+            ObjectNode result = (ObjectNode) LocalityFormatter.getInstance().format(loc);
 
             int page = 0;
             int pageSize = 10;
@@ -150,33 +156,33 @@ public class GeoCtrl extends Controller {
         }
     }
 
-    public static Result lookupLocality(int baiduId) throws TravelPiException {
-        models.geo.Locality loc = LocalityAPI.locDetailsBaiduId(baiduId);
-        if (loc == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
-        else
-            return Utils.createResponse(ErrorCode.NORMAL, loc.toJson());
-    }
+//    public static Result lookupLocality(int baiduId) throws TravelPiException {
+//        models.geo.Locality loc = LocalityAPI.locDetailsBaiduId(baiduId);
+//        if (loc == null)
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
+//        else
+//            return Utils.createResponse(ErrorCode.NORMAL, loc.toJson());
+//    }
 
-    /**
-     * 通过百度ID得到城市信息。
-     *
-     * @param baiduId
-     * @return
-     */
-    public static Result getLocalityBaiduId(int baiduId) {
-        models.geo.Locality loc = null;
-        try {
-            loc = LocalityAPI.locDetailsBaiduId(baiduId);
-            if (loc == null)
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
-            else
-                return Utils.createResponse(ErrorCode.NORMAL, loc.toJson(1));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-
-    }
+//    /**
+//     * 通过百度ID得到城市信息。
+//     *
+//     * @param baiduId
+//     * @return
+//     */
+//    public static Result getLocalityBaiduId(int baiduId) {
+//        models.geo.Locality loc = null;
+//        try {
+//            loc = LocalityAPI.locDetailsBaiduId(baiduId);
+//            if (loc == null)
+//                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
+//            else
+//                return Utils.createResponse(ErrorCode.NORMAL, loc.toJson(1));
+//        } catch (TravelPiException e) {
+//            return Utils.createResponse(e.errCode, e.getMessage());
+//        }
+//
+//    }
 
     /**
      * 根据ID获得

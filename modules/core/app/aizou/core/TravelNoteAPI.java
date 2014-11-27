@@ -50,7 +50,8 @@ public class TravelNoteAPI {
                 viewSpots.add(item.item.zhName);
                 String fullName = item.loc.zhName;
                 if (!tMap.containsKey(fullName)) {
-                    String shortName = LocalityAPI.getLocality(item.loc.id).shortName;
+                    String shortName = LocalityAPI.getLocality(item.loc.id).getZhName();
+//                    String shortName = LocalityAPI.getLocality(item.loc.id).shortName;
                     tMap.put(fullName, shortName);
                 }
             }

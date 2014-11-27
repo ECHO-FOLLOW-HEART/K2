@@ -155,8 +155,15 @@ public class Bache extends Controller {
             depLoc = query.field("_id").equal(depOid).get();
             arrLoc = query1.field("_id").equal(arrOid).get();
 
-            if (null != depLoc && null != arrLoc && depLoc.coords != null && arrLoc.coords != null) {
-                kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
+//            if (null != depLoc && null != arrLoc && depLoc.coords != null && arrLoc.coords != null) {
+//                kmMount = Utils.getDistatce(depLoc.coords.lat, arrLoc.coords.lat, depLoc.coords.lng, arrLoc.coords.lng);
+//            }
+            // TODO
+            if (null != depLoc && null != arrLoc && depLoc.getLocation() != null && arrLoc.getLocation() != null) {
+                kmMount = Utils.getDistatce(depLoc.getLocation().getCoordinates()[1],
+                        arrLoc.getLocation().getCoordinates()[1],
+                        depLoc.getLocation().getCoordinates()[0],
+                        arrLoc.getLocation().getCoordinates()[0]);
             }
             trafficBudget = kmMount * trafficRatio;
         }

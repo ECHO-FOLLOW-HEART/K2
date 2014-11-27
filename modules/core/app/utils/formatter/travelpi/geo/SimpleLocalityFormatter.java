@@ -1,21 +1,16 @@
 package utils.formatter.travelpi.geo;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Destination;
 import models.geo.Locality;
 import utils.formatter.AizouBeanPropertyFilter;
-import utils.formatter.JsonFormatter;
 import utils.formatter.travelpi.TravelPiBaseFormatter;
 
 import java.util.Arrays;
@@ -31,7 +26,7 @@ public class SimpleLocalityFormatter  extends TravelPiBaseFormatter {
 
     private SimpleLocalityFormatter() {
         stringFields = new HashSet<>();
-        stringFields.addAll(Arrays.asList(Destination.fnEnName, Destination.fnZhName));
+        stringFields.addAll(Arrays.asList(Locality.fnEnName, Locality.fnZhName));
     }
 
     public synchronized static SimpleLocalityFormatter getInstance() {
@@ -54,8 +49,8 @@ public class SimpleLocalityFormatter  extends TravelPiBaseFormatter {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Destination.fnEnName);
-                includedFields.add(Destination.fnZhName);
+                includedFields.add(Locality.fnEnName);
+                includedFields.add(Locality.fnZhName);
                 includedFields.add("id");
 
                 return (includedFields.contains(writer.getName()));
@@ -65,6 +60,6 @@ public class SimpleLocalityFormatter  extends TravelPiBaseFormatter {
         FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter);
         mapper.setFilters(filters);
 
-        return mapper.valueToTree(item);
+        return postProcess((ObjectNode) mapper.valueToTree(item));
     }
 }

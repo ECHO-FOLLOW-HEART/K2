@@ -256,7 +256,7 @@ public class DetailedPOIFormatter implements JsonFormatter {
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", theFilter).addFilter("descriptionFilter", descriptionFilter)
                 .addFilter("contactFilter", contactFilter).addFilter("simpleRefFilter", simpleRefFilter).addFilter("addressFilter", addressFilter)
-                .addFilter("coordsFilter", coordsFilter).addFilter("imageItemPOIFilter", imgFilter);
+                .addFilter("coordsFilter", coordsFilter).addFilter("imageItemFilter", imgFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

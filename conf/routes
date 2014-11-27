@@ -13,11 +13,11 @@ GET           /assets/*file                                      controllers.Ass
 
 # 基础地理信息查询
 # 搜索城市
-GET           /geo/localities/search                             controllers.GeoCtrl.searchLocality(keyword: String?="", country: String?="", scope: Int?=1, prefix: Int?=1, page: Int?=0, pageSize: Int?=20)
+GET           /geo/localities/search                             controllers.GeoCtrl.searchLocality(keyword: String?="", country: String?="", scope: Int?=1, prefix: Boolean?=true, page: Int?=0, pageSize: Int?=20)
 # 查看城市详情
 GET           /geo/localities/:id                                controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
-# 百度ID转换
-GET           /geo/localities/baiduId/:baiduId                   controllers.GeoCtrl.getLocalityBaiduId(baiduId: Integer)
+## 百度ID转换
+#GET           /geo/localities/baiduId/:baiduId                   controllers.GeoCtrl.getLocalityBaiduId(baiduId: Integer)
 # 搜索国家
 GET           /geo/countries/search                              controllers.GeoCtrl.searchCountry(keyword: String?="", searchType: String?="", page: Int?=0, pageSize: Int?=10)
 # 获得国家信息
@@ -173,7 +173,7 @@ GET           /web/suggestions                                   controllers.Mis
 
 #地理
 # 搜索城市
-GET           /web/geo/localities/search                         controllers.GeoCtrl.searchLocality(keyword: String?="", country: String?="", scope: Int?=1, prefix: Int?=0, page: Int?=0, pageSize: Int?=20)
+GET           /web/geo/localities/search                         controllers.GeoCtrl.searchLocality(keyword: String?="", country: String?="", scope: Int?=1, prefix: Boolean?=true, page: Int?=0, pageSize: Int?=20)
 # 查看城市详情
 GET           /web/geo/localities/:id                            controllers.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 #用户登录
