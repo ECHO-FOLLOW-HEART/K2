@@ -873,7 +873,7 @@ public class PlanCtrl extends Controller {
 
             if (planList.isEmpty()) {
                 // 退而求其次，从上级Locality找
-                List<Locality> locList = GeoAPI.locDetails(locId).locList;
+                List<Locality> locList = GeoAPI.locDetails(locId).getLocList();
                 if (locList != null && !locList.isEmpty()) {
                     for (int idx = locList.size() - 1; idx >= 0; idx--) {
                         String itrLocId = locList.get(idx).id.toString();

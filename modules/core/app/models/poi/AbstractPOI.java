@@ -317,10 +317,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         builder.add("name", (name != null ? name : ""));
 
         // level2
+        // TODO 完善POI所使用的Formatter
         if (level > 1) {
             for (Map.Entry<String, String> entry : new HashMap<String, String>() {
                 {
-                    put("imageList", Locality.fnImageList);
+//                    put("imageList", Locality.fnImageList);
                     put("tags", Locality.fnTags);
                 }
             }.entrySet()) {

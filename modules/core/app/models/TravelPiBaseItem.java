@@ -21,4 +21,16 @@ public abstract class TravelPiBaseItem {
     public String getId() {
         return id.toString();
     }
+
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
 }

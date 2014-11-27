@@ -14,13 +14,14 @@ import play.libs.Json;
  * <p/>
  * Created by zephyre on 8/14/14.
  */
-@JsonFilter("imageItemPOIFilter")
+@JsonFilter("imageItemFilter")
 @Embedded
 public class ImageItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnUrl = "url";
 
+    public String key;
 
     public String url;
 

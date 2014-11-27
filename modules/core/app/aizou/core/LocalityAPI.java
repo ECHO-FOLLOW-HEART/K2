@@ -88,12 +88,17 @@ public class LocalityAPI {
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
 
         List<String> fields = new ArrayList<>();
-        fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnSuperAdm, Locality.fnLevel));
-        if (level > 1)
-            fields.addAll(Arrays.asList(Locality.fnDesc, Locality.fnImageList, Locality.fnImages, Locality.fnTags,
-                    Locality.fnCoords));
+//        fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnSuperAdm, Locality.fnLevel));
+//        if (level > 1)
+//            fields.addAll(Arrays.asList(Locality.fnDesc, Locality.fnImageList, Locality.fnImages, Locality.fnTags,
+//                    Locality.fnCoords));
+        fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnEnName, Locality.fnDesc, Locality.fnImages,
+                Locality.fnTags, Locality.fnLocation, Locality.fnHotness, Locality.fnAbroad));
+//        if (level > 1)
+//            fields.addAll(Arrays.asList(Locality.fnDesc, Locality.fnImageList, Locality.fnImages, Locality.fnTags,
+//                    Locality.fnCoords));
 
-        query.retrievedFields(true, fields.toArray(new String[]{""}));
+        query.retrievedFields(true, fields.toArray(new String[fields.size()]));
         return query.get();
     }
 
@@ -108,9 +113,9 @@ public class LocalityAPI {
      */
     public static Iterator<Locality> getSuggestion(String searchWord, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Query<Locality> query = ds.createQuery(Locality.class).filter("zhName", Pattern.compile("^" + searchWord));
+        Query<Locality> query = ds.createQuery(Locality.class).filter(Locality.fnAlias, Pattern.compile("^" + searchWord));
 //        query.field("relPlanCnt").greaterThan(0);
-        return query.retrievedFields(true, "zhName", "enName", "level", "superAdm", "abroad")
+        return query.retrievedFields(true, Locality.fnZhName, Locality.fnEnName, Locality.fnAbroad)
                 .limit(pageSize).iterator();
     }
 
@@ -130,20 +135,20 @@ public class LocalityAPI {
 
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
-            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
+            query.filter(Locality.fnAlias, Pattern.compile(prefix ? "^" + keyword : keyword));
         if (countryId != null)
-            query.filter("country.id", countryId);
+            query.filter(String.format("%s.id", Locality.fnCountry), countryId);
         switch (scope) {
             case 1:
-                query.filter("abroad", false);
+                query.filter(Locality.fnAbroad, false);
                 break;
             case 2:
-                query.filter("abroad", true);
+                query.filter(Locality.fnAbroad, true);
                 break;
             default:
         }
 
-        return query.order("level").offset(page * pageSize).limit(pageSize).iterator();
+        return query.order("-" + Locality.fnHotness).offset(page * pageSize).limit(pageSize).iterator();
     }
 
     /**
@@ -168,27 +173,35 @@ public class LocalityAPI {
     public static List<Locality> explore(boolean showDetails, boolean abroad, int page, int pageSize) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         List<String> fields = new ArrayList<>();
-        Collections.addAll(fields, "zhName", "enName", "ratings");
-        if (showDetails)
-            Collections.addAll(fields, "images", "tags", "desc", "country", "coords");
+        Collections.addAll(fields, Locality.fnZhName, Locality.fnEnName, Locality.fnDesc, Locality.fnTags,
+                Locality.fnLocation, Locality.fnAbroad, Locality.fnHotness, Locality.fnRating, Locality.fnCountry,
+                Locality.fnLocation, Locality.fnImages);
+
+//                "zhName", "enName", "ratings");
+//        if (showDetails)
+//            Collections.addAll(fields, "images", "tags", "desc", "country", "coords");
         // TODO 发现城市。境内和境外区别对待
         Query<Locality> query;
-        if (abroad) {
-            query = ds.createQuery(Locality.class)
-                    .field("abroad").equal(true)
-                    .field("images.url").equal(Pattern.compile("^http"))
-//                    .field("images").notEqual(new ArrayList<>())
-//                .field("relPlanCnt").greaterThan(0)
-                    .retrievedFields(true, fields.toArray(new String[]{""}))
-                    .offset(page * pageSize).limit(pageSize).order("-isHot");
-        } else {
-            query = ds.createQuery(Locality.class).field("level").equal(2)
-                    .field("abroad").equal(false)
-//                .field("imageList").notEqual(null)
-//                .field("relPlanCnt").greaterThan(0)
-                    .retrievedFields(true, fields.toArray(new String[]{""}))
-                    .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score, -relPlanCnt");
-        }
+        query = ds.createQuery(Locality.class).field(Locality.fnAbroad).equal(abroad)
+                .retrievedFields(true, fields.toArray(new String[fields.size()]))
+                .order("-" + Locality.fnHotness)
+                .offset(page * pageSize).limit(pageSize);
+//        if (abroad) {
+//            query = ds.createQuery(Locality.class)
+//                    .field("abroad").equal(true)
+//                    .field("images.url").equal(Pattern.compile("^http"))
+////                    .field("images").notEqual(new ArrayList<>())
+////                .field("relPlanCnt").greaterThan(0)
+//                    .retrievedFields(true, fields.toArray(new String[]{""}))
+//                    .offset(page * pageSize).limit(pageSize).order("-isHot");
+//        } else {
+//            query = ds.createQuery(Locality.class)
+//                    .field("abroad").equal(false)
+////                .field("imageList").notEqual(null)
+////                .field("relPlanCnt").greaterThan(0)
+//                    .retrievedFields(true, fields.toArray(new String[]{""}))
+//                    .offset(page * pageSize).limit(pageSize).order("-ratings.baiduIndex, -ratings.score, -relPlanCnt");
+//        }
 
         return query.asList();
     }

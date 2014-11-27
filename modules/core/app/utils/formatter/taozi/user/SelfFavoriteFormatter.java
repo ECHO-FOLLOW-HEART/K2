@@ -72,7 +72,7 @@ public class SelfFavoriteFormatter implements JsonFormatter {
         };
 
         //图片
-        PropertyFilter imageItemPOIFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter imageItemFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -98,7 +98,7 @@ public class SelfFavoriteFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
-        FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("imageItemPOIFilter", imageItemPOIFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("imageItemFilter", imageItemFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);
