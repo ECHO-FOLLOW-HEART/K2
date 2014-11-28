@@ -379,6 +379,19 @@ public class UserAPI {
      *
      * @param fieldDesc 哪些字段为查询目标？
      */
+    public static UserInfo getUserByField(String fieldDesc, Integer value, List<String> fieldList)
+            throws TravelPiException {
+        Iterator<UserInfo> itr = searchUser(Arrays.asList(fieldDesc), value, fieldList, 0, 1);
+        if (itr != null && itr.hasNext())
+            return itr.next();
+        else
+            return null;
+    }
+    /**
+     * 根据字段获得用户信息。
+     *
+     * @param fieldDesc 哪些字段为查询目标？
+     */
     public static UserInfo getUserByField(String fieldDesc, String value)
             throws TravelPiException {
         return getUserByField(Arrays.asList(fieldDesc), value, null);
@@ -393,6 +406,8 @@ public class UserAPI {
             throws TravelPiException {
         return getUserByField(Arrays.asList(fieldDesc), value, fieldFilter);
     }
+
+
 
     /**
      * 储存用户信息。
