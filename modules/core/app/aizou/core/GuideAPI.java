@@ -4,10 +4,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Destination;
-import models.guide.AbstractGuide;
-import models.guide.Guide;
-import models.guide.GuideTemplate;
-import models.guide.ItinerItem;
+import models.guide.*;
 import models.poi.Dinning;
 import models.poi.Restaurant;
 import models.poi.Shopping;
@@ -169,7 +166,7 @@ public class GuideAPI {
      */
     public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
+        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId).field("userId").equal(userId);
         if (query.iterator().hasNext()) {
             UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
             if (guide.itinerary != null)
@@ -213,12 +210,20 @@ public class GuideAPI {
         uo.set(Guide.fnTitle, title);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
-//
-//    public static Destination getDestinationGuideInfo(ObjectId id,String type) throws TravelPiException {
-//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-//        Query<Destination> query = ds.createQuery(Destination.class);
-//        query.field("id").equal(id);
-//    }
+
+    /**
+     * 获得目的地的攻略信息
+     *
+     * @param id
+     * @return
+     * @throws TravelPiException
+     */
+    public static DestGuideInfo getDestinationGuideInfo(ObjectId id) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Query<DestGuideInfo> query = ds.createQuery(DestGuideInfo.class);
+        query.field("locId").equal(id);
+        return query.get();
+    }
     /**
      * 保存购物信息
      *

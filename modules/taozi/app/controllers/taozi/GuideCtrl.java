@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.guide.AbstractGuide;
+import models.guide.DestGuideInfo;
 import models.guide.Guide;
 import models.poi.Dinning;
 import models.poi.Shopping;
@@ -187,6 +188,22 @@ public class GuideCtrl extends Controller {
 
     }
 
+    /**
+     * 获取目的地的攻略信息
+     *
+     * @param id
+     * @return
+     */
+    public static Result getDestinationGuideInfo(String id,String guidePart) {
+        try {
+            DestGuideInfo destGuideInfo = GuideAPI.getDestinationGuideInfo(new ObjectId(id));
+            ObjectNode node = (ObjectNode)new DestGuideFormatter().format(destGuideInfo,guidePart);
+            return Utils.createResponse(ErrorCode.NORMAL, node);
+        } catch (TravelPiException | NullPointerException | IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        }
+
+    }
 
     /**
      * @param node
