@@ -55,7 +55,11 @@ public class GuideAPI {
         List<Destination> destinations = queryDes.asList();
         List<GuideTemplate> guideTemplates = query.asList();
 
-        return constituteUgcGuide(guideTemplates, destinations, userId);
+        Guide result = constituteUgcGuide(guideTemplates, destinations, userId);
+        //创建时即保存
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE).save(result);
+        return result;
+
     }
 
     /**
@@ -176,12 +180,7 @@ public class GuideAPI {
                 update.set(AbstractGuide.fnRestaurant, guide.restaurant);
             update.set(Guide.fnUpdateTime, System.currentTimeMillis());
             ds.update(query, update);
-        } else {
-            guide.userId = userId;
-            guide.updateTime = System.currentTimeMillis();
-            ds.save(guide);
         }
-
     }
 
     /**
@@ -209,19 +208,17 @@ public class GuideAPI {
      * @throws TravelPiException
      */
     public static void saveGuideTitle(ObjectId id, String title) throws TravelPiException {
-        try {
-            title = title.trim();
-            if (title.isEmpty())
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID TITLE");
-        } catch (NullPointerException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID TITLE");
-        }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
         uo.set(Guide.fnTitle, title);
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
-
+//
+//    public static Destination getDestinationGuideInfo(ObjectId id,String type) throws TravelPiException {
+//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//        Query<Destination> query = ds.createQuery(Destination.class);
+//        query.field("id").equal(id);
+//    }
     /**
      * 保存购物信息
      *
