@@ -22,9 +22,8 @@ import java.util.Set;
 /**
  * Created by lxf on 14-11-1.
  */
-public class ImageItemFormatter implements JsonFormatter {
-    @Override
-    public JsonNode format(TravelPiBaseItem item) {
+public class ImageItemFormatter {
+    public JsonNode format(ImageItem item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);

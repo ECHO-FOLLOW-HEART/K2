@@ -224,31 +224,4 @@ public class GuideAPI {
         query.field("locId").equal(id);
         return query.get();
     }
-    /**
-     * 保存购物信息
-     *
-     * @param id
-     * @param shoppingList
-     * @throws TravelPiException
-     */
-    public static void savaGuideShopping(ObjectId id, List<Shopping> shoppingList) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set(Guide.fnShopping, shoppingList);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
-    }
-
-    /**
-     * 保存美食信息
-     *
-     * @param id
-     * @param dinningList
-     * @throws TravelPiException
-     */
-    public static void savaGuideDinning(ObjectId id, List<Dinning> dinningList) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set(Guide.fnRestaurant, dinningList);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
-    }
 }
