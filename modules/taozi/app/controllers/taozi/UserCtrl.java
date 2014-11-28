@@ -110,14 +110,16 @@ public class UserCtrl extends Controller {
         String tel = req.get("tel").asText();
         String captcha = req.get("captcha").asText();
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
-        Integer userId = Integer.valueOf(req.get("userId").asText());
+        Integer userId = 0;
+        if (req.has("userId"))
+            userId = Integer.valueOf(req.get("userId").asText());
         int countryCode = 86;
         if (req.has("dialCode"))
             countryCode = Integer.valueOf(req.get("dialCode").asText());
 
         ObjectNode result = Json.newObject();
         try {
-            if (captcha.equals("85438734") ||UserAPI.checkValidation(countryCode, tel, actionCode, captcha, userId)) {
+            if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, actionCode, captcha, userId)) {
                 Token token = UserAPI.valCodetoToken(countryCode, tel, actionCode, userId, 600 * 1000);
                 result.put("token", token.value);
                 result.put("isValid", true);
@@ -154,7 +156,7 @@ public class UserCtrl extends Controller {
                 if (UserAPI.getUserByField(UserInfo.fnTel, tel) != null) {
                     return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
                 }
-                userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId,null);
+                userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId, null);
                 userInfo.setTel(tel);
                 UserAPI.saveUserInfo(userInfo);
 
@@ -219,7 +221,7 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
         String pwd = req.get("pwd").asText();
         String token = req.get("token").asText();
-        String userId = req.get("userId").asText();
+        String tel = req.get("tel").asText();
         Integer countryCode = 86;
         if (req.has("dialCode"))
             countryCode = Integer.valueOf(req.get("dialCode").asText());
@@ -230,10 +232,25 @@ public class UserCtrl extends Controller {
         }
         //验证Token
         try {
-            if (UserAPI.checkToken(token, Integer.valueOf(userId), CAPTCHA_ACTION_MODPWD)) {
-                UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
+            //忘记密码后重设密码，不需要userId
+            if (UserAPI.checkToken(token, 0, CAPTCHA_ACTION_MODPWD)) {
+                UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, tel);
                 UserAPI.resetPwd(userInfo, pwd);
-                return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+
+                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
             } else
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
