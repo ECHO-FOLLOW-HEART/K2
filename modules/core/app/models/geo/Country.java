@@ -54,6 +54,12 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnId = "id";
 
+    @Transient
+    public static String fnImages = "images";
+
+    @Transient
+    public static String fnDesc = "desc";
+
     /**
      * ISO 3166-2标准的国家代码
      */

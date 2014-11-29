@@ -11,6 +11,7 @@ import models.TravelPiBaseItem;
 import models.misc.ImageItem;
 import models.misc.Ratings;
 import models.misc.SimpleRef;
+import models.poi.Cuisine;
 import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
@@ -20,9 +21,8 @@ import play.libs.Json;
 import utils.Constants;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -51,9 +51,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String fnSuperAdm = "superAdm";
 
     @Transient
-    public static String fnLevel = "level";
-
-    @Transient
     public static String fnDesc = "desc";
 
     @Transient
@@ -72,25 +69,32 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String simpId = "id";
 
     @Transient
-    public static String simpShortName = "shortName";
+    public static String fnLocation = "location";
 
     @Transient
-    public static String fnCoords = "coords";
+    public static String fnHotness = "hotness";
 
     @Transient
-    public static String fnIsHot = "isHot";
+    public static String fnRating = "rating";
 
     @Transient
-    public static String fntimeCost = "timeCost";
+    public static String fnTimeCost = "timeCost";
 
     @Transient
-    public static String fntravelMonth = "travelMonth";
+    public static String fnTimeCostDesc = "timeCostDesc";
+
+    @Transient
+    public static String fnTravelMonth = "travelMonth";
 
     @Transient
     public static String fnCover = "cover";
 
     @Transient
-    public static String fnimageCnt = "imageCnt";
+    public static String fnImageCnt = "imageCnt";
+
+    @Transient
+    public static String fnLevel = "level";
+
 
     public String zhName;
 
@@ -98,6 +102,123 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public String shortName;
 
+    public String desc;
+
+    public List<ImageItem> images;
+
+    /**
+     * 是否为国外城市
+     */
+    public Boolean abroad;
+
+    /**
+     * 坐标
+     */
+    @Embedded
+    public GeoJsonPoint location;
+
+    @Embedded
+    public SimpleRef country;
+
+    public List<String> tags;
+
+    /**
+     * 该locality对应路线的
+     */
+    public Integer relPlanCnt;
+    /**
+     * 建议游玩天数
+     */
+    public Double timeCost;
+
+    /**
+     * 建议游玩天数描述
+     */
+    public String timeCostDesc;
+
+    /**
+     * 建议游玩月份
+     */
+    public List<Integer> travelMonth;
+
+    /* 桃子旅行新加字段 */
+    /**
+     * 评价
+     */
+    public Double rating;
+    /**
+     * 热门程度
+     */
+    public Double hotness;
+
+    /**
+     * 收藏数量
+     */
+    public Integer favorCnt;
+
+    /**
+     * 去过人数
+     */
+    public Integer visitCnt;
+
+    /**
+     * 评价数量
+     */
+    public Integer commentCnt;
+
+    /**
+     * 外部交通信息。每个entry都是一个tip，为HTML格式
+     */
+    public List<String> remoteTraffic;
+
+    /**
+     * 内部交通信息。每个entry都是一个tip，为HTML格式
+     */
+    public List<String> localTraffic;
+
+    /**
+     * 购物综述，HTML格式
+     */
+    public String shoppingIntro;
+
+    /**
+     * 特产
+     */
+    public List<Commodities> commodities;
+
+    /**
+     * 美食综述，HTML格式
+     */
+    public String dinningIntro;
+
+    /**
+     * 特色菜式
+     */
+    public List<Cuisine> cuisines;
+
+    /**
+     * 活动综述
+     */
+    public String activityIntro;
+
+    /**
+     * 活动
+     */
+    public List<Activities> activities;
+
+    /**
+     * 小贴士
+     */
+    public List<Tip> tips;
+
+    /**
+     * 其它信息
+     */
+    public Map<String, Object> miscInfo;
+
+    /*
+      可能废弃的字段-Start
+     */
     /**
      * 是否为热门城市
      */
@@ -106,16 +227,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public List<String> alias;
 
     public List<String> pinyin;
-
-    @Embedded
-    public SimpleRef country;
-
-    /**
-     * 是否为国外城市
-     */
-    public Boolean abroad;
-
-    public List<Integer> travelMonth;
 
     @Constraints.Required
     public int level;
@@ -132,11 +243,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 //    @Reference(lazy = true)
 //    public List<Locality> siblings;
 
-    public List<String> tags;
-
     public List<String> imageList;
-
-    public List<ImageItem> images;
 
     public boolean provCap;
 
@@ -147,24 +254,14 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public Integer areaCode;
 
     @Embedded
-    public GeoJsonPoint location;
-
-    @Embedded
     public Coords coords;
+
+    public String cover;
 
     @Embedded
     public Coords bCoords;
 
-    public String desc;
-
-    public Double timeCost;
-
-    public String cover;
-
-    /**
-     * 该locality对应路线的
-     */
-    public Integer relPlanCnt;
+    /* 可能废弃的字段-End */
 
     /**
      * 去掉末尾的省市县等名字。

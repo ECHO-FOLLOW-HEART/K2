@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Coords;
+import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.SimpleRef;
 import utils.formatter.JsonFormatter;
@@ -45,10 +45,9 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Locality.fnCoords, Locality.fnDesc, Locality.fnEnName,
-                        Locality.simpId, Locality.fnZhName, Locality.fnImages, Locality.fnCoords,
-                        Locality.fntimeCost, Locality.fntravelMonth, Locality.fnCover, Locality.fnimageCnt);
-
+                Collections.addAll(includedFields, Locality.fnLocation, Locality.fnDesc, Locality.fnEnName,
+                        Locality.simpId, Locality.fnZhName, Locality.fnLocation, Locality.fnImages,
+                        Locality.fnTimeCost, Locality.fnTimeCostDesc, Locality.fnTravelMonth, Locality.fnImageCnt);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -62,7 +61,8 @@ public class LocalityFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
-        PropertyFilter coordsFilter = new SimpleBeanPropertyFilter() {
+
+        PropertyFilter geoJsonPointFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -75,8 +75,8 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Coords.simpLat);
-                includedFields.add(Coords.simpLng);
+                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.fnType);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -90,6 +90,7 @@ public class LocalityFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
+
         PropertyFilter simpleRefFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
@@ -121,9 +122,8 @@ public class LocalityFormatter implements JsonFormatter {
             }
         };
 
-
         FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter)
-                .addFilter("simpleRefFilter", simpleRefFilter).addFilter("coordsFilter", coordsFilter);
+                .addFilter("simpleRefFilter", simpleRefFilter).addFilter("geoJsonPointFilter", geoJsonPointFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

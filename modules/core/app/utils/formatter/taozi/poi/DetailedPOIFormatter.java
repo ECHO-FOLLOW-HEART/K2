@@ -62,7 +62,6 @@ public class DetailedPOIFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.fnLocation);
                 includedFields.add(AbstractPOI.detAlias);
                 includedFields.add(AbstractPOI.simpRating);
-
                 includedFields.add(AbstractPOI.simpAddress);
                 includedFields.add(AbstractPOI.detPriceDesc);
                 includedFields.add(AbstractPOI.simpTelephone);

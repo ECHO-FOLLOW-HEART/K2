@@ -8,7 +8,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.geo.Locality;
 import models.misc.*;
+import models.poi.AbstractPOI;
 import models.poi.Comment;
 import models.user.Favorite;
 import models.user.UserInfo;
@@ -465,5 +467,20 @@ public class MiscCtrl extends Controller {
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
+    }
+
+    public static Result search(String keyWord, String type, int page, int pageSize) {
+        try {
+
+            List<Locality> locs;
+            List<? extends AbstractPOI> pois;
+            if (type.equals("all"))
+                locs = MiscAPI.searchLocalities(keyWord, true, null, page, pageSize);
+
+
+        } catch (TravelPiException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
     }
 }

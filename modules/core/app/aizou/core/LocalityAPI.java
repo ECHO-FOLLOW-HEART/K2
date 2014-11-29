@@ -91,7 +91,7 @@ public class LocalityAPI {
         fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnSuperAdm, Locality.fnLevel));
         if (level > 1)
             fields.addAll(Arrays.asList(Locality.fnDesc, Locality.fnImageList, Locality.fnImages, Locality.fnTags,
-                    Locality.fnCoords));
+                    Locality.fnLocation));
 
         query.retrievedFields(true, fields.toArray(new String[]{""}));
         return query.get();

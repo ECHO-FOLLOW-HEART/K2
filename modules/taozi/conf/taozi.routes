@@ -141,4 +141,4 @@ GET           /view-spot/:id/details                    controllers.taozi.POICtr
 #游玩攻略
 GET           /travel-guide/:id                         controllers.taozi.POICtrl.getTravelGuide(id:String,arrive :Boolean,traffic :Boolean,bright :Boolean,activity :Boolean,tips :Boolean,culture :Boolean)
 #展示目的地
-GET           /destinations                             controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=        true,        page:        Int        ?=0,        pageSize:        Int        ?=10)
+#GET           /destinations                             controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=        true,        page:        Int        ?=0,        pageSize:        Int        ?=10)

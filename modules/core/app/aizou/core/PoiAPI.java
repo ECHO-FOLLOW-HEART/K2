@@ -913,6 +913,35 @@ public class PoiAPI {
         return query.asList();
     }
 
+    public static List<? extends AbstractPOI> poiSearchForTaozi(POIType poiType, boolean prefix,
+                                                                String keyword,int page, int pageSize)
+            throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Class<? extends AbstractPOI> poiClass = null;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+            case SHOPPING:
+                poiClass = Restaurant.class;
+                break;
+        }
+        if (poiClass == null)
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        if (keyword != null && !keyword.isEmpty())
+            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
+        //query.order(String.format("%s%s",  "-", "hotness"));
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
+    }
+
     public enum SortField {
         SCORE, PRICE, RATING
     }

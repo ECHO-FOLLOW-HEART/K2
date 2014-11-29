@@ -93,7 +93,7 @@ public class GeoAPI {
             query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
         if (countryId != null)
             query.field(String.format("%s.%s", Locality.fnCountry, SimpleRef.simpID)).equal(countryId);
-        return query.order(String.format("-%s, %s", Locality.fnIsHot, Locality.fnLevel))
+        return query.order(String.format("-%s, %s", Locality.fnHotness))
                 .offset(page * pageSize).limit(pageSize).iterator();
     }
 
@@ -112,7 +112,7 @@ public class GeoAPI {
                 query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
                 query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
         );
-        return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
+        return query.order("-hotness").offset(page * pageSize).limit(pageSize).asList();
     }
 
     /**
@@ -140,25 +140,25 @@ public class GeoAPI {
      * @param pageSize
      * @return
      */
-    public static List<Destination> getDestinations(boolean abroad ,int page, int pageSize) throws TravelPiException {
+    public static List<Destination> getDestinations(boolean abroad, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Destination> query = ds.createQuery(Destination.class);
         query.field("abroad").equal(abroad).field("enabled").equal(true);
-        if(abroad)
+        if (abroad)
             query.field("level").equal(1);
-        query.offset(page*pageSize).limit(pageSize);
+        query.offset(page * pageSize).limit(pageSize);
 
-       return query.asList();
+        return query.asList();
     }
 
-    public static List<Destination> getDestinationsByCountry(String countryID,int page, int pageSize) throws TravelPiException {
+    public static List<Destination> getDestinationsByCountry(String countryID, int page, int pageSize) throws TravelPiException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Destination> query = ds.createQuery(Destination.class);
         query.field("abroad").equal(true).field("enabled").equal(true);
-            query.field("level").equal(1);
-        query.offset(page*pageSize).limit(pageSize);
+        query.field("level").equal(1);
+        query.offset(page * pageSize).limit(pageSize);
 
         return query.asList();
     }

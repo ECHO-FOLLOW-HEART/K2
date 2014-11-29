@@ -47,7 +47,7 @@ public class GeoCtrl extends Controller {
         try {
             Locality locality = GeoAPI.locDetails(id);
             if (locality == null)
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, " Locality not exist.");
             ObjectNode response = (ObjectNode) new LocalityFormatter().format(locality);
             List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName), null, noteCnt);
             List<ObjectNode> objs = new ArrayList<>();
@@ -61,6 +61,25 @@ public class GeoCtrl extends Controller {
         }
     }
 
+    public static Result getAllLocalities(boolean abroad,int  page, int pageSize){
+        try {
+            List<ObjectNode> objs = new ArrayList<>();
+            if(abroad){
+                List<Country> countrys = GeoAPI.searchCountryByName("",page,pageSize);
+                for (Country des : countrys) {
+                    objs.add((ObjectNode) new CountryFormatter().format(des));
+                }
+            }else{
+                List<Destination> destinations = GeoAPI.getDestinations(abroad, page, pageSize);
+                for (Destination des : destinations) {
+                    objs.add((ObjectNode) new DestinationFormatter().format(des));
+                }
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
     /**
      * 通过关键词搜索地理信息。
      *
@@ -196,28 +215,4 @@ public class GeoCtrl extends Controller {
         }
     }
 
-    public static Result exploreDestinations(boolean abroad,int  page, int pageSize){
-
-        try {
-
-            List<ObjectNode> objs = new ArrayList<>();
-            if(abroad){
-                List<Country> countrys = GeoAPI.searchCountryByName("",page,pageSize);
-                for (Country des : countrys) {
-                    objs.add((ObjectNode) new CountryFormatter().format(des));
-                }
-            }else{
-                List<Destination> destinations = GeoAPI.getDestinations(abroad, page, pageSize);
-                for (Destination des : destinations) {
-                    objs.add((ObjectNode) new DestinationFormatter().format(des));
-                }
-            }
-
-
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-
-    }
 }
