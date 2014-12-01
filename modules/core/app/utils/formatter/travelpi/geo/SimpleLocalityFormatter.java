@@ -82,8 +82,7 @@ public class SimpleLocalityFormatter extends TravelPiBaseFormatter {
                 parent.setId(new ObjectId());
             }
             ObjectNode parentNode = (ObjectNode) format(parent, false);
-            parentNode.remove(Arrays.asList("id", "_id"));
-            result.put("parents", parentNode);
+            result.put("parent", parentNode);
         }
 
         return result;
