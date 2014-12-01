@@ -25,7 +25,9 @@ public class SimpleRef implements ITravelPiFormatter {
     @Transient
     public static String simpZhName = "zhName";
     public ObjectId id;
+
     public String enName;
+
     public String zhName;
 
     public String getEnName() {
@@ -40,6 +42,14 @@ public class SimpleRef implements ITravelPiFormatter {
             return "";
         else
             return StringUtils.capitalize(zhName);
+    }
+
+    public void setEnName(String enName) {
+        this.enName = enName;
+    }
+
+    public void setZhName(String zhName) {
+        this.zhName = zhName;
     }
 
     public String getId() {

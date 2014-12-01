@@ -957,7 +957,7 @@ public class PlanCtrl extends Controller {
 
         PlanItem planItem = null;
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        SimpleRef ref;
+        SimpleRef ref, locRef;
         switch (type) {
             case "vs":
                 ViewSpot vs = ds.createQuery(ViewSpot.class).field("_id").equal(new ObjectId(itemId)).get();
@@ -966,7 +966,10 @@ public class PlanCtrl extends Controller {
                 ref.zhName = vs.name;
                 planItem = new PlanItem();
                 planItem.item = ref;
-                planItem.loc = vs.addr.loc;
+                locRef = new SimpleRef();
+                locRef.setEnName(vs.getLocality().getEnName());
+                locRef.setZhName(vs.getLocality().getEnName());
+                planItem.loc = locRef;
                 planItem.type = "vs";
                 try {
                     planItem.ts = timeFmt.parse(st);
@@ -981,7 +984,10 @@ public class PlanCtrl extends Controller {
                 ref.zhName = hotel.name;
                 planItem = new PlanItem();
                 planItem.item = ref;
-                planItem.loc = hotel.addr.loc;
+                locRef = new SimpleRef();
+                locRef.setEnName(hotel.getLocality().getEnName());
+                locRef.setZhName(hotel.getLocality().getEnName());
+                planItem.loc = locRef;
                 planItem.type = "hotel";
                 try {
                     planItem.ts = timeFmt.parse(st);

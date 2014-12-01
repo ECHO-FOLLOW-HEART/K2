@@ -54,8 +54,10 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String simpID = "id";
+
     @Transient
     public static String simpName = "name";
+
     @Transient
     public static String simpZhName = "zhName";
 
@@ -70,6 +72,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String fnLocation = "location";
+
+    @Transient
+    public static String fnLocality = "locality";
 
     @Transient
     public static String detDesc = "description";
@@ -157,6 +162,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      * 坐标
      */
     public GeoJsonPoint location;
+
+    /**
+     * 所在目的地
+     */
+    private Locality locality;
 
     /**
      * 电话
@@ -251,6 +261,14 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                         "price", "priceDesc", "alias"));
         }
         return new ArrayList<>();
+    }
+
+    public Locality getLocality() {
+        return locality;
+    }
+
+    public void setLocality(Locality locality) {
+        this.locality = locality;
     }
 
     public Double getHotness() {
