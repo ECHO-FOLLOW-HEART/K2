@@ -662,7 +662,8 @@ public class PlanCtrl extends Controller {
         //补全信息
         List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, false);
         List<JsonNode> retDetails = new ArrayList<>();
-        for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
+        for (PlanDayEntry dayEntry : dayEntryList)
+            retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
         ret.put("details", Json.toJson(retDetails));
 
@@ -888,6 +889,22 @@ public class PlanCtrl extends Controller {
                 }
             }
 
+            // 有tag的排在前面
+            Collections.sort(planList, new Comparator<Plan>() {
+                @Override
+                public int compare(Plan o1, Plan o2) {
+                    if (o1.manualPriority > o2.manualPriority)
+                        return 1;
+                    else if (o1.manualPriority < o2.manualPriority)
+                        return -1;
+                    else {
+                        int tag1 = o1.lxpTag != null ? o1.lxpTag.size() : 0;
+                        int tag2 = o2.lxpTag != null ? o2.lxpTag.size() : 0;
+                        return tag2 - tag1;
+                    }
+                }
+            });
+
             for (Plan plan : planList) {
                 //加入交通预算,住宿预算
                 if (null != fromLoc && !fromLoc.trim().equals("")) {
@@ -968,7 +985,8 @@ public class PlanCtrl extends Controller {
                 planItem.item = ref;
                 locRef = new SimpleRef();
                 locRef.setEnName(vs.getLocality().getEnName());
-                locRef.setZhName(vs.getLocality().getEnName());
+                locRef.setZhName(vs.getLocality().getZhName());
+                locRef.setId(vs.getLocality().getId());
                 planItem.loc = locRef;
                 planItem.type = "vs";
                 try {

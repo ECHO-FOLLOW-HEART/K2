@@ -127,7 +127,7 @@ public class PoiAPI {
             }
             query.order(String.format("%s%s", asc ? "" : "-", stKey));
         } else {
-            query.order("-ratings.recommended, -ratings.rankingA, -ratings.qtScore, -ratings.baiduScore, -ratings.viewCnt");
+            query.order(String.format("-%s, %s", AbstractPOI.fnHotness, AbstractPOI.fnRating));
         }
 
         query.offset(page * pageSize).limit(pageSize);

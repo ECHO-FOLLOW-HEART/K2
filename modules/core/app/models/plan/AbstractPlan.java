@@ -13,7 +13,10 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import play.libs.Json;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -121,41 +124,10 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
             builder.add("desc", description.desc);
         }
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
-        builder.add("imageList", (imageList != null && !imageList.isEmpty()) ? Json.toJson(imageList) : new ArrayList<>());
 
-        // 如果存在更高阶的images字段，则使用之
-        if (images != null && !images.isEmpty()) {
-            List<ImageItem> imgList = new ArrayList<>();
-            for (ImageItem img : images) {
-                if (img.enabled != null && !img.enabled)
-                    continue;
-                imgList.add(img);
-            }
 
-            Collections.sort(imgList, new Comparator<ImageItem>() {
-                @Override
-                public int compare(ImageItem o1, ImageItem o2) {
-                    if (o1.fSize != null && o2.fSize != null)
-                        return o2.fSize - o1.fSize;
-                    else if (o1.w != null && o2.w != null)
-                        return o2.w - o1.w;
-                    else if (o1.h != null && o2.h != null)
-                        return o2.h - o1.h;
-                    else
-                        return 0;
-                }
-            });
-
-            List<String> ret = new ArrayList<String>();
-            for (ImageItem img : imgList) {
-                if (img.url != null)
-                    ret.add(img.url);
-            }
-
-            builder.add("imageList", ret);
-        }
-
-//        builder.add("budget", Arrays.asList(2000, 3000));
+        builder.add("imageList", images != null ? Arrays.asList(images.get(new Random().nextInt(images.size())).url) :
+                new ArrayList<>());
 
         Integer tempStayBudget = stayBudget == null ? 0 : stayBudget;
         Integer tempTrafficBudget = trafficBudget == null ? 0 : trafficBudget;

@@ -18,11 +18,7 @@ public class RecomType extends TravelPiBaseItem {
     public static String fnId = "id";
     @Transient
     public static String fnName = "name";
-    public ObjectId id;
-    public String name;
 
-    public String getId() {
-        return id.toString();
-    }
+    public String name;
 
 }

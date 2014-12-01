@@ -18,8 +18,8 @@ public abstract class TravelPiBaseItem {
     public boolean enabled;
     public Map<String, Object> misc;
 
-    public String getId() {
-        return id.toString();
+    public ObjectId getId() {
+        return id;
     }
 
     public void setId(ObjectId id) {

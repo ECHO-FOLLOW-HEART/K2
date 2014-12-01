@@ -56,6 +56,10 @@ public class SimpleRef implements ITravelPiFormatter {
         return id.toString();
     }
 
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
+
     @Override
     public JsonNode toJson() {
         return Json.toJson(BasicDBObjectBuilder.start("_id", id.toString())

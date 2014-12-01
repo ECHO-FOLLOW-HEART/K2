@@ -151,13 +151,6 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public String cover;
 
-    public String getId() {
-        if (id == null)
-            return "";
-        else
-            return id.toString();
-    }
-
     public String getName() {
         if (title == null)
             return "";

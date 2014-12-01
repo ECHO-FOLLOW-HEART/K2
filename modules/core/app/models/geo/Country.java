@@ -165,10 +165,6 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public List<String> citys;
 
-    public String getId() {
-        return id.toString();
-    }
-
     public String getZhCont() {
         return zhCont != null ? zhCont : "";
     }
