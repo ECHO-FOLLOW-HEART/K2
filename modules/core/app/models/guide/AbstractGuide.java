@@ -2,6 +2,7 @@ package models.guide;
 
 import models.TravelPiBaseItem;
 import models.geo.Destination;
+import models.misc.ImageItem;
 import models.poi.Restaurant;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
@@ -32,6 +33,8 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     @Transient
     public static final String fnDestinations = "destinations";
 
+    @Transient
+    public static final String fnImages = "images";
 
     public String title;
 
@@ -44,5 +47,7 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     public List<Shopping> shopping;
 
     public List<Restaurant> restaurant;
+
+    public List<ImageItem> images;
 
 }

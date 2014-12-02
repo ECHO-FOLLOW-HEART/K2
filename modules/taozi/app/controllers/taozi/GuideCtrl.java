@@ -18,7 +18,6 @@ import play.mvc.Result;
 import utils.Utils;
 import utils.formatter.JsonFormatter;
 import utils.formatter.taozi.guide.*;
-import utils.formatter.taozi.misc.ImageItemFormatter;
 
 import java.util.*;
 
@@ -36,16 +35,15 @@ public class GuideCtrl extends Controller {
         JsonNode data = request().body().asJson();
         ObjectNode node;
         try {
+            String tmp = request().getHeader("UserId");
+            if (tmp == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
+            Integer selfId = Integer.parseInt(tmp);
             Iterator<JsonNode> iterator = data.get("locId").iterator();
             List<ObjectId> ids = new ArrayList<>();
             for (; iterator.hasNext(); ) {
                 ids.add(new ObjectId(iterator.next().asText()));
             }
-            String tmp = request().getHeader("UserId");
-            Integer selfId = null;
-            if (tmp != null)
-                selfId = Integer.parseInt(tmp);
-
             Guide temp = GuideAPI.getGuideByDestination(ids, selfId);
             node = (ObjectNode) new GuideFormatter().format(temp);
         } catch (NullPointerException | IllegalArgumentException e) {
@@ -66,17 +64,16 @@ public class GuideCtrl extends Controller {
         JsonNode data = request().body().asJson();
         try {
             String tmp = request().getHeader("UserId");
-            Integer selfId = null;
-            if (tmp != null)
-                selfId = Integer.parseInt(tmp);
-
+            if (tmp == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
+            Integer selfId = Integer.parseInt(tmp);
             ObjectId guideId = new ObjectId(data.get("id").asText());
             ObjectMapper m = new ObjectMapper();
             Guide guideUpdate = m.convertValue(data, Guide.class);
             //保存攻略
             GuideAPI.updateGuide(guideId, guideUpdate, selfId);
         } catch (NullPointerException | IllegalArgumentException e) {
-            return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
@@ -86,18 +83,19 @@ public class GuideCtrl extends Controller {
     /**
      * 取得用户攻略列表
      *
+     * @param page
+     * @param pageSize
      * @return
      */
     public static Result getGuidesByUser(int page, int pageSize) {
         try {
             String tmp = request().getHeader("UserId");
-            Integer selfId = null;
-            if (tmp != null)
-                selfId = Integer.parseInt(tmp);
+            if (tmp == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
+            Integer selfId = Integer.parseInt(tmp);
             List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle, Guide.fnUpdateTime,
-                    Guide.fnDestinations, Guide.fnItinerary, Guide.fnItineraryDays);
+                    Guide.fnDestinations, Guide.fnImages, Guide.fnItineraryDays);
             List<Guide> guides = GuideAPI.getGuideByUser(selfId, fields, page, pageSize);
-
             List<JsonNode> result = new ArrayList<>();
             ObjectNode node;
             for (Guide guide : guides) {
@@ -106,27 +104,31 @@ public class GuideCtrl extends Controller {
                 result.add(node);
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+        } catch (IllegalArgumentException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 
+    /**
+     * 添加攻略列表中需要额外展示的字段
+     *
+     * @param guide 攻略实体
+     * @param node  攻略JSON内容
+     */
     private static void addGuideInfoToNode(Guide guide, ObjectNode node) {
         List<Destination> dests = guide.destinations;
         StringBuilder sb = new StringBuilder();
         List<ImageItem> images = new ArrayList();
-        List<JsonNode> imagesNode = new ArrayList<>();
         for (Destination des : dests) {
             sb.append(des.zhName);
             sb.append("、");
             if (des.images != null)
                 images.addAll(des.images);
         }
-        for (ImageItem item : images)
-            imagesNode.add(new ImageItemFormatter().format(item));
         String summary = sb.toString();
         node.put("summary", summary.substring(0, summary.length() - 1));
-        node.put("images", Json.toJson(imagesNode));
         node.put("dayCnt", guide.itineraryDays);
     }
 
@@ -178,6 +180,12 @@ public class GuideCtrl extends Controller {
 
     }
 
+    /**
+     * 删除攻略
+     *
+     * @param id 攻略ID
+     * @return
+     */
     public static Result deleteGuide(String id) {
         try {
             ObjectId guideId = new ObjectId(id);

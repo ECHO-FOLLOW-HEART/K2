@@ -58,6 +58,7 @@ public class GuideFormatter implements JsonFormatter {
                 includedFields.add(Guide.fnDestinations);
                 includedFields.add(AbstractGuide.fnTitle);
                 includedFields.add(Guide.fnUpdateTime);
+                includedFields.add(Guide.fnImages);
                 //行程单
                 includedFields.add(AbstractGuide.fnItinerary);
                 includedFields.add(AbstractGuide.fnShopping);

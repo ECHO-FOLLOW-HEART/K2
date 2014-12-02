@@ -1,11 +1,9 @@
 package aizou.core;
 
-import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Destination;
 import models.guide.*;
-import models.poi.Dinning;
 import models.poi.Restaurant;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
@@ -37,7 +35,6 @@ public class GuideAPI {
             criList.add(query.criteria("locId").equal(id));
         }
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
-
         Query<Destination> queryDes = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
                 .createQuery(Destination.class);
         List<String> fieldList = new ArrayList<>();
@@ -81,6 +78,8 @@ public class GuideAPI {
         List<Restaurant> restaurants = new ArrayList<>();
         Integer itineraryDaysCnt = 0;
         for (GuideTemplate temp : guideTemplates) {
+            if (temp == null)
+                continue;
             locIds.add(temp.id);
             titlesBuffer.append(temp.title);
             if (temp.itinerary != null && temp.itinerary.size() > 0) {
@@ -106,6 +105,8 @@ public class GuideAPI {
         ugcGuide.restaurant = restaurants;
         ugcGuide.itineraryDays = itineraryDaysCnt;
         ugcGuide.updateTime = System.currentTimeMillis();
+        //取第一个目的地的图片
+        ugcGuide.images = guideTemplates.get(0).images;
         return ugcGuide;
 
     }
@@ -154,6 +155,7 @@ public class GuideAPI {
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         query.offset(page * pageSize).limit(pageSize);
+        query.order("-updateTime");
         return query.asList();
     }
 
@@ -169,8 +171,10 @@ public class GuideAPI {
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId).field("userId").equal(userId);
         if (query.iterator().hasNext()) {
             UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
-            if (guide.itinerary != null)
+            if (guide.itinerary != null) {
                 update.set(AbstractGuide.fnItinerary, guide.itinerary);
+                update.set(Guide.fnItineraryDays, guide.itinerary == null ? 0 : guide.itinerary.size());
+            }
             if (guide.shopping != null)
                 update.set(AbstractGuide.fnShopping, guide.shopping);
             if (guide.restaurant != null)
@@ -208,6 +212,7 @@ public class GuideAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
         uo.set(Guide.fnTitle, title);
+        uo.set(Guide.fnUpdateTime, System.currentTimeMillis());
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
