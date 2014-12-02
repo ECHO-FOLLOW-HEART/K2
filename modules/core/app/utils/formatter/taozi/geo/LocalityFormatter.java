@@ -46,7 +46,7 @@ public class LocalityFormatter implements JsonFormatter {
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
                 Collections.addAll(includedFields, Locality.fnLocation, Locality.fnDesc, Locality.fnEnName,
-                        Locality.simpId, Locality.fnZhName, Locality.fnLocation, Locality.fnImages,
+                        Locality.fnId, Locality.fnZhName, Locality.fnLocation, Locality.fnImages,
                         Locality.fnTimeCost, Locality.fnTimeCostDesc, Locality.fnTravelMonth, Locality.fnImageCnt);
                 return (includedFields.contains(writer.getName()));
             }
@@ -123,7 +123,7 @@ public class LocalityFormatter implements JsonFormatter {
         };
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter)
-                .addFilter("simpleRefFilter", simpleRefFilter).addFilter("geoJsonPointFilter", geoJsonPointFilter);
+                .addFilter("countryFilter", simpleRefFilter).addFilter("geoJsonPointFilter", geoJsonPointFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

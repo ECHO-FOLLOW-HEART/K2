@@ -8,6 +8,7 @@ import models.poi.Shopping;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Transient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,5 +50,9 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     public List<Restaurant> restaurant;
 
     public List<ImageItem> images;
+
+    public List<ImageItem> getImages() {
+        return images == null ? new ArrayList<>() : images;
+    }
 
 }

@@ -21,7 +21,7 @@ import java.util.Set;
 
 /**
  * 格式化国家的简单信息，主要使用在搜索列表中。
- * <p/>
+ * <p>
  * Created by lxf on 14-11-1.
  */
 public class SimpleCountryFormatter implements JsonFormatter {
@@ -45,8 +45,8 @@ public class SimpleCountryFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Country.fnEnName, Country.fnZhName, Country.fnCode, Country.fnIsHot,
-                        "id");
+                Collections.addAll(includedFields, Country.fnDesc, Country.fnEnName, Country.fnZhName, Country.fnCode,
+                        "id", Country.fnImages);
                 return (includedFields.contains(writer.getName()));
             }
 

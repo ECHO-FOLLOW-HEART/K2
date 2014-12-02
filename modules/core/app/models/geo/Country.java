@@ -116,6 +116,11 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
     private String enName;
 
     /**
+     * 描述
+     */
+    private String desc;
+
+    /**
      * 首都
      */
     private String enCapital;
@@ -206,6 +211,9 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public String getZhName() {
         return zhName != null ? zhName : "";
+    }
+    public String getDesc() {
+        return desc != null ? desc : "";
     }
 
     public Boolean getIsHot() {

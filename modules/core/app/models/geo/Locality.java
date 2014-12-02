@@ -66,9 +66,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public static String fnAbroad = "abroad";
 
     @Transient
-    public static String simpId = "id";
-
-    @Transient
     public static String fnLocation = "location";
 
     @Transient
@@ -85,9 +82,6 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnTravelMonth = "travelMonth";
-
-    @Transient
-    public static String fnCover = "cover";
 
     @Transient
     public static String fnImageCnt = "imageCnt";
@@ -118,7 +112,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     public GeoJsonPoint location;
 
     @Embedded
-    public SimpleRef country;
+    public Country country;
 
     public List<String> tags;
 
@@ -139,7 +133,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 建议游玩月份
      */
-    public List<Integer> travelMonth;
+    public String travelMonth;
 
     /* 桃子旅行新加字段 */
     /**
@@ -214,7 +208,7 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 其它信息
      */
-    public Map<String, Object> miscInfo;
+    //public Map<String, Object> miscInfo;
 
     /*
       可能废弃的字段-Start
@@ -362,13 +356,8 @@ public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
         return images != null ? images.size() : 0;
     }
 
-    public String getCover() {
-        return cover != null ? cover : "";
-    }
-
-    // TODO
     public String getTravelMonth() {
-        return travelMonth != null ? "" : "";
+        return travelMonth != null ? "" : travelMonth;
     }
 
     public JsonNode getJsonNode() {

@@ -12,9 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Coords;
-import models.geo.Destination;
-import models.geo.Locality;
+import models.geo.*;
 import models.misc.SimpleRef;
 import utils.formatter.JsonFormatter;
 
@@ -92,7 +90,68 @@ public class DestinationFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("destinationFilter", theFilter).addFilter("coordsFilter", coordsFilter);
+        PropertyFilter countryFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                Collections.addAll(includedFields, Country.fnZhName,Country.fnEnName,Country.fnId,
+                        Country.fnImages,Country.fnDesc);
+
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+
+
+        PropertyFilter geoJsonPointFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.fnType);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter).addFilter("geoJsonPointFilter", geoJsonPointFilter)
+                .addFilter("countryFilter", countryFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

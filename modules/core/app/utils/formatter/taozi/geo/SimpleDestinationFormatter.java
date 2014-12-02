@@ -59,7 +59,7 @@ public class SimpleDestinationFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("destinationFilter", theFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);
