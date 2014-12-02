@@ -585,10 +585,15 @@ public class PlanCtrl extends Controller {
      * @return
      */
     public static Result saveUGCPlan() {
-        JsonNode data = request().body().asJson();
+        ObjectNode data = (ObjectNode) request().body().asJson();
         JsonNode action = data.get("action");
         String updateField = null;
         String ugcPlanId = null;
+
+        String abc = request().getQueryString("uid1");
+        String uid = request().getQueryString("uid");
+        if (!data.has("uid") && uid != null)
+            data.put("uid", uid);
 
         try {
             String actionFlag = action.asText();
@@ -893,6 +898,11 @@ public class PlanCtrl extends Controller {
             Collections.sort(planList, new Comparator<Plan>() {
                 @Override
                 public int compare(Plan o1, Plan o2) {
+                    if (o1.manualPriority == null)
+                        o1.manualPriority = 0;
+                    if (o2.manualPriority == null)
+                        o2.manualPriority = 0;
+
                     if (o1.manualPriority > o2.manualPriority)
                         return 1;
                     else if (o1.manualPriority < o2.manualPriority)
