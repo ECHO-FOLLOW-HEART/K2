@@ -75,7 +75,7 @@ public class PlanItem implements ITravelPiFormatter {
         }
 
         final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
-        if (subType != null && (subType.equals("airport") || subType.equals("trainStaion"))) {
+        if (subType != null && (subType.equals("airport") || subType.equals("trainStation"))) {
             if (lat != 0 && lng != 0) {
                 builder.add("lat", lat);
                 builder.add("lng", lng);

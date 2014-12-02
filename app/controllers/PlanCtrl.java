@@ -191,7 +191,7 @@ public class PlanCtrl extends Controller {
                     }
 
                     String subTypeStr = item.get("subType").asText();
-                    if (subTypeStr.equals("airport") || subTypeStr.equals("trainStaion")) {
+                    if (subTypeStr.equals("airport") || subTypeStr.equals("trainStation")) {
                         planItem.stopType = item.get("stopType").asText();
                         if (item.has("lat") && item.has("lng")) {
                             planItem.lat = Double.parseDouble(item.get("lat").asText());
