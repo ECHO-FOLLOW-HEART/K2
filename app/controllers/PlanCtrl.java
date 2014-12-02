@@ -69,6 +69,15 @@ public class PlanCtrl extends Controller {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
 
+            // 处理fromLoc/backLoc的映射
+            Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
+            Object tmp = mapConf.get(fromLocId);
+            if (tmp != null)
+                fromLocId = tmp.toString();
+            tmp = mapConf.get(backLocId);
+            if (tmp != null)
+                backLocId = tmp.toString();
+
             UgcPlan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req);
 
             Configuration config = Configuration.root();
@@ -856,6 +865,12 @@ public class PlanCtrl extends Controller {
             if (poiIdMapping.containsKey(poiId))
                 poiId = poiIdMapping.get(poiId);
         }
+
+        // 处理fromLoc/backLoc的映射
+        Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
+        Object tmp = mapConf.get(fromLoc);
+        if (tmp != null)
+            fromLoc = tmp.toString();
 
         try {
             Double trafficBudget = 0.0;
