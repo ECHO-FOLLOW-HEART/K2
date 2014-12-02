@@ -1,6 +1,8 @@
 package utils.formatter.travelpi;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.bson.types.ObjectId;
 import play.libs.Json;
 import utils.formatter.JsonFormatter;
 
@@ -47,7 +49,14 @@ public abstract class TravelPiBaseFormatter implements JsonFormatter {
         }
 
         // 处理id
-        result.put("_id", result.get("id"));
+        JsonNode oid = result.get("id");
+        int time = oid.get("timestamp").asInt();
+        int mach = oid.get("machine").asInt();
+        int inc = oid.get("inc").asInt();
+
+        String oidText = ObjectId.createFromLegacyFormat(time, mach, inc).toString();
+        result.put("_id", oidText);
+        result.put("id", oidText);
 
         return result;
     }
