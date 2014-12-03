@@ -13,6 +13,7 @@ import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -203,15 +204,25 @@ public class GeoCtrl extends Controller {
      * @return
      */
     public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
-
         try {
             List<ObjectNode> objs = new ArrayList<>();
+            List<ObjectNode> dests;
             if (abroad) {
-                List<Country> countryList = GeoAPI.searchCountryByName("", page, pageSize);
-                for (Country c : countryList)
-                    objs.add((ObjectNode) new SimpleCountryFormatter().format(c));
+                // TODO 桃子上线的国家暂时写到配置文件中
+                Configuration config = Configuration.root();
+                Map destnations = (Map) config.getObject("destinations");
+                String countrysStr = destnations.get("country").toString();
+                List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
+                List<Country> countryList = GeoAPI.searchCountryByName(countryNames, page, pageSize);
+                for (Country c : countryList) {
+                    ObjectNode node = (ObjectNode) new SimpleCountryFormatter().format(c);
+                    dests = getDestinationsNodeByCountry(c.id, page, pageSize);
+                    node.put("destinations", Json.toJson(dests));
+                    objs.add(node);
+                }
             } else {
-                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, pageSize);
+                // TODO 全部取出，不要分页，暂时取100个
+                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 100);
                 for (Locality des : destinations) {
                     objs.add((ObjectNode) new SimpleDestinationFormatter().format(des));
                 }
@@ -220,6 +231,24 @@ public class GeoCtrl extends Controller {
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+    }
+
+    /**
+     * 根据国家取得目的地
+     *
+     * @param id
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    private static List<ObjectNode> getDestinationsNodeByCountry(ObjectId id, int page, int pageSize) throws TravelPiException {
+        List<ObjectNode> result = new ArrayList<>(pageSize);
+        List<Locality> localities = GeoAPI.getDestinationsByCountry(id, page, pageSize);
+        for (Locality des : localities) {
+            result.add((ObjectNode) new SimpleDestinationFormatter().format(des));
+        }
+        return result;
     }
 
     /**

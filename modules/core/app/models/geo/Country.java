@@ -364,6 +364,13 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
         this.neighbours = neighbours;
     }
 
+    public List<ImageItem> getImages() {
+        if (images == null)
+            return new ArrayList();
+        else {
+            return images;
+        }
+    }
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

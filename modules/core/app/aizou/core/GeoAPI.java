@@ -9,6 +9,7 @@ import models.geo.Locality;
 import models.misc.SimpleRef;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import utils.formatter.taozi.geo.SimpleCountryFormatter;
 
@@ -100,6 +101,7 @@ public class GeoAPI {
      *
      * @param keyword
      * @return
+     *
      * @throws TravelPiException
      */
     public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws TravelPiException {
@@ -110,6 +112,24 @@ public class GeoAPI {
                     query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
                     query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
             );
+        }
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
+    }
+    /**
+     * 根据名称搜索国家。
+     *
+     * @return
+     *
+     * @throws TravelPiException
+     */
+    public static List<Country> searchCountryByName(List<String> keywords, int page, int pageSize) throws TravelPiException {
+        Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        if (keywords!= null) {
+            List<CriteriaContainerImpl> criList = new ArrayList<>();
+            for (String word : keywords)
+                criList.add(query.criteria("zhName").equal(Pattern.compile("^" + word)));
+            query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
         }
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
@@ -154,6 +174,7 @@ public class GeoAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         query.field("country.id").equal(countryID);
+        query.order("-hotness");
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
     }

@@ -52,7 +52,9 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     public List<ImageItem> images;
 
     public List<ImageItem> getImages() {
-        return images == null ? new ArrayList<>() : images;
+        if (images == null)
+            return new ArrayList<>();
+        return images;
     }
 
 }
