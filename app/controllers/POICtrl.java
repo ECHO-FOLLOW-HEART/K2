@@ -72,7 +72,7 @@ public class POICtrl extends Controller {
             try {
                 List<JsonNode> vsList = new ArrayList<>();
                 final ObjectId locId = poiInfo.addr.loc.id;
-                final ObjectId vsId = poiInfo.id;
+                final ObjectId vsId = poiInfo.getId();
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(poiType, locId,
                         null, null, null, true, 0, pageSize, false,
                         new HashMap<String, Object>() {

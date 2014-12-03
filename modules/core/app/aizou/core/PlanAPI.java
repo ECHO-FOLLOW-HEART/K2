@@ -86,7 +86,7 @@ public class PlanAPI {
             List<Locality> locList = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST)).getLocList();
             if (locList != null && !locList.isEmpty()) {
                 for (int idx = locList.size() - 1; idx >= 0; idx--) {
-                    ObjectId itrLocId = locList.get(idx).id;
+                    ObjectId itrLocId = locList.get(idx).getId();
                     planList = planExploreHelper(itrLocId, true, tag, minDays, maxDays, page, pageSize);
                     if (!planList.isEmpty())
                         break;
@@ -238,12 +238,12 @@ public class PlanAPI {
         if (backLoc == null)
             backLoc = fromLoc;
 
-        if (plan.details == null || plan.details.isEmpty())
+        if (plan.getDetails() == null || plan.getDetails().isEmpty())
             return new UgcPlan(plan);
 
         // 进行日期标注
         int idx = 0;
-        for (PlanDayEntry dayEntry : plan.details) {
+        for (PlanDayEntry dayEntry : plan.getDetails()) {
             Calendar cal = Calendar.getInstance(firstDate.getTimeZone());
             cal.set(0, Calendar.JANUARY, 0, 0, 0, 0);
             for (int field : new int[]{Calendar.YEAR, Calendar.MONTH, Calendar.DAY_OF_MONTH})
@@ -264,12 +264,10 @@ public class PlanAPI {
         }
 
         // 加入酒店
-        addHotels(plan.details);
+        addHotels(plan.getDetails());
 
         //模板路线生成ugc路线
-        UgcPlan ugcPlan = new UgcPlan(plan);
-        ugcPlan.id = new ObjectId();
-        return ugcPlan;
+        return new UgcPlan(plan);
     }
 
 
@@ -432,7 +430,7 @@ public class PlanAPI {
                     Hotel hotel = (Hotel) itr.next();
                     PlanItem hotelItem = new PlanItem();
                     SimpleRef ref = new SimpleRef();
-                    ref.id = hotel.id;
+                    ref.id = hotel.getId();
                     ref.zhName = hotel.name;
                     hotelItem.item = ref;
 
@@ -457,16 +455,16 @@ public class PlanAPI {
      * @return
      */
     private static Plan addTrafficItem(boolean epDep, Plan plan, PlanItem item) {
-        if (plan.details == null)
-            plan.details = new ArrayList<>();
+        if (plan.getDetails() == null)
+            plan.setDetails(new ArrayList<PlanDayEntry>());
 
         PlanDayEntry dayEntry = null;
         Calendar itemDate = Calendar.getInstance();
         itemDate.setTime(item.ts);
 
-        if (!plan.details.isEmpty()) {
-            int epIdx = (epDep ? 0 : plan.details.size() - 1);
-            dayEntry = plan.details.get(epIdx);
+        if (!plan.getDetails().isEmpty()) {
+            int epIdx = (epDep ? 0 : plan.getDetails().size() - 1);
+            dayEntry = plan.getDetails().get(epIdx);
             Calendar epDate = Calendar.getInstance();
             epDate.setTime(dayEntry.date);
 
@@ -485,9 +483,9 @@ public class PlanAPI {
             dayEntry = new PlanDayEntry(tmpDate);
 
             if (epDep)
-                plan.details.add(0, dayEntry);
+                plan.getDetails().add(0, dayEntry);
             else
-                plan.details.add(dayEntry);
+                plan.getDetails().add(dayEntry);
         }
 
         if (epDep)
@@ -505,7 +503,7 @@ public class PlanAPI {
      * @return
      */
     private static Plan reorder(Plan plan) {
-        List<PlanDayEntry> details = plan.details;
+        List<PlanDayEntry> details = plan.getDetails();
         if (details == null || details.isEmpty())
             return plan;
 
@@ -514,11 +512,11 @@ public class PlanAPI {
 
 
     private static Plan addTelomere(boolean epDep, Plan plan, ObjectId remoteLoc) throws TravelPiException {
-        List<PlanDayEntry> details = plan.details;
+        List<PlanDayEntry> details = plan.getDetails();
         if (details == null || details.isEmpty())
             return plan;
 
-        int epIdx = (epDep ? 0 : plan.details.size() - 1);
+        int epIdx = (epDep ? 0 : plan.getDetails().size() - 1);
         // 正式旅行的第一天或最后一天
         PlanDayEntry dayEntry = details.get(epIdx);
         if (dayEntry == null || dayEntry.actv == null || dayEntry.actv.isEmpty())
@@ -632,9 +630,11 @@ public class PlanAPI {
         }
 
         //先推飞机-飞机
-        RouteIterator firstAirIt = TrafficAPI.searchAirRoutes(remoteLoc, midLocality.id, calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+        RouteIterator firstAirIt = TrafficAPI.searchAirRoutes(remoteLoc, midLocality.getId(), calLower, null, null,
+                timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
         List firstAirList = DataFactory.asList(firstAirIt);
-        RouteIterator nextAirIt = TrafficAPI.searchAirRoutes(midLocality.id, travelLoc, calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+        RouteIterator nextAirIt = TrafficAPI.searchAirRoutes(midLocality.getId(), travelLoc, calLower, null, null,
+                timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
         List nextAirList = DataFactory.asList(nextAirIt);
 
         List<AbstractRoute> airAirRoutes = PlanUtils.getFitRoutes(firstAirList, nextAirList);
@@ -643,7 +643,8 @@ public class PlanAPI {
         }
 
         //再推飞机火车
-        RouteIterator nextTrainIt = TrafficAPI.searchTrainRoutes(midLocality.id, travelLoc, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+        RouteIterator nextTrainIt = TrafficAPI.searchTrainRoutes(midLocality.getId(), travelLoc, "", calLower, null,
+                null,  timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
         List nextTrainList = DataFactory.asList(nextTrainIt);
 
         List<AbstractRoute> airTrainRoutes = PlanUtils.getFitRoutes(firstAirList, nextTrainList);
@@ -654,7 +655,8 @@ public class PlanAPI {
         List firstTrainList = null;
         //再推火车飞机
         if (!nextAirList.isEmpty()) {
-            RouteIterator firstTrainIt = TrafficAPI.searchTrainRoutes(remoteLoc, midLocality.id, "", calLower, null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+            RouteIterator firstTrainIt = TrafficAPI.searchTrainRoutes(remoteLoc, midLocality.getId(), "", calLower,
+                    null, null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
             firstTrainList = DataFactory.asList(firstTrainIt);
 
             List<AbstractRoute> trainAirRoutes = PlanUtils.getFitRoutes(firstTrainList, nextAirList);

@@ -92,8 +92,10 @@ public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatt
     @Override
     public JsonNode toJson() {
         final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd");
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("name", name).add("id", id.toString()).add("reason", reason == null ? "" : reason)
-                .add("editor", editorNickName == null ? "" : editorNickName).add("editorAvatar", editorAvatar == null ? "" : editorAvatar)
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("name", name).add("id", getId().toString())
+                .add("reason", reason == null ? "" : reason)
+                .add("editor", editorNickName == null ? "" : editorNickName)
+                .add("editorAvatar", editorAvatar == null ? "" : editorAvatar)
                 .add("description", description == null ? "" : description.toJson())
                 .add("editorDate", editorDate == null ? "" : fmt.format(editorDate))
                 .add("planViews", planViews == null ? "" : planViews);

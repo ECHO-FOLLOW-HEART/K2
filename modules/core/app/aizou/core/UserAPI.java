@@ -321,7 +321,7 @@ public class UserAPI {
         ops.set("udid", seq);
         ops.set("enabled", true);
 
-        dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.id), ops);
+        dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.getId()), ops);
     }
 
     /**
@@ -425,7 +425,7 @@ public class UserAPI {
         // 注册机密信息
         String easemobPwd = ret[1];
         Credential cre = new Credential();
-        cre.id = user.id;
+        cre.setId(user.getId());
         cre.setUserId(user.getUserId());
         cre.setSalt(Utils.getSalt());
         if (!pwd.equals(""))
@@ -459,7 +459,7 @@ public class UserAPI {
 
         // 注册机密信息
         Credential cre = new Credential();
-        cre.id = user.id;
+        cre.setId(user.getId());
         cre.setUserId(user.getUserId());
         cre.setSalt(Utils.getSalt());
         cre.setEasemobPwd(easemobPwd);

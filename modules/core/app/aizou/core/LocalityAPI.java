@@ -314,7 +314,7 @@ public class LocalityAPI {
         }
         List<ObjectId> ids = new ArrayList<>();
         for (Locality temp : localities) {
-            ids.add(temp.id);
+            ids.add(temp.getId());
         }
         return getLocalityList(ids, fieldList, page, pageSize);
     }

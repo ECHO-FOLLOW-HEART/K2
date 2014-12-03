@@ -68,7 +68,7 @@ public class MiscCtrl extends Controller {
         feedBack.uid = uid;
         feedBack.body = body;
         feedBack.time = new Date();
-        feedBack.enabled = true;
+        feedBack.setEnabled(true);
         ds.save(feedBack);
 //        String title = null;
 //        if (feedback.has("title"))

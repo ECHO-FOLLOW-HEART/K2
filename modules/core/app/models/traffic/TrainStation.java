@@ -46,7 +46,7 @@ public class TrainStation extends TravelPiBaseItem implements ITravelPiFormatter
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("name", zhName).add("url", url).add("alias", alias);
+        builder.add("_id", getId().toString()).add("name", zhName).add("url", url).add("alias", alias);
 
         BasicDBList phoneList = new BasicDBList();
         if (contact != null && contact.phoneList != null) {

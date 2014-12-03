@@ -169,7 +169,7 @@ public class GuideCtrl extends Controller {
         switch (typeInfo) {
             case "shopping":
                 Shopping shopping = new Shopping();
-                shopping.id = new ObjectId(node.get("_id").asText());
+                shopping.setId(new ObjectId(node.get("_id").asText()));
                 shopping.name = node.get("zhName").asText();
                 shopping.enName = node.get("enName").asText();
                 shopping.price = node.get("price").asDouble();
@@ -177,7 +177,7 @@ public class GuideCtrl extends Controller {
                 return shopping;
             case "dinning":
                 Dinning dinning = new Dinning();
-                dinning.id = new ObjectId(node.get("_id").asText());
+                dinning.setId(new ObjectId(node.get("_id").asText()));
                 dinning.name = node.get("zhName").asText();
                 dinning.enName = node.get("enName").asText();
                 dinning.price = node.get("price").asDouble();

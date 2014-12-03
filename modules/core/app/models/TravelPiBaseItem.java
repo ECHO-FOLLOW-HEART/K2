@@ -18,11 +18,11 @@ public abstract class TravelPiBaseItem {
     public static final String FD_ENABLED = "enabled";
 
     @Id
-    public ObjectId id;
+    private ObjectId id;
 
-    public boolean enabled;
+    private boolean enabled;
 
-    public Map<String, Object> misc;
+    private Map<String, Object> misc;
 
     public ObjectId getId() {
         return id;
@@ -38,5 +38,13 @@ public abstract class TravelPiBaseItem {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public Map<String, Object> getMisc() {
+        return misc;
+    }
+
+    public void setMisc(Map<String, Object> misc) {
+        this.misc = misc;
     }
 }

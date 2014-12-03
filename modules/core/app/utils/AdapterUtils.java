@@ -37,11 +37,11 @@ public class AdapterUtils {
     }
 
     public static Plan addTelomere_120(boolean epDep, Plan plan, ObjectId remoteLoc) throws TravelPiException {
-        List<PlanDayEntry> details = plan.details;
+        List<PlanDayEntry> details = plan.getDetails();
         if (details == null || details.isEmpty())
             return plan;
 
-        int epIdx = (epDep ? 0 : plan.details.size() - 1);
+        int epIdx = (epDep ? 0 : plan.getDetails().size() - 1);
         // 正式旅行的第一天或最后一天
         PlanDayEntry dayEntry = details.get(epIdx);
         if (dayEntry == null || dayEntry.actv == null || dayEntry.actv.isEmpty())
@@ -137,7 +137,7 @@ public class AdapterUtils {
 
         PlanItem trafficInfo = new PlanItem();
         SimpleRef ref = new SimpleRef();
-        ref.id = route.id;
+        ref.id = route.getId();
         ref.zhName = route.code;
         trafficInfo.item = ref;
         trafficInfo.ts = route.depTime;
@@ -179,16 +179,16 @@ public class AdapterUtils {
      * @return
      */
     private static Plan addTrafficItem(boolean epDep, Plan plan, PlanItem item) {
-        if (plan.details == null)
-            plan.details = new ArrayList<>();
+        if (plan.getDetails() == null)
+            plan.setDetails(new ArrayList<PlanDayEntry>());
 
         PlanDayEntry dayEntry = null;
         Calendar itemDate = Calendar.getInstance();
         itemDate.setTime(item.ts);
 
-        if (!plan.details.isEmpty()) {
-            int epIdx = (epDep ? 0 : plan.details.size() - 1);
-            dayEntry = plan.details.get(epIdx);
+        if (!plan.getDetails().isEmpty()) {
+            int epIdx = (epDep ? 0 : plan.getDetails().size() - 1);
+            dayEntry = plan.getDetails().get(epIdx);
             Calendar epDate = Calendar.getInstance();
             epDate.setTime(dayEntry.date);
 
@@ -207,9 +207,9 @@ public class AdapterUtils {
             dayEntry = new PlanDayEntry(tmpDate);
 
             if (epDep)
-                plan.details.add(0, dayEntry);
+                plan.getDetails().add(0, dayEntry);
             else
-                plan.details.add(dayEntry);
+                plan.getDetails().add(dayEntry);
         }
 
         if (epDep)

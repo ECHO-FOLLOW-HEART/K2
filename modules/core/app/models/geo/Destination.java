@@ -152,10 +152,6 @@ public class Destination extends TravelPiBaseItem {
         this.timeCost = timeCost;
     }
 
-    public void setId(ObjectId id) {
-        this.id = id;
-    }
-
     public String getZhName() {
         return zhName;
     }

@@ -33,12 +33,12 @@ public class DataFactory {
         }
         PlanItem nearCap = new PlanItem();
         SimpleRef ref = new SimpleRef();
-        ref.id = locality.id;
+        ref.id = locality.getId();
         ref.zhName = locality.getZhName();
         nearCap.item = ref;
         nearCap.type = "loc";
         SimpleRef loc = new SimpleRef();
-        loc.id = locality.id;
+        loc.id = locality.getId();
         loc.zhName = locality.getZhName();
         nearCap.loc = loc;
         return nearCap;
@@ -85,7 +85,7 @@ public class DataFactory {
     public static PlanItem createTrafficInfo(AbstractRoute route) {
         PlanItem trafficInfo = new PlanItem();
         SimpleRef ref = new SimpleRef();
-        ref.id = route.id;
+        ref.id = route.getId();
         ref.zhName = route.code;
         trafficInfo.item = ref;
         trafficInfo.ts = route.depTime;

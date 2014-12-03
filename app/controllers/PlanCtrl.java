@@ -92,15 +92,15 @@ public class PlanCtrl extends Controller {
             }
 
             //TODO 临时添加住宿预算，交通预算
-            Double trafficBudgetT = 0d;
-            List<SimpleRef> targets = plan.targets;
+            Double trafficBudgetT;
+            List<SimpleRef> targets = plan.getTargets();
             if (null != targets && targets.size() > 0) {
-                trafficBudgetT = Bache.getTrafficBudget(fromLocId, plan.targets.get(0).id.toString());
+                trafficBudgetT = Bache.getTrafficBudget(fromLocId, plan.getTargets().get(0).id.toString());
             } else {
                 trafficBudgetT = trafficBudgetDefault;
             }
-            plan.trafficBudget = Integer.valueOf((int) trafficBudgetT.doubleValue());
-            plan.stayBudget = plan.days * stayBudgetDefault;
+            plan.setTrafficBudget((int) trafficBudgetT.doubleValue());
+            plan.setStayBudget(plan.getDays() * stayBudgetDefault);
 
             buildBudget(plan);
 
@@ -226,27 +226,27 @@ public class PlanCtrl extends Controller {
             planDayEntry.actv = planItemList;
             planDayEntryList.add(planDayEntry);
         }
-        ugcPlan.details = planDayEntryList;
-        ugcPlan.stayBudget = Integer.parseInt(data.get("stayBudget").asText());
-        ugcPlan.viewBudget = Integer.parseInt(data.get("viewBudget").asText());
-        ugcPlan.trafficBudget = Integer.parseInt(data.get("trafficBudget").asText());
+        ugcPlan.setDetails( planDayEntryList);
+        ugcPlan.setStayBudget(Integer.parseInt(data.get("stayBudget").asText()));
+        ugcPlan.setViewBudget(Integer.parseInt(data.get("viewBudget").asText()));
+        ugcPlan.setTrafficBudget(Integer.parseInt(data.get("trafficBudget").asText()));
         //设置UGC路线ID
-        ugcPlan.id = new ObjectId(ugcPlanId);
-        ugcPlan.templateId = new ObjectId(templateId);
-        ugcPlan.startDate = startDate;
-        ugcPlan.endDate = endDate;
-        ugcPlan.title = title;
+        ugcPlan.setId(new ObjectId(ugcPlanId));
+        ugcPlan.setTemplateId(new ObjectId(templateId));
+        ugcPlan.setStartDate(startDate);
+        ugcPlan.setEndDate(endDate);
+        ugcPlan.setTitle(title);
         //uid为空，中间态数据；否则为保存态数据。中间态数据会被定期清理。
         if (!uid.equals("")) {
-            ugcPlan.uid = new ObjectId(uid);
-            ugcPlan.persisted = true;
+            ugcPlan.setUid(new ObjectId(uid));
+            ugcPlan.setPersisted(true);
 
         } else {
-            ugcPlan.persisted = false;
+            ugcPlan.setPersisted(false);
         }
-        ugcPlan.updateTime = (new Date()).getTime();
-        ugcPlan.enabled = true;
-        ugcPlan.isFromWeb = true;
+        ugcPlan.setUpdateTime((new Date()).getTime());
+        ugcPlan.setEnabled(true);
+        ugcPlan.setIsFromWeb(true);
 
         PlanAPI.saveUGCPlan(ugcPlan);
         return ugcPlan;
@@ -264,7 +264,7 @@ public class PlanCtrl extends Controller {
 //        if (budget == null || budget.isEmpty())
 
         // 扫描plan，获得价格信息
-        List<PlanDayEntry> details = plan.details;
+        List<PlanDayEntry> details = plan.getDetails();
         if (details == null || details.isEmpty())
             return plan;
         for (PlanDayEntry dayEntry : details) {
@@ -326,7 +326,7 @@ public class PlanCtrl extends Controller {
 
         budget.set(0, budget.get(0) / 100 * 100);
         budget.set(1, budget.get(1) / 100 * 100);
-        plan.budget = budget;
+        plan.setBudget(budget);
 
         return plan;
     }
@@ -757,22 +757,22 @@ public class PlanCtrl extends Controller {
             planDayEntry.actv = planItemList;
             planDayEntryList.add(planDayEntry);
         }
-        ugcPlan.details = planDayEntryList;
+        ugcPlan.setDetails(planDayEntryList);
 
-        ugcPlan.stayBudget = Integer.parseInt(data.get("stayBudget").asText());
-        ugcPlan.viewBudget = Integer.parseInt(data.get("viewBudget").asText());
-        ugcPlan.trafficBudget = Integer.parseInt(data.get("trafficBudget").asText());
+        ugcPlan.setStayBudget(Integer.parseInt(data.get("stayBudget").asText()));
+        ugcPlan.setViewBudget(Integer.parseInt(data.get("viewBudget").asText()));
+        ugcPlan.setTrafficBudget(Integer.parseInt(data.get("trafficBudget").asText()));
         //设置UGC路线ID
-        ugcPlan.id = new ObjectId(ugcPlanId);
-        ugcPlan.startDate = startDate;
-        ugcPlan.endDate = endDate;
-        ugcPlan.title = title;
+        ugcPlan.setId(new ObjectId(ugcPlanId));
+        ugcPlan.setStartDate(startDate);
+        ugcPlan.setEndDate(endDate);
+        ugcPlan.setTitle(title);
         //分享接口
         if (!uid.equals("")) {
-            ugcPlan.uid = new ObjectId(uid);
+            ugcPlan.setUid(new ObjectId(uid));
         }
-        ugcPlan.updateTime = (new Date()).getTime();
-        ugcPlan.enabled = true;
+        ugcPlan.setUpdateTime((new Date()).getTime());
+        ugcPlan.setEnabled(true);
 
         if (saveToTable.equals(SHAREPLAN)) {
             SharePlan sharePlan = new SharePlan(ugcPlan);
@@ -894,18 +894,18 @@ public class PlanCtrl extends Controller {
             Collections.sort(planList, new Comparator<Plan>() {
                 @Override
                 public int compare(Plan o1, Plan o2) {
-                    if (o1.manualPriority == null)
-                        o1.manualPriority = 0;
-                    if (o2.manualPriority == null)
-                        o2.manualPriority = 0;
+                    if (o1.getManualPriority() == null)
+                        o1.setManualPriority(0);
+                    if (o2.getManualPriority() == null)
+                        o2.setManualPriority(0);
 
-                    if (o1.manualPriority > o2.manualPriority)
+                    if (o1.getManualPriority() > o2.getManualPriority())
                         return 1;
-                    else if (o1.manualPriority < o2.manualPriority)
+                    else if (o1.getManualPriority() < o2.getManualPriority())
                         return -1;
                     else {
-                        int tag1 = o1.lxpTag != null ? o1.lxpTag.size() : 0;
-                        int tag2 = o2.lxpTag != null ? o2.lxpTag.size() : 0;
+                        int tag1 = o1.getLxpTag() != null ? o1.getLxpTag().size() : 0;
+                        int tag2 = o2.getLxpTag() != null ? o2.getLxpTag().size() : 0;
                         return tag2 - tag1;
                     }
                 }
@@ -939,8 +939,8 @@ public class PlanCtrl extends Controller {
      */
     private static void addTrafficBudget(Plan plan, Double trafficBudg, int stayBudgetDefault) {
         if (null != plan) {
-            plan.trafficBudget = (int) trafficBudg.doubleValue();
-            plan.stayBudget = plan.days == null ? 0 : plan.days * stayBudgetDefault;
+            plan.setTrafficBudget((int) trafficBudg.doubleValue());
+            plan.setStayBudget(plan.getDays() == null ? 0 : plan.getDays() * stayBudgetDefault);
         }
     }
 
@@ -985,7 +985,7 @@ public class PlanCtrl extends Controller {
             case "vs":
                 ViewSpot vs = ds.createQuery(ViewSpot.class).field("_id").equal(new ObjectId(itemId)).get();
                 ref = new SimpleRef();
-                ref.id = vs.id;
+                ref.id = vs.getId();
                 ref.zhName = vs.name;
                 planItem = new PlanItem();
                 planItem.item = ref;
@@ -1004,7 +1004,7 @@ public class PlanCtrl extends Controller {
             case "hotel":
                 Hotel hotel = ds.createQuery(Hotel.class).field("_id").equal(new ObjectId(itemId)).get();
                 ref = new SimpleRef();
-                ref.id = hotel.id;
+                ref.id = hotel.getId();
                 ref.zhName = hotel.name;
                 planItem = new PlanItem();
                 planItem.item = ref;
@@ -1059,7 +1059,7 @@ public class PlanCtrl extends Controller {
             case "trainStation":
                 TrainStation trainStation = ds.createQuery(TrainStation.class).field("_id").equal(new ObjectId(itemId)).get();
                 ref = new SimpleRef();
-                ref.id = trainStation.id;
+                ref.id = trainStation.getId();
                 ref.zhName = trainStation.zhName;
                 planItem = new PlanItem();
                 planItem.item = ref;
@@ -1075,7 +1075,7 @@ public class PlanCtrl extends Controller {
             case "airRoute":
                 AirRoute airRoute = ds.createQuery(AirRoute.class).field("_id").equal(new ObjectId(itemId)).get();
                 ref = new SimpleRef();
-                ref.id = airRoute.id;
+                ref.id = airRoute.getId();
                 ref.zhName = airRoute.code;
                 planItem = new PlanItem();
                 planItem.item = ref;
@@ -1091,7 +1091,7 @@ public class PlanCtrl extends Controller {
             case "trainRoute":
                 TrainRoute trainRoute = ds.createQuery(TrainRoute.class).field("_id").equal(new ObjectId(itemId)).get();
                 ref = new SimpleRef();
-                ref.id = trainRoute.id;
+                ref.id = trainRoute.getId();
                 ref.zhName = trainRoute.code;
                 planItem = new PlanItem();
                 planItem.item = ref;

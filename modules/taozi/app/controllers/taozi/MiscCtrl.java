@@ -81,7 +81,7 @@ public class MiscCtrl extends Controller {
             feedBack.uid = uid;
             feedBack.body = body;
             feedBack.time = new Date();
-            feedBack.enabled = true;
+            feedBack.setEnabled(true);
             dsSave.save(feedBack);
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
@@ -110,12 +110,12 @@ public class MiscCtrl extends Controller {
             List<Recom> tempList;
             for (Iterator<Recom> it = query.iterator(); it.hasNext(); ) {
                 recom = it.next();
-                tempList = map.get(recom.type.id);
+                tempList = map.get(recom.type.getId());
                 if (tempList == null)
                     tempList = new ArrayList<>();
                 tempList.add(recom);
-                map.put(recom.type.id, tempList);
-                typeMap.put(recom.type.id, recom.type);
+                map.put(recom.type.getId(), tempList);
+                typeMap.put(recom.type.getId(), recom.type);
             }
             ObjectId key;
             ObjectNode tempNode;
@@ -162,7 +162,7 @@ public class MiscCtrl extends Controller {
             if (query.iterator().hasNext())
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Favorite item has existed");
             Favorite fa = new Favorite();
-            fa.id = new ObjectId();
+            fa.setId(new ObjectId());
             fa.itemId = oid;
             fa.zhName = zhName;
             fa.enName = enName;

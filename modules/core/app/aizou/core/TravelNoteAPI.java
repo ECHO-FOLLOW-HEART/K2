@@ -34,7 +34,7 @@ public class TravelNoteAPI {
 
         Map<String, String> tMap = new HashMap<>();
         List<String> viewSpots = new ArrayList<>();
-        List<PlanDayEntry> details = plan.details;
+        List<PlanDayEntry> details = plan.getDetails();
         if (details == null)
             details = new ArrayList<>();
 

@@ -46,7 +46,7 @@ public class BusStation extends TravelPiBaseItem implements ITravelPiFormatter {
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("name", zhName).add("url", url).add("alias", alias);
+        builder.add("_id", getId().toString()).add("name", zhName).add("url", url).add("alias", alias);
 
         BasicDBList phoneList = new BasicDBList();
         if (contact != null && contact.phoneList != null) {
@@ -61,7 +61,8 @@ public class BusStation extends TravelPiBaseItem implements ITravelPiFormatter {
             BasicDBObjectBuilder addressBuilder = BasicDBObjectBuilder.start();
             addressBuilder.add("addr", (addr.address != null ? addr.address : ""));
             if (addr.loc != null) {
-                addressBuilder.add("loc", BasicDBObjectBuilder.start().add("_id", addr.loc.id).add("name", addr.loc.zhName));
+                addressBuilder.add("loc", BasicDBObjectBuilder.start().add("_id", addr.loc.id)
+                        .add("name", addr.loc.zhName));
             }
             if (addr.coords != null) {
                 BasicDBObjectBuilder coordsBuilder = BasicDBObjectBuilder.start();

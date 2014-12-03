@@ -33,7 +33,7 @@ public class TrainRoute extends AbstractRoute {
 
     @Override
     public JsonNode toJson() {
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("_id", id.toString()).add("code", code);
+        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("_id", getId().toString()).add("code", code);
 
         for (Map.Entry<String, String> entry : new HashMap<String, String>() {
             {

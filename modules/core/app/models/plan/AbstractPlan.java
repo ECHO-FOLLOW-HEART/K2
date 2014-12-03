@@ -43,73 +43,256 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
     public static final String FD_MANUAL_PRIORITY = "manualPriority";
 
     @Embedded
-    public List<SimpleRef> targets;
+    private List<SimpleRef> targets;
 
-    public List<String> tags;
+    private List<String> tags;
 
-    public String title;
+    private String title;
 
-    public Integer planId;
+    private Integer planId;
 
 
     /**
      * 行程天数
      */
-    public Integer days;
+    private Integer days;
 
     /**
      * 景点个数
      */
-    public Integer vsCnt;
+    private Integer vsCnt;
 
-    public String desc;
+    private String desc;
 
     @Embedded
-    public Description description;
+    private Description description;
 
-    public List<String> imageList;
+    private List<String> imageList;
 
-    public List<ImageItem> images;
+    private List<ImageItem> images;
 
-    public List<Integer> travelMonth;
+    private List<Integer> travelMonth;
 
-    public Integer totalCost;
+    private Integer totalCost;
 
-    public List<Integer> budget;
+    private List<Integer> budget;
 
-    public Integer stayBudget;
+    private Integer stayBudget;
 
-    public Integer trafficBudget;
+    private Integer trafficBudget;
 
-    public Integer viewBudget;
+    private Integer viewBudget;
 
     /**
      * 人工标记的路线优先级
      */
-    public Integer manualPriority;
+    private Integer manualPriority;
 
     /**
      * 注意事项
      */
-    public String tips;
+    private String tips;
 
     /**
      * 路线速览
      */
-    public List<String> summary;
+    private List<String> summary;
 
     /**
      * 人工编辑的路线标签：最省钱……
      */
-    public List<String> lxpTag;
+    private List<String> lxpTag;
 
     @Embedded
-    public CheckinRatings ratings;
+    private CheckinRatings ratings;
 
-    public List<PlanDayEntry> details;
+    private List<PlanDayEntry> details;
 
-    public String moreDesc;
+    private String moreDesc;
 
+    public List<SimpleRef> getTargets() {
+        return targets;
+    }
+
+    public void setTargets(List<SimpleRef> targets) {
+        this.targets = targets;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public Integer getPlanId() {
+        return planId;
+    }
+
+    public void setPlanId(Integer planId) {
+        this.planId = planId;
+    }
+
+    public Integer getDays() {
+        return days;
+    }
+
+    public void setDays(Integer days) {
+        this.days = days;
+    }
+
+    public Integer getVsCnt() {
+        return vsCnt;
+    }
+
+    public void setVsCnt(Integer vsCnt) {
+        this.vsCnt = vsCnt;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public Description getDescription() {
+        return description;
+    }
+
+    public void setDescription(Description description) {
+        this.description = description;
+    }
+
+    public List<String> getImageList() {
+        return imageList;
+    }
+
+    public void setImageList(List<String> imageList) {
+        this.imageList = imageList;
+    }
+
+    public List<ImageItem> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ImageItem> images) {
+        this.images = images;
+    }
+
+    public List<Integer> getTravelMonth() {
+        return travelMonth;
+    }
+
+    public void setTravelMonth(List<Integer> travelMonth) {
+        this.travelMonth = travelMonth;
+    }
+
+    public Integer getTotalCost() {
+        return totalCost;
+    }
+
+    public void setTotalCost(Integer totalCost) {
+        this.totalCost = totalCost;
+    }
+
+    public List<Integer> getBudget() {
+        return budget;
+    }
+
+    public void setBudget(List<Integer> budget) {
+        this.budget = budget;
+    }
+
+    public Integer getStayBudget() {
+        return stayBudget;
+    }
+
+    public void setStayBudget(Integer stayBudget) {
+        this.stayBudget = stayBudget;
+    }
+
+    public Integer getTrafficBudget() {
+        return trafficBudget;
+    }
+
+    public void setTrafficBudget(Integer trafficBudget) {
+        this.trafficBudget = trafficBudget;
+    }
+
+    public Integer getViewBudget() {
+        return viewBudget;
+    }
+
+    public void setViewBudget(Integer viewBudget) {
+        this.viewBudget = viewBudget;
+    }
+
+    public Integer getManualPriority() {
+        return manualPriority;
+    }
+
+    public void setManualPriority(Integer manualPriority) {
+        this.manualPriority = manualPriority;
+    }
+
+    public String getTips() {
+        return tips;
+    }
+
+    public void setTips(String tips) {
+        this.tips = tips;
+    }
+
+    public List<String> getSummary() {
+        return summary;
+    }
+
+    public void setSummary(List<String> summary) {
+        this.summary = summary;
+    }
+
+    public List<String> getLxpTag() {
+        return lxpTag;
+    }
+
+    public void setLxpTag(List<String> lxpTag) {
+        this.lxpTag = lxpTag;
+    }
+
+    public CheckinRatings getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(CheckinRatings ratings) {
+        this.ratings = ratings;
+    }
+
+    public List<PlanDayEntry> getDetails() {
+        return details;
+    }
+
+    public void setDetails(List<PlanDayEntry> details) {
+        this.details = details;
+    }
+
+    public String getMoreDesc() {
+        return moreDesc;
+    }
+
+    public void setMoreDesc(String moreDesc) {
+        this.moreDesc = moreDesc;
+    }
 
     @Override
     public JsonNode toJson() {
@@ -118,7 +301,7 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
 
     public JsonNode toJson(boolean showDetails) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString());
+        builder.add("_id", getId().toString());
 
 
         List<JsonNode> targetList = new ArrayList<>();

@@ -344,7 +344,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 
         // level1
-        builder.add("_id", id.toString());
+        builder.add("_id", getId().toString());
         if (ratings == null)
             ratings = new CheckinRatings();
         builder.add("ratings", ratings.toJson());

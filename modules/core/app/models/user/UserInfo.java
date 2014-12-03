@@ -63,10 +63,10 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public static UserInfo newInstance(Integer userId) {
         UserInfo user = new UserInfo();
-        user.id = new ObjectId();
+        user.setId(new ObjectId());
         user.userId = userId;
         user.nickName = "桃子_" + user.userId;
-        user.enabled = true;
+        user.setEnabled(true);
 
         return user;
     }
@@ -283,7 +283,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("nickName", nickName).add("avatar", avatar).add("secToken", "");
+        builder.add("_id", getId().toString()).add("nickName", nickName).add("avatar", avatar).add("secToken", "");
 
         return Json.toJson(builder.get());
     }

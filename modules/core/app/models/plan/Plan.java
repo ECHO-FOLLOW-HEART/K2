@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
 
 /**
  * 模板路线。
@@ -13,21 +14,53 @@ import org.mongodb.morphia.annotations.Entity;
 @Entity
 public class Plan extends AbstractPlan implements ITravelPiFormatter {
 
+    @Transient
+    public static final String FD_FORKED_CNT = "forkedCnt";
+
+    @Transient
+    public static final String FD_AUTHOR_AVATAR = "authorAvatar";
+
+    @Transient
+    public static final String FD_AUTHOR_NAME = "authorName";
+
     /**
      * 该路线被使用的次数。
      */
-    public Integer forkedCnt;
+    private Integer forkedCnt;
 
     /**
      * 路线作者昵称
      */
-    public String authorName;
+    private String authorName;
 
     /**
      * 路线作者头像
      */
-    public String authorAvatar;
+    private String authorAvatar;
 
+    public Integer getForkedCnt() {
+        return forkedCnt;
+    }
+
+    public void setForkedCnt(Integer forkedCnt) {
+        this.forkedCnt = forkedCnt;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
+    }
+
+    public String getAuthorAvatar() {
+        return authorAvatar;
+    }
+
+    public void setAuthorAvatar(String authorAvatar) {
+        this.authorAvatar = authorAvatar;
+    }
 
     @Override
     public JsonNode toJson() {

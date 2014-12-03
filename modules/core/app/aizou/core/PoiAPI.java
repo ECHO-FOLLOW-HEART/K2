@@ -675,7 +675,7 @@ public class PoiAPI {
                 continue;
 
             List<Locality> l = new ArrayList<>();
-            for (Iterator<Locality> itr = GeoAPI.searchLocalities("", false, country.id, 0, 10); itr.hasNext(); )
+            for (Iterator<Locality> itr = GeoAPI.searchLocalities("", false, country.getId(), 0, 10); itr.hasNext(); )
                 l.add(itr.next());
             results.put(country.getZhName(), l);
         }
@@ -720,14 +720,16 @@ public class PoiAPI {
         return query.asList();
     }
 
-    public static List<? extends AbstractPOI> getPOIInfoListByPOI(List<? extends AbstractPOI> pois, String poiType, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+    public static List<? extends AbstractPOI> getPOIInfoListByPOI(List<? extends AbstractPOI> pois, String poiType,
+                                                                  List<String> fieldList, int page, int pageSize)
+            throws TravelPiException {
 
         if (pois == null) {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POIs.");
         }
         List<ObjectId> ids = new ArrayList<>();
         for (AbstractPOI temp : pois) {
-            ids.add(temp.id);
+            ids.add(temp.getId());
         }
         return getPOIInfoList(ids, poiType, fieldList, page, pageSize);
     }
