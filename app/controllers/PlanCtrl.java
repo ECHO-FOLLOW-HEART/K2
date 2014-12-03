@@ -27,6 +27,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.*;
+import utils.formatter.travelpi.plan.SimpleUgcPlanFormatter;
 
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -226,7 +227,7 @@ public class PlanCtrl extends Controller {
             planDayEntry.actv = planItemList;
             planDayEntryList.add(planDayEntry);
         }
-        ugcPlan.setDetails( planDayEntryList);
+        ugcPlan.setDetails(planDayEntryList);
         ugcPlan.setStayBudget(Integer.parseInt(data.get("stayBudget").asText()));
         ugcPlan.setViewBudget(Integer.parseInt(data.get("viewBudget").asText()));
         ugcPlan.setTrafficBudget(Integer.parseInt(data.get("trafficBudget").asText()));
@@ -1479,17 +1480,19 @@ public class PlanCtrl extends Controller {
 
                 //取详细信息
                 JsonNode planJson = ugcPlan.toJson(true);
+//                JsonNode planJson = SimpleUgcPlanFormatter.getInstance().format(ugcPlan);
                 planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
+//                return Utils.createResponse(ErrorCode.NORMAL, planJson);
                 return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC));
             }
             //根据用户ID取得UGC路线列表
             if (!userId.equals("")) {
-                List<JsonNode> results = new ArrayList<JsonNode>();
+                List<JsonNode> results = new ArrayList<>();
                 for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
                     //取粗略信息
-                    results.add(it.next().toJson(false));
+                    results.add(SimpleUgcPlanFormatter.getInstance().format(it.next()));
                 }
-                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
             }
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
         } catch (ClassCastException ec) {

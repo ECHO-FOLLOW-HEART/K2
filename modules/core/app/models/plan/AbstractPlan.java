@@ -42,6 +42,12 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
     @Transient
     public static final String FD_MANUAL_PRIORITY = "manualPriority";
 
+    @Transient
+    public static final String FD_TITLE = "title";
+
+    @Transient
+    public static final String FD_IMAGES = "images";
+
     @Embedded
     private List<SimpleRef> targets;
 

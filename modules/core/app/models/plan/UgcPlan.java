@@ -1,5 +1,6 @@
 package models.plan;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
@@ -8,6 +9,7 @@ import exception.TravelPiException;
 import models.ITravelPiFormatter;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 import java.lang.reflect.Method;
@@ -24,7 +26,23 @@ import java.util.Date;
  * @author Zephyre
  */
 @Entity
+@JsonFilter("ugcPlanFilter")
 public class UgcPlan extends Plan implements ITravelPiFormatter {
+
+    @Transient
+    public static final String FD_UID = "uid";
+
+    @Transient
+    public static final String FD_START_DATE = "startDate";
+
+    @Transient
+    public static final String FD_END_DATE = "endDate";
+
+    @Transient
+    public static final String FD_UPDATE_TIME = "updateTime";
+
+    @Transient
+    public static final String FD_TEMPLATE_ID = "templateId";
 
     /**
      * 用户ID
