@@ -1,6 +1,5 @@
 package aizou.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
@@ -11,7 +10,6 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
-import utils.formatter.taozi.geo.SimpleCountryFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +76,7 @@ public class GeoAPI {
     }
 
     /**
-     * 通过关键词对城市进行搜索。
+     * 通过关键词对目的地进行搜索。
      *
      * @param keyword  搜索关键词。
      * @param prefix   是否为前缀搜索？
@@ -90,7 +88,11 @@ public class GeoAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
-            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
+            query.or(
+                    query.criteria("zhName").equal(Pattern.compile(prefix ? "^" + keyword : keyword)),
+                    query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
+                    query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
+            );
         if (countryId != null)
             query.field(String.format("%s.%s", Locality.fnCountry, SimpleRef.simpID)).equal(countryId);
         return query.offset(page * pageSize).limit(pageSize).iterator();
@@ -101,7 +103,6 @@ public class GeoAPI {
      *
      * @param keyword
      * @return
-     *
      * @throws TravelPiException
      */
     public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws TravelPiException {
@@ -116,16 +117,16 @@ public class GeoAPI {
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
     }
+
     /**
      * 根据名称搜索国家。
      *
      * @return
-     *
      * @throws TravelPiException
      */
     public static List<Country> searchCountryByName(List<String> keywords, int page, int pageSize) throws TravelPiException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
-        if (keywords!= null) {
+        if (keywords != null) {
             List<CriteriaContainerImpl> criList = new ArrayList<>();
             for (String word : keywords)
                 criList.add(query.criteria("zhName").equal(Pattern.compile("^" + word)));
@@ -133,23 +134,6 @@ public class GeoAPI {
         }
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
-    }
-
-    /**
-     * 搜索国家信息
-     *
-     * @param keyword
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static List<JsonNode> searchCountry(String keyword, int page, int pageSize) throws TravelPiException {
-
-        List<Country> countryList = searchCountryByName(keyword, page, pageSize);
-        List<JsonNode> result = new ArrayList<>();
-        for (Country c : countryList)
-            result.add(new SimpleCountryFormatter().format(c));
-        return result;
     }
 
     /**

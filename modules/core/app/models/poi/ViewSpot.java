@@ -89,15 +89,14 @@ public class ViewSpot extends AbstractPOI {
 
     public String getTravelMonth() {
         if (travelMonth == null)
-            // TODO
-            return "假数据";
+            return "";
         else
             return travelMonth;
     }
 
-    public String getTimeCostStr() {
+    public String getTimeCostDesc() {
         if (timeCostDesc == null)
-            return "假数据";
+            return "";
         else
             return timeCostDesc;
     }
@@ -105,7 +104,6 @@ public class ViewSpot extends AbstractPOI {
     public String getTrafficInfoUrl() {
         if (trafficInfoUrl == null) {
             return "";
-
         } else
             return trafficInfoUrl;
     }
@@ -122,6 +120,20 @@ public class ViewSpot extends AbstractPOI {
             return "";
         } else
             return kengdieUrl;
+    }
+
+    public String getPriceDesc() {
+        if (priceDesc == null)
+            return "";
+        else
+            return priceDesc;
+    }
+
+    public String getTelephone() {
+        if (telephone == null)
+            return "";
+        else
+            return telephone;
     }
 
     @Override

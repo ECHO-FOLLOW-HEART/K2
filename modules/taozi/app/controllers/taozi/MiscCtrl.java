@@ -1,8 +1,6 @@
 package controllers.taozi;
 
-import aizou.core.MiscAPI;
-import aizou.core.UserAPI;
-import aizou.core.WeatherAPI;
+import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
@@ -23,11 +21,9 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.Constants;
-import utils.LogUtils;
-import utils.MsgConstants;
-import utils.Utils;
+import utils.*;
 import utils.formatter.taozi.misc.MiscFormatter;
+import utils.formatter.taozi.misc.SimpleRefFormatter;
 import utils.formatter.taozi.misc.WeatherFormatter;
 import utils.formatter.taozi.recom.RecomFormatter;
 import utils.formatter.taozi.recom.RecomTypeFormatter;
@@ -198,7 +194,7 @@ public class MiscCtrl extends Controller {
             Integer userId = Integer.parseInt(request().getHeader("UserId"));
             Query<Favorite> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).createQuery(Favorite.class);
             query.field("userId").equal(userId);
-            if (faType.equals("all")||faType.equals("")) {
+            if (faType.equals("all") || faType.equals("")) {
                 List<CriteriaContainerImpl> criList = new ArrayList<>();
                 List<String> allTypes = Arrays.asList(Favorite.TYPE_VS, Favorite.TYPE_HOTEL, Favorite.TYPE_TRAVELNOTE, Favorite.TYPE_SHOPPING
                         , Favorite.TYPE_RESTAURANT, Favorite.TYPE_LOCALITY, Favorite.TYPE_ENTERTAINMENT);
@@ -400,14 +396,14 @@ public class MiscCtrl extends Controller {
     public static Result saveColumns() {
         try {
             JsonNode req = request().body().asJson();
-            String title=req.get("title").asText();
-            String cover=req.get("cover").asText();
-            String link=req.get("link").asText();
+            String title = req.get("title").asText();
+            String cover = req.get("cover").asText();
+            String link = req.get("link").asText();
 
-            PageFirst pageFirst=new PageFirst();
-            pageFirst.cover=cover;
-            pageFirst.title=title;
-            pageFirst.link=link;
+            PageFirst pageFirst = new PageFirst();
+            pageFirst.cover = cover;
+            pageFirst.title = title;
+            pageFirst.link = link;
 
             MiscAPI.saveColumns(pageFirst);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
@@ -456,9 +452,9 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result displayComment(String poiId,Double lower,Double upper,int page, int pageSize) {
+    public static Result displayComment(String poiId, Double lower, Double upper, int page, int pageSize) {
         try {
-            List<Comment> commentList = MiscAPI.displayCommentApi(poiId,lower,upper, page, pageSize);
+            List<Comment> commentList = MiscAPI.displayCommentApi(poiId, lower, upper, page, pageSize);
             List<JsonNode> list = new ArrayList<>();
             for (Comment comment : commentList) {
                 list.add(new MiscFormatter().format(comment));
@@ -469,18 +465,100 @@ public class MiscCtrl extends Controller {
         }
     }
 
-    public static Result search(String keyWord, String type, int page, int pageSize) {
+    public static Result search(String keyWord, String locId, int loc, int vs, int hotel, int restaurant, int shopping, int page, int pageSize) {
+        ObjectNode results = Json.newObject();
         try {
 
-            List<Locality> locs;
-            List<? extends AbstractPOI> pois;
-            if (type.equals("all"))
-                locs = MiscAPI.searchLocalities(keyWord, true, null, page, pageSize);
+            Iterator it;
+            if (loc != 0) {
+                Locality locality;
+                List<JsonNode> retLocList = new ArrayList<>();
+                it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
+                while (it.hasNext()) {
+                    locality = (Locality) it.next();
+                    retLocList.add(new SimpleRefFormatter().format(locality));
+                }
+                results.put("loc", Json.toJson(retLocList));
+            }
+
+            List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
+            if (vs != 0)
+                poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
+            if (hotel != 0)
+                poiKeyList.add(PoiAPI.POIType.HOTEL);
+            if (restaurant != 0)
+                poiKeyList.add(PoiAPI.POIType.RESTAURANT);
+            if (shopping != 0)
+                poiKeyList.add(PoiAPI.POIType.SHOPPING);
+
+            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
+                {
+                    put(PoiAPI.POIType.VIEW_SPOT, "vs");
+                    put(PoiAPI.POIType.HOTEL, "hotel");
+                    put(PoiAPI.POIType.RESTAURANT, "restaurant");
+                    put(PoiAPI.POIType.SHOPPING, "shopping");
+                }
+            };
+            for (PoiAPI.POIType poiType : poiKeyList) {
+                ObjectId oid = locId.equals("") ? null : new ObjectId(locId);
+                // 发现POI
+                List<JsonNode> retPoiList = new ArrayList<JsonNode>();
+                List<? extends AbstractPOI> itPoi = PoiAPI.poiSearchForTaozi(poiType, keyWord, oid, true, page, pageSize);
+                for (AbstractPOI poi : itPoi)
+                    retPoiList.add(new SimpleRefFormatter().format(poi));
+                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+            }
 
 
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(results));
+    }
+
+    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws TravelPiException {
+        boolean detailsFlag = (details != 0);
+        ObjectNode results = Json.newObject();
+
+        // 发现城市
+        if (loc != 0) {
+            List<JsonNode> retLocList = new ArrayList<>();
+            // TODO 获得城市信息
+            for (Locality locality : LocalityAPI.explore(detailsFlag, abroad, page, pageSize))
+                retLocList.add(locality.toJson(2));
+            results.put("loc", Json.toJson(retLocList));
+        }
+
+        List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
+        if (vs != 0)
+            poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
+        if (hotel != 0)
+            poiKeyList.add(PoiAPI.POIType.HOTEL);
+        if (restaurant != 0)
+            poiKeyList.add(PoiAPI.POIType.RESTAURANT);
+
+        HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
+            {
+                put(PoiAPI.POIType.VIEW_SPOT, "vs");
+                put(PoiAPI.POIType.HOTEL, "hotel");
+                put(PoiAPI.POIType.RESTAURANT, "restaurant");
+            }
+        };
+
+        for (PoiAPI.POIType poiType : poiKeyList) {
+            if (poiType == PoiAPI.POIType.VIEW_SPOT) {
+                // TODO 暂时不返回景点推荐数据
+                results.put(poiMap.get(poiType), Json.toJson(new ArrayList<>()));
+            } else {
+                // 发现POI
+                List<JsonNode> retPoiList = new ArrayList<>();
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, (ObjectId) null, abroad, page, pageSize);
+                     it.hasNext(); )
+                    retPoiList.add(it.next().toJson(2));
+                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+            }
+        }
+
+        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
     }
 }

@@ -237,6 +237,8 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      */
     public List<Locality> locList;
 
+    public Double hotness;
+
     public Map<String, Object> miscInfo;
 
     public String moreCommentsUrl;
@@ -254,6 +256,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
         return new ArrayList<>();
     }
 
+    public String getPriceDesc() {
+        if (priceDesc == null)
+            return "";
+        else
+            return priceDesc;
+    }
 
     public String getDesc() {
         if (desc == null)
@@ -289,6 +297,13 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return "";
         else
             return trafficInfo;
+    }
+
+    public List<ImageItem> getImages() {
+        if (images == null)
+            return new ArrayList();
+        else
+            return images;
     }
 
     public JsonNode toJson(int level) {

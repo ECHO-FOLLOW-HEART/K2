@@ -877,7 +877,7 @@ public class PoiAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
-        Collections.addAll(fieldList,"_id", "zhName", "enName", "rating", "images",
+        Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images",
                 "desc", "locList", "priceDesc", "address", "tags");
         switch (poiType) {
             case VIEW_SPOT:
@@ -913,8 +913,19 @@ public class PoiAPI {
         return query.asList();
     }
 
-    public static List<? extends AbstractPOI> poiSearchForTaozi(POIType poiType, boolean prefix,
-                                                                String keyword,int page, int pageSize)
+    /**
+     * 根据关键词搜索POI
+     * @param poiType
+     * @param keyword
+     * @param locId
+     * @param prefix
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<? extends AbstractPOI> poiSearchForTaozi(POIType poiType, String keyword, ObjectId locId,
+                                                                boolean prefix, int page, int pageSize)
             throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
@@ -935,9 +946,16 @@ public class PoiAPI {
         if (poiClass == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        if (keyword != null && !keyword.isEmpty())
-            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
-        //query.order(String.format("%s%s",  "-", "hotness"));
+        if (keyword != null && !keyword.isEmpty()) {
+            query.or(
+                    query.criteria("zhName").equal(Pattern.compile(prefix ? "^" + keyword : keyword)),
+                    query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
+                    query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
+            );
+        }
+        if (locId != null)
+            query.field("targets").equal(locId);
+        query.order("-hotness");
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
     }

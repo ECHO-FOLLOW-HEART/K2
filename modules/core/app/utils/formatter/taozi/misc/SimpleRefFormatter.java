@@ -15,7 +15,6 @@ import models.TravelPiBaseItem;
 import models.misc.ImageItem;
 import utils.formatter.JsonFormatter;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -61,7 +60,7 @@ public class SimpleRefFormatter implements JsonFormatter {
             }
         };
 
-        PropertyFilter imageItemPOIFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter abstractPOIFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -74,7 +73,10 @@ public class SimpleRefFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, ImageItem.fnUrl);
+                includedFields.add("id");
+                includedFields.add("zhName");
+                includedFields.add("enName");
+                includedFields.add("images");
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -88,7 +90,36 @@ public class SimpleRefFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
-        FilterProvider filters = new SimpleFilterProvider().addFilter("simpleRefFilter", simpleRefFilter).addFilter("imageItemPOIFilter", imageItemPOIFilter);
+
+        PropertyFilter imgFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(ImageItem.fnUrl);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", simpleRefFilter)
+                .addFilter("abstractPOIFilter", abstractPOIFilter).addFilter("imageItemPOIFilter", imgFilter);
         mapper.setFilters(filters);
         return mapper.valueToTree(item);
     }
