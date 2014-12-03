@@ -9,6 +9,8 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
+import java.util.Map;
+
 /**
  * 表示一张图像。
  * <p/>
@@ -20,6 +22,17 @@ public class ImageItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnUrl = "url";
+
+    @Transient
+    public static final String FD_CROP_HINT = "cropHint";
+
+    @Transient
+    public static final String FD_WIDTH = "w";
+
+    @Transient
+    public static final String FD_HEIGHT = "h";
+
+    private Map<String, Integer> cropHint;
 
     public String key;
 
@@ -56,6 +69,14 @@ public class ImageItem implements ITravelPiFormatter {
     public Integer fSize;
 
     public Boolean enabled;
+
+    public Map<String, Integer> getCropHint() {
+        return cropHint;
+    }
+
+    public void setCropHint(Map<String, Integer> cropHint) {
+        this.cropHint = cropHint;
+    }
 
     @Override
     public JsonNode toJson() {

@@ -68,7 +68,8 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, ImageItem.fnUrl);
+                Collections.addAll(includedFields, ImageItem.fnUrl, ImageItem.FD_CROP_HINT, ImageItem.FD_WIDTH,
+                        ImageItem.FD_HEIGHT);
 
                 return (includedFields.contains(writer.getName()));
             }
@@ -112,9 +113,24 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
         result.remove(Locality.fnImages);
         List<String> imageList = new ArrayList<>();
         int idx = 0;
+        // 最大宽度800
+        int maxWidth = 800;
         for (JsonNode img : images) {
-            String url = img.get("url").asText();
-            imageList.add(url + "?imageView2/2/w/800");
+            JsonNode cropHint = img.get(ImageItem.FD_CROP_HINT);
+            String url;
+            if (cropHint == null || cropHint.isNull()) {
+                url = String.format("%s?imageView2/2/w/%d", img.get("url").asText(), maxWidth);
+            } else {
+                int top = cropHint.get("top").asInt();
+                int right = cropHint.get("right").asInt();
+                int bottom = cropHint.get("bottom").asInt();
+                int left = cropHint.get("left").asInt();
+
+                url = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
+                        img.get("url").asText(), (right - left), (bottom - top), left, top, maxWidth);
+            }
+
+            imageList.add(url);
             idx++;
             if (idx > 5)
                 break;
