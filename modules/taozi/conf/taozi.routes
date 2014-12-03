@@ -62,7 +62,7 @@ POST          /misc/upload-callback                     controllers.taozi.MiscCt
 #游记
 GET           /misc/notes/search                        controllers.taozi.TravelNoteCtrl.searchNotes(locId: String,pageSize: Int)
 #搜索
-GET           /search                                   controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Int?=0,vs:Int?=0,hotel:Int?=0,restaurant:Int?=0,shopping:Int?=0,page:Int?=0,pageSize:Int?=5)
+GET           /search                                   controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 
 #----------POI接口----------
 #查看POI详情

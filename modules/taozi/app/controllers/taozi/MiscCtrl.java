@@ -465,12 +465,12 @@ public class MiscCtrl extends Controller {
         }
     }
 
-    public static Result search(String keyWord, String locId, int loc, int vs, int hotel, int restaurant, int shopping, int page, int pageSize) {
+    public static Result search(String keyWord, String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
         ObjectNode results = Json.newObject();
         try {
 
             Iterator it;
-            if (loc != 0) {
+            if (loc) {
                 Locality locality;
                 List<JsonNode> retLocList = new ArrayList<>();
                 it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
@@ -482,13 +482,13 @@ public class MiscCtrl extends Controller {
             }
 
             List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
-            if (vs != 0)
+            if (vs)
                 poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
-            if (hotel != 0)
+            if (hotel)
                 poiKeyList.add(PoiAPI.POIType.HOTEL);
-            if (restaurant != 0)
+            if (restaurant)
                 poiKeyList.add(PoiAPI.POIType.RESTAURANT);
-            if (shopping != 0)
+            if (shopping)
                 poiKeyList.add(PoiAPI.POIType.SHOPPING);
 
             HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
