@@ -34,9 +34,9 @@ POST          /users/contacts                           controllers.taozi.UserCt
 DELETE        /users/contacts/$id<[0-9]+>               controllers.taozi.UserCtrl.delContact(id: Integer)
 #获得好友列表
 GET           /users/contacts                           controllers.taozi.UserCtrl.getContactList()
-
+#设置备注信息
 #POST          /users/:id/memo                                controllers.taozi.UserCtrl.setUserMemo(id:Integer)
-##添加/删除用户到好友列表
+#添加/删除用户到好友列表
 #POST          /users/blacklist                               controllers.taozi.UserCtrl.setUserBlacklist()
 
 #----------其他接口----------
@@ -84,9 +84,6 @@ GET           /poi/shopping/localities/:locId           controllers.taozi.POICtr
 GET           /poi/vs/localities/:locId                 controllers.taozi.POICtrl.viewPoiList(poiDesc: String="vs",locId: String, tagFilter: String?="", sortFilter: String?="rating", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
 #获得景点周边的POI列表
 GET           /poi/nearby                               controllers.taozi.POICtrl.getPoiNear(lng: Double,lat: Double,spot:Boolean=        true,        hotel:        Boolean        ?=        false,        restaurant:        Boolean        ?=        false,        page:        Int        ?=0,        pageSize :        Int        ?=20)
-#----------数据脚本----------
-#添加首页图片
-GET           /bache/addHomeImage                       controllers.taozi.BacheCtrl.addHomeImage()
 
 #----------攻略接口----------
 #根据目的地获得攻略
@@ -104,7 +101,7 @@ PUT           /guides/info/:id                          controllers.taozi.GuideC
 #删除攻略
 DELETE        /guides/:id                               controllers.taozi.GuideCtrl.deleteGuide(id: String)
 
-
+#----------IM接口----------
 #创建群组
 POST          /im/chatgroups                            controllers.taozi.ChatGroupCtrl.createChatGroup()
 #删除群组
@@ -117,12 +114,13 @@ POST          /im/chatgroups/groupId                    controllers.taozi.ChatGr
 DELETE        /im/chatgroups/groupId/members            controllers.taozi.ChatGroupCtrl.deleteRememberFromChatGroup()
 #修改群组详情
 POST          /im/chatgroups/detail/groupId             controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
+
 #----------地理信息接口----------
 # 搜索城市
 #查看目的地详情
 GET           /geo/localities/:id                       controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
 #展示目的地
-GET           /destinations                             controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
+GET           /destinations                             controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=        true,        page:        Int        ?=0,        pageSize:        Int        ?=10)
 #获取国家的目的地
 GET           /destinations/country/:id                 controllers.taozi.GeoCtrl.getDestinationsByCountry(id: String,page:Int?=0,pageSize:Int?=10)
 #发现城市、国家、poi详情
@@ -132,7 +130,7 @@ GET           /columns                                  controllers.taozi.MiscCt
 #保存专栏数据
 POST          /save/columns                             controllers.taozi.MiscCtrl.saveColumns()
 
-#用户评价
+#----------用户评价接口----------
 #保存用户的评价
 POST          /comments                                 controllers.taozi.MiscCtrl.saveComment()
 #查看poi的评价
@@ -140,4 +138,4 @@ GET           /poi/:id/comment                          controllers.taozi.MiscCt
 #特定地区的美食、购物发现
 GET           /poi/:locId/details                       controllers.taozi.GeoCtrl.exploreDinShop(locId:String,vs: Boolean?=        false,        dinning:        Boolean        ?=        true,        shopping:        Boolean        ?=        true,        page:        Int        ?=0,        pageSize:        Int        ?=15)
 #获取特定景点的交通与简介
-GET        /view-spot/:id/details                    controllers.taozi.POICtrl.getViewSpotDetail(id:String,desc :Boolean?=        true,        traffic :        Boolean        ?=        false)
+GET           /view-spot/:id/details                    controllers.taozi.POICtrl.getViewSpotDetail(id:String,desc :Boolean?=        true,        traffic :        Boolean        ?=        false)
