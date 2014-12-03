@@ -3,6 +3,7 @@ package models;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Transient;
 
 import java.util.Map;
 
@@ -13,9 +14,14 @@ import java.util.Map;
  */
 @Entity
 public abstract class TravelPiBaseItem {
+    @Transient
+    public static final String FD_ENABLED = "enabled";
+
     @Id
     public ObjectId id;
+
     public boolean enabled;
+
     public Map<String, Object> misc;
 
     public ObjectId getId() {

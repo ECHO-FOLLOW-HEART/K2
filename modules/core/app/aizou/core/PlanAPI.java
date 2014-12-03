@@ -3,6 +3,7 @@ package aizou.core;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
+import models.TravelPiBaseItem;
 import models.geo.Locality;
 import models.misc.SimpleRef;
 import models.plan.*;
@@ -29,6 +30,29 @@ import java.util.*;
  */
 public class PlanAPI {
 
+    private static List<Plan> planExploreHelper(ObjectId targetId, boolean isLoc, String tag, int minDays, int maxDays,
+                                                int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Query<Plan> query = ds.createQuery(Plan.class);
+
+        if (isLoc)
+            query.field(String.format("%s.id", AbstractPlan.FD_TARGETS)).equal(targetId);
+        else
+            query.field(String.format("%s.%s.%s.id", AbstractPlan.FD_DETAILS, PlanDayEntry.FD_ACTV, PlanItem.FD_ITEM))
+                    .equal(targetId);
+
+        if (tag != null && !tag.isEmpty())
+            query.field(AbstractPlan.FD_TAGS).hasThisOne(tag);
+
+        query.and(query.criteria(AbstractPlan.FD_DAYS).greaterThanOrEq(minDays),
+                query.criteria(AbstractPlan.FD_DAYS).lessThanOrEq(maxDays));
+
+        query.field(TravelPiBaseItem.FD_ENABLED).equal(Boolean.TRUE);
+        query.order(AbstractPlan.FD_MANUAL_PRIORITY).offset(page * pageSize).limit(pageSize);
+
+        return query.asList();
+    }
+
     /**
      * 发现路线
      *
@@ -42,26 +66,38 @@ public class PlanAPI {
      * @throws TravelPiException
      */
     public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-        Query<Plan> query = ds.createQuery(Plan.class);
-
-        if (locId == null && poiId == null && tag == null)
-            return new ArrayList<Plan>().iterator();
-
+        List<Plan> planList = null;
         if (locId != null)
-            query.field("targets.id").equal(locId);
-        if (poiId != null)
-            query.field("details.actv.item.id").equal(poiId);
-        if (tag != null && !tag.isEmpty())
-            query.field("tags").equal(tag);
+            planList = planExploreHelper(locId, true, tag, minDays, maxDays, page, pageSize);
+        else if (poiId != null)
+            planList = planExploreHelper(poiId, false, tag, minDays, maxDays, page, pageSize);
 
-        query.and(query.criteria("days").greaterThanOrEq(minDays),
-                query.criteria("days").lessThanOrEq(maxDays));
+        if (planList != null && !planList.isEmpty())
+            return planList.iterator();
 
-        query.field("enabled").equal(Boolean.TRUE);
-        query.order("manualPriority").offset(page * pageSize).limit(pageSize);
+        // 无法找到路线，准备模糊匹配
+        if (poiId != null) {
+            AbstractPOI vs = PoiAPI.getPOIInfo(poiId, PoiAPI.POIType.VIEW_SPOT, Arrays.asList(AbstractPOI.fnLocality));
+            locId = vs.getLocality().getId();
+        }
 
-        return query.iterator();
+        // 退而求其次，从上级Locality找
+        if (locId != null) {
+            List<Locality> locList = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST)).getLocList();
+            if (locList != null && !locList.isEmpty()) {
+                for (int idx = locList.size() - 1; idx >= 0; idx--) {
+                    ObjectId itrLocId = locList.get(idx).id;
+                    planList = planExploreHelper(itrLocId, true, tag, minDays, maxDays, page, pageSize);
+                    if (!planList.isEmpty())
+                        break;
+                }
+            }
+        }
+
+        if (planList != null && !planList.isEmpty())
+            return planList.iterator();
+        else
+            return new ArrayList<Plan>().iterator();
     }
 
     /**

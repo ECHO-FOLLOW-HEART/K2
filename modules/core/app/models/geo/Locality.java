@@ -54,7 +54,7 @@ public class Locality extends TravelPiBaseItem {
     public static String fnCountry = "country";
 
     @Transient
-    public static String fnLocList = "locList";
+    public static final String FD_LOCLIST = "locList";
 
     @Transient
     public static String fnTags = "tags";

@@ -1,7 +1,6 @@
 package aizou.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
@@ -54,9 +53,11 @@ public class GeoAPI {
      * @return 如果没有找到，返回null。
      * @throws exception.TravelPiException
      */
-    public static Locality locDetails(ObjectId locId) throws TravelPiException {
+    public static Locality locDetails(ObjectId locId, List<String> fields) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
         return query.get();
     }
 
@@ -67,12 +68,19 @@ public class GeoAPI {
      * @return 如果没有找到，返回null。
      * @throws exception.TravelPiException
      */
+    public static Locality locDetails(ObjectId locId) throws TravelPiException {
+        return locDetails(locId, null);
+    }
+
+    /**
+     * 获得城市详情。
+     *
+     * @param locId 城市ID。
+     * @return 如果没有找到，返回null。
+     * @throws exception.TravelPiException
+     */
     public static Locality locDetails(String locId) throws TravelPiException {
-        try {
-            return locDetails(new ObjectId(locId));
-        } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", locId));
-        }
+        return locDetails(new ObjectId(locId), null);
     }
 
     /**

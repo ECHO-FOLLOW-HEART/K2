@@ -25,6 +25,9 @@ import java.util.TimeZone;
  */
 @Embedded
 public class PlanItem implements ITravelPiFormatter {
+    @Transient
+    public static final String FD_ITEM = "item";
+
     @Embedded
     public SimpleRef item;
 

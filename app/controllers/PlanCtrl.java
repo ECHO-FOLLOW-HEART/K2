@@ -1,6 +1,5 @@
 package controllers;
 
-import aizou.core.GeoAPI;
 import aizou.core.PlanAPI;
 import aizou.core.PoiAPI;
 import aizou.core.TrafficAPI;
@@ -9,7 +8,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.geo.Locality;
 import models.misc.Share;
 import models.misc.SimpleRef;
 import models.plan.*;
@@ -891,23 +889,6 @@ public class PlanCtrl extends Controller {
             for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, minDays, maxDays, page,
                     pageSize, sortField); it.hasNext(); )
                 planList.add(it.next());
-
-            if (planList.isEmpty()) {
-                // 退而求其次，从上级Locality找
-                List<Locality> locList = GeoAPI.locDetails(locId).getLocList();
-                if (locList != null && !locList.isEmpty()) {
-                    for (int idx = locList.size() - 1; idx >= 0; idx--) {
-                        String itrLocId = locList.get(idx).id.toString();
-                        planList = new ArrayList<>();
-                        for (Iterator<Plan> itr = PlanAPI.explore(itrLocId, poiId, sort, tag, minDays, maxDays, page,
-                                pageSize, sortField); itr.hasNext(); )
-                            planList.add(itr.next());
-
-                        if (!planList.isEmpty())
-                            break;
-                    }
-                }
-            }
 
             // 有tag的排在前面
             Collections.sort(planList, new Comparator<Plan>() {

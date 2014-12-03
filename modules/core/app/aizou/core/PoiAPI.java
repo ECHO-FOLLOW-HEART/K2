@@ -397,6 +397,57 @@ public class PoiAPI {
     }
 
     /**
+     * 获得POI详情（字段过滤）
+     * @param poiId
+     * @param poiType
+     * @param fields
+     * @return
+     * @throws TravelPiException
+     */
+    public static AbstractPOI getPOIInfo(String poiId, POIType poiType, List<String> fields) throws TravelPiException {
+        return getPOIInfo(new ObjectId(poiId), poiType, fields);
+    }
+
+    /**
+     * 获得POI详情（字段过滤）
+     * @param poiId
+     * @param poiType
+     * @param fields
+     * @return
+     * @throws TravelPiException
+     */
+    public static AbstractPOI getPOIInfo(ObjectId poiId, POIType poiType, List<String> fields) throws TravelPiException {
+        Class<? extends AbstractPOI> poiClass;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+            case SHOPPING:
+                // TODO
+                poiClass = Shopping.class;
+                break;
+            case ENTERTAINMENT:
+                //TODO
+                poiClass = Entertainment.class;
+                break;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+        }
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass).field("_id").equal(poiId);
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
+        return query.get();
+    }
+
+    /**
      * 发现POI。
      *
      * @param page

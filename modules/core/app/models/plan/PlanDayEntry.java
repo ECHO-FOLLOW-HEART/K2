@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 import java.text.DateFormat;
@@ -17,6 +18,9 @@ import java.util.*;
  */
 @Embedded
 public class PlanDayEntry implements ITravelPiFormatter {
+    @Transient
+    public static final String FD_ACTV = "actv";
+
     public Date date;
 
     @Embedded

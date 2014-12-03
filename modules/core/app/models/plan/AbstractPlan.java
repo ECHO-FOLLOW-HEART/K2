@@ -11,6 +11,7 @@ import models.misc.SimpleRef;
 import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 import java.util.ArrayList;
@@ -26,6 +27,20 @@ import java.util.Random;
  */
 @Entity
 abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPiFormatter {
+    @Transient
+    public static final String FD_TARGETS = "targets";
+
+    @Transient
+    public static final String FD_TAGS = "tags";
+
+    @Transient
+    public static final String FD_DETAILS = "details";
+
+    @Transient
+    public static final String FD_DAYS = "days";
+
+    @Transient
+    public static final String FD_MANUAL_PRIORITY = "manualPriority";
 
     @Embedded
     public List<SimpleRef> targets;
