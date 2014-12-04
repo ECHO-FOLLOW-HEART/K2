@@ -23,7 +23,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
 import utils.formatter.travelpi.geo.LocalityFormatter;
@@ -152,23 +151,15 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
-
-    /**
-     * 根据搜索词获得提示
-     *
-     * @param word
-     * @param pageSize
-     * @return
-     */
-    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant, int pageSize) {
+    public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+                                              int pageSize) throws TravelPiException {
         ObjectNode ret = Json.newObject();
 
-        try {
-            List<JsonNode> locList = new ArrayList<>();
-            if (loc) {
-                for (Iterator<Locality> it = LocalityAPI.getSuggestion(word, pageSize); it.hasNext(); ) {
-                    // 如果locality为北京、上海、天津、重庆这四个直辖市，则忽略level=1的省级行政区
-                    Locality item = it.next();
+        List<JsonNode> locList = new ArrayList<>();
+        if (loc) {
+            for (Iterator<Locality> it = LocalityAPI.getSuggestion(word, pageSize); it.hasNext(); ) {
+                // 如果locality为北京、上海、天津、重庆这四个直辖市，则忽略level=1的省级行政区
+                Locality item = it.next();
 //                    switch (item.getZhName()) {
 //                        case "北京市":
 //                        case "上海市":
@@ -179,52 +170,69 @@ public class MiscCtrl extends Controller {
 //                            if (item.level == 1)
 //                                continue;
 //                    }
-                    locList.add(SimpleLocalityFormatter.getInstance().format(item));
+                locList.add(SimpleLocalityFormatter.getInstance().format(item));
 //                    locList.add(item.toJson(1));
-                }
             }
-            if (!locList.isEmpty())
-                ret.put("loc", Json.toJson(locList));
-            else
-                ret.put("loc", Json.toJson(new ArrayList<>()));
+        }
+        if (!locList.isEmpty())
+            ret.put("loc", Json.toJson(locList));
+        else
+            ret.put("loc", Json.toJson(new ArrayList<>()));
 
-            List<JsonNode> vsList = new ArrayList<>();
-            if (vs) {
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, pageSize);
-                     it.hasNext(); )
-                    vsList.add(it.next().toJson(1));
-            }
-            if (!vsList.isEmpty())
-                ret.put("vs", Json.toJson(vsList));
-            else
-                ret.put("vs", Json.toJson(new ArrayList<>()));
+        List<JsonNode> vsList = new ArrayList<>();
+        if (vs) {
+            for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, pageSize);
+                 it.hasNext(); )
+                vsList.add(it.next().toJson(1));
+        }
+        if (!vsList.isEmpty())
+            ret.put("vs", Json.toJson(vsList));
+        else
+            ret.put("vs", Json.toJson(new ArrayList<>()));
 
-            List<JsonNode> hotelList = new ArrayList<>();
-            if (hotel) {
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, pageSize);
-                     it.hasNext(); )
-                    hotelList.add(it.next().toJson(1));
-            }
-            if (!hotelList.isEmpty())
-                ret.put("hotel", Json.toJson(hotelList));
-            else
-                ret.put("hotel", Json.toJson(new ArrayList<>()));
+        List<JsonNode> hotelList = new ArrayList<>();
+        if (hotel) {
+            for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, pageSize);
+                 it.hasNext(); )
+                hotelList.add(it.next().toJson(1));
+        }
+        if (!hotelList.isEmpty())
+            ret.put("hotel", Json.toJson(hotelList));
+        else
+            ret.put("hotel", Json.toJson(new ArrayList<>()));
 
-            List<JsonNode> dinningList = new ArrayList<>();
-            if (restaurant) {
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, pageSize);
-                     it.hasNext(); )
-                    dinningList.add(it.next().toJson(1));
-            }
-            if (!dinningList.isEmpty())
-                ret.put("restaurant", Json.toJson(dinningList));
-            else
-                ret.put("restaurant", Json.toJson(new ArrayList<>()));
+        List<JsonNode> dinningList = new ArrayList<>();
+        if (restaurant) {
+            for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, pageSize);
+                 it.hasNext(); )
+                dinningList.add(it.next().toJson(1));
+        }
+        if (!dinningList.isEmpty())
+            ret.put("restaurant", Json.toJson(dinningList));
+        else
+            ret.put("restaurant", Json.toJson(new ArrayList<>()));
+
+        return ret;
+    }
+
+
+    /**
+     * 根据搜索词获得提示
+     *
+     * @param word
+     * @param pageSize
+     * @return
+     */
+    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+                                        int pageSize) {
+        try {
+            return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant,
+                    pageSize));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(ret));
+
     }
 
 //    /**
@@ -295,29 +303,38 @@ public class MiscCtrl extends Controller {
      * @param restaurant
      * @param page
      * @param pageSize
-     *
      * @return
      */
-    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws TravelPiException {
-        boolean detailsFlag = (details != 0);
+    public static Result explore(boolean details, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+                                 boolean abroad, int page, int pageSize) {
+        try {
+            return Utils.createResponse(ErrorCode.NORMAL,
+                    exploreImpl(details, loc, vs, hotel, restaurant, abroad, page, pageSize));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static JsonNode exploreImpl(boolean details, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+                                       boolean abroad, int page, int pageSize) throws TravelPiException {
         ObjectNode results = Json.newObject();
 
         // 发现城市
-        if (loc != 0) {
+        if (loc) {
             List<JsonNode> retLocList = new ArrayList<>();
             // TODO 获得城市信息
-            for (Locality locality : LocalityAPI.explore(detailsFlag, abroad, page, pageSize))
+            for (Locality locality : LocalityAPI.explore(details, abroad, page, pageSize))
                 retLocList.add(LocalityFormatter.getInstance().format(locality));
 //                retLocList.add(locality.toJson(2));
             results.put("loc", Json.toJson(retLocList));
         }
 
         List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
-        if (vs != 0)
+        if (vs)
             poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
-        if (hotel != 0)
+        if (hotel)
             poiKeyList.add(PoiAPI.POIType.HOTEL);
-        if (restaurant != 0)
+        if (restaurant)
             poiKeyList.add(PoiAPI.POIType.RESTAURANT);
 
         HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
@@ -341,8 +358,7 @@ public class MiscCtrl extends Controller {
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
         }
-
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+        return results;
     }
 
     /**

@@ -8,6 +8,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.ValidationExtension;
 import play.Configuration;
+import play.Play;
 
 import java.net.UnknownHostException;
 import java.util.Hashtable;
@@ -37,7 +38,7 @@ public class MorphiaFactory {
 //    }
 
     private MorphiaFactory() throws TravelPiException {
-        Configuration config = Configuration.root();
+        Configuration config = Play.application().configuration();
 
         Map mongo = (Map) config.getObject("mongodb");
         String host = null;

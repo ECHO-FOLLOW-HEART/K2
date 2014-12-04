@@ -278,7 +278,20 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize, String sortField, String sortType, String hotelTypeStr) {
+    public static Result poiSearch(String poiType, String locId, String tag, String keyword, int page, int pageSize,
+                                   String sortField, String sortType, String hotelTypeStr) {
+        try {
+            JsonNode results = poiSearchImpl(poiType, locId, tag, keyword, page, pageSize, sortField, sortType,
+                    hotelTypeStr);
+
+            return Utils.createResponse(ErrorCode.NORMAL, results);
+        } catch (TravelPiException e) {
+            return Utils.createResponse(e.errCode, e.getMessage());
+        }
+    }
+
+    public static JsonNode poiSearchImpl(String poiType, String locId, String tag, String keyword, int page, int pageSize,
+                                         String sortField, String sortType, String hotelTypeStr) throws TravelPiException {
         if (locId.isEmpty())
             locId = null;
         int hotelType = 0;
@@ -288,7 +301,6 @@ public class POICtrl extends Controller {
             } catch (ClassCastException e) {
                 hotelType = 0;
             }
-
         }
 
         PoiAPI.POIType type = null;
@@ -304,7 +316,7 @@ public class POICtrl extends Controller {
                 break;
         }
         if (type == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
         //处理排序
         boolean sort = false;
@@ -323,26 +335,22 @@ public class POICtrl extends Controller {
                 sf = null;
         }
 
-        try {
-            ObjectId locOid;
-            if (locId == null)
-                locOid = null;
-            else {
-                try {
-                    locOid = new ObjectId(locId);
-                } catch (IllegalArgumentException e) {
-                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s", locId));
-                }
+        ObjectId locOid;
+        if (locId == null)
+            locOid = null;
+        else {
+            try {
+                locOid = new ObjectId(locId);
+            } catch (IllegalArgumentException e) {
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s", locId));
             }
-            List<JsonNode> results = new ArrayList<>();
-            Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
-            while (it.hasNext())
-                results.add(it.next().toJson(2));
-
-            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
         }
+        List<JsonNode> results = new ArrayList<>();
+        Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
+        while (it.hasNext())
+            results.add(it.next().toJson(2));
+
+        return Json.toJson(results);
     }
 
     /**
