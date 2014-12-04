@@ -20,10 +20,24 @@ import java.util.*;
 public class ViewSpot extends AbstractPOI {
 
     @Transient
-    public static String detTimeCost = "timeCostStr";
-    public Integer spotId;
+    public static String fnTimeCostDesc = "timeCostDesc";
 
-    public String travelMonth;
+    @Transient
+    public static String fnTravelMonth = "travelMonth";
+
+    @Transient
+    public static String fnOpenTime = "openTime";
+
+    @Transient
+    public static String detTrafficInfoUrl = "trafficInfoUrl";
+
+    @Transient
+    public static String detGuideInfoUrl = "guideUrl";
+
+    @Transient
+    public static String detKengDieInfoUrl = "kengdieUrl";
+
+    public Integer spotId;
 
     public String trafficInfo;
 
@@ -47,6 +61,11 @@ public class ViewSpot extends AbstractPOI {
     public Integer rankingA;
 
     /**
+     * 建议旅游价格
+     */
+    public String travelMonth;
+
+    /**
      * 建议游玩时间，单位为小时。
      */
     public Double timeCost;
@@ -54,7 +73,7 @@ public class ViewSpot extends AbstractPOI {
     /**
      * 建议游玩时间，单位为小时。
      */
-    public String timeCostStr;
+    public String timeCostDesc;
 
     /**
      * 标识Description各项是否存在
@@ -70,17 +89,51 @@ public class ViewSpot extends AbstractPOI {
 
     public String getTravelMonth() {
         if (travelMonth == null)
-            // TODO
-            return "假数据";
+            return "";
         else
             return travelMonth;
     }
 
-    public String getTimeCostStr() {
-        if (timeCostStr == null)
-            return "假数据";
+    public String getTimeCostDesc() {
+        if (timeCostDesc == null)
+            return "";
         else
-            return timeCostStr;
+            return timeCostDesc;
+    }
+
+    public String getTrafficInfoUrl() {
+        if (trafficInfoUrl == null) {
+            return "";
+        } else
+            return trafficInfoUrl;
+    }
+
+    public String getGuideUrl() {
+        if (guideUrl == null) {
+            return "";
+        } else
+            return guideUrl;
+    }
+
+    public String getKengdieUrl() {
+        if (kengdieUrl == null) {
+            return "";
+        } else
+            return kengdieUrl;
+    }
+
+    public String getPriceDesc() {
+        if (priceDesc == null)
+            return "";
+        else
+            return priceDesc;
+    }
+
+    public String getTelephone() {
+        if (telephone == null)
+            return "";
+        else
+            return telephone;
     }
 
     @Override
@@ -116,7 +169,6 @@ public class ViewSpot extends AbstractPOI {
 
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //标识描述的各项是否存在
-//        Description flag = new Description();
         Map<String, Integer> flag = new HashMap<>();
         if (description != null) {
             flag.put("traffic", description.traffic == null ? 0 : 1);
@@ -130,8 +182,6 @@ public class ViewSpot extends AbstractPOI {
             flag.put("tips", 0);
         }
         builder.add("descriptionFlag", flag);
-        //builder.add("description", description == null ? "" : description.toJson());
-
         node.putAll((ObjectNode) Json.toJson(builder.get()));
         return node;
     }

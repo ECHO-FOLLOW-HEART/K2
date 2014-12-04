@@ -1,11 +1,14 @@
 package models.guide;
 
 import models.TravelPiBaseItem;
-import models.poi.Dinning;
+import models.geo.Locality;
+import models.misc.ImageItem;
+import models.poi.Restaurant;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Transient;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -23,18 +26,35 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     public static final String fnShopping = "shopping";
 
     @Transient
-    public static final String fnDinning = "dinning";
+    public static final String fnRestaurant = "restaurant";
 
     @Transient
     public static final String fdId = "id";
+
+    @Transient
+    public static final String fnDestinations = "destinations";
+
+    @Transient
+    public static final String fnImages = "images";
 
     public String title;
 
     public ObjectId locId;
 
+    public List<Locality> destinations;
+
     public List<ItinerItem> itinerary;
 
     public List<Shopping> shopping;
 
-    public List<Dinning> dinning;
+    public List<Restaurant> restaurant;
+
+    public List<ImageItem> images;
+
+    public List<ImageItem> getImages() {
+        if (images == null)
+            return new ArrayList<>();
+        return images;
+    }
+
 }

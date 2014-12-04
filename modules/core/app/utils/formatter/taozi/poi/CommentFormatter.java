@@ -1,4 +1,4 @@
-package utils.formatter.taozi.geo;
+package utils.formatter.taozi.poi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,19 +12,20 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Country;
+import models.misc.ImageItem;
+import models.poi.Comment;
+import models.poi.POIRmd;
 import utils.formatter.JsonFormatter;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 格式化国家的简单信息，主要使用在搜索列表中。
- * <p>
- * Created by lxf on 14-11-1.
+ * 返回POI的推荐
+ * <p/>
+ * Created by zephyre on 10/28/14.
  */
-public class SimpleCountryFormatter implements JsonFormatter {
+public class CommentFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -32,7 +33,8 @@ public class SimpleCountryFormatter implements JsonFormatter {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
-        PropertyFilter theFilter = new SimpleBeanPropertyFilter() {
+        //POI字段
+        PropertyFilter poiFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -45,8 +47,11 @@ public class SimpleCountryFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Country.fnDesc, Country.fnEnName, Country.fnZhName, Country.fnCode,
-                        "id", Country.fnImages);
+                includedFields.add(Comment.fnAvatar);
+                includedFields.add(Comment.fnNickName);
+                includedFields.add(Comment.fnCommentDetails);
+                includedFields.add(Comment.fnCommentTime);
+                includedFields.add(Comment.fnScore);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -61,7 +66,35 @@ public class SimpleCountryFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("countryFilter", theFilter);
+        PropertyFilter imgFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(ImageItem.fnUrl);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("commentsFilter", poiFilter).addFilter("imageItemPOIFilter", imgFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

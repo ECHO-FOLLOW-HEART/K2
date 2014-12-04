@@ -3,12 +3,12 @@ package models.geo;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.TravelPiBaseItem;
 import models.misc.ImageItem;
+import models.poi.Cuisine;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
 import java.util.List;
-
 
 /**
  * 目的地类型
@@ -38,16 +38,7 @@ public class Locality extends TravelPiBaseItem {
     public static String fnFavorCnt = "favorCnt";
 
     @Transient
-    public static String fnRating = "rating";
-
-    @Transient
     public static String fnAbroad = "abroad";
-
-    @Transient
-    public static String fnHotness = "hotness";
-
-    @Transient
-    public static String fnLocation = "location";
 
     @Transient
     public static String fnCountry = "country";
@@ -64,14 +55,30 @@ public class Locality extends TravelPiBaseItem {
     @Transient
     public static String fnDesc = "desc";
 
+    public static String fnLocation = "location";
+
+    @Transient
+    public static String fnHotness = "hotness";
+
+    @Transient
+    public static String fnRating = "rating";
+
+    @Transient
+    public static String fnTimeCost = "timeCost";
+
+    @Transient
+    public static String fnTimeCostDesc = "timeCostDesc";
+
     @Transient
     public static String fnTravelMonth = "travelMonth";
 
     @Transient
-    public static String fnTimeCostDesc = "fnTimeCostDesc";
+    public static String fnSuperAdm = "superAdm";
+
+    public static String fnImageCnt = "imageCnt";
 
     @Transient
-    public static String fnSuperAdm = "superAdm";
+    public static String fnLevel = "level";
 
     /**
      * 中文名称
@@ -119,6 +126,66 @@ public class Locality extends TravelPiBaseItem {
     private Double rating;
 
     /**
+     * 外部交通信息。每个entry都是一个tip，为HTML格式
+     */
+    public List<String> remoteTraffic;
+
+    /**
+     * 内部交通信息。每个entry都是一个tip，为HTML格式
+     */
+    public List<String> localTraffic;
+
+    /**
+     * 购物综述，HTML格式
+     */
+    public String shoppingIntro;
+
+    /**
+     * 特产
+     */
+    public List<Commodities> commodities;
+
+    /**
+     * 美食综述，HTML格式
+     */
+    public String dinningIntro;
+
+    /**
+     * 特色菜式
+     */
+    public List<Cuisine> cuisines;
+
+    /**
+     * 活动综述
+     */
+    public String activityIntro;
+
+    /**
+     * 活动
+     */
+    public List<Activities> activities;
+
+    /**
+     * 小贴士
+     */
+    public List<Tip> tips;
+
+    /**
+     * 其它信息
+     */
+    //public Map<String, Object> miscInfo;
+
+    /*
+      可能废弃的字段-Start
+     */
+    /**
+     * 是否为热门城市
+     */
+    public Boolean isHot;
+
+    public List<String> pinyin;
+
+    /**
      * 是否为境外目的地
      */
     private Boolean abroad;
@@ -126,6 +193,7 @@ public class Locality extends TravelPiBaseItem {
     /**
      * 经纬度信息
      */
+    @Embedded
     private GeoJsonPoint location;
 
     /**
@@ -163,6 +231,10 @@ public class Locality extends TravelPiBaseItem {
      * 最佳旅行时间
      */
     private String travelMonth;
+
+    public List<String> imageList;
+
+    public boolean provCap;
 
     /**
      * 建议游玩时间

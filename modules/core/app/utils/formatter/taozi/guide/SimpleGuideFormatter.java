@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
 import models.guide.AbstractGuide;
+import models.guide.Guide;
+import models.misc.ImageItem;
 import utils.formatter.JsonFormatter;
 
 import java.util.HashSet;
@@ -46,6 +48,8 @@ public class SimpleGuideFormatter implements JsonFormatter {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractGuide.fdId);
                 includedFields.add(AbstractGuide.fnTitle);
+                includedFields.add(Guide.fnUpdateTime);
+                includedFields.add(AbstractGuide.fnImages);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -60,7 +64,35 @@ public class SimpleGuideFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("guideFilter", guideFilter);
+        PropertyFilter imgFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                includedFields.add(ImageItem.fnUrl);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+
+        FilterProvider filters = new SimpleFilterProvider().addFilter("guideFilter", guideFilter).addFilter("imageItemPOIFilter", imgFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

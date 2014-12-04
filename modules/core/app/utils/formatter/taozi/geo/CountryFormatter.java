@@ -12,7 +12,9 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
+import models.geo.Coords;
 import models.geo.Country;
+import models.geo.Locality;
 import utils.formatter.JsonFormatter;
 
 import java.util.Collections;
@@ -20,11 +22,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 格式化国家的简单信息，主要使用在搜索列表中。
- * <p>
  * Created by lxf on 14-11-1.
  */
-public class SimpleCountryFormatter implements JsonFormatter {
+public class CountryFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -45,8 +45,9 @@ public class SimpleCountryFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Country.fnDesc, Country.fnEnName, Country.fnZhName, Country.fnCode,
-                        "id", Country.fnImages);
+                Collections.addAll(includedFields, Country.fnZhName,Country.fnEnName,Country.fnId,
+                Country.fnImages,Country.fnDesc);
+
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -60,6 +61,7 @@ public class SimpleCountryFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
+
 
         FilterProvider filters = new SimpleFilterProvider().addFilter("countryFilter", theFilter);
         mapper.setFilters(filters);

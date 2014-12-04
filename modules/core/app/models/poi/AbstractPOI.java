@@ -8,10 +8,7 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
-import models.geo.Address;
-import models.geo.Coords;
-import models.geo.GeoJsonPoint;
-import models.geo.Locality;
+import models.geo.*;
 import models.misc.CheckinRatings;
 import models.misc.Contact;
 import models.misc.Description;
@@ -42,13 +39,12 @@ import java.util.*;
         @JsonSubTypes.Type(value = ViewSpot.class, name = "vs"),
         @JsonSubTypes.Type(value = Hotel.class, name = "hotel"),
         @JsonSubTypes.Type(value = Restaurant.class, name = "restaurant"),
-        @JsonSubTypes.Type(value = Shopping.class, name = "shopping"),
-        @JsonSubTypes.Type(value = Dinning.class, name = "dinning")
+        @JsonSubTypes.Type(value = Shopping.class, name = "shopping")
 })
 public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
 
     /**
-     * 标识POI的种类
+     * 标识POI的种类，jackson反序列还用
      */
     public String type;
 
@@ -69,9 +65,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String detAddr = "addr";
-
-    @Transient
-    public static String fnLocation = "location";
 
     @Transient
     public static String fnLocality = "locality";
@@ -95,22 +88,25 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String fnAlias = "alias";
 
     @Transient
+    public static String detAlias = "alias";
+
+    @Transient
     public static String detTargets = "targets";
-
-    @Transient
-    public static String detTrafficInfoUrl = "trafficInfoUrl";
-
-    @Transient
-    public static String detGuideInfoUrl = "guideUrl";
-
-    @Transient
-    public static String detKengDieInfoUrl = "kengdieUrl";
 
     @Transient
     public static String simpEnName = "enName";
 
     @Transient
-    public static String simpCover = "cover";
+    public static String simpRating = "rating";
+
+    @Transient
+    public static String fnLocation = "location";
+
+    @Transient
+    public static String simpAddress = "address";
+
+    @Transient
+    public static String simpTelephone = "telephone";
 
     @Transient
     public static String fnHotness = "hotness";
@@ -119,10 +115,16 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String fnRating = "rating";
 
     @Transient
-    public static String simpCoords = "coords";
+    public static String simpCountry = "country";
 
     @Transient
-    public static String simpTravelMonth = "travelMonth";
+    public static String simplocList = "locList";
+
+    @Transient
+    public static String fnTags = "tags";
+
+    @Transient
+    public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
 
     @Embedded
     public CheckinRatings ratings;
@@ -135,9 +137,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Embedded
     public Coords coords;
-
-    @Transient
-    public static String simpAddress = "address";
 
     /**
      * 是否位于国外
@@ -191,8 +190,6 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public Description description;
 
     public String trafficInfo;
-
-//    public List<String> imageList;
 
     public List<ImageItem> images;
 
@@ -248,14 +245,36 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
      */
     public String kengdieUrl;
 
+    /**
+     * 地址
+     */
     public String address;
+
+    /**
+     * 电话
+     */
+    public String telephone;
+
+    /**
+     * 国家
+     */
+    public Country country;
+
+    /**
+     * 从属行政关系
+     */
+    public List<Locality> locList;
+
+    public Map<String, Object> miscInfo;
+
+    public String moreCommentsUrl;
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings"));
+                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id"));
             case 2:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags"));
+                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id", "desc", "images", "tags", "location", "locList"));
             case 3:
                 return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact", "url",
                         "price", "priceDesc", "alias"));
@@ -280,57 +299,35 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     }
 
     public String getTrafficInfoUrl() {
-        if (trafficInfoUrl == null) {
-            return "";
-
-        } else
-            return trafficInfoUrl;
+        return trafficInfoUrl;
     }
 
     public String getGuideUrl() {
-        if (guideUrl == null) {
-            return "";
-        } else
-            return guideUrl;
+        return guideUrl;
     }
 
     public String getKengdieUrl() {
-        if (kengdieUrl == null) {
-            return "";
-        } else
-            return kengdieUrl;
+        return priceDesc;
     }
 
     public String getDesc() {
-        if (description == null) {
-            if (desc == null)
-                return "";
-            else
-                return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
-        } else
-            return StringUtils.abbreviate(description.desc, Constants.ABBREVIATE_LEN);
+        if (desc == null)
+            return "";
+        else
+            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
 
     public String getEnName() {
-        if (enName == null)
-            return "";
-        else
-            return enName;
+        return enName;
     }
 
 
     public Contact getContact() {
-        if (contact == null)
-            return new Contact();
-        else
-            return contact;
+        return contact;
     }
 
     public String getOpenTime() {
-        if (openTime == null)
-            return DataFilter.openTimeFilter(openTime);
-        else
-            return openTime;
+        return openTime;
     }
 
     public String getTrafficInfo() {
@@ -338,6 +335,13 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return "";
         else
             return trafficInfo;
+    }
+
+    public List<ImageItem> getImages() {
+        if (images == null)
+            return new ArrayList();
+        else
+            return images;
     }
 
     public JsonNode toJson(int level) {

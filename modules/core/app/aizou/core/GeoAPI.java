@@ -1,14 +1,14 @@
 package aizou.core;
 
-import com.fasterxml.jackson.databind.JsonNode;
+
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
-import utils.formatter.taozi.geo.SimpleCountryFormatter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -84,7 +84,7 @@ public class GeoAPI {
     }
 
     /**
-     * 通过关键词对城市进行搜索。
+     * 通过关键词对目的地进行搜索。
      *
      * @param keyword  搜索关键词。
      * @param prefix   是否为前缀搜索？
@@ -96,7 +96,11 @@ public class GeoAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
-            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
+            query.or(
+                    query.criteria("zhName").equal(Pattern.compile(prefix ? "^" + keyword : keyword)),
+                    query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
+                    query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
+            );
         if (countryId != null)
             query.field(String.format("%s.id", Locality.fnCountry)).equal(countryId);
         return query.order(String.format("-%s", Locality.fnHotness))
@@ -112,29 +116,59 @@ public class GeoAPI {
      */
     public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws TravelPiException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
-        // TODO 以后仅仅使用alias即可
-        query.or(
-                query.criteria("zhName").equal(keyword),
-                query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
-                query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
-        );
-        return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
+        if (!keyword.equals("")) {
+            query.or(
+                    query.criteria("zhName").equal(keyword),
+                    query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
+                    query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
+            );
+        }
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
     }
 
     /**
-     * 搜索国家信息
+     * 根据名称搜索国家。
      *
-     * @param keyword
+     * @return
+     * @throws TravelPiException
+     */
+    public static List<Country> searchCountryByName(List<String> keywords, int page, int pageSize) throws TravelPiException {
+        Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
+        if (keywords != null) {
+            List<CriteriaContainerImpl> criList = new ArrayList<>();
+            for (String word : keywords)
+                criList.add(query.criteria("zhName").equal(Pattern.compile("^" + word)));
+            query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        }
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
+    }
+
+    /**
+     * 搜索目的地
+     *
+     * @param
      * @param page
      * @param pageSize
      * @return
      */
-    public static List<JsonNode> searchCountry(String keyword, int page, int pageSize) throws TravelPiException {
+    public static List<Locality> getDestinations(boolean abroad, int page, int pageSize) throws TravelPiException {
 
-        List<Country> countryList = searchCountryByName(keyword, page, pageSize);
-        List<JsonNode> result = new ArrayList<>();
-        for (Country c : countryList)
-            result.add(new SimpleCountryFormatter().format(c));
-        return result;
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class);
+        query.field("abroad").equal(abroad).field("enabled").equal(true);
+        query.offset(page * pageSize).limit(pageSize);
+
+        return query.asList();
+    }
+
+    public static List<Locality> getDestinationsByCountry(ObjectId countryID, int page, int pageSize) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class);
+        query.field("country.id").equal(countryID);
+        query.order("-hotness");
+        query.offset(page * pageSize).limit(pageSize);
+        return query.asList();
     }
 }

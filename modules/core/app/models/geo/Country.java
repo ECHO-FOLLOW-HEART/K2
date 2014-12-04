@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
+import models.misc.ImageItem;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
@@ -49,6 +50,15 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnEnName = "enName";
+
+    @Transient
+    public static String fnId = "id";
+
+    @Transient
+    public static String fnImages = "images";
+
+    @Transient
+    public static String fnDesc = "desc";
 
     /**
      * ISO 3166-2标准的国家代码
@@ -104,6 +114,11 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      * 英文名称
      */
     private String enName;
+
+    /**
+     * 描述
+     */
+    private String desc;
 
     /**
      * 首都
@@ -165,6 +180,11 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     public List<String> citys;
 
+    /**
+     * 图片
+     */
+    public List<ImageItem> images;
+
     public String getZhCont() {
         return zhCont != null ? zhCont : "";
     }
@@ -187,6 +207,9 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public String getZhName() {
         return zhName != null ? zhName : "";
+    }
+    public String getDesc() {
+        return desc != null ? desc : "";
     }
 
     public Boolean getIsHot() {
@@ -337,6 +360,13 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
         this.neighbours = neighbours;
     }
 
+    public List<ImageItem> getImages() {
+        if (images == null)
+            return new ArrayList();
+        else {
+            return images;
+        }
+    }
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

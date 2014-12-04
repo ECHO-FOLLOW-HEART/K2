@@ -12,14 +12,13 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
+import models.geo.Locality;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
-import models.guide.ItinerItem;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
-import models.poi.ViewSpot;
 import utils.formatter.JsonFormatter;
 
 import java.util.Collections;
@@ -31,7 +30,7 @@ import java.util.Set;
  * <p>
  * Created by zephyre on 10/28/14.
  */
-public class ItineraryFormatter implements JsonFormatter {
+public class RestaurantFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -57,8 +56,7 @@ public class ItineraryFormatter implements JsonFormatter {
                 includedFields.add(Guide.fnDestinations);
                 includedFields.add(AbstractGuide.fnTitle);
                 includedFields.add(Guide.fnUpdateTime);
-                //行程单
-                includedFields.add(AbstractGuide.fnItinerary);
+                includedFields.add(AbstractGuide.fnRestaurant);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -89,43 +87,8 @@ public class ItineraryFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.simpID);
                 includedFields.add(AbstractPOI.simpZhName);
                 includedFields.add(AbstractPOI.simpEnName);
-                includedFields.add(AbstractPOI.fnRating);
                 includedFields.add(AbstractPOI.simpImg);
-                includedFields.add(AbstractPOI.simplocList);
-                includedFields.add(AbstractPOI.fnLocation);
-                //vs
-                includedFields.add(ViewSpot.fnTimeCostDesc);
-                includedFields.add(AbstractPOI.simpAddress);
-                includedFields.add(AbstractPOI.detPriceDesc);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        PropertyFilter itinerItemFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(ItinerItem.fdDayIndex);
-                includedFields.add(ItinerItem.fdPoi);
+                includedFields.add(AbstractPOI.simpRating);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -253,7 +216,7 @@ public class ItineraryFormatter implements JsonFormatter {
             }
         };
         FilterProvider filters = new SimpleFilterProvider().addFilter("guideFilter", guideFilter).addFilter("abstractPOIFilter", poiFilter)
-                .addFilter("itinerItemFilter", itinerItemFilter).addFilter("imageItemPOIFilter", imgFilter)
+                .addFilter("imageItemPOIFilter", imgFilter)
                 .addFilter("geoJsonPointFilter", geoJsonPointFilter)
                 .addFilter("localityFilter", localityFilter)
                 .addFilter("destinationFilter", desFilter);

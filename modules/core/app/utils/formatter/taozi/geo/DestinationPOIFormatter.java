@@ -12,9 +12,9 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.GeoJsonPoint;
+import models.geo.Coords;
 import models.geo.Locality;
-import models.misc.SimpleRef;
+import models.misc.ImageItem;
 import utils.formatter.JsonFormatter;
 
 import java.util.Collections;
@@ -24,7 +24,7 @@ import java.util.Set;
 /**
  * Created by lxf on 14-11-1.
  */
-public class LocalityFormatter implements JsonFormatter {
+public class DestinationPOIFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -45,9 +45,9 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Locality.fnLocation, Locality.fnDesc, Locality.fnEnName,
-                        "id", Locality.fnZhName, Locality.fnLocation, Locality.fnImages,
-                        Locality.fnTimeCost, Locality.fnTimeCostDesc, Locality.fnTravelMonth, Locality.fnImageCnt);
+                Collections.addAll(includedFields, "id",Locality.fnZhName,Locality.fnEnName,Locality.fnDesc,
+                        Locality.fnImages);
+
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -61,8 +61,7 @@ public class LocalityFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
-
-        PropertyFilter geoJsonPointFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter coordsFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -75,8 +74,8 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(GeoJsonPoint.fnCoordinates);
-                includedFields.add(GeoJsonPoint.fnType);
+                includedFields.add(Coords.simpLat);
+                includedFields.add(Coords.simpLng);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -91,7 +90,7 @@ public class LocalityFormatter implements JsonFormatter {
             }
         };
 
-        PropertyFilter simpleRefFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter imgFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -104,10 +103,7 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-
-                includedFields.add(SimpleRef.simpID);
-                includedFields.add(SimpleRef.simpZhName);
-                includedFields.add(SimpleRef.simpEnName);
+                includedFields.add(ImageItem.fnUrl);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -121,9 +117,7 @@ public class LocalityFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
-
-        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter)
-                .addFilter("countryFilter", simpleRefFilter).addFilter("geoJsonPointFilter", geoJsonPointFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("destinationFilter", theFilter).addFilter("coordsFilter", coordsFilter).addFilter("imageItemPOIFilter", imgFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

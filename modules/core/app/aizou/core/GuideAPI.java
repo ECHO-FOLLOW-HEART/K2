@@ -1,24 +1,116 @@
 package aizou.core;
 
-import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.guide.AbstractGuide;
-import models.guide.Guide;
-import models.guide.ItinerItem;
-import models.poi.Dinning;
+import models.geo.Locality;
+import models.geo.Locality;
+import models.guide.*;
+import models.poi.Restaurant;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Created by topy on 2014/11/5.
  */
 public class GuideAPI {
+
+    /**
+     * 根据ID取得攻略
+     *
+     * @return
+     * @throws TravelPiException
+     */
+    public static Guide getGuideByDestination(List<ObjectId> ids, Integer userId) throws TravelPiException {
+        Query<GuideTemplate> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
+                .createQuery(GuideTemplate.class);
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (ObjectId id : ids) {
+            criList.add(query.criteria("locId").equal(id));
+        }
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        Query<Locality> queryDes = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
+                .createQuery(Locality.class);
+        List<String> fieldList = new ArrayList<>();
+        Collections.addAll(fieldList, "_id", "zhName", "enName");
+        queryDes.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        List<CriteriaContainerImpl> criListDes = new ArrayList<>();
+        for (ObjectId id : ids) {
+            criListDes.add(queryDes.criteria("_id").equal(id));
+        }
+        queryDes.or(criListDes.toArray(new CriteriaContainerImpl[criListDes.size()]));
+
+        List<Locality> destinations = queryDes.asList();
+        List<GuideTemplate> guideTemplates = query.asList();
+
+        Guide result = constituteUgcGuide(guideTemplates, destinations, userId);
+        //创建时即保存
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE).save(result);
+        return result;
+
+    }
+
+    /**
+     * 合并模板攻略
+     *
+     * @param guideTemplates
+     * @param destinations
+     * @param userId
+     * @return
+     */
+    private static Guide constituteUgcGuide(List<GuideTemplate> guideTemplates, List<Locality> destinations, Integer userId) {
+        if (guideTemplates == null || guideTemplates.size() == 0)
+            return new Guide();
+        Guide ugcGuide = new Guide();
+        ugcGuide.setId(new ObjectId());
+        ugcGuide.userId = userId;
+        int index = 0;
+        List<ObjectId> locIds = new ArrayList<>();
+        StringBuffer titlesBuffer = new StringBuffer();
+        List<ItinerItem> itineraries = new ArrayList<>();
+        List<Shopping> shoppingList = new ArrayList<>();
+        List<Restaurant> restaurants = new ArrayList<>();
+        Integer itineraryDaysCnt = 0;
+        for (GuideTemplate temp : guideTemplates) {
+            if (temp == null)
+                continue;
+            locIds.add(temp.getId());
+            titlesBuffer.append(temp.title);
+            if (temp.itinerary != null && temp.itinerary.size() > 0) {
+                for (ItinerItem it : temp.itinerary) {
+                    it.dayIndex = it.dayIndex + index;
+                }
+                itineraries.addAll(temp.itinerary);
+                itineraryDaysCnt = itineraryDaysCnt + temp.itinerary.size();
+            }
+            if (temp.shopping != null && temp.shopping.size() > 0) {
+                shoppingList.addAll(temp.shopping);
+            }
+
+            if (temp.restaurant != null && temp.restaurant.size() > 0) {
+                restaurants.addAll(temp.restaurant);
+            }
+            index++;
+        }
+        ugcGuide.destinations = destinations;
+        ugcGuide.title = titlesBuffer.toString();
+        ugcGuide.itinerary = itineraries;
+        ugcGuide.shopping = shoppingList;
+        ugcGuide.restaurant = restaurants;
+        ugcGuide.itineraryDays = itineraryDaysCnt;
+        ugcGuide.updateTime = System.currentTimeMillis();
+        //取第一个目的地的图片
+        ugcGuide.images = guideTemplates.get(0).images;
+        return ugcGuide;
+
+    }
 
     /**
      * 根据ID取得攻略
@@ -30,10 +122,9 @@ public class GuideAPI {
     public static Guide getGuideById(ObjectId id, List<String> fieldList) throws TravelPiException {
         Query<Guide> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
                 .createQuery(Guide.class);
-        query.field("_id").equal(id);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
-
+        query.field("_id").equal(id);
         return query.get();
     }
 
@@ -65,6 +156,7 @@ public class GuideAPI {
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         query.offset(page * pageSize).limit(pageSize);
+        query.order("-updateTime");
         return query.asList();
     }
 
@@ -75,22 +167,22 @@ public class GuideAPI {
      * @param guide
      * @throws TravelPiException
      */
-    public static void updateGuide(ObjectId guideId, Guide guide, String guidePart) throws TravelPiException {
+    public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
-        UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
-        switch (guidePart) {
-            case AbstractGuide.fnItinerary:
-                update.set(guidePart, guide.itinerary);
-                break;
-            case AbstractGuide.fnShopping:
-                update.set(guidePart, guide.shopping);
-                break;
-            case AbstractGuide.fnDinning:
-                update.set(guidePart, guide.dinning);
-                break;
+        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId).field("userId").equal(userId);
+        if (query.iterator().hasNext()) {
+            UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
+            if (guide.itinerary != null) {
+                update.set(AbstractGuide.fnItinerary, guide.itinerary);
+                update.set(Guide.fnItineraryDays, guide.itinerary == null ? 0 : guide.itinerary.size());
+            }
+            if (guide.shopping != null)
+                update.set(AbstractGuide.fnShopping, guide.shopping);
+            if (guide.restaurant != null)
+                update.set(AbstractGuide.fnRestaurant, guide.restaurant);
+            update.set(Guide.fnUpdateTime, System.currentTimeMillis());
+            ds.update(query, update);
         }
-        ds.update(query, update);
     }
 
     /**
@@ -118,44 +210,24 @@ public class GuideAPI {
      * @throws TravelPiException
      */
     public static void saveGuideTitle(ObjectId id, String title) throws TravelPiException {
-        try {
-            title = title.trim();
-            if (title.isEmpty())
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID TITLE");
-        } catch (NullPointerException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID TITLE");
-        }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
         uo.set(Guide.fnTitle, title);
+        uo.set(Guide.fnUpdateTime, System.currentTimeMillis());
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
     }
 
     /**
-     * 保存购物信息
+     * 获得目的地的攻略信息
      *
      * @param id
-     * @param shoppingList
+     * @return
      * @throws TravelPiException
      */
-    public static void savaGuideShopping(ObjectId id, List<Shopping> shoppingList) throws TravelPiException {
+    public static DestGuideInfo getDestinationGuideInfo(ObjectId id) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set(Guide.fnShopping, shoppingList);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
-    }
-
-    /**
-     * 保存美食信息
-     *
-     * @param id
-     * @param dinningList
-     * @throws TravelPiException
-     */
-    public static void savaGuideDinning(ObjectId id, List<Dinning> dinningList) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
-        uo.set(Guide.fnDinning, dinningList);
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
+        Query<DestGuideInfo> query = ds.createQuery(DestGuideInfo.class);
+        query.field("locId").equal(id);
+        return query.get();
     }
 }

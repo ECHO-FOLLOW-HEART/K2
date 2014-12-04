@@ -1,4 +1,4 @@
-package utils.formatter.taozi.guide;
+package utils.formatter.taozi.misc;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,20 +12,19 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.guide.AbstractGuide;
-import models.guide.Guide;
-import models.poi.AbstractPOI;
+import models.misc.PageFirst;
+import models.poi.Comment;
+import models.user.UserInfo;
 import utils.formatter.JsonFormatter;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回攻略中行程单内容
- * <p>
- * Created by zephyre on 10/28/14.
+ * Created by lxf on 14-11-12.
  */
-public class DinningFormatter implements JsonFormatter {
+public class MiscFormatter implements JsonFormatter{
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -33,7 +32,7 @@ public class DinningFormatter implements JsonFormatter {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
-        PropertyFilter guideFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter travelColumnsFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -46,42 +45,8 @@ public class DinningFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(AbstractGuide.fdId);
-                includedFields.add(Guide.fnUserId);
-                includedFields.add(AbstractGuide.fnTitle);
-                includedFields.add(AbstractGuide.fnDinning);
-                return (includedFields.contains(writer.getName()));
-            }
+                Collections.addAll(includedFields, PageFirst.fnCover, PageFirst.fnLink,PageFirst.fnTitle);
 
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-        PropertyFilter poiFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(AbstractPOI.simpDesc);
-                includedFields.add(AbstractPOI.simpID);
-                includedFields.add(AbstractPOI.simpName);
-                includedFields.add(AbstractPOI.simpEnName);
-                includedFields.add(AbstractPOI.simpCover);
-                includedFields.add(AbstractPOI.fnRating);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -96,9 +61,64 @@ public class DinningFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("guideFilter", guideFilter).addFilter("abstractPOIFilter", poiFilter);
+        PropertyFilter userInfoFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                Collections.addAll(includedFields, UserInfo.fnAvatar,UserInfo.fnNickName);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+
+        PropertyFilter commentsFilter = new SimpleBeanPropertyFilter() {
+            @Override
+            public void serializeAsField
+                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
+                if (include(writer)) {
+                    writer.serializeAsField(pojo, jgen, provider);
+                } else if (!jgen.canOmitFields()) { // since 2.3
+                    writer.serializeAsOmittedField(pojo, jgen, provider);
+                }
+            }
+
+            private boolean includeImpl(PropertyWriter writer) {
+                Set<String> includedFields = new HashSet<>();
+                Collections.addAll(includedFields, Comment.fnNickName,Comment.fnScore,Comment.fnCommentDetails,Comment.fnCommentTime,Comment.fnAvatar);
+                return (includedFields.contains(writer.getName()));
+            }
+
+            @Override
+            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
+                return includeImpl(beanPropertyWriter);
+            }
+
+            @Override
+            protected boolean include(PropertyWriter writer) {
+                return includeImpl(writer);
+            }
+        };
+        FilterProvider filters = new SimpleFilterProvider().addFilter("travelColumnsFilter", travelColumnsFilter)
+                .addFilter("commentsFilter",commentsFilter).addFilter("userInfoFilter",userInfoFilter);
         mapper.setFilters(filters);
-
         return mapper.valueToTree(item);
     }
 }

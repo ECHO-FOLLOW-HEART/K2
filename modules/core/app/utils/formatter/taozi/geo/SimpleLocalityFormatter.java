@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
-import models.geo.Country;
+import models.geo.Locality;
 import utils.formatter.JsonFormatter;
 
 import java.util.Collections;
@@ -20,11 +20,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 格式化国家的简单信息，主要使用在搜索列表中。
- * <p>
- * Created by lxf on 14-11-1.
+ * Created by lxf on 14-11-12.
  */
-public class SimpleCountryFormatter implements JsonFormatter {
+public class SimpleLocalityFormatter implements JsonFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -32,7 +30,7 @@ public class SimpleCountryFormatter implements JsonFormatter {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
-        PropertyFilter theFilter = new SimpleBeanPropertyFilter() {
+        PropertyFilter localityFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
                     (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
@@ -45,8 +43,8 @@ public class SimpleCountryFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Country.fnDesc, Country.fnEnName, Country.fnZhName, Country.fnCode,
-                        "id", Country.fnImages);
+                Collections.addAll(includedFields, Locality.fnZhName,"id");
+
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -60,8 +58,7 @@ public class SimpleCountryFormatter implements JsonFormatter {
                 return includeImpl(writer);
             }
         };
-
-        FilterProvider filters = new SimpleFilterProvider().addFilter("countryFilter", theFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter",localityFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

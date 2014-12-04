@@ -25,7 +25,13 @@ public class Constants {
     public static int BIG_PIC = 1;
     public static int SMALL_PIC = 0;
 
+    /**
+     * 符号
+     */
     public static String SYMBOL_QUESTION = "?";
+    public static String SYMBOL_BAR = "|";
+    public static String SYMBOL_SLASH = "/";
+
 
 
     public static int FORCAST_DUOYUN = 1;
