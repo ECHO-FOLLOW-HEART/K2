@@ -41,6 +41,10 @@ import java.util.*;
  */
 public class MiscCtrl extends Controller {
 
+    public static String UPLOAD_URL = "url";
+
+    public static String UPLOAD_UID = "userId";
+
     /**
      * 封面故事,获取App首页的图像。
      *
@@ -156,9 +160,9 @@ public class MiscCtrl extends Controller {
             String itemId = collection.get("itemId").asText();
             ObjectId oid = new ObjectId(itemId);
             String type = collection.get("type").asText();
-            String zhName = collection.get("zhName").asText();
-            String enName = collection.get("enName").asText();
-            String image = collection.get("image").asText();
+            //String zhName = collection.get("zhName").asText();
+            //String enName = collection.get("enName").asText();
+            //String image = collection.get("image").asText();
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
             Query<Favorite> query = ds.createQuery(Favorite.class);
             query.field("userId").equal("userId").field("type").equal(type).field("itemId").equal(oid);
@@ -167,12 +171,12 @@ public class MiscCtrl extends Controller {
             Favorite fa = new Favorite();
             fa.id = new ObjectId();
             fa.itemId = oid;
-            fa.zhName = zhName;
-            fa.enName = enName;
+            //fa.zhName = zhName;
+            //fa.enName = enName;
             fa.type = type;
-            ImageItem img = new ImageItem();
-            img.url = image;
-            fa.images = Arrays.asList(img);
+            //ImageItem img = new ImageItem();
+            //img.url = image;
+            //fa.images = Arrays.asList(img);
             fa.userId = userId;
             fa.createTime = new Date();
             ds.save(fa);
@@ -274,7 +278,7 @@ public class MiscCtrl extends Controller {
             } else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid scenario.");
             //取得上传策略
-            ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl);
+            ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId));
             // UrlBase64编码
             String encodedPutPolicy = Base64.encodeBase64URLSafeString(policy.toString().trim().getBytes());
             encodedPutPolicy = Utils.base64Padding(encodedPutPolicy);
@@ -304,12 +308,12 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl) {
+    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl, Integer userId) {
 
         ObjectNode info = Json.newObject();
         info.put("scope", scope + ":" + picName);
         info.put("deadline", System.currentTimeMillis() / 1000 + 2 * 3600);
-        info.put("callBackBody", getCallBackBody());
+        info.put("callBackBody", getCallBackBody(userId));
         info.put("callbackUrl", callbackUrl);
         return info;
     }
@@ -319,7 +323,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static String getCallBackBody() {
+    private static String getCallBackBody(Integer userId) {
         StringBuffer callbackBody = new StringBuffer(10);
         callbackBody.append("name=$(fname)");
         callbackBody.append("&size=$(fsize)");
@@ -328,8 +332,11 @@ public class MiscCtrl extends Controller {
         callbackBody.append("&w=$(imageInfo.width)");
         callbackBody.append("&hash=$(etag)");
         callbackBody.append("&bucket=$(bucket)");
-        String url = "http://"+"$(bucket)"+".qiniudn.com"+Constants.SYMBOL_SLASH+"$(key)";
-        callbackBody.append("&url=" + url);
+        String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
+        // 定义图片的URL
+        callbackBody.append("&" + UPLOAD_URL + "=" + url);
+        // 定义用户ID
+        callbackBody.append("&" + UPLOAD_UID + "=" + userId);
         return callbackBody.toString();
     }
 
@@ -362,14 +369,24 @@ public class MiscCtrl extends Controller {
     public static Result getCallback() {
         Map<String, String[]> fav = request().body().asFormUrlEncoded();
         ObjectNode ret = Json.newObject();
+        String url = null;
+        String userId = null;
         for (Map.Entry<String, String[]> entry : fav.entrySet()) {
             String key = entry.getKey();
             String[] value = entry.getValue();
-            // TODO 日志
-            LogUtils.info(MiscCtrl.class, key + value);
+            //LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
+            if (key.equals(UPLOAD_URL))
+                url = value[0];
+            if (key.equals(UPLOAD_UID))
+                userId = value[0];
             ret.put(key, value[0]);
         }
         ret.put("success", true);
+        try {
+            UserAPI.resetAvater(Integer.valueOf(userId), url);
+        } catch (TravelPiException e) {
+            LogUtils.info(MiscCtrl.class, "Update user avatar error.");
+        }
         return ok(ret);
     }
 
@@ -526,8 +543,6 @@ public class MiscCtrl extends Controller {
                     retPoiList.add(new SimpleRefFormatter().format(poi));
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
-
-
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
