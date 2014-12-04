@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
+import com.mongodb.DBObject;
 import models.ITravelPiFormatter;
 import models.TravelPiBaseItem;
 import models.geo.*;
@@ -464,7 +465,11 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             builder.add("addr", (addr != null ? addr.toJson(3) : new BasicDBObject()));
 
 
-        return Json.toJson(builder.get());
+        DBObject o = builder.get();
+        if (o.get("imageList") == null)
+            o.put("imageList", new ArrayList<>());
+
+        return Json.toJson(o);
     }
 
     @Override

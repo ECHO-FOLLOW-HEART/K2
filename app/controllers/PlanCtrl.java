@@ -1477,29 +1477,41 @@ public class PlanCtrl extends Controller {
         try {
             //根据ID取得UGC路线
             if (!ugcPlanId.equals("")) {
-                UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-
-                //取详细信息
-                JsonNode planJson = ugcPlan.toJson(true);
-//                JsonNode planJson = SimpleUgcPlanFormatter.getInstance().format(ugcPlan);
-                planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
+                JsonNode planJson = getUgcPlanByIdImpl(ugcPlanId);
 //                return Utils.createResponse(ErrorCode.NORMAL, planJson);
-                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC));
+                return Utils.createResponse(ErrorCode.NORMAL,
+                        DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC));
             }
+
             //根据用户ID取得UGC路线列表
             if (!userId.equals("")) {
-                List<JsonNode> results = new ArrayList<>();
-                for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
-                    //取粗略信息
-                    results.add(SimpleUgcPlanFormatter.getInstance().format(it.next()));
-                }
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+                JsonNode results = getUgcPlanListByUser(userId, page, pageSize);
+                return Utils.createResponse(ErrorCode.NORMAL, results);
             }
+
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
         } catch (ClassCastException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
+    }
+
+    public static JsonNode getUgcPlanListByUser(String userId, int page, int pageSize) throws TravelPiException {
+        List<JsonNode> results = new ArrayList<>();
+        for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
+            //取粗略信息
+            results.add(SimpleUgcPlanFormatter.getInstance().format(it.next()));
+        }
+        return Json.toJson(results);
+    }
+
+    public static JsonNode getUgcPlanByIdImpl(String ugcPlanId) throws TravelPiException {
+        UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
+
+        //取详细信息
+        //                JsonNode planJson = SimpleUgcPlanFormatter.getInstance().format(ugcPlan);
+//        planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
+        return ugcPlan.toJson(true);
     }
 }

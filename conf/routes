@@ -109,7 +109,7 @@ GET           /misc/notes/search                                 controllers.Tra
 #天气情况
 GET           /app/misc/weather/:id                              controllers.WeatherCtrl.getWeatherDetail(id:String)
 # 发现目的地（推荐机制）
-GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Int?=0, loc: Int?=0, vs: Int?=0, hotel: Int?=0, restaurant: Int?=0, abroad: Boolean?=false, page: Int?=0, pageSize: Int?=20)
+GET           /explore                                           controllers.MiscCtrl.explore(showDetails: Boolean?=false, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, abroad: Boolean?=false, page: Int?=0, pageSize: Int?=20)
 # 获得目的地推荐
 GET           /recommend/dest                                    controllers.MiscCtrl.destRecommend()
 
