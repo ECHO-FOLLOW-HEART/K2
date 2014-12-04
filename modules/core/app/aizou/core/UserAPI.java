@@ -387,6 +387,7 @@ public class UserAPI {
         else
             return null;
     }
+
     /**
      * 根据字段获得用户信息。
      *
@@ -406,7 +407,6 @@ public class UserAPI {
             throws TravelPiException {
         return getUserByField(Arrays.asList(fieldDesc), value, fieldFilter);
     }
-
 
 
     /**
@@ -1264,6 +1264,13 @@ public class UserAPI {
         } catch (IllegalArgumentException e) {
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Error easeMob users.");
         }
+    }
+
+    public static void resetAvater(Integer userId, String avater) throws TravelPiException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
+        ops.set("avatar", avater);
+        dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("userId").equal(userId), ops);
     }
 
     /**

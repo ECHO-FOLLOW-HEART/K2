@@ -6,6 +6,7 @@ import models.geo.Locality;
 import models.misc.PageFirst;
 import models.misc.SimpleRef;
 import models.poi.Comment;
+import models.user.Favorite;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -92,23 +93,4 @@ public class MiscAPI {
         return query.filter(Comment.fnScore+" >=",lower).filter(Comment.fnScore+" <",upper).offset(page * pageSize).limit(page).asList();
     }
 
-    /**
-     * 通过关键词对城市进行搜索。
-     *
-     * @param keyword  搜索关键词。
-     * @param prefix   是否为前缀搜索？
-     * @param page     分页偏移量。
-     * @param pageSize 页面大小。
-     */
-    public static List<Locality> searchLocalities(String keyword, boolean prefix, ObjectId countryId, int page, int pageSize)
-            throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Query<Locality> query = ds.createQuery(Locality.class);
-        if (keyword != null && !keyword.isEmpty())
-            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
-        if (countryId != null)
-            query.field(String.format("%s.%s", Locality.fnCountry, SimpleRef.simpID)).equal(countryId);
-        return query.order(String.format("-%s, %s", Locality.fnHotness, Locality.fnRating))
-                .offset(page * pageSize).limit(pageSize).asList();
-    }
 }
