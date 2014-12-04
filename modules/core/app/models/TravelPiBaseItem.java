@@ -28,6 +28,14 @@ public abstract class TravelPiBaseItem {
         return id;
     }
 
+    public Map<String, Object> getMisc() {
+        return misc;
+    }
+
+    public void setMisc(Map<String, Object> misc) {
+        this.misc = misc;
+    }
+
     public void setId(ObjectId id) {
         this.id = id;
     }
@@ -38,13 +46,5 @@ public abstract class TravelPiBaseItem {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
-    }
-
-    public Map<String, Object> getMisc() {
-        return misc;
-    }
-
-    public void setMisc(Map<String, Object> misc) {
-        this.misc = misc;
     }
 }

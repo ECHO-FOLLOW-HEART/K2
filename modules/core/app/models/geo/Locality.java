@@ -3,7 +3,6 @@ package models.geo;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.TravelPiBaseItem;
 import models.misc.ImageItem;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
