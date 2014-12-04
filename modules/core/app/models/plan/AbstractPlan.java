@@ -48,15 +48,26 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
     @Transient
     public static final String FD_IMAGES = "images";
 
+    /**
+     * 目的地
+     */
     @Embedded
     private List<SimpleRef> targets;
 
+    /**
+     * 标签
+     */
     private List<String> tags;
 
+    /**
+     * 路线标题
+     */
     private String title;
 
+    /**
+     * 对应的原始id
+     */
     private Integer planId;
-
 
     /**
      * 行程天数
@@ -68,6 +79,9 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
      */
     private Integer vsCnt;
 
+    /**
+     * 路线简介
+     */
     private String desc;
 
     @Embedded
@@ -114,6 +128,9 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
 
     private List<PlanDayEntry> details;
 
+    /**
+     * 更多的描述
+     */
     private String moreDesc;
 
     public List<SimpleRef> getTargets() {

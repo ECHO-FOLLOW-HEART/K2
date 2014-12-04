@@ -6,6 +6,7 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 酒店。
@@ -17,6 +18,21 @@ public class Hotel extends AbstractPOI {
 
     @Embedded
     public HotelRatings ratings;
+
+    /**
+     * 星级
+     */
+    private Long starLevel;
+
+    /**
+     * 房间价目表
+     */
+    private Map<String, Float> priceTable;
+
+    /**
+     * 酒店类型
+     */
+    private String hotelType;
 
     /**
      * 酒店类型，比如“经济型”等等。

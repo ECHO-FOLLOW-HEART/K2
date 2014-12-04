@@ -398,6 +398,7 @@ public class PoiAPI {
 
     /**
      * 获得POI详情（字段过滤）
+     *
      * @param poiId
      * @param poiType
      * @param fields
@@ -410,6 +411,7 @@ public class PoiAPI {
 
     /**
      * 获得POI详情（字段过滤）
+     *
      * @param poiId
      * @param poiType
      * @param fields
@@ -493,14 +495,13 @@ public class PoiAPI {
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (locId != null)
-            query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
+            if (poiType == POIType.HOTEL)
+                query.field(AbstractPOI.detTargets).hasThisOne(locId);
+            else
+                query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
 
-        query.field("abroad").equal(abroad);
-
-//        if (poiType == POIType.VIEW_SPOT)
-//            query.field("imageList").notEqual(null).field("relPlanCnt").greaterThan(0);
-
-        return query.offset(page * pageSize).limit(pageSize).order("-ratings.score").iterator();
+        return query.offset(page * pageSize).limit(pageSize).order(String.format("-%s", AbstractPOI.fnRating))
+                .iterator();
     }
 
 //    /**

@@ -1011,7 +1011,8 @@ public class PlanCtrl extends Controller {
                 planItem.item = ref;
                 locRef = new SimpleRef();
                 locRef.setEnName(hotel.getLocality().getEnName());
-                locRef.setZhName(hotel.getLocality().getEnName());
+                locRef.setZhName(hotel.getLocality().getZhName());
+                locRef.setId(hotel.getLocality().getId());
                 planItem.loc = locRef;
                 planItem.type = "hotel";
                 try {
