@@ -268,7 +268,7 @@ public class MiscCtrl extends Controller {
             String accessKey = qiniu.get("accessKey").toString();
             String scope, callbackUrl;
             if (scenario.equals("portrait")) {
-                scope = qiniu.get("avaterScope").toString();
+                scope = qiniu.get("taoziAvaterScope").toString();
                 callbackUrl = qiniu.get("callbackUrl").toString();
                 callbackUrl = "http://" + callbackUrl;
             } else
@@ -325,7 +325,11 @@ public class MiscCtrl extends Controller {
         callbackBody.append("&size=$(fsize)");
         callbackBody.append("&h=$(imageInfo.height)");
         callbackBody.append("&w=$(imageInfo.width)");
+        callbackBody.append("&w=$(imageInfo.width)");
         callbackBody.append("&hash=$(etag)");
+        callbackBody.append("&bucket=$(bucket)");
+        String url = "http://"+"$(bucket)"+".qiniudn.com"+Constants.SYMBOL_SLASH+"$(key)";
+        callbackBody.append("&url=" + url);
         return callbackBody.toString();
     }
 
@@ -465,6 +469,20 @@ public class MiscCtrl extends Controller {
         }
     }
 
+    /**
+     * 联合查询
+     *
+     * @param keyWord
+     * @param locId
+     * @param loc
+     * @param vs
+     * @param hotel
+     * @param restaurant
+     * @param shopping
+     * @param page
+     * @param pageSize
+     * @return
+     */
     public static Result search(String keyWord, String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
         ObjectNode results = Json.newObject();
         try {
@@ -502,7 +520,7 @@ public class MiscCtrl extends Controller {
             for (PoiAPI.POIType poiType : poiKeyList) {
                 ObjectId oid = locId.equals("") ? null : new ObjectId(locId);
                 // 发现POI
-                List<JsonNode> retPoiList = new ArrayList<JsonNode>();
+                List<JsonNode> retPoiList = new ArrayList<>();
                 List<? extends AbstractPOI> itPoi = PoiAPI.poiSearchForTaozi(poiType, keyWord, oid, true, page, pageSize);
                 for (AbstractPOI poi : itPoi)
                     retPoiList.add(new SimpleRefFormatter().format(poi));
@@ -513,7 +531,7 @@ public class MiscCtrl extends Controller {
         } catch (TravelPiException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(results));
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
     public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws TravelPiException {
