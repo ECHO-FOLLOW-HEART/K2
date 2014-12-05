@@ -691,7 +691,7 @@ public class PlanCtrl extends Controller {
 
 
     /**
-     * 路线发现机制
+     * 路线发现机制，相对旅行派接口有改动
      *
      * @param locId
      * @param sortField
@@ -703,71 +703,6 @@ public class PlanCtrl extends Controller {
      */
     public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) {
         List<JsonNode> results = new ArrayList<>();
-
-        if (locId != null && !locId.isEmpty()) {
-            // fix一个bug。POI的id在不经意之间变动过，所以只能做重定向处理。
-            List<String> locIdList = Arrays.asList("53aa9b3610114e3fdc2fa5b9", "53aa9b3510114e3fdc2fa3e2",
-                    "53aa9b4110114e3fdc2fb266", "53aa9b5010114e3fdc2fbcdf", "53aa9b3310114e3fdc2fa014");
-            if (locIdList.contains(locId)) {
-                poiId = locId;
-                locId = null;
-            }
-        }
-
-        if (poiId != null && !poiId.isEmpty()) {
-            // fix一个bug。POI的id在不经意之间变动过，所以只能做重定向处理。
-            Map<String, String> poiIdMapping = new HashMap<>();
-
-            poiIdMapping.put("53aa9b4510114e3fdc2fb55e", "53f30e3e10114e377228a77f");
-            poiIdMapping.put("53aa9f5610114e3fdc30255a", "53f31a1210114e3b228c50e7");
-            poiIdMapping.put("53aa9b5310114e3fdc2fbe4c", "53f3117910114e377228b06c");
-            poiIdMapping.put("53aa9cb410114e3fdc2fd635", "53f312ee10114e377228b5b9");
-            poiIdMapping.put("53aa9b4110114e3fdc2fb266", "53f30d2710114e377228a48a");
-            poiIdMapping.put("53aa9b7a10114e3fdc2fce57", "53f3105e10114e3779f93379");
-            poiIdMapping.put("53aa9b5710114e3fdc2fc07b", "53f3121710114e377228b29d");
-            poiIdMapping.put("53aa9caf10114e3fdc2fd4f2", "53f3110c10114e377228aefe");
-            poiIdMapping.put("53aa9b5a10114e3fdc2fc218", "53f3128810114e377228b439");
-            poiIdMapping.put("53aa9b6510114e3fdc2fc6b6", "53f30d8810114e3779f92bda");
-            poiIdMapping.put("53aa9b3410114e3fdc2fa2e7", "53f30e7f10114e376de5b757");
-            poiIdMapping.put("53aa9b5010114e3fdc2fbcdf", "53f311b610114e376de5c076");
-
-            poiIdMapping.put("53aa9b3610114e3fdc2fa5b9", "53f30f8b10114e376de5ba26");
-            poiIdMapping.put("53aa9b4f10114e3fdc2fbc40", "53f310d210114e377228ae60");
-            poiIdMapping.put("53aa9b7310114e3fdc2fcbd1", "53f30f6c10114e3779f930f5");
-            poiIdMapping.put("53aa9b6410114e3fdc2fc655", "53f30d6510114e3779f92b78");
-            poiIdMapping.put("53aa9b3410114e3fdc2fa286", "53f30e5b10114e376de5b6f6");
-            poiIdMapping.put("53aa9b6510114e3fdc2fc6e0", "53f30d9710114e3779f92c04");
-            poiIdMapping.put("53aa9b3510114e3fdc2fa3e2", "53f30edd10114e376de5b851");
-            poiIdMapping.put("53aa9b4b10114e3fdc2fba02", "53f30ffb10114e377228ac23");
-            poiIdMapping.put("53aa9b4b10114e3fdc2fba04", "53f3116610114e377228b026");
-            poiIdMapping.put("53aa9b5510114e3fdc2fbf78", "53f311ce10114e377228b199");
-            poiIdMapping.put("53aa9b4510114e3fdc2fb587", "53f30e4e10114e377228a7a8");
-            poiIdMapping.put("53aa9f3010114e3fdc302043", "53f330fc10114e3bb32d1181");
-            poiIdMapping.put("53aa9b4910114e3fdc2fb867", "53f30f5f10114e377228aa87");
-
-
-            poiIdMapping.put("53aa9b3210114e3fdc2f9e53", "53f30cd110114e376de5b2c3");
-            poiIdMapping.put("53aa9b3910114e3fdc2faa5b", "53f3113d10114e376de5bec9");
-            poiIdMapping.put("53aa9b5b10114e3fdc2fc25a", "53f3129a10114e377228b47b");
-            poiIdMapping.put("53aa9b3910114e3fdc2faa50", "53f3113910114e376de5bebe");
-            poiIdMapping.put("53aa9dbf10114e3fdc2ff1cf", "53f3109510114e3779f9340a");
-            poiIdMapping.put("53aa9b5d10114e3fdc2fc360", "53f312e210114e377228b582");
-            poiIdMapping.put("53aa9b3310114e3fdc2f9ff6", "53f30d6a10114e376de5b467");
-            poiIdMapping.put("53aa9b4910114e3fdc2fb84e", "53f30f5610114e377228aa6e");
-            poiIdMapping.put("53aa9f0210114e3fdc3019ba", "53f3127b10114e376de5c339");
-            poiIdMapping.put("53aa9b5e10114e3fdc2fc374", "53f312e710114e377228b596");
-            poiIdMapping.put("53aa9b4810114e3fdc2fb75d", "53f324f310114e3d0d3a21b4");
-            poiIdMapping.put("53aa9b5410114e3fdc2fbed9", "53f311a110114e377228b0fa");
-            poiIdMapping.put("53aa9b3310114e3fdc2fa014", "53f310c010114e376de5bd60");
-            poiIdMapping.put("53aa9b3610114e3fdc2fa5b6", "53f30f8a10114e376de5ba23");
-            poiIdMapping.put("53aa9b3610114e3fdc2fa5b7", "53f30f8b10114e376de5ba24");
-            poiIdMapping.put("53aa9a6410114e3fd4783553", "53f310ff10114e3779f93527");
-            poiIdMapping.put("53aa9a6410114e3fd478355b", "53f317d610114e3b1d2e6f06");
-            poiIdMapping.put("53aa9a6410114e3fd4783576", "53f3172710114e3b12f69d3a");
-
-            if (poiIdMapping.containsKey(poiId))
-                poiId = poiIdMapping.get(poiId);
-        }
 
         // 处理fromLoc/backLoc的映射
         Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
