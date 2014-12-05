@@ -27,7 +27,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.*;
-import utils.formatter.travelpi.plan.SimpleUgcPlanFormatter;
+import formatter.travelpi.plan.SimpleUgcPlanFormatter;
 
 import java.net.UnknownHostException;
 import java.text.DateFormat;

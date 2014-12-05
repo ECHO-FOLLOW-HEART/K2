@@ -18,8 +18,8 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-import utils.formatter.JsonFormatter;
-import utils.formatter.taozi.guide.*;
+import formatter.JsonFormatter;
+import formatter.taozi.guide.*;
 
 import java.util.*;
 

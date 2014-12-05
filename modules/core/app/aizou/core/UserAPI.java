@@ -28,7 +28,7 @@ import play.mvc.Http;
 import utils.Constants;
 import utils.FPUtils;
 import utils.Utils;
-import utils.formatter.taozi.user.SimpleUserFormatter;
+import formatter.taozi.user.SimpleUserFormatter;
 
 import javax.crypto.KeyGenerator;
 import java.io.InputStream;
@@ -353,7 +353,7 @@ public class UserAPI {
 
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
-        query.field("origin").equal(Constants.APP_FLAG_PEACH);
+        query.field("origin").equal(Constants.APP_FLAG_TAOZI);
 
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
@@ -430,7 +430,7 @@ public class UserAPI {
         UserInfo user = UserInfo.newInstance(populateUserId());
         user.setTel(tel);
         user.setDialCode(dialCode);
-        user.setOrigin(Constants.APP_FLAG_PEACH);
+        user.setOrigin(Constants.APP_FLAG_TAOZI);
 
         // 注册环信
         String[] ret = regEasemob();
@@ -495,7 +495,7 @@ public class UserAPI {
         userInfo.setNickName(nickname);
         userInfo.setAvatar(headimgurl);
         userInfo.setGender(json.get("sex").asText().equals("1") ? "M" : "F");
-        userInfo.setOrigin(Constants.APP_FLAG_PEACH);
+        userInfo.setOrigin(Constants.APP_FLAG_TAOZI);
 
         OAuthInfo oauthInfo = new OAuthInfo();
         oauthInfo.setProvider("weixin");

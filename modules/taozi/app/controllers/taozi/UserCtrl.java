@@ -7,6 +7,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import formatter.taozi.user.CredentialFormatter;
+import formatter.taozi.user.SelfUserFormatter;
+import formatter.taozi.user.SideUserFormatter;
+import formatter.taozi.user.SimpleUserFormatter;
 import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
@@ -21,10 +25,6 @@ import play.mvc.Result;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
-import utils.formatter.taozi.user.CredentialFormatter;
-import utils.formatter.taozi.user.SelfUserFormatter;
-import utils.formatter.taozi.user.SideUserFormatter;
-import utils.formatter.taozi.user.SimpleUserFormatter;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParserFactory;
 
@@ -36,7 +36,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
