@@ -1,16 +1,10 @@
 package controllers.taozi;
 
-import aizou.core.LocalityAPI;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.geo.Locality;
 import models.misc.MiscInfo;
-import models.misc.Recom;
-import models.misc.RecomType;
-import models.misc.SimpleRef;
 import models.user.UserInfo;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import play.mvc.Controller;
@@ -40,7 +34,7 @@ public class BacheCtrl extends Controller {
             map.put("content", "<p>小明和小波浪幸福地坐在一起。</p>");
             map.put("contentType", "html");
             miscInfo.coverStory = map;
-            miscInfo.application = Constants.APP_FLAG_PEACH;
+            miscInfo.application = Constants.APP_FLAG_TAOZI;
             ds.save(miscInfo);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
@@ -55,7 +49,7 @@ public class BacheCtrl extends Controller {
             Query<UserInfo> query = ds.createQuery(UserInfo.class);
             query.field("userId").notEqual(null);
             for (UserInfo us : query.asList()) {
-                us.setOrigin(Constants.APP_FLAG_PEACH);
+                us.setOrigin(Constants.APP_FLAG_TAOZI);
                 ds.save(us);
             }
         } catch (TravelPiException e) {

@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -16,6 +17,9 @@ import java.util.Map;
 public abstract class TravelPiBaseItem {
     @Transient
     public static final String FD_ENABLED = "enabled";
+
+    @Transient
+    public static final String FD_ID = "id";
 
     @Id
     private ObjectId id;

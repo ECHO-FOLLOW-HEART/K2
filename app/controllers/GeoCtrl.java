@@ -14,8 +14,8 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-import utils.formatter.travelpi.geo.LocalityFormatter;
-import utils.formatter.travelpi.geo.SimpleLocalityFormatter;
+import formatter.travelpi.geo.LocalityFormatter;
+import formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.util.ArrayList;
 import java.util.Iterator;

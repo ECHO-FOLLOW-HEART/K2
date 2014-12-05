@@ -1,6 +1,7 @@
 package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.ITravelPiFormatter;
@@ -11,7 +12,6 @@ import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -58,7 +58,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnOauthId = "oauthList.oauthId";
 
-    private UserInfo() {
+    public UserInfo() {
     }
 
     public static UserInfo newInstance(Integer userId) {
@@ -75,36 +75,43 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      * 昵称
      */
     @Constraints.Required
+    @JsonProperty("nickName")
     private String nickName;
 
     /**
      * 头像
      */
+    @JsonProperty("avatar")
     private String avatar;
 
     /**
      * 性别： F\M\Both\None
      */
+    @JsonProperty("gender")
     private String gender;
 
     /**
      * 签名
      */
+    @JsonProperty("signature")
     private String signature;
 
     /**
      * 手机号
      */
+    @JsonProperty("tel")
     private String tel;
 
     /**
      * 国家编码
      */
+    @JsonProperty("dialCode")
     private Integer dialCode;
 
     /**
      * 用户ID
      */
+    @JsonProperty("userId")
     private Integer userId;
 
     /**
@@ -141,6 +148,8 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 环信的账号
      */
+    // TODO easemob需要改成credential
+    @Transient
     private String easemobUser;
 
     /**
@@ -160,68 +169,9 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
 //     */
 //    public String appVersion;
 
-    public String getGender() {
-        return (gender != null ? gender : "");
-    }
-
-    public void setGender(String gender) {
-        this.gender = gender;
-    }
-
-    public String getSignature() {
-        return (signature != null ? signature : "");
-    }
-
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
-
-    public String getTel() {
-        return (tel != null ? tel : "");
-    }
-
-    public void setTel(String tel) {
-        this.tel = tel;
-    }
-
-    public List<UserInfo> getFriends() {
-        return friends != null ? friends : new ArrayList<UserInfo>();
-    }
-
-    public void setFriends(List<UserInfo> friends) {
-        this.friends = friends;
-    }
-
-    public Integer getDialCode() {
-        return (dialCode != null ? dialCode : 86);
-    }
-
-    public void setDialCode(Integer dialCode) {
-        this.dialCode = dialCode;
-    }
-
-    public String getMemo() {
-        return (memo != null ? memo : "");
-    }
-
-    public String getEmail() {
-        return (email != null ? email : "");
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public List<OAuthInfo> getOauthList() {
-        return oauthList != null ? oauthList : new ArrayList<OAuthInfo>();
-    }
-
-    public void setOauthList(List<OAuthInfo> oauthList) {
-        this.oauthList = oauthList;
-    }
 
     public String getNickName() {
-        return nickName != null ? nickName : "";
+        return nickName;
     }
 
     public void setNickName(String nickName) {
@@ -229,32 +179,44 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     }
 
     public String getAvatar() {
-        return avatar != null ? avatar : "";
+        return avatar;
     }
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
     }
 
-//    public void setMemo(String memo) {
-//        this.memo = memo;
-//    }
-//
-//    public Map<Integer, String> getRemark() {
-//        return remark != null ? remark : new HashMap<Integer, String>();
-//    }
-//
-//    public void setRemark(Map<Integer, String> remark) {
-//        this.remark = remark;
-//    }
-//
-//    public Map<Integer, UserInfo> getBlackList() {
-//        return blackList;
-//    }
-//
-//    public void setBlackList(Map<Integer, UserInfo> blackList) {
-//        this.blackList = blackList;
-//    }
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
+    }
+
+    public Integer getDialCode() {
+        return dialCode;
+    }
+
+    public void setDialCode(Integer dialCode) {
+        this.dialCode = dialCode;
+    }
 
     public Integer getUserId() {
         return userId;
@@ -264,20 +226,52 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
         this.userId = userId;
     }
 
+    public List<UserInfo> getFriends() {
+        return friends;
+    }
+
+    public void setFriends(List<UserInfo> friends) {
+        this.friends = friends;
+    }
+
+    public String getMemo() {
+        return memo;
+    }
+
+    public void setMemo(String memo) {
+        this.memo = memo;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public List<OAuthInfo> getOauthList() {
+        return oauthList;
+    }
+
+    public void setOauthList(List<OAuthInfo> oauthList) {
+        this.oauthList = oauthList;
+    }
+
+    public String getEasemobUser() {
+        return easemobUser;
+    }
+
+    public void setEasemobUser(String easemobUser) {
+        this.easemobUser = easemobUser;
+    }
+
     public String getOrigin() {
         return origin;
     }
 
     public void setOrigin(String origin) {
         this.origin = origin;
-    }
-
-    public String getEasemobUser() {
-        return (easemobUser != null ? easemobUser : "");
-    }
-
-    public void setEasemobUser(String easemobUser) {
-        this.easemobUser = easemobUser;
     }
 
     @Override

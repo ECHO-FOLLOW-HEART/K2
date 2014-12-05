@@ -18,7 +18,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.travelpi.poi.BriefViewSpotFormatter;
+import formatter.travelpi.poi.BriefViewSpotFormatter;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
