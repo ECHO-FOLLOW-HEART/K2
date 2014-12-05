@@ -77,9 +77,9 @@ public class POIRmdFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(AbstractPOI.simpDesc);
+                includedFields.add(AbstractPOI.FD_DESC);
                 includedFields.add(AbstractPOI.simpID);
-                includedFields.add(AbstractPOI.simpName);
+                includedFields.add(AbstractPOI.FD_NAME);
                 includedFields.add(AbstractPOI.simpEnName);
                 includedFields.add(AbstractPOI.fnRating);
                 includedFields.add(ImageItem.fnUrl);

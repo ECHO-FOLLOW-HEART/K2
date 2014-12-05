@@ -18,6 +18,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.travelpi.poi.BriefViewSpotFormatter;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -347,8 +348,10 @@ public class POICtrl extends Controller {
         }
         List<JsonNode> results = new ArrayList<>();
         Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
-        while (it.hasNext())
-            results.add(it.next().toJson(2));
+        while (it.hasNext()) {
+            results.add(BriefViewSpotFormatter.getInstance().format(it.next()));
+        }
+//            results.add(it.next().toJson(2));
 
         return Json.toJson(results);
     }

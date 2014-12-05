@@ -14,7 +14,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.TravelPiBaseItem;
 import models.geo.Locality;
 import models.geo.GeoJsonPoint;
-import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
 import models.misc.ImageItem;
@@ -83,11 +82,11 @@ public class RestaurantFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(AbstractPOI.simpDesc);
+                includedFields.add(AbstractPOI.FD_DESC);
                 includedFields.add(AbstractPOI.simpID);
-                includedFields.add(AbstractPOI.simpZhName);
+                includedFields.add(AbstractPOI.FD_ZH_NAME);
                 includedFields.add(AbstractPOI.simpEnName);
-                includedFields.add(AbstractPOI.simpImg);
+                includedFields.add(AbstractPOI.FD_IMAGES);
                 includedFields.add(AbstractPOI.simpRating);
                 return (includedFields.contains(writer.getName()));
             }

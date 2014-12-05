@@ -77,9 +77,6 @@ public class Locality extends TravelPiBaseItem {
 
     public static String fnImageCnt = "imageCnt";
 
-    @Transient
-    public static String fnLevel = "level";
-
     /**
      * 中文名称
      */
@@ -441,7 +438,7 @@ public class Locality extends TravelPiBaseItem {
 //    public static String fnImageList = "imageList";
 //
 //    @Transient
-//    public static final String fnTags = "tags";
+//    public static final String FD_TAGS = "tags";
 //
 //    @Transient
 //    public static String fnAbroad = "abroad";

@@ -88,9 +88,8 @@ public class LocalityAPI {
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
 
         List<String> fields = new ArrayList<>();
-        fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnEnName, Locality.fnSuperAdm, Locality.fnLevel,
-                Locality.fnDesc, Locality.fnImages, Locality.fnTags, Locality.fnLocation, Locality.fnHotness,
-                Locality.fnAbroad));
+        fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnEnName, Locality.fnSuperAdm, Locality.fnDesc,
+                Locality.fnImages, Locality.fnTags, Locality.fnLocation, Locality.fnHotness, Locality.fnAbroad));
 
         query.retrievedFields(true, fields.toArray(new String[fields.size()]));
         return query.get();

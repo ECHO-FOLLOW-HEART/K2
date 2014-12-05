@@ -108,7 +108,7 @@ public class POICtrl extends Controller {
         try {
             Double latD = Double.valueOf(lat);
             Double lngD = Double.valueOf(lat);
-            List<String> fieldsLimit = Arrays.asList(AbstractPOI.simpID, AbstractPOI.simpName, AbstractPOI.simpDesc, AbstractPOI.simpImg);
+            List<String> fieldsLimit = Arrays.asList(AbstractPOI.simpID, AbstractPOI.FD_NAME, AbstractPOI.FD_DESC, AbstractPOI.FD_IMAGES);
             List<AbstractPOI> poiInfos = (List<AbstractPOI>) PoiAPI.getPOINearBy(gainType, latD, lngD, fieldsLimit, page, pageSize);
 
             List<JsonNode> nodeList = new ArrayList();
