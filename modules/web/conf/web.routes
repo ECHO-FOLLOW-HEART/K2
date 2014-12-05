@@ -21,9 +21,10 @@ GET            /misc/notes/search                             controllers.web.Tr
 
 #----------POI接口----------
 #搜索POI信息：根据位置、标签、关键词
-GET            /poi/view-spots/search                         controllers.web.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
-GET            /poi/hotels/search                             controllers.web.POICtrl.poiSearch(poiType: String="hotel", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
-GET            /poi/restaurants/search                        controllers.web.POICtrl.poiSearch(poiType: String="restaurant", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
+GET            /poi/view-spots/search                         controllers.web.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="hotness", sort: String?="desc",hotelType: String?="")
+GET            /poi/hotels/search                             controllers.web.POICtrl.poiSearch(poiType: String="hotel", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="hotness", sort: String?="desc",hotelType: String?="")
+GET            /poi/restaurants/search                        controllers.web.POICtrl.poiSearch(poiType: String="restaurant", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="hotness", sort: String?="desc",hotelType: String?="")
+GET            /poi/shopping/search                           controllers.web.POICtrl.poiSearch(poiType: String="shopping", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="hotness", sort: String?="desc",hotelType: String?="")
 #推荐POI信息
 GET            /poi/view-spots/explore                        controllers.web.POICtrl.explore(poiDesc: String="vs", loc: String?="",page: Int?=0, pageSize: Int?=20)
 GET            /poi/hotels/explore                            controllers.web.POICtrl.explore(poiDesc: String="hotel", loc: String?="",page: Int?=0, pageSize: Int?=20)
@@ -64,8 +65,3 @@ GET            /recommend/editor                              controllers.web.Mi
 GET            /recommend/mustgo                              controllers.web.MiscCtrl.recommend(sortType: String = "mustGoWeight", page: Int?=0, pageSize: Int?=20)
 #人气之旅
 GET            /recommend/popularity                          controllers.web.MiscCtrl.recommend(sortType: String = "popularityWeight", page: Int?=0, pageSize: Int?=20)
-
-
-
-
-

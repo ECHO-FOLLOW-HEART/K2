@@ -3,12 +3,15 @@ package controllers.web;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.*;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import com.mongodb.DBCursor;
+import com.mongodb.DBObject;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.poi.AbstractPOI;
-import models.poi.ViewSpot;
+import models.user.UserInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -18,6 +21,8 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+import utils.formatter.taozi.user.SimpleUserFormatter;
+import utils.formatter.web.poi.WebPOIFormatter;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -138,9 +143,6 @@ public class POICtrl extends Controller {
         if (colName == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-
-
         DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
 
         BasicDBObject query = new BasicDBObject();
@@ -217,15 +219,14 @@ public class POICtrl extends Controller {
         try {
             JsonNode results = poiSearchImpl(poiType, locId, tag, keyword, page, pageSize, sortField, sortType,
                     hotelTypeStr);
-
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 
-    public static JsonNode poiSearchImpl(String poiType, String locId, String tag, String keyword, int page, int pageSize,
-                                         String sortField, String sortType, String hotelTypeStr) throws TravelPiException {
+    private static JsonNode poiSearchImpl(String poiType, String locId, String tag, String keyword, int page, int pageSize,
+                                          String sortField, String sortType, String hotelTypeStr) throws TravelPiException {
         if (locId.isEmpty())
             locId = null;
         int hotelType = 0;
@@ -248,41 +249,42 @@ public class POICtrl extends Controller {
             case "restaurant":
                 type = PoiAPI.POIType.RESTAURANT;
                 break;
+            case "shopping":
+                type = PoiAPI.POIType.SHOPPING;
+                break;
         }
         if (type == null)
             throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
-        //处理排序
+        //排序顺序
         boolean sort = false;
         if (sortType != null && sortType.equals("asc"))
             sort = true;
 
+        //排序字段
         PoiAPI.SortField sf;
         switch (sortField) {
-            case "price":
-                sf = PoiAPI.SortField.PRICE;
+            case "hotness":
+                sf = PoiAPI.SortField.HOTNESS;
                 break;
-            case "score":
-                sf = PoiAPI.SortField.SCORE;
+            case "rating":
+                sf = PoiAPI.SortField.RATING;
                 break;
             default:
                 sf = null;
         }
 
-        ObjectId locOid;
-        if (locId == null)
-            locOid = null;
-        else {
-            try {
+        ObjectId locOid = null;
+        try {
+            if (locId != null)
                 locOid = new ObjectId(locId);
-            } catch (IllegalArgumentException e) {
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s", locId));
-            }
+        } catch (IllegalArgumentException e) {
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s", locId));
         }
         List<JsonNode> results = new ArrayList<>();
         Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
         while (it.hasNext())
-            results.add(it.next().toJson(2));
+            results.add(new WebPOIFormatter().format(it.next(),poiType));
 
         return Json.toJson(results);
     }

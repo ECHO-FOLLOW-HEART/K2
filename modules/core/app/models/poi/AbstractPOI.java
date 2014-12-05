@@ -208,7 +208,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p/>
+     * <p>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -278,7 +278,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
                 return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id", "desc", "images", "tags", "location", "locList"));
             case 3:
                 return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact", "url",
-                        "price", "priceDesc", "alias"));
+                        "price", "priceDesc", "alias", "zhName", "enName", "location", "openTime", "timeCost", "address", "timeCostDesc", "travelMonth"));
         }
         return new ArrayList<>();
     }
