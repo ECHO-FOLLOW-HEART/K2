@@ -53,17 +53,17 @@ public class SimplePOIFormatter implements JsonFormatter {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractPOI.simpID);
                 includedFields.add(AbstractPOI.simpEnName);
-                includedFields.add(AbstractPOI.simpZhName);
-                includedFields.add(AbstractPOI.simpDesc);
-                includedFields.add(AbstractPOI.simpImg);
+                includedFields.add(AbstractPOI.FD_ZH_NAME);
+                includedFields.add(AbstractPOI.FD_DESC);
+                includedFields.add(AbstractPOI.FD_IMAGES);
                 includedFields.add(AbstractPOI.simpRating);
                 if (poiType.equals("vs")) {
-                    includedFields.add(ViewSpot.fnTimeCostDesc);
+                    includedFields.add(ViewSpot.FD_TIME_COST_DESC);
                 }else {
-                    includedFields.add(AbstractPOI.detPriceDesc);
+                    includedFields.add(AbstractPOI.FD_PRICE_DESC);
                     includedFields.add(AbstractPOI.simpAddress);
                     includedFields.add(AbstractPOI.simpTelephone);
-                    includedFields.add(AbstractPOI.fnTags);
+                    includedFields.add(AbstractPOI.FD_TAGS);
                 }
                 return (includedFields.contains(writer.getName()));
             }

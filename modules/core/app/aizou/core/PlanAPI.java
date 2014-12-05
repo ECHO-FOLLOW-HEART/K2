@@ -77,7 +77,7 @@ public class PlanAPI {
 
         // 无法找到路线，准备模糊匹配
         if (poiId != null) {
-            AbstractPOI vs = PoiAPI.getPOIInfo(poiId, PoiAPI.POIType.VIEW_SPOT, Arrays.asList(AbstractPOI.fnLocality));
+            AbstractPOI vs = PoiAPI.getPOIInfo(poiId, PoiAPI.POIType.VIEW_SPOT, Arrays.asList(AbstractPOI.FD_LOCALITY));
             locId = vs.getLocality().getId();
         }
 

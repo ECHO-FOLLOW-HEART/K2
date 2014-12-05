@@ -55,22 +55,22 @@ public class DetailedPOIFormatter implements JsonFormatter {
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractPOI.simpID);
-                includedFields.add(AbstractPOI.simpZhName);
+                includedFields.add(AbstractPOI.FD_ZH_NAME);
                 includedFields.add(AbstractPOI.simpEnName);
-                includedFields.add(AbstractPOI.simpDesc);
-                includedFields.add(AbstractPOI.simpImg);
+                includedFields.add(AbstractPOI.FD_DESC);
+                includedFields.add(AbstractPOI.FD_IMAGES);
                 includedFields.add(AbstractPOI.fnLocation);
                 includedFields.add(AbstractPOI.detAlias);
                 includedFields.add(AbstractPOI.simpRating);
                 includedFields.add(AbstractPOI.simpAddress);
-                includedFields.add(AbstractPOI.detPriceDesc);
+                includedFields.add(AbstractPOI.FD_PRICE_DESC);
                 includedFields.add(AbstractPOI.simpTelephone);
                 //includedFields.add(AbstractPOI.simpCountry);
                 //includedFields.add(AbstractPOI.simplocList);
 
                 if (poiType.equals("vs")) {
                     includedFields.add(ViewSpot.fnOpenTime);
-                    includedFields.add(ViewSpot.fnTimeCostDesc);
+                    includedFields.add(ViewSpot.FD_TIME_COST_DESC);
                     includedFields.add(ViewSpot.fnTravelMonth);
                     includedFields.add(ViewSpot.detGuideInfoUrl);
                     includedFields.add(ViewSpot.detTrafficInfoUrl);

@@ -1,5 +1,6 @@
 package models.poi;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
@@ -17,10 +18,11 @@ import java.util.*;
  *
  * @author Zephyre
  */
+@JsonFilter("viewSpotFilter")
 public class ViewSpot extends AbstractPOI {
 
     @Transient
-    public static String fnTimeCostDesc = "timeCostDesc";
+    public static final String FD_TIME_COST_DESC = "timeCostDesc";
 
     @Transient
     public static String fnTravelMonth = "travelMonth";
@@ -36,6 +38,9 @@ public class ViewSpot extends AbstractPOI {
 
     @Transient
     public static String detKengDieInfoUrl = "kengdieUrl";
+
+    @Transient
+    public static String FD_DESC_FLAGS = "descriptionFlag";
 
     public Integer spotId;
 

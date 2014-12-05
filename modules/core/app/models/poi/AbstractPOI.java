@@ -53,31 +53,31 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simpID = "id";
 
     @Transient
-    public static String simpName = "name";
+    public static final String FD_NAME = "name";
 
     @Transient
-    public static String simpZhName = "zhName";
+    public static final String FD_ZH_NAME = "zhName";
 
     @Transient
-    public static String simpDesc = "desc";
+    public static final String FD_DESC = "desc";
 
     @Transient
-    public static String simpImg = "images";
+    public static final String FD_IMAGES = "images";
 
     @Transient
     public static String detAddr = "addr";
 
     @Transient
-    public static String fnLocality = "locality";
+    public static String FD_LOCALITY = "locality";
 
     @Transient
     public static String detDesc = "description";
 
     @Transient
-    public static String detPrice = "price";
+    public static String FD_PRICE = "price";
 
     @Transient
-    public static String detPriceDesc = "priceDesc";
+    public static String FD_PRICE_DESC = "priceDesc";
 
     @Transient
     public static String detContact = "contact";
@@ -122,7 +122,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simplocList = "locList";
 
     @Transient
-    public static String fnTags = "tags";
+    public static final String FD_TAGS = "tags";
 
     @Transient
     public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
@@ -161,7 +161,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 坐标
      */
-    public GeoJsonPoint location;
+    private GeoJsonPoint location;
 
     /**
      * 所在目的地
@@ -275,12 +275,21 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             case 1:
                 return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id"));
             case 2:
-                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id", "desc", "images", "tags", "location", "locList"));
+                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id", "desc", "images",
+                        "tags", "location", "locList"));
             case 3:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact", "url",
-                        "price", "priceDesc", "alias"));
+                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact",
+                        "url", "price", "priceDesc", "alias", "locality", "location"));
         }
         return new ArrayList<>();
+    }
+
+    public GeoJsonPoint getLocation() {
+        return location;
+    }
+
+    public void setLocation(GeoJsonPoint location) {
+        this.location = location;
     }
 
     public Locality getLocality() {
