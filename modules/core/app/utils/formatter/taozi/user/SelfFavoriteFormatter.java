@@ -57,6 +57,7 @@ public class SelfFavoriteFormatter implements JsonFormatter {
                 includedFields.add(Favorite.fnUserId);
                 includedFields.add(Favorite.fnCreateTime);
                 includedFields.add(Favorite.fnId);
+                includedFields.add(Favorite.fnDesc);
                 return (includedFields.contains(writer.getName()));
             }
 

@@ -21,7 +21,10 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.*;
+import utils.Constants;
+import utils.DataFilter;
+import utils.LogUtils;
+import utils.Utils;
 import utils.formatter.taozi.misc.MiscFormatter;
 import utils.formatter.taozi.misc.SimpleRefFormatter;
 import utils.formatter.taozi.misc.WeatherFormatter;
@@ -165,9 +168,9 @@ public class MiscCtrl extends Controller {
             //String image = collection.get("image").asText();
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
             Query<Favorite> query = ds.createQuery(Favorite.class);
-            query.field("userId").equal("userId").field("type").equal(type).field("itemId").equal(oid);
+            query.field("userId").equal(userId).field("type").equal(type).field("itemId").equal(oid);
             if (query.iterator().hasNext())
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Favorite item has existed");
+                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Favorite item has existed");
             Favorite fa = new Favorite();
             fa.id = new ObjectId();
             fa.itemId = oid;
@@ -191,7 +194,6 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @SuppressWarnings("unchecked")
     public static Result getFavorite(String faType, int page, int pageSize) {
 
         try {
@@ -210,13 +212,84 @@ public class MiscCtrl extends Controller {
             }
             query.offset(page * pageSize).limit(pageSize);
             query.order("-" + "createTime");
-            Favorite fa = query.get();
-            if (fa != null) {
-                JsonNode info = new SelfFavoriteFormatter().format(fa);
-                ObjectNode ret = (ObjectNode) info;
-                return Utils.createResponse(ErrorCode.NORMAL, ret);
-            } else
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, MsgConstants.FAVORITE_NOT_EXIT_MSG, true);
+
+            List<Favorite> faList = query.asList();
+            if (faList == null || faList.isEmpty())
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<Favorite>()));
+            List<Favorite> faShowList = new ArrayList<>();
+            List<Favorite> noteFav = new ArrayList<>();
+            List<String> travelNoteIds = new ArrayList<>();
+            String type;
+            Locality loc;
+            AbstractPOI poi;
+            PoiAPI.POIType poiType;
+            List locFields = new ArrayList();
+            Collections.addAll(locFields, "id", "type", "zhName", "enName", "images", "desc");
+            for (Favorite fa : faList) {
+                type = fa.type;
+                if (type.equals("locality")) {
+                    loc = GeoAPI.locDetails(fa.itemId, locFields);
+                    fa.zhName = loc.zhName;
+                    fa.enName = loc.enName;
+                    fa.images = loc.images;
+                    fa.desc = loc.desc;
+                } else if (type.equals("travelNote")) {
+                    travelNoteIds.add(fa.itemId.toString());
+                    noteFav.add(fa);
+                } else if (type.equals("vs") || type.equals("hotel") || type.equals("restaurant") || type.equals("shopping")) {
+                    switch (type) {
+                        case "vs":
+                            poiType = PoiAPI.POIType.VIEW_SPOT;
+                            break;
+                        case "hotel":
+                            poiType = PoiAPI.POIType.HOTEL;
+                            break;
+                        case "restaurant":
+                            poiType = PoiAPI.POIType.RESTAURANT;
+                            break;
+                        case "shopping":
+                            poiType = PoiAPI.POIType.SHOPPING;
+                            break;
+                        default:
+                            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", type));
+                    }
+                    poi = PoiAPI.getPOIInfo(fa.itemId, poiType, locFields);
+                    fa.zhName = poi.zhName;
+                    fa.enName = poi.enName;
+                    fa.images = poi.images;
+                    fa.desc = poi.desc;
+                }
+                faShowList.add(fa);
+            }
+            List<TravelNote> travelNotes = TravelNoteAPI.searchNoteById(travelNoteIds, Constants.MAX_COUNT);
+            Map<String, TravelNote> travelNoteMap = new HashMap<>();
+            for (TravelNote temp : travelNotes)
+                travelNoteMap.put(temp.id.toString(), temp);
+            TravelNote tnFromFavorate;
+            if (travelNotes != null && travelNotes.size() > 0) {
+                for (Favorite fa : noteFav) {
+                    tnFromFavorate = travelNoteMap.get(fa.itemId.toString());
+                    if (tnFromFavorate == null)
+                        continue;
+                    fa.zhName = tnFromFavorate.getName();
+                    fa.enName = tnFromFavorate.getName();
+                    ImageItem tmg = new ImageItem();
+                    tmg.url = tnFromFavorate.getCover();
+                    fa.images = Arrays.asList(tmg);
+                    fa.desc = tnFromFavorate.getDesc();
+                    faShowList.add(fa);
+                }
+            }
+            // 按照创建时间排序
+            Collections.sort(faShowList, new Comparator<Favorite>() {
+                public int compare(Favorite arg0, Favorite arg1) {
+                    return arg0.createTime.getTime() - arg1.createTime.getTime() > 0 ? -1 : 1;
+                }
+            });
+            List<ObjectNode> nodes = new ArrayList<>();
+            for (Favorite fa : faShowList)
+                nodes.add((ObjectNode) new SelfFavoriteFormatter().format(fa));
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodes));
         } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }

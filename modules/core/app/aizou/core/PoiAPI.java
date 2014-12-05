@@ -491,6 +491,31 @@ public class PoiAPI {
         return ds.createQuery(poiClass).field("_id").equal(poiId).get();
     }
 
+    public static AbstractPOI getPOIInfo(ObjectId poiId, POIType poiType, List<String> fieldList) throws TravelPiException {
+        Class<? extends AbstractPOI> poiClass;
+        switch (poiType) {
+            case VIEW_SPOT:
+                poiClass = ViewSpot.class;
+                break;
+            case HOTEL:
+                poiClass = Hotel.class;
+                break;
+            case RESTAURANT:
+                poiClass = Restaurant.class;
+                break;
+            case SHOPPING:
+                poiClass = Shopping.class;
+                break;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+        }
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        return query.field("_id").equal(poiId).get();
+    }
+
     /**
      * 发现POI。
      *
@@ -743,6 +768,9 @@ public class PoiAPI {
                 break;
             case "hotel":
                 poiClass = Hotel.class;
+                break;
+            case "shopping":
+                poiClass = Shopping.class;
                 break;
             case "restaurant":
                 poiClass = Restaurant.class;

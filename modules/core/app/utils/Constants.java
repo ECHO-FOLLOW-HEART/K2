@@ -19,6 +19,7 @@ public class Constants {
 
     // 一个大数
     public static int MAX_COUNT = 99999;
+    public static int ZERO_COUNT = 0;
     // 标识web请求
     public static int WEB_REQUEST = 1;
     // 图片标识

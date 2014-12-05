@@ -153,70 +153,118 @@ public class TravelNoteAPI {
             */
             SolrServer server = new HttpSolrServer(url);
             SolrQuery query = new SolrQuery();
-
             StringBuilder sb = new StringBuilder();
             if (lcoNames != null) {
                 for (String t : lcoNames)
                     sb.append(String.format(" title:%s toLoc:%s", t, t));
             }
-
             if (vsNames != null) {
                 for (String t : vsNames)
                     sb.append(String.format(" contents:%s", t));
             }
 
             query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title")
-                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents");
+                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id");
             query.setRows(pageSize);
 
             docs = server.query(query).getResults();
-
-            for (SolrDocument doc : docs) {
-                TravelNote note = new TravelNote();
-                Object tmp;
-                note.authorName = (String) doc.get("authorName");
-                note.title = (String) doc.get("title");
-                tmp = doc.get("authorAvatar");
-                note.authorAvatar = (tmp != null ? (String) tmp : "");
-                if (!note.authorAvatar.startsWith("http://"))
-                    note.authorAvatar = "http://" + note.authorAvatar;
-                tmp = doc.get("favorCnt");
-                note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-                note.contents = (List) doc.get("contents");
-                note.sourceUrl = (String) doc.get("url");
-                note.source = "baidu";
-                tmp = doc.get("commentCnt");
-                note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-                tmp = doc.get("viewCnt");
-                note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-                note.publishDate = new Date();
-                tmp = doc.get("sourceUrl");
-                note.sourceUrl = (tmp != null ? (String) tmp : "");
-
-                if (note.contents.size() > 1) {
-                    sb = new StringBuilder();
-                    for (int i = 1; i < note.contents.size(); i++) {
-                        String c = note.contents.get(i);
-                        if (Pattern.matches("^\\s*http.+", c))
-                            continue;
-                        sb.append(c);
-                        sb.append('\n');
-                        if (sb.length() > 200)
-                            break;
-                    }
-                    String summary = sb.toString().trim();
-                    if (summary.length() > 200)
-                        summary = summary.substring(0, 200) + "……";
-                    note.summary = summary;
-                }
-                results.add(note);
-            }
-
-            return results;
+            return getTravelNotesByDocuments(docs);
 
         } catch (SolrServerException e) {
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, e.getMessage());
         }
+    }
+
+    public static List<TravelNote> searchNoteById(List<String> ids,int pageSize) throws TravelPiException {
+
+        List<TravelNote> results = new ArrayList<>();
+        SolrDocumentList docs;
+        try {
+            Configuration config = Configuration.root().getConfig("solr");
+            String host = config.getString("host", "localhost");
+            Integer port = config.getInt("port", 8983);
+            String url = String.format("http://%s:%d/solr", host, port);
+            /*
+            HttpSolrServer is thread-safe and if you are using the following constructor,
+            you *MUST* re-use the same instance for all requests.  If instances are created on
+            the fly, it can cause a connection leak. The recommended practice is to keep a
+            static instance of HttpSolrServer per solr server url and share it for all requests.
+            See https://issues.apache.org/jira/browse/SOLR-861 for more details
+            */
+            SolrServer server = new HttpSolrServer(url);
+            SolrQuery query = new SolrQuery();
+            StringBuilder sb = new StringBuilder();
+            if (ids != null) {
+                for (String t : ids)
+                    sb.append(String.format(" id:%s", t));
+            }
+            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title")
+                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id");
+            query.setRows(pageSize);
+            docs = server.query(query).getResults();
+            return getTravelNotesByDocuments(docs);
+
+        } catch (SolrServerException e) {
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 根據Solr文檔生成遊記對象
+     *
+     * @param docs
+     * @return
+     */
+    private static List<TravelNote> getTravelNotesByDocuments(SolrDocumentList docs) {
+        List<TravelNote> results = new ArrayList<>();
+        StringBuilder sb;
+        TravelNote note;
+        for (SolrDocument doc : docs) {
+            note = new TravelNote();
+            Object tmp;
+            note.authorName = (String) doc.get("authorName");
+            note.title = (String) doc.get("title");
+            tmp = doc.get("authorAvatar");
+            note.authorAvatar = (tmp != null ? (String) tmp : "");
+            if (!note.authorAvatar.startsWith("http://"))
+                note.authorAvatar = "http://" + note.authorAvatar;
+            tmp = doc.get("favorCnt");
+            try{
+                note.id = new ObjectId(doc.get("id").toString());
+            }catch (IllegalArgumentException e){
+            }
+            note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+            note.contents = (List) doc.get("contents");
+            note.sourceUrl = (String) doc.get("url");
+            note.source = "baidu";
+            tmp = doc.get("commentCnt");
+            note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+            tmp = doc.get("viewCnt");
+            note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+            note.publishDate = new Date();
+            tmp = doc.get("sourceUrl");
+            note.sourceUrl = (tmp != null ? (String) tmp : "");
+
+            if (note.contents.size() > 1) {
+                sb = new StringBuilder();
+                for (int i = 1; i < note.contents.size(); i++) {
+                    String c = note.contents.get(i);
+                    if (Pattern.matches("^\\s*http.+", c))
+                        continue;
+                    sb.append(c);
+                    sb.append('\n');
+                    if (sb.length() > 200)
+                        break;
+                }
+                String summary = sb.toString().trim();
+                if (summary.length() > 200)
+                    summary = summary.substring(0, 200) + "……";
+                note.summary = summary;
+            }
+            results.add(note);
+        }
+        return results;
+
     }
 
 }

@@ -27,17 +27,6 @@ public class GeoAPI {
      * @param field
      * @return
      */
-    public static Country countryDetails(String countryId, List<String> field) throws TravelPiException {
-        return countryDetails(new ObjectId(countryId), field);
-    }
-
-    /**
-     * 获得国家详情
-     *
-     * @param countryId
-     * @param field
-     * @return
-     */
     public static Country countryDetails(ObjectId countryId, List<String> field) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Country> query = ds.createQuery(Country.class).field("_id").equal(countryId);
@@ -57,6 +46,21 @@ public class GeoAPI {
     public static Locality locDetails(ObjectId locId) throws TravelPiException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
+        return query.get();
+    }
+
+    /**
+     * 获得城市详情。
+     *
+     * @param locId 城市ID。
+     * @return 如果没有找到，返回null。
+     * @throws exception.TravelPiException
+     */
+    public static Locality locDetails(ObjectId locId,List<String> fieldList) throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         return query.get();
     }
 
