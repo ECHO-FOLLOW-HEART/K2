@@ -1,12 +1,13 @@
 package formatter.taozi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
-import com.fasterxml.jackson.databind.ser.SerializerFactory;
 import formatter.JsonFormatter;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -38,7 +39,6 @@ public abstract class TaoziBaseFormatter implements JsonFormatter {
         SimpleModule objectIdModule = new SimpleModule();
         objectIdModule.addSerializer(ObjectId.class, new ObjectIdSerializer());
         mapper.registerModule(objectIdModule);
-
 
         DefaultSerializerProvider.Impl sp = new DefaultSerializerProvider.Impl();
         sp.setNullValueSerializer(new JsonSerializer<Object>() {

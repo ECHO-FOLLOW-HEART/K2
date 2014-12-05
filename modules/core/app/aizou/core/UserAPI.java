@@ -7,6 +7,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import formatter.taozi.user.SideUserFormatter;
 import models.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.misc.Sequence;
@@ -28,7 +29,6 @@ import play.mvc.Http;
 import utils.Constants;
 import utils.FPUtils;
 import utils.Utils;
-import formatter.taozi.user.SimpleUserFormatter;
 
 import javax.crypto.KeyGenerator;
 import java.io.InputStream;
@@ -1174,7 +1174,7 @@ public class UserAPI {
     public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType) throws TravelPiException {
         if (selfInfo.getEasemobUser() == null)
             throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
-        ObjectNode info = (ObjectNode) new SimpleUserFormatter().format(selfInfo);
+        ObjectNode info = (ObjectNode) new SideUserFormatter().format(selfInfo);
 
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);

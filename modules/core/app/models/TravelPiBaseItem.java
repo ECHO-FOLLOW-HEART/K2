@@ -18,6 +18,9 @@ public abstract class TravelPiBaseItem {
     @Transient
     public static final String FD_ENABLED = "enabled";
 
+    @Transient
+    public static final String FD_ID = "id";
+
     @Id
     private ObjectId id;
 
