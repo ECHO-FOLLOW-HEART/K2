@@ -44,8 +44,6 @@ import java.util.*;
  */
 public class PlanCtrl extends Controller {
 
-
-    public static int WEB_REQUEST_FLAG = 1;
     public static String UGCPLAN = "UgcPlan";
     public static String SHAREPLAN = "SharePlan";
 
@@ -493,153 +491,6 @@ public class PlanCtrl extends Controller {
             }
         }
     }
-
-//    /**
-//     * 查询路线的详细信息。
-//     *
-//     * @param planId    路线id
-//     * @param fromLocId 从哪个城市出发
-//     * @return
-//     * @throws UnknownHostException
-//     */
-//    public static Result getPlanFromTemplatesOld(String planId, String fromLocId, String backLocId, int traffic, int hotel) {
-//        try {
-//            DBObject plan = PlanAPIOld.getPlanOld(planId);
-//
-//            DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
-//            DBObject fromLoc, backLoc;
-//            try {
-//                fromLoc = locCol.findOne(QueryBuilder.start("_id").is(new ObjectId(fromLocId)).get());
-//                if (fromLoc == null)
-//                    throw new NullPointerException();
-//                if (backLocId == null || backLocId.isEmpty())
-//                    backLocId = fromLocId;
-//                backLoc = locCol.findOne(QueryBuilder.start("_id").is(new ObjectId(backLocId)).get());
-//                if (backLoc == null)
-//                    throw new NullPointerException();
-//                backLocId = backLoc.get("_id").toString();
-//            } catch (IllegalArgumentException | NullPointerException e) {
-//                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
-//            }
-//
-//            // 获得基准时间（默认为3天后）
-//            Calendar calBase = Calendar.getInstance();
-//            calBase.add(Calendar.DAY_OF_YEAR, 3);
-//            calBase.set(Calendar.HOUR, 0);
-//            calBase.set(Calendar.MINUTE, 0);
-//            calBase.set(Calendar.SECOND, 0);
-//            calBase.set(Calendar.MILLISECOND, 0);
-//
-//            DBObject ret1 = Planner.generateUgcPlan(plan, fromLocId, backLocId, calBase);
-//
-//            return Utils.createResponse(ErrorCode.NORMAL, Utils.bsonToJson(ret1));
-//        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
-//        }
-//
-////        ObjectNode ret = Json.newObject();
-////        ret.put("_id", plan.get("_id").toString());
-////        DBObject loc = (DBObject) plan.get("loc");
-////        ret.put("loc", Json.toJson(BasicDBObjectBuilder.start("_id", loc.get("_id").toString())
-////                .add("name", loc.get("name").toString()).get()));
-////
-////        for (String key : new String[]{"target", "title", "tags", "days", "desc", "imageList", "viewCnt"}) {
-////            Object tmp = plan.get(key);
-////            if (tmp != null)
-////                ret.put(key, Json.toJson(tmp));
-////        }
-////
-////        // 获取路线详情
-////        BasicDBList detailsList = (BasicDBList) plan.get("details");
-////
-////
-////        // 整个路线详情列表
-////        List<JsonNode> detailNodes = new ArrayList<>();
-////
-////        if (detailsList != null) {
-////            int curDay = -1;
-////            // 单日路线详情列表（只处理景区）
-////            List<JsonNode> detailNodesD = new ArrayList<>();
-////
-////            // 按照dayIdx和idx的顺序进行排序
-////            Collections.sort(detailsList, new Comparator<Object>() {
-////                @Override
-////                public int compare(Object o1, Object o2) {
-////                    int dayIdx1 = (int) ((DBObject) o1).get("dayIdx");
-////                    int dayIdx2 = (int) ((DBObject) o2).get("dayIdx");
-////                    int idx1 = (int) ((DBObject) o1).get("idx");
-////                    int idx2 = (int) ((DBObject) o2).get("idx");
-////
-////                    int c = dayIdx1 - dayIdx2;
-////                    if (c == 0)
-////                        c = idx1 - idx2;
-////                    return c;
-////                }
-////            });
-////
-////            DBCollection vsCol = Utils.getMongoClient().getDB("poi").getCollection("view_spot");
-////
-////            for (Object aDetailsList : detailsList) {
-////                DBObject detailsItem = (DBObject) aDetailsList;
-////                DBObject item = (DBObject) detailsItem.get("item");
-////                if (!item.get("type").equals("vs"))
-////                    continue;
-////
-////                ObjectNode node = Json.newObject();
-////
-////                int dayIdx = (int) detailsItem.get("dayIdx");
-////                node.put("dayIdx", dayIdx);
-////
-////                // 景点
-////                ObjectNode vsNode = Json.newObject();
-////                vsNode.put("_id", item.get("_id").toString());
-////                vsNode.put("name", item.get("name").toString());
-////                vsNode.put("type", "vs");
-////                DBObject vs = vsCol.findOne(QueryBuilder.start("_id").is(item.get("_id")).get());
-////                Object tmp = vs.get("tags");
-////                if (tmp != null)
-////                    vsNode.put("tags", Json.toJson(tmp));
-////                tmp = vs.get("intro");
-////                if (tmp != null) {
-////                    tmp = ((DBObject) tmp).get("desc");
-////                    if (tmp != null)
-////                        vsNode.put("desc", StringUtils.abbreviate(tmp.toString(), 64));
-////                }
-////                node.put("item", vsNode);
-////
-////                DBObject stopLoc = (DBObject) detailsItem.get("loc");
-////                ObjectNode locNode = Json.newObject();
-////                locNode.put("_id", stopLoc.get("_id").toString());
-////                locNode.put("name", stopLoc.get("name").toString());
-////                node.put("loc", locNode);
-////
-////                if (dayIdx != curDay) {
-////                    if (!detailNodesD.isEmpty())
-////                        detailNodes.add(Json.toJson(detailNodesD));
-////                    detailNodesD = new ArrayList<>();
-////                }
-////                detailNodesD.add(node);
-////                curDay = dayIdx;
-////            }
-////            if (!detailNodesD.isEmpty())
-////                detailNodes.add(Json.toJson(detailNodesD));
-////        }
-////
-//////        if (traffic != 0) {
-//////            // TODO 交通的起止时间，需要根据当天的游玩景点而定。
-//////            // 添加大交通
-//////            Planner.telomere(detailsList, fromLoc, calBase, true);
-//////            Planner.telomere(detailsList, backLoc, calBase, false);
-//////        }
-////
-////        // 添加每晚住宿
-////
-////        ret.put("details", Json.toJson(detailNodes));
-////
-////        return Utils.createResponse(ErrorCode.NORMAL, ret);
-//    }
-
-
     /**
      * 保存用户的路线
      *
@@ -998,27 +849,6 @@ public class PlanCtrl extends Controller {
         }
     }
 
-//    /**
-//     * 路线发现机制
-//     *
-//     * @param locId
-//     * @param sortField
-//     * @param sort
-//     * @param tags
-//     * @param page
-//     * @param pageSize
-//     * @return
-//     */
-//    public static Result explorePlansOld(String locId, String poiId, String sortField, String sort, String tags, int page, int pageSize) throws UnknownHostException, TravelPiException {
-//        List<JsonNode> results = new ArrayList<>();
-//        for (Object tmp : PlanAPIOld.exploreOld(locId, poiId, sort, tags, page, pageSize, sortField)) {
-//            DBObject planNode = (DBObject) tmp;
-//            results.add(PlanAPIOld.getPlanJsonOld(planNode));
-//        }
-//
-//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
-//    }
-
     /**
      * POI映射类
      *
@@ -1030,7 +860,6 @@ public class PlanCtrl extends Controller {
         String type = item.get("type").asText();
         String st = item.get("st").asText();
         SimpleDateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
-//        String subType = item.get("subType").asText();
 
         PlanItem planItem = null;
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
@@ -1137,7 +966,6 @@ public class PlanCtrl extends Controller {
                 planItem.type = "traffic";
                 planItem.subType = "airRoute";
                 planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
-//                planItem.ts = airRoute.depTime;
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
                 } catch (ParseException | NullPointerException ignored) {
@@ -1153,7 +981,6 @@ public class PlanCtrl extends Controller {
                 planItem.type = "traffic";
                 planItem.subType = "trainRoute";
                 planItem.transfer = item.get("transfer") == null ? "" : item.get("transfer").asText();
-//                planItem.ts = trainRoute.depTime;
                 try {
                     planItem.ts = fmt.parse(item.get("ts").asText());
                 } catch (ParseException | NullPointerException ignored) {
@@ -1252,11 +1079,6 @@ public class PlanCtrl extends Controller {
             isAway = PlanUtils.isFromTraffic(item);
             (isAway ? awayTraffic : backTraffic).add(trafficItem);
 
-//            if (subType.equals("airport") || subType.equals("trainStation")) {
-//                arrived = !arrived;
-//                if (arrived)
-//                    isAway = !isAway;
-//            }
         }
 
         // 需要考虑两端的大交通的时间是否需要shift
@@ -1455,30 +1277,6 @@ public class PlanCtrl extends Controller {
         }
     }
 
-    /**
-     * 取得分享的路线
-     *
-     * @param planId
-     * @return
-     */
-    public static Result getSharePlans(String planId) {
-
-        try {
-            //根据ID取得分享的路线
-            if (!planId.equals("")) {
-                SharePlan sharePlan = PlanAPI.getSharePlanById(planId);
-
-                //取详细信息
-                JsonNode planJson = sharePlan.toJson(true);
-                return Utils.createResponse(ErrorCode.NORMAL, planJson);
-            }
-
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-    }
-
     public static Result deleteUGCPlans(String ugcPlanId) {
         try {
             PlanAPI.deleteUGCPlan(ugcPlanId);
@@ -1486,85 +1284,5 @@ public class PlanCtrl extends Controller {
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }
-    }
-
-    /**
-     * 分享
-     *
-     * @return
-     */
-    public static Result shareUGCPlan() {
-        try {
-
-            JsonNode data = request().body().asJson();
-
-            Configuration config = Configuration.root();
-            Map shareConf = (Map) config.getObject("share");
-
-            String domain = shareConf.get("domain").toString();
-            String url = shareConf.get("url").toString();
-            StringBuffer uri = new StringBuffer(10);
-            uri.append("http://");
-            uri.append(domain);
-            uri.append("/");
-            uri.append(url);
-            uri.append("?");
-            uri.append("id=");
-            uri.append(data.get("_id").asText());
-
-            updateUGCPlan(data, SHAREPLAN);
-
-            Share share = new Share();
-            List<String> urlList = new ArrayList<String>();
-            urlList.add(uri.toString());
-            share.urls = urlList;
-            return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(share.toJson(), request(), Constants.SMALL_PIC));
-        } catch (ClassCastException | NullPointerException ec) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
-        } catch (TravelPiException | NoSuchFieldException | InstantiationException | ParseException | IllegalAccessException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        }
-    }
-
-    public static Result getUGCPlans1(String userId, String ugcPlanId, int page, int pageSize) {
-        try {
-            //根据ID取得UGC路线
-            if (!ugcPlanId.equals("")) {
-                JsonNode planJson = getUgcPlanByIdImpl(ugcPlanId);
-//                return Utils.createResponse(ErrorCode.NORMAL, planJson);
-                return Utils.createResponse(ErrorCode.NORMAL,
-                        DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC));
-            }
-
-            //根据用户ID取得UGC路线列表
-            if (!userId.equals("")) {
-                JsonNode results = getUgcPlanListByUser(userId, page, pageSize);
-                return Utils.createResponse(ErrorCode.NORMAL, results);
-            }
-
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
-        } catch (ClassCastException ec) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-    }
-
-    public static JsonNode getUgcPlanListByUser(String userId, int page, int pageSize) throws TravelPiException {
-        List<JsonNode> results = new ArrayList<>();
-        for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
-            //取粗略信息
-            results.add(SimpleUgcPlanFormatter.getInstance().format(it.next()));
-        }
-        return Json.toJson(results);
-    }
-
-    public static JsonNode getUgcPlanByIdImpl(String ugcPlanId) throws TravelPiException {
-        UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
-
-        //取详细信息
-        //                JsonNode planJson = SimpleUgcPlanFormatter.getInstance().format(ugcPlan);
-//        planJson = DataFilter.appJsonFilter(planJson, request(), Constants.BIG_PIC);
-        return ugcPlan.toJson(true);
     }
 }

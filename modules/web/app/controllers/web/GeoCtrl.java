@@ -6,8 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
-import models.geo.Locality;
-import models.geo.Country;
 import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -94,93 +92,8 @@ public class GeoCtrl extends Controller {
                 }
                 result.put("relVs", Json.toJson(retVsNodes));
             } else
-                //edit by PC_Chen : return a empty list instead
-//                result.put("relVs", "");
                 result.put("relVs", Json.toJson(new ArrayList<JsonNode>()));
             return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-    }
-
-//    public static Result lookupLocality(int baiduId) throws TravelPiException {
-//        models.geo.Locality loc = LocalityAPI.locDetailsBaiduId(baiduId);
-//        if (loc == null)
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
-//        else
-//            return Utils.createResponse(ErrorCode.NORMAL, loc.toJson());
-//    }
-
-//    /**
-//     * 通过百度ID得到城市信息。
-//     *
-//     * @param baiduId
-//     * @return
-//     */
-//    public static Result getLocalityBaiduId(int baiduId) {
-//        models.geo.Locality loc = null;
-//        try {
-//            loc = LocalityAPI.locDetailsBaiduId(baiduId);
-//            if (loc == null)
-//                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid Baidu ID: %d.", baiduId));
-//            else
-//                return Utils.createResponse(ErrorCode.NORMAL, loc.toJson(1));
-//        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
-//        }
-//
-//    }
-
-    /**
-     * 根据ID获得
-     *
-     * @param id
-     * @return
-     */
-    public static Result getCountry(String id) {
-        try {
-            Country country = LocalityAPI.countryDetails(id);
-            return Utils.createResponse(ErrorCode.NORMAL, country.toJson());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-    }
-
-    /**
-     * 搜索国家信息
-     *
-     * @param keyword
-     * @param searchType
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result searchCountry(String keyword, String searchType, int page, int pageSize) {
-//        if (keyword == null || keyword.trim().isEmpty())
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid keyword");
-        if (searchType == null || searchType.trim().isEmpty())
-            searchType = "name";
-
-        try {
-            List<Country> countryList;
-            switch (searchType) {
-                case "name":
-                    countryList = LocalityAPI.searchCountryByName(keyword, page, pageSize);
-                    break;
-                case "code":
-                    countryList = LocalityAPI.searchCountryByCode(keyword, page, pageSize);
-                    break;
-                case "region":
-                    countryList = LocalityAPI.searchCountryByRegion(keyword, page, pageSize);
-                    break;
-                default:
-                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid search type: %s", searchType));
-            }
-
-            List<JsonNode> result = new ArrayList<>();
-            for (Country c : countryList)
-                result.add(c.toJson());
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());
         }

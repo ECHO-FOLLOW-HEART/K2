@@ -1,10 +1,5 @@
-# Routes
-# This file defines all application routes (Higher priority routes first)
-# ~~~~
 
-# Home page
-#-------------------------------------
-#路线
+#----------路线接口----------
 #复制路线：生成一条UGC路线
 GET            /ugc-plans/templates/:planId                   controllers.web.PlanCtrl.getPlanFromTemplates(planId: String, fromLoc: String, backLoc: String?="",webFlag: Int=1,uid: String?="")
 #查看UGC路线详情
@@ -24,7 +19,7 @@ POST           /plans/optimizers                              controllers.web.Pl
 #路线相关游记
 GET            /misc/notes/search                             controllers.web.TravelNoteCtrl.searchNotes()
 
-#POI
+#----------POI接口----------
 #搜索POI信息：根据位置、标签、关键词
 GET            /poi/view-spots/search                         controllers.web.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
 GET            /poi/hotels/search                             controllers.web.POICtrl.poiSearch(poiType: String="hotel", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
@@ -38,6 +33,7 @@ GET            /poi/view-spots/:spotId                        controllers.web.PO
 GET            /poi/hotels/:hotelId                           controllers.web.POICtrl.viewSpotInfo(poiDesc: String="hotel", hotelId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
 GET            /poi/restaurants/:resId                        controllers.web.POICtrl.viewSpotInfo(poiDesc: String="restaurant", resId: String, showDetails: Int=1, showRelated: Int?=0, pageSize: Int?=10)
 
+#----------交通接口----------
 # 交通查询
 GET            /itineraries/air-routes                        controllers.web.TrafficCtrl.searchAirRoutes(dep: String, arr: String, depTime: String?="", sortField: String?="price", sort: String?="desc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET            /itineraries/air-routes/:flightCode            controllers.web.TrafficCtrl.getAirRouteByCode(flightCode: String, depTime: String?="")
@@ -47,14 +43,15 @@ GET            /itineraries/train-routes/:trainCode           controllers.web.Tr
 #联想：目的地，景点，酒店，餐馆
 GET            /suggestions                                   controllers.web.MiscCtrl.getSuggestions(word: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, pageSize: Int?=5)
 
-#地理
+#----------地理接口----------
 # 搜索城市
 GET            /geo/localities/search                         controllers.web.GeoCtrl.searchLocality(keyword: String?="", country: String?="", scope: Int?=1, prefix: Boolean?=true, page: Int?=0, pageSize: Int?=20)
 # 查看城市详情
 GET            /geo/localities/:id                            controllers.web.GeoCtrl.getLocality(id: String, relatedVs: Int?=0, hotel: Int?=0, restaurant: Int?=0)
 #用户登录
 POST           /users/oauth-login                             controllers.web.UserCtrl.oauthLogin()
-#发现：推荐机制
+
+#----------推荐接口----------
 #热门景点
 GET            /recommend/hotvs                               controllers.web.MiscCtrl.recommend(sortType: String = "hotVs", page: Int?=0, pageSize: Int?=20)
 #热门城市

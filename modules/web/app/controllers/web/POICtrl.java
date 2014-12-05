@@ -203,72 +203,6 @@ public class POICtrl extends Controller {
     }
 
     /**
-     * 获得相关景点。
-     *
-     * @param spotId
-     * @param tagFilter
-     * @param sortFilter
-     * @param sort
-     * @param page
-     * @param pageSize
-     * @return
-     * @throws java.net.UnknownHostException
-     */
-    public static Result relatedViewSpotListOld(String spotId, String tagFilter, String sortFilter, String sort, int page, int pageSize) throws UnknownHostException, TravelPiException {
-        DBCollection col = Utils.getMongoClient().getDB("poi").getCollection("view_spot");
-        String locId;
-        try {
-            DBObject vs = col.findOne(QueryBuilder.start("_id").is(new ObjectId(spotId)).get(),
-                    BasicDBObjectBuilder.start("geo.locality._id", 1).get());
-            locId = ((DBObject) ((DBObject) vs.get("geo")).get("locality")).get("_id").toString();
-            if (locId == null)
-                throw new NullPointerException();
-        } catch (IllegalArgumentException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid view spot ID: %s.", spotId));
-        }
-
-        return viewSpotList(locId, tagFilter, sortFilter, sort, page, pageSize);
-    }
-
-    /**
-     * 获得相关景点。
-     *
-     * @param spotId     景点ID。
-     * @param tag        相关景点的标签。
-     * @param sortFilter
-     * @param sort
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result relatedViewSpotList(String spotId, String tag, String sortFilter, String sort, int page, int pageSize) {
-        try {
-            ViewSpot poiInfo = (ViewSpot) PoiAPI.getPOIInfo(spotId, PoiAPI.POIType.VIEW_SPOT, false);
-            if (poiInfo == null)
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<>()));
-
-            List<JsonNode> vsList = new ArrayList<>();
-            final ObjectId locId = poiInfo.addr.loc.id;
-            for (Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(PoiAPI.POIType.VIEW_SPOT, locId,
-                    tag, null, null, true, page, pageSize, false,
-                    new HashMap<String, Object>() {
-                        {
-                            put("_id !=", locId);
-                        }
-                    }, 0); it.hasNext(); ) {
-                ViewSpot vs = (ViewSpot) it.next();
-                vsList.add(vs.toJson(2));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(vsList));
-        } catch (NullPointerException e) {
-            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        }
-    }
-
-
-    /**
      * 根据关键词搜索POI信息。
      *
      * @param poiType
@@ -351,16 +285,6 @@ public class POICtrl extends Controller {
             results.add(it.next().toJson(2));
 
         return Json.toJson(results);
-    }
-
-    /**
-     * 对POI进行签到操作。
-     *
-     * @param poiType POI类型。
-     * @return
-     */
-    public static Result poiCheckin(String poiType, String poiId) {
-        return Utils.createResponse(ErrorCode.NORMAL, "SUCCESS");
     }
 
     /**
