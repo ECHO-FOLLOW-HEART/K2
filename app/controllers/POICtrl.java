@@ -33,19 +33,8 @@ import java.util.List;
  */
 public class POICtrl extends Controller {
 
-    /**
-     * 获得POI的详细信息。
-     *
-     * @param poiDesc     POI的类型说明:
-     *                    vs: 景点
-     *                    hotel: 酒店
-     *                    restaurant: 餐饮
-     * @param spotId      POI的ID。
-     * @param showDetails 获得更多的详情。
-     * @param showRelated 获得相关POI信息。
-     */
-    public static Result viewSpotInfo(String poiDesc, String spotId, int showDetails, int showRelated, int pageSize) throws TravelPiException {
-
+    private static JsonNode viewSpotInfoImpl(String poiDesc, String spotId, boolean showDetails, boolean showRelated,
+                                             int pageSize) throws TravelPiException {
         PoiAPI.POIType poiType = null;
         switch (poiDesc) {
             case "vs":
@@ -59,16 +48,15 @@ public class POICtrl extends Controller {
                 break;
         }
         if (poiType == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
 
-        boolean details = (showDetails != 0);
-        AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
+        AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, showDetails);
         if (poiInfo == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
+            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
 
-        ObjectNode results = (ObjectNode) poiInfo.toJson(details ? 3 : 2);
+        ObjectNode results = (ObjectNode) poiInfo.toJson(showDetails ? 3 : 2);
 
-        if (showRelated != 0) {
+        if (showRelated) {
             // 获得相关景点
             try {
                 List<JsonNode> vsList = new ArrayList<>();
@@ -92,8 +80,25 @@ public class POICtrl extends Controller {
                 throw new TravelPiException(e.errCode, e.getMessage());
             }
         }
-        JsonNode result = DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC);
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(result, request()));
+
+        return Json.toJson(results);
+    }
+
+    /**
+     * 获得POI的详细信息。
+     *
+     * @param poiDesc     POI的类型说明:
+     *                    vs: 景点
+     *                    hotel: 酒店
+     *                    restaurant: 餐饮
+     * @param spotId      POI的ID。
+     * @param showDetails 获得更多的详情。
+     * @param showRelated 获得相关POI信息。
+     */
+    public static Result viewSpotInfo(String poiDesc, String spotId, boolean showDetails, boolean showRelated,
+                                      int pageSize) throws TravelPiException {
+        JsonNode result = viewSpotInfoImpl(poiDesc, spotId, showDetails, showRelated, pageSize);
+        return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
 
