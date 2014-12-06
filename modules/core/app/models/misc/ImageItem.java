@@ -18,7 +18,7 @@ import java.util.Map;
  */
 @JsonFilter("imageItemFilter")
 @Embedded
-public class ImageItem implements ITravelPiFormatter {
+public class ImageItem {
 
     @Transient
     public static final String FD_URL = "url";
@@ -152,12 +152,5 @@ public class ImageItem implements ITravelPiFormatter {
 
     public void setCropHint(Map<String, Integer> cropHint) {
         this.cropHint = cropHint;
-    }
-
-    @Override
-    public JsonNode toJson() {
-        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("url", url).add("w", w).add("h", h).add("fmt", fmt == null ? "" : fmt)
-                .add("cm", cm == null ? "" : cm).add("hash", hash == null ? "" : hash).add("size", size == null ? "" : size);
-        return Json.toJson(builder.get());
     }
 }
