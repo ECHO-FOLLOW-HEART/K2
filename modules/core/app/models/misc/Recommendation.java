@@ -107,7 +107,7 @@ public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatt
             for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size()))) {
 
                 BasicDBObjectBuilder bld = BasicDBObjectBuilder.start()
-                        .add("url", img.getUrl())
+                        .add("url", img.getFullUrl())
                         .add("w", img.getW())
                         .add("h", img.getH());
 

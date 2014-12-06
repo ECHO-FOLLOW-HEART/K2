@@ -1,13 +1,9 @@
 package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.BasicDBObjectBuilder;
-import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
-import play.libs.Json;
 
 import java.util.Map;
 
@@ -40,11 +36,6 @@ public class ImageItem {
     private String bucket;
 
     /**
-     * 原始url
-     */
-    private String url;
-
-    /**
      * 图像宽度
      */
     private Integer w;
@@ -74,6 +65,13 @@ public class ImageItem {
      */
     private Integer size;
 
+    /**
+     * 根据bucket和key，生成完整的图像链接
+     */
+    public String getFullUrl() {
+        return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
+    }
+
     public String getKey() {
         return key;
     }
@@ -88,14 +86,6 @@ public class ImageItem {
 
     public void setBucket(String bucket) {
         this.bucket = bucket;
-    }
-
-    public String getUrl() {
-        return url;
-    }
-
-    public void setUrl(String url) {
-        this.url = url;
     }
 
     public Integer getW() {

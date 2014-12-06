@@ -50,8 +50,8 @@ public class Share extends TravelPiBaseItem implements ITravelPiFormatter {
 
             List<String> ret = new ArrayList<>();
             for (ImageItem img : imgList) {
-                if (img.getUrl() != null)
-                    ret.add(img.getUrl());
+                if (img.getFullUrl() != null)
+                    ret.add(img.getFullUrl());
             }
             builder.add("imageList", ret);
         }
