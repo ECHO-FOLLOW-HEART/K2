@@ -3,13 +3,13 @@ package controllers.web;
 import aizou.core.PlanAPI;
 import aizou.core.PoiAPI;
 import aizou.core.TrafficAPI;
+import aizou.core.WebPlanAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.misc.Share;
 import models.misc.SimpleRef;
 import models.plan.*;
 import models.poi.AbstractPOI;
@@ -29,7 +29,6 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.*;
-import utils.formatter.travelpi.plan.SimpleUgcPlanFormatter;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -53,9 +52,9 @@ public class PlanCtrl extends Controller {
      * @param planId    路线id
      * @param fromLocId 从哪个城市出发
      * @return
-     * @throws java.net.UnknownHostException
      */
-    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, int webFlag, String uid) {
+    public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, String uid,
+                                              String trafficFlag, String hotelFlag, String restaurantFlag) {
         try {
             Http.Request req = request();
             if (fromLocId.equals("")) {
@@ -76,7 +75,7 @@ public class PlanCtrl extends Controller {
             if (tmp != null)
                 backLocId = tmp.toString();
 
-            UgcPlan plan = PlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req);
+            UgcPlan plan = WebPlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req,trafficFlag,hotelFlag,restaurantFlag);
 
             Configuration config = Configuration.root();
             Map budget = (Map) config.getObject("budget");
@@ -105,7 +104,6 @@ public class PlanCtrl extends Controller {
 
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
-
 
             if (DataFilter.isAppRequest(req))
                 return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC), req));
@@ -491,6 +489,7 @@ public class PlanCtrl extends Controller {
             }
         }
     }
+
     /**
      * 保存用户的路线
      *
