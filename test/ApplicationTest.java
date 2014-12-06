@@ -184,7 +184,7 @@ public class ApplicationTest extends WithApplication {
                 JsonNode result = POICtrl.poiSearchImpl("vs", "546f2da8b8ce0440eddb2870", "", "", 0, 20, "", "asc", "");
 
                 for (JsonNode poi : result) {
-                    for (String key : new String[]{"_id", "name", "desc", "timeCost"})
+                    for (String key : new String[]{"_id", "name", "desc"})
                         assertThat(poi.get(key).isTextual());
 
                     for (JsonNode ele : poi.get("imageList"))

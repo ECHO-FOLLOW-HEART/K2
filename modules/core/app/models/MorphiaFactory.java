@@ -47,6 +47,10 @@ public class MorphiaFactory {
             host = mongo.get("host").toString();
             port = Integer.parseInt(mongo.get("port").toString());
         }
+        if (host == null)
+            host = "localhost";
+        if (port == 0)
+            port = 27017;
         try {
             client = new MongoClient(host, port);
         } catch (UnknownHostException e) {
