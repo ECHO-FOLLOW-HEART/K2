@@ -184,10 +184,15 @@ public class ApplicationTest extends WithApplication {
                 JsonNode result = POICtrl.poiSearchImpl("vs", "546f2da8b8ce0440eddb2870", "", "", 0, 20, "", "asc", "");
 
                 for (JsonNode poi : result) {
-                    for (String key : new String[]{"_id", "name", "desc"})
+                    for (String key : new String[]{"_id", "name", "desc"}) {
                         assertThat(poi.get(key).isTextual());
+                        assertThat(poi.get(key).asText() != null);
+                    }
 
-                    for (JsonNode ele : poi.get("imageList"))
+                    JsonNode imageListNode = poi.get("imageList");
+                    assertThat(imageListNode.isArray()).isTrue();
+                    assertThat(imageListNode.size()).isGreaterThan(0);
+                    for (JsonNode ele : imageListNode)
                         assertThat(ele.isTextual());
                 }
             }
