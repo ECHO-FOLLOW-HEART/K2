@@ -172,7 +172,7 @@ public class MiscCtrl extends Controller {
             fa.enName = enName;
             fa.type = type;
             ImageItem img = new ImageItem();
-            img.url = image;
+            img.setUrl(image);
             fa.images = Arrays.asList(img);
             fa.userId = userId;
             fa.createTime = new Date();

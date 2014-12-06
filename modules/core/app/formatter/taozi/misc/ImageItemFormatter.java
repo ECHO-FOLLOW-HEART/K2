@@ -40,7 +40,7 @@ public class ImageItemFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, ImageItem.fnUrl);
+                Collections.addAll(includedFields, ImageItem.FD_URL);
                 return (includedFields.contains(writer.getName()));
             }
 

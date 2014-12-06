@@ -67,7 +67,7 @@ public class SimpleUgcPlanFormatter extends TravelPiBaseFormatter {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, ImageItem.fnUrl, ImageItem.FD_CROP_HINT, ImageItem.FD_WIDTH,
+                Collections.addAll(includedFields, ImageItem.FD_URL, ImageItem.FD_CROP_HINT, ImageItem.FD_WIDTH,
                         ImageItem.FD_HEIGHT);
 
                 return (includedFields.contains(writer.getName()));
