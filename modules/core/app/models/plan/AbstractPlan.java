@@ -347,7 +347,8 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
 
 
-        builder.add("imageList", images != null ? Arrays.asList(images.get(new Random().nextInt(images.size())).url) :
+        builder.add("imageList", images != null ?
+                Arrays.asList(images.get(new Random().nextInt(images.size())).getFullUrl()) :
                 new ArrayList<>());
 
         Integer tempStayBudget = stayBudget == null ? 0 : stayBudget;

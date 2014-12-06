@@ -171,9 +171,11 @@ public class MiscCtrl extends Controller {
             fa.zhName = zhName;
             fa.enName = enName;
             fa.type = type;
-            ImageItem img = new ImageItem();
-            img.url = image;
-            fa.images = Arrays.asList(img);
+//            ImageItem img = new ImageItem();
+//            img.setUrl(image);
+            // TODO 直接给ImageItem的url赋值是有问题的
+//            fa.images = Arrays.asList(img);
+            fa.images= new ArrayList<>();
             fa.userId = userId;
             fa.createTime = new Date();
             ds.save(fa);
