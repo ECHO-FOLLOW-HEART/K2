@@ -22,13 +22,13 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.*;
-import utils.formatter.taozi.geo.DestinationFormatter;
-import utils.formatter.taozi.misc.MiscFormatter;
-import utils.formatter.taozi.misc.SimpleRefFormatter;
-import utils.formatter.taozi.misc.WeatherFormatter;
-import utils.formatter.taozi.recom.RecomFormatter;
-import utils.formatter.taozi.recom.RecomTypeFormatter;
-import utils.formatter.taozi.user.SelfFavoriteFormatter;
+import formatter.taozi.geo.DestinationFormatter;
+import formatter.taozi.misc.MiscFormatter;
+import formatter.taozi.misc.SimpleRefFormatter;
+import formatter.taozi.misc.WeatherFormatter;
+import formatter.taozi.recom.RecomFormatter;
+import formatter.taozi.recom.RecomTypeFormatter;
+import formatter.taozi.user.SelfFavoriteFormatter;
 
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
@@ -52,7 +52,7 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            MiscInfo info = ds.createQuery(MiscInfo.class).field("application").equal(Constants.APP_FLAG_PEACH).get();
+            MiscInfo info = ds.createQuery(MiscInfo.class).field("application").equal(Constants.APP_FLAG_TAOZI).get();
             if (info == null)
                 return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
             ObjectNode node = Json.newObject();

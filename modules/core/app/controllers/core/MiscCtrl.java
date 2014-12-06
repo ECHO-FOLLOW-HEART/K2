@@ -9,7 +9,7 @@ import org.mongodb.morphia.query.Query;
 import play.libs.Json;
 import play.mvc.Result;
 import utils.Utils;
-import utils.formatter.ProxyFormatter;
+import formatter.ProxyFormatter;
 
 import java.util.ArrayList;
 import java.util.Date;

@@ -7,6 +7,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import formatter.taozi.user.CredentialFormatter;
+import formatter.taozi.user.SelfUserFormatter;
+import formatter.taozi.user.SideUserFormatter;
 import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
@@ -21,10 +24,6 @@ import play.mvc.Result;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
-import utils.formatter.taozi.user.CredentialFormatter;
-import utils.formatter.taozi.user.SelfUserFormatter;
-import utils.formatter.taozi.user.SideUserFormatter;
-import utils.formatter.taozi.user.SimpleUserFormatter;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParserFactory;
 
@@ -36,7 +35,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -539,35 +538,41 @@ public class UserCtrl extends Controller {
         return info_url.toString();
     }
 
+    private static JsonNode getSelfUserProfileById(int targetId) throws TravelPiException {
+        UserInfo result = UserAPI.getUserInfo(targetId, SelfUserFormatter.retrievedFields);
+        return result != null ? new SelfUserFormatter().format(result) : null;
+    }
+
+    private static JsonNode getSideUserProfileById(int targetId) throws TravelPiException {
+        UserInfo result = UserAPI.getUserInfo(targetId, SideUserFormatter.retrievedFields);
+        return result != null ? new SideUserFormatter().format(result) : null;
+    }
+
     /**
      * 通过id获得用户详细信息。
      *
      * @param userId
      * @return
      */
-    public static Result getUserProfileById(Integer userId) {
+    public static Result getUserProfileById(int userId) {
+        String tmp = request().getHeader("UserId");
+        Integer selfId = null;
+        if (tmp != null)
+            selfId = Integer.parseInt(tmp);
+
         try {
-            String tmp = request().getHeader("UserId");
-            Integer selfId = null;
-            if (tmp != null)
-                selfId = Integer.parseInt(tmp);
+            JsonNode result;
+            if (selfId != null && userId == selfId)
+                result = getSelfUserProfileById(userId);
+            else
+                result = getSideUserProfileById(userId);
 
-            UserInfo userInfor = UserAPI.getUserInfo(userId);
-            if (userInfor == null)
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "User not exist.");
-
-            ObjectNode info;
-            if (userId.equals(selfId)) {
-                info = (ObjectNode) new SelfUserFormatter().format(userInfor);
-            } else
-                info = (ObjectNode) new SideUserFormatter().format(userInfor);
-
-            info.put("memo", "");
-            return Utils.createResponse(ErrorCode.NORMAL, info);
+            if (result != null)
+                return Utils.createResponse(ErrorCode.NORMAL, result);
+            else
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         } catch (TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
-        } catch (NumberFormatException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
+            return Utils.createResponse(e.errCode, e.getMessage());
         }
     }
 
@@ -727,7 +732,7 @@ public class UserCtrl extends Controller {
 
             List<JsonNode> nodelist = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new SimpleUserFormatter().format(userInfo));
+                nodelist.add(new SideUserFormatter().format(userInfo));
             }
 
             ObjectNode node = Json.newObject();
@@ -761,7 +766,7 @@ public class UserCtrl extends Controller {
             List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
             List<JsonNode> nodelist = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new SimpleUserFormatter().format(userInfo));
+                nodelist.add(new SideUserFormatter().format(userInfo));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodelist));
         } catch (NumberFormatException | NullPointerException | TravelPiException e) {

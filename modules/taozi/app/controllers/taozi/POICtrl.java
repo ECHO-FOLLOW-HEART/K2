@@ -13,10 +13,10 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.poi.CommentFormatter;
-import utils.formatter.taozi.poi.DetailedPOIFormatter;
-import utils.formatter.taozi.poi.POIRmdFormatter;
-import utils.formatter.taozi.poi.SimplePOIFormatter;
+import formatter.taozi.poi.CommentFormatter;
+import formatter.taozi.poi.DetailedPOIFormatter;
+import formatter.taozi.poi.POIRmdFormatter;
+import formatter.taozi.poi.SimplePOIFormatter;
 
 import java.util.*;
 

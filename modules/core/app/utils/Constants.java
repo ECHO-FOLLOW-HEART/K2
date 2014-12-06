@@ -12,8 +12,8 @@ public class Constants {
     /**
      * 标识不同的应用
      */
-    public static String APP_FLAG_TRAVEL = "travelpai";
-    public static String APP_FLAG_PEACH = "peach";
+    public static String APP_FLAG_TRAVELPI = "travelpi";
+    public static String APP_FLAG_TAOZI = "taozi";
     public static String APP_FLAG_WEB = "web";
 
 

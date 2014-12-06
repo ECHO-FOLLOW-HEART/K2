@@ -18,11 +18,11 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.Utils;
-import utils.formatter.taozi.geo.LocalityFormatter;
-import utils.formatter.taozi.geo.SimpleCountryFormatter;
-import utils.formatter.taozi.geo.SimpleDestinationFormatter;
-import utils.formatter.taozi.misc.TravelNoteFormatter;
-import utils.formatter.taozi.poi.SimplePOIFormatter;
+import formatter.taozi.geo.LocalityFormatter;
+import formatter.taozi.geo.SimpleCountryFormatter;
+import formatter.taozi.geo.SimpleDestinationFormatter;
+import formatter.taozi.misc.TravelNoteFormatter;
+import formatter.taozi.poi.SimplePOIFormatter;
 
 import java.util.*;
 

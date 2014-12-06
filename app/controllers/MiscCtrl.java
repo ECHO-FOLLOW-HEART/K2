@@ -25,8 +25,8 @@ import play.mvc.Http;
 import play.mvc.Result;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.travelpi.geo.LocalityFormatter;
-import utils.formatter.travelpi.geo.SimpleLocalityFormatter;
+import formatter.travelpi.geo.LocalityFormatter;
+import formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.net.UnknownHostException;
 import java.util.*;
