@@ -141,6 +141,7 @@ public class ViewSpot extends AbstractPOI {
             return telephone;
     }
 
+
     @Override
     public JsonNode toJson(int level) {
         ObjectNode node = (ObjectNode) super.toJson(level);

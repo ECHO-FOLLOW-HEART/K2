@@ -4,6 +4,7 @@ import exception.ErrorCode;
 import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
+import models.geo.Destination;
 import models.geo.Locality;
 import models.poi.*;
 import org.bson.types.ObjectId;
@@ -15,6 +16,8 @@ import utils.Utils;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.regex.Pattern;
+
+import static aizou.core.PoiAPI.DestinationType.*;
 
 /**
  * POI相关核心接口。
@@ -898,17 +901,51 @@ public class PoiAPI {
     }
 
     /**
-     * 通过id返回游玩攻略
+     * 获取特定字段的destination
      *
      * @param id
      * @return
      * @throws TravelPiException
      */
-    public static TravelGuide getTravelGuideApi(ObjectId id) throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        Query<TravelGuide> query = ds.createQuery(TravelGuide.class).field("id").equal(id);
-        return query.get();
+    public static Destination getDestinationByField(ObjectId id, List<String> fieldList, int page, int pageSize) throws TravelPiException {
 
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Destination> query = ds.createQuery(Destination.class).field("_id").equal(id);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+
+        return query.offset(page * pageSize).limit(page).get();
+    }
+
+
+    public static Destination getTravelGuideApi(ObjectId id, DestinationType type, int page, int pageSize) throws TravelPiException {
+        Destination destination;
+        switch (type) {
+            case REMOTE_TRAFFIC:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnRemoteTraffic), page, pageSize);
+                break;
+            case LOCAL_TRAFFIC:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnLocalTraffic), page, pageSize);
+                break;
+            case ACTIVITY:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnActivityIntro, Destination.fnActivities), page, pageSize);
+                break;
+            case TIPS:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnTips), page, pageSize);
+                break;
+            /*case CULTURE:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnCulture);
+                break;*/
+            case DINNING:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnDinningIntro, Destination.fnCommodities), page, pageSize);
+                break;
+            case SHOPPING:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnShoppingIntro, Destination.fnCuisines), page, pageSize);
+                break;
+            default:
+                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+        return destination;
     }
 
 
@@ -1027,5 +1064,15 @@ public class PoiAPI {
         SHOPPING,
         ENTERTAINMENT,
         DINNING
+    }
+
+    public enum DestinationType {
+        REMOTE_TRAFFIC,
+        LOCAL_TRAFFIC,
+        ACTIVITY,
+        TIPS,
+        CULTURE,
+        DINNING,
+        SHOPPING
     }
 }

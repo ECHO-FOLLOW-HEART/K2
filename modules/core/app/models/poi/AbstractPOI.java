@@ -122,6 +122,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String simplocList = "locList";
 
     @Transient
+
     public static final String FD_TAGS = "tags";
 
     @Transient
