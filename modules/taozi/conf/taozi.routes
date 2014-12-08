@@ -26,7 +26,8 @@ GET           /users/search                             controllers.taozi.UserCt
 POST          /users/$uid<[0-9]+>                       controllers.taozi.UserCtrl.editorUserInfo(uid: Integer)
 #根据环信用户名列表取得用户名列表
 POST          /users/easemob                            controllers.taozi.UserCtrl.getUsersByEasemob()
-
+#根据通讯录进行用户匹配
+POST           /users/search-by-address-book            controllers.taozi.UserCtrl.matchAddressBook()
 #----------好友接口----------
 #添加好友
 POST          /users/contacts                           controllers.taozi.UserCtrl.addContact()

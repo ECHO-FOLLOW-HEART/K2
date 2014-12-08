@@ -10,9 +10,11 @@ import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
+import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.Json;
@@ -21,10 +23,7 @@ import play.mvc.Result;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
-import utils.formatter.taozi.user.CredentialFormatter;
-import utils.formatter.taozi.user.SelfUserFormatter;
-import utils.formatter.taozi.user.SideUserFormatter;
-import utils.formatter.taozi.user.SimpleUserFormatter;
+import utils.formatter.taozi.user.*;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParserFactory;
 
@@ -769,6 +768,56 @@ public class UserCtrl extends Controller {
         }
     }
 
+    /**
+     *根据通讯录进行用户匹配
+     * 
+     * @return
+     */
+    public static Result matchAddressBook() {
+        try {
+            JsonNode req = request().body().asJson();
+            Iterator<JsonNode> it = req.get("contants").elements();
+            Integer selfUserId = Integer.parseInt(request().getHeader("UserId"));
+            List<Contact> contacts = new ArrayList();
+            ObjectMapper m = new ObjectMapper();
+            while (it.hasNext()) {
+                contacts.add(m.convertValue(it.next(), Contact.class));
+            }
+            UserInfo userInfo;
+            List<UserInfo> friends;
+            for (Contact temp : contacts) {
+                temp.id = new ObjectId();
+                userInfo = UserAPI.getUserByField(UserInfo.fnTel, temp.tel, Arrays.asList(UserInfo.fnUserId));
+                if (userInfo != null) {
+                    temp.isUser = true;
+                    temp.userId = userInfo.getUserId();
+                    friends = UserAPI.getContactList(selfUserId);
+                    temp.isContact = isFriend(temp.userId, friends);
+                } else {
+                    temp.isUser = false;
+                    temp.isContact = false;
+                }
+            }
+            List<JsonNode> nodes = new ArrayList<>();
+            for (Contact temp : contacts) {
+                nodes.add(new ContactFormatter().format(temp));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodes));
+        } catch (TravelPiException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        }
+
+    }
+
+    private static boolean isFriend(Integer aFriend, List<UserInfo> friends) {
+        if (friends == null)
+            return false;
+        for (UserInfo userInfo : friends) {
+            if (userInfo.getUserId().equals(aFriend))
+                return true;
+        }
+        return false;
+    }
 //    /**
 //     * 添加用户的备注信息
 //     *
