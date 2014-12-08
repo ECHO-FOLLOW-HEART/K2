@@ -4,8 +4,8 @@ import aizou.core.GuideAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.DestGuideInfo;
@@ -50,8 +50,8 @@ public class GuideCtrl extends Controller {
             node = (ObjectNode) new GuideFormatter().format(temp);
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
@@ -76,8 +76,8 @@ public class GuideCtrl extends Controller {
             GuideAPI.updateGuide(guideId, guideUpdate, selfId);
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
@@ -108,8 +108,8 @@ public class GuideCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
         } catch (IllegalArgumentException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -169,13 +169,13 @@ public class GuideCtrl extends Controller {
                     fields.add(Guide.fnRestaurant);
                     break;
                 default:
-                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Error guide part."));
+                    throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Error guide part."));
             }
             Guide guide = GuideAPI.getGuideById(guideId, fields);
             ObjectNode node = (ObjectNode) jsonFormatter.format(guide);
             return Utils.createResponse(ErrorCode.NORMAL, node);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
@@ -193,8 +193,8 @@ public class GuideCtrl extends Controller {
             ObjectId guideId = new ObjectId(id);
             GuideAPI.deleteGuideById(guideId);
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
@@ -214,7 +214,7 @@ public class GuideCtrl extends Controller {
             String title = req.get("title").asText();
             GuideAPI.saveGuideTitle(new ObjectId(id), title);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
-        } catch (TravelPiException | NullPointerException | IllegalArgumentException e) {
+        } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
 
@@ -225,9 +225,9 @@ public class GuideCtrl extends Controller {
      * @param typeInfo
      * @return
      * @throws NullPointerException
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Object getShoppingFromNode(JsonNode node, String typeInfo) throws NullPointerException, TravelPiException {
+    public static Object getShoppingFromNode(JsonNode node, String typeInfo) throws NullPointerException, AizouException {
         // TODO ObjectId可能不合法
         switch (typeInfo) {
             case "shopping":
@@ -247,7 +247,7 @@ public class GuideCtrl extends Controller {
                 dinning.rating = node.get("rating").asDouble();
                 return dinning;
             default:
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
 
     }
@@ -263,7 +263,7 @@ public class GuideCtrl extends Controller {
             DestGuideInfo destGuideInfo = GuideAPI.getDestinationGuideInfo(new ObjectId(id));
             ObjectNode node = (ObjectNode) new DestGuideFormatter().format(destGuideInfo, guidePart);
             return Utils.createResponse(ErrorCode.NORMAL, node);
-        } catch (TravelPiException | NullPointerException | IllegalArgumentException e) {
+        } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
 

@@ -3,8 +3,8 @@ package controllers.taozi;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.poi.*;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -88,8 +88,8 @@ public class POICtrl extends Controller {
             ret.put("comments", Json.toJson(comments));
             ret.put("commentCnt", commCnt);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -191,7 +191,7 @@ public class POICtrl extends Controller {
             while (it.hasNext())
                 results.add(new SimplePOIFormatter().format(it.next()));
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
         }
     }
@@ -259,7 +259,7 @@ public class POICtrl extends Controller {
                 results.add(ret);
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
         }
     }
@@ -270,7 +270,6 @@ public class POICtrl extends Controller {
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
      */
     public static Result getPoiNear(double lng, double lat, boolean spot, boolean hotel, boolean restaurant, int page, int pageSize) {
         try {
@@ -304,7 +303,7 @@ public class POICtrl extends Controller {
 
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException | NullPointerException | NumberFormatException e) {
+        } catch (AizouException | NullPointerException | NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -330,7 +329,7 @@ public class POICtrl extends Controller {
                 results.put("traffic", viewSpot.description.traffic);
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -358,7 +357,7 @@ public class POICtrl extends Controller {
                 results.put("culture", travelGuide.cultrue);
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }

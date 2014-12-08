@@ -1,7 +1,7 @@
 package aizou.core;
 
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.misc.TravelNote;
 import models.plan.Plan;
 import models.plan.PlanDayEntry;
@@ -25,12 +25,12 @@ import java.util.regex.Pattern;
  */
 public class TravelNoteAPI {
 
-    public static List<TravelNote> searchNoteByPlan(ObjectId planId) throws TravelPiException {
+    public static List<TravelNote> searchNoteByPlan(ObjectId planId) throws AizouException {
         Plan plan = PlanAPI.getPlan(planId, false);
         if (plan == null)
             plan = PlanAPI.getPlan(planId, true);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("INVALID OBJECT ID: %s", planId.toString()));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("INVALID OBJECT ID: %s", planId.toString()));
 
         Map<String, String> tMap = new HashMap<>();
         List<String> viewSpots = new ArrayList<>();
@@ -132,11 +132,11 @@ public class TravelNoteAPI {
             return results;
 
         } catch (SolrServerException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, e.getMessage());
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, e.getMessage());
         }
     }
 
-    public static List<TravelNote> searchNoteByLoc(List<String> lcoNames, List<String> vsNames, int pageSize) throws TravelPiException {
+    public static List<TravelNote> searchNoteByLoc(List<String> lcoNames, List<String> vsNames, int pageSize) throws AizouException {
 
         List<TravelNote> results = new ArrayList<>();
         SolrDocumentList docs;
@@ -216,7 +216,7 @@ public class TravelNoteAPI {
             return results;
 
         } catch (SolrServerException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, e.getMessage());
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, e.getMessage());
         }
     }
 

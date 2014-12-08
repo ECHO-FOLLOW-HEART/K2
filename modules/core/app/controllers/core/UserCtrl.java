@@ -1,8 +1,8 @@
 package controllers.core;
 
 import aizou.core.UserAPI;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
@@ -22,8 +22,8 @@ public class UserCtrl extends Controller {
         try {
             UserAPI.modEaseMobContacts(userA, userB, actionAdd);
             return Utils.createResponse(ErrorCode.NORMAL, "");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -40,8 +40,8 @@ public class UserCtrl extends Controller {
                 UserAPI.delEaseMobBlocks(userA, userB);
             }
             return Utils.createResponse(ErrorCode.NORMAL, "");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 

@@ -313,7 +313,7 @@ public class Importer extends Controller {
 //            return Utils.createResponse(ErrorCode.NORMAL, "OK");
 //
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //    }
 }

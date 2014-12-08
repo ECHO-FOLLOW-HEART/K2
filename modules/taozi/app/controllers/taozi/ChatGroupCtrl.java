@@ -2,8 +2,8 @@ package controllers.taozi;
 
 import aizou.core.ChatGroupAPI;
 import com.fasterxml.jackson.databind.JsonNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import play.libs.Json;
 import play.mvc.Result;
 import utils.Utils;
@@ -34,7 +34,7 @@ public class ChatGroupCtrl {
             Integer maxUsers = req.get("maxUsers").asInt();
             String groupId = ChatGroupAPI.createGroupApi(Integer.parseInt(ownnerId), groupName, desc, isGroupPublic, maxUsers);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(groupId));
-        } catch (TravelPiException | NumberFormatException | NullPointerException e) {
+        } catch (AizouException | NumberFormatException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
@@ -51,7 +51,7 @@ public class ChatGroupCtrl {
             String userId = req.get("userId").asText();
             String response = ChatGroupAPI.deleteGroupApi(groupId, Integer.parseInt(userId));
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(response));
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
@@ -71,7 +71,7 @@ public class ChatGroupCtrl {
             }
             ChatGroupAPI.putUserIntoGroupApi(groupId, userList);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("added successfull"));
-        } catch (TravelPiException | NumberFormatException | NullPointerException e) {
+        } catch (AizouException | NumberFormatException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
         }
     }
@@ -93,7 +93,7 @@ public class ChatGroupCtrl {
             }
             ChatGroupAPI.deleteMemberFromGroupApi(groupId, userList);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("delete successfull"));
-        } catch (TravelPiException | NumberFormatException e) {
+        } catch (AizouException | NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
         }
     }
@@ -109,7 +109,7 @@ public class ChatGroupCtrl {
             String groupId = req.get("groupId").asText();
             JsonNode response = ChatGroupAPI.getChatGroupDetailApi(groupId);
             return Utils.createResponse(ErrorCode.NORMAL, response);
-        } catch (TravelPiException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
         }
     }
@@ -129,7 +129,7 @@ public class ChatGroupCtrl {
             Boolean isGroupPublic = req.get("isGroupPublic").asBoolean();
             ChatGroupAPI.modifyChatGroupDetailApi(groupId, userId, isGroupPublic, desc, groupName);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
-        } catch (TravelPiException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
         }
     }

@@ -5,8 +5,8 @@ import aizou.core.PoiAPI;
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.geo.Country;
 import models.geo.Locality;
 import models.misc.TravelNote;
@@ -52,8 +52,8 @@ public class GeoCtrl extends Controller {
             }
             response.put("travelNote", Json.toJson(objs));
             return Utils.createResponse(ErrorCode.NORMAL, response);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -95,7 +95,7 @@ public class GeoCtrl extends Controller {
                 results.put(poiTypeName, Json.toJson(retPoiList));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -133,8 +133,8 @@ public class GeoCtrl extends Controller {
                 }
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -145,9 +145,9 @@ public class GeoCtrl extends Controller {
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    private static List<ObjectNode> getDestinationsNodeByCountry(ObjectId id, int page, int pageSize) throws TravelPiException {
+    private static List<ObjectNode> getDestinationsNodeByCountry(ObjectId id, int page, int pageSize) throws AizouException {
         List<ObjectNode> result = new ArrayList<>(pageSize);
         List<Locality> localities = GeoAPI.getDestinationsByCountry(id, page, pageSize);
         for (Locality des : localities) {
@@ -175,7 +175,7 @@ public class GeoCtrl extends Controller {
 //            }
 //            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //    }
 

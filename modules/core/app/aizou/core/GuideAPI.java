@@ -1,8 +1,7 @@
 package aizou.core;
 
-import exception.TravelPiException;
+import exception.AizouException;
 import models.MorphiaFactory;
-import models.geo.Locality;
 import models.geo.Locality;
 import models.guide.*;
 import models.poi.Restaurant;
@@ -26,9 +25,9 @@ public class GuideAPI {
      * 根据ID取得攻略
      *
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Guide getGuideByDestination(List<ObjectId> ids, Integer userId) throws TravelPiException {
+    public static Guide getGuideByDestination(List<ObjectId> ids, Integer userId) throws AizouException {
         Query<GuideTemplate> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
                 .createQuery(GuideTemplate.class);
         List<CriteriaContainerImpl> criList = new ArrayList<>();
@@ -117,9 +116,9 @@ public class GuideAPI {
      *
      * @param id
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Guide getGuideById(ObjectId id, List<String> fieldList) throws TravelPiException {
+    public static Guide getGuideById(ObjectId id, List<String> fieldList) throws AizouException {
         Query<Guide> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
                 .createQuery(Guide.class);
         if (fieldList != null && !fieldList.isEmpty())
@@ -132,9 +131,9 @@ public class GuideAPI {
      * 根据ID删除攻略
      *
      * @param id
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void deleteGuideById(ObjectId id) throws TravelPiException {
+    public static void deleteGuideById(ObjectId id) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class);
@@ -147,9 +146,9 @@ public class GuideAPI {
      *
      * @param uid
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<Guide> getGuideByUser(Integer uid, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+    public static List<Guide> getGuideByUser(Integer uid, List<String> fieldList, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class);
         query.field(Guide.fnUserId).equal(uid);
@@ -165,9 +164,9 @@ public class GuideAPI {
      *
      * @param guideId
      * @param guide
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws TravelPiException {
+    public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId).field("userId").equal(userId);
         if (query.iterator().hasNext()) {
@@ -191,9 +190,9 @@ public class GuideAPI {
      * @param id
      * @param list
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Guide getGuideInfo(ObjectId id, List<String> list) throws TravelPiException {
+    public static Guide getGuideInfo(ObjectId id, List<String> list) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("_id").equal(id);
         if (list != null && !list.isEmpty()) {
@@ -207,9 +206,9 @@ public class GuideAPI {
      *
      * @param id
      * @param title
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void saveGuideTitle(ObjectId id, String title) throws TravelPiException {
+    public static void saveGuideTitle(ObjectId id, String title) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
         uo.set(Guide.fnTitle, title);
@@ -222,9 +221,9 @@ public class GuideAPI {
      *
      * @param id
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static DestGuideInfo getDestinationGuideInfo(ObjectId id) throws TravelPiException {
+    public static DestGuideInfo getDestinationGuideInfo(ObjectId id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<DestGuideInfo> query = ds.createQuery(DestGuideInfo.class);
         query.field("locId").equal(id);

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.ITravelPiFormatter;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -153,7 +153,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
                 && void.class.equals(method.getReturnType());
     }
 
-    public UgcPlan(Plan plan) throws TravelPiException {
+    public UgcPlan(Plan plan) throws AizouException {
         this();
         Class<?> cls = Plan.class;
         while (!cls.equals(Object.class)) {
@@ -179,7 +179,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
         this.setEnabled(true);
     }
 
-    public UgcPlan(Plan plan, String uid, String startD, String endD, String id, String title) throws TravelPiException {
+    public UgcPlan(Plan plan, String uid, String startD, String endD, String id, String title) throws AizouException {
         this(plan);
         DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -187,7 +187,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             this.startDate = format.parse(startD);
             this.endDate = format.parse(endD);
         } catch (ParseException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
         }
 
         this.setId(new ObjectId(id));

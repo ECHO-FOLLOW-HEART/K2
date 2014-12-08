@@ -1,7 +1,7 @@
 package aizou.core;
 
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
@@ -31,7 +31,7 @@ public class PoiAPI {
      * @param pageSize
      * @return
      */
-    public static Iterator<? extends AbstractPOI> getSuggestions(POIType poiType, String word, int pageSize) throws TravelPiException {
+    public static Iterator<? extends AbstractPOI> getSuggestions(POIType poiType, String word, int pageSize) throws AizouException {
         Class<? extends AbstractPOI> poiClass = null;
         switch (poiType) {
             case VIEW_SPOT:
@@ -45,7 +45,7 @@ public class PoiAPI {
                 break;
         }
         if (poiClass == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
@@ -71,7 +71,7 @@ public class PoiAPI {
     public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, ObjectId locId, String tag,
                                                                       String searchWord, final SortField sortField, boolean asc,
                                                                       int page, int pageSize, boolean details, Map<String, Object> extra, int hotelType)
-            throws TravelPiException {
+            throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
 
         Class<? extends AbstractPOI> poiClass = null;
@@ -87,7 +87,7 @@ public class PoiAPI {
                 break;
         }
         if (poiClass == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
 
@@ -147,12 +147,12 @@ public class PoiAPI {
      * @param pageSize
      * @param hotelType
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
     public static java.util.Iterator<? extends AbstractPOI> poiSearch(POIType poiType, String tag,
                                                                       String searchWord, final SortField sortField, boolean asc,
                                                                       int page, int pageSize, Boolean details, int hotelType)
-            throws TravelPiException {
+            throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
 
         Class<? extends AbstractPOI> poiClass = null;
@@ -171,7 +171,7 @@ public class PoiAPI {
                 break;
         }
         if (poiClass == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
 
@@ -280,12 +280,12 @@ public class PoiAPI {
      *
      * @see PoiAPI#getPOIInfo(org.bson.types.ObjectId, PoiAPI.POIType, boolean)
      */
-    public static AbstractPOI getPOIInfo(String poiId, POIType poiType, boolean showDetails) throws TravelPiException {
+    public static AbstractPOI getPOIInfo(String poiId, POIType poiType, boolean showDetails) throws AizouException {
         ObjectId id;
         try {
             id = new ObjectId(poiId);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.",
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.",
                     poiId != null ? poiId : "NULL"));
         }
         return getPOIInfo(id, poiType, showDetails);
@@ -296,9 +296,9 @@ public class PoiAPI {
      *
      * @param poiId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<POIRmd> getPOIRmd(String poiId, int page, int pageSize) throws TravelPiException {
+    public static List<POIRmd> getPOIRmd(String poiId, int page, int pageSize) throws AizouException {
         ObjectId id = new ObjectId(poiId);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<POIRmd> query = ds.createQuery(POIRmd.class);
@@ -312,9 +312,9 @@ public class PoiAPI {
      *
      * @param poiId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static long getPOIRmdCount(String poiId) throws TravelPiException {
+    public static long getPOIRmdCount(String poiId) throws AizouException {
         ObjectId id = new ObjectId(poiId);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<POIRmd> query = ds.createQuery(POIRmd.class);
@@ -327,9 +327,9 @@ public class PoiAPI {
      *
      * @param poiId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<Comment> getPOIComment(String poiId, int page, int pageSize) throws TravelPiException {
+    public static List<Comment> getPOIComment(String poiId, int page, int pageSize) throws AizouException {
         ObjectId id = new ObjectId(poiId);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class);
@@ -343,9 +343,9 @@ public class PoiAPI {
      *
      * @param poiId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<Comment> getPOICommentBatch(List<String> poiId, int page, int pageSize) throws TravelPiException {
+    public static List<Comment> getPOICommentBatch(List<String> poiId, int page, int pageSize) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class);
@@ -367,9 +367,9 @@ public class PoiAPI {
      *
      * @param poiId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static long getPOICommentCount(String poiId) throws TravelPiException {
+    public static long getPOICommentCount(String poiId) throws AizouException {
         ObjectId id = new ObjectId(poiId);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class);
@@ -389,11 +389,11 @@ public class PoiAPI {
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
     public static Iterator<? extends AbstractPOI> poiList(POIType poiType, ObjectId locId, String tagFilter, final SortField sortField,
                                                           Boolean sort, Boolean details, int page, int pageSize)
-            throws TravelPiException {
+            throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
@@ -412,12 +412,12 @@ public class PoiAPI {
                 break;
         }
         if (poiClass == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
 
         if (locId == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         query = query.field("addr.loc.id").equal(locId);
         //query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
 
@@ -463,7 +463,7 @@ public class PoiAPI {
      * @param showDetails 是否返回详情。
      * @return POI详情。如果没有找到，返回null。
      */
-    public static AbstractPOI getPOIInfo(ObjectId poiId, POIType poiType, boolean showDetails) throws TravelPiException {
+    public static AbstractPOI getPOIInfo(ObjectId poiId, POIType poiType, boolean showDetails) throws AizouException {
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case VIEW_SPOT:
@@ -480,7 +480,7 @@ public class PoiAPI {
                 poiClass = Shopping.class;
                 break;
             default:
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         }
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
@@ -494,9 +494,9 @@ public class PoiAPI {
      * @param poiType
      * @param fields
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static AbstractPOI getPOIInfo(String poiId, POIType poiType, List<String> fields) throws TravelPiException {
+    public static AbstractPOI getPOIInfo(String poiId, POIType poiType, List<String> fields) throws AizouException {
         return getPOIInfo(new ObjectId(poiId), poiType, fields);
     }
 
@@ -507,9 +507,9 @@ public class PoiAPI {
      * @param poiType
      * @param fields
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static AbstractPOI getPOIInfo(ObjectId poiId, POIType poiType, List<String> fields) throws TravelPiException {
+    public static AbstractPOI getPOIInfo(ObjectId poiId, POIType poiType, List<String> fields) throws AizouException {
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case VIEW_SPOT:
@@ -530,7 +530,7 @@ public class PoiAPI {
                 poiClass = Entertainment.class;
                 break;
             default:
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         }
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
@@ -548,11 +548,11 @@ public class PoiAPI {
      * @return
      */
     public static Iterator<? extends AbstractPOI> explore(POIType poiType, String locId,
-                                                          int page, int pageSize) throws TravelPiException {
+                                                          int page, int pageSize) throws AizouException {
         try {
             return explore(poiType, new ObjectId(locId), false, page, pageSize);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.",
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.",
                     locId != null ? locId : "NULL"));
         }
     }
@@ -566,7 +566,7 @@ public class PoiAPI {
      * @return
      */
     public static Iterator<? extends AbstractPOI> explore(POIType poiType, ObjectId locId,
-                                                          boolean abroad, int page, int pageSize) throws TravelPiException {
+                                                          boolean abroad, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
 
         Class<? extends AbstractPOI> poiClass = null;
@@ -588,7 +588,7 @@ public class PoiAPI {
                 break;
         }
         if (poiClass == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (locId != null) {
@@ -763,7 +763,7 @@ public class PoiAPI {
     /**
      * 获得推荐的境外目的地
      */
-    public static Map<String, List<Locality>> destRecommend() throws TravelPiException {
+    public static Map<String, List<Locality>> destRecommend() throws AizouException {
         List countryList = Utils.getMongoClient().getDB("geo").getCollection("Locality")
                 .distinct(String.format("%s._id", Locality.fnCountry));
 
@@ -788,7 +788,7 @@ public class PoiAPI {
      * @param poiType POI的类型。包括：view_spot: 景点；hotel: 酒店；restaurant: 餐厅。
      * @return POI详情。如果没有找到，返回null。
      */
-    public static List<? extends AbstractPOI> getPOIInfoList(List<ObjectId> ids, String poiType, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+    public static List<? extends AbstractPOI> getPOIInfoList(List<ObjectId> ids, String poiType, List<String> fieldList, int page, int pageSize) throws AizouException {
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case "vs":
@@ -801,7 +801,7 @@ public class PoiAPI {
                 poiClass = Restaurant.class;
                 break;
             default:
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         }
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
@@ -821,10 +821,10 @@ public class PoiAPI {
 
     public static List<? extends AbstractPOI> getPOIInfoListByPOI(List<? extends AbstractPOI> pois, String poiType,
                                                                   List<String> fieldList, int page, int pageSize)
-            throws TravelPiException {
+            throws AizouException {
 
         if (pois == null) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POIs.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POIs.");
         }
         List<ObjectId> ids = new ArrayList<>();
         for (AbstractPOI temp : pois) {
@@ -837,14 +837,16 @@ public class PoiAPI {
      * 获得景点周围的poi列表
      *
      * @param poiType
-     * @param lat
      * @param lng
+     * @param lat
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws AizouException
      */
-    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, Double lng, Double lat, int page, int pageSize) throws TravelPiException {
+    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, double lng, double lat,
+                                                               int page, int pageSize) throws AizouException {
+
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case VIEW_SPOT:
@@ -857,7 +859,7 @@ public class PoiAPI {
                 poiClass = Restaurant.class;
                 break;
             default:
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "");
         }
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
@@ -873,9 +875,9 @@ public class PoiAPI {
      * @param id
      * @param list
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static ViewSpot getVsDetail(ObjectId id, List<String> list) throws TravelPiException {
+    public static ViewSpot getVsDetail(ObjectId id, List<String> list) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<ViewSpot> query = ds.createQuery(ViewSpot.class).field("_id").equal(id);
         if (list != null && !list.isEmpty()) {
@@ -889,9 +891,9 @@ public class PoiAPI {
      *
      * @param id
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static ViewSpot getVsDetails(ObjectId id) throws TravelPiException {
+    public static ViewSpot getVsDetails(ObjectId id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<ViewSpot> query = ds.createQuery(ViewSpot.class).field("_id").equal(id);
         return query.get();
@@ -902,9 +904,9 @@ public class PoiAPI {
      *
      * @param id
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static TravelGuide getTravelGuideApi(ObjectId id) throws TravelPiException {
+    public static TravelGuide getTravelGuideApi(ObjectId id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<TravelGuide> query = ds.createQuery(TravelGuide.class).field("id").equal(id);
         return query.get();
@@ -923,11 +925,11 @@ public class PoiAPI {
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
     public static List<? extends AbstractPOI> viewPoiList(POIType poiType, ObjectId locId, final SortField sortField,
                                                           Boolean sort, int page, int pageSize)
-            throws TravelPiException {
+            throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
@@ -951,7 +953,7 @@ public class PoiAPI {
                 break;
         }
         if (poiClass == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         query = query.field("locList.id").equal(locId);
@@ -978,11 +980,11 @@ public class PoiAPI {
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
     public static List<? extends AbstractPOI> poiSearchForTaozi(POIType poiType, String keyword, ObjectId locId,
                                                                 boolean prefix, int page, int pageSize)
-            throws TravelPiException {
+            throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
         switch (poiType) {
@@ -1000,7 +1002,7 @@ public class PoiAPI {
                 break;
         }
         if (poiClass == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (keyword != null && !keyword.isEmpty()) {
             query.or(

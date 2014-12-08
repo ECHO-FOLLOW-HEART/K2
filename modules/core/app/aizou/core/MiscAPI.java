@@ -1,6 +1,6 @@
 package aizou.core;
 
-import exception.TravelPiException;
+import exception.AizouException;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.PageFirst;
@@ -23,16 +23,16 @@ public class MiscAPI {
      * 取得旅行专栏图片的url以及跳转链接的url
      *
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<PageFirst> getColumns() throws TravelPiException {
+    public static List<PageFirst> getColumns() throws AizouException {
          Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
          Query<PageFirst> query=ds.createQuery(PageFirst.class);
          return query.asList();
 
     }
 
-    public static void saveColumns(PageFirst pageFirst) throws TravelPiException {
+    public static void saveColumns(PageFirst pageFirst) throws AizouException {
         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ds.save(pageFirst);
     }
@@ -40,9 +40,9 @@ public class MiscAPI {
      * 储存评论信息
      *
      * @param comment
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void saveComment(Comment comment) throws TravelPiException {
+    public static void saveComment(Comment comment) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ds.save(comment);
     }
@@ -52,9 +52,9 @@ public class MiscAPI {
      *
      * @param poiId
      * @param commentDetails
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void updateComment(String poiId, String commentDetails) throws TravelPiException {
+    public static void updateComment(String poiId, String commentDetails) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         UpdateOperations<Comment> uo = ds.createUpdateOperations(Comment.class);
         uo.set("commentDetails", commentDetails);
@@ -68,10 +68,10 @@ public class MiscAPI {
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
     public static List<Comment> displayCommentApi(String poiId, Double lower,Double upper, int page, int pageSize)
-            throws TravelPiException {
+            throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class).field("poiId").equal(poiId);
@@ -101,7 +101,7 @@ public class MiscAPI {
      * @param pageSize 页面大小。
      */
     public static List<Locality> searchLocalities(String keyword, boolean prefix, ObjectId countryId, int page, int pageSize)
-            throws TravelPiException {
+            throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())

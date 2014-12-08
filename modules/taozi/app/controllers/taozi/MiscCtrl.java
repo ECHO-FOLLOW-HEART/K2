@@ -3,8 +3,8 @@ package controllers.taozi;
 import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
@@ -68,12 +68,12 @@ public class MiscCtrl extends Controller {
             node.put("fmt", format);
             node.put("quality", quality);
             return Utils.createResponse(ErrorCode.NORMAL, node);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
-    public static Result postFeedback() throws UnknownHostException, TravelPiException {
+    public static Result postFeedback() throws UnknownHostException, AizouException {
         JsonNode feedback = request().body().asJson();
         try {
             Integer uid = feedback.has("userId") ? feedback.get("userId").asInt() : null;
@@ -88,7 +88,7 @@ public class MiscCtrl extends Controller {
             feedBack.setEnabled(true);
             dsSave.save(feedBack);
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
+        } catch (NullPointerException | IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", feedback.get("userId").asText()));
         }
 
@@ -138,8 +138,8 @@ public class MiscCtrl extends Controller {
                 retNodeList.add(tempNode);
             }
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(retNodeList));
     }
@@ -179,7 +179,7 @@ public class MiscCtrl extends Controller {
             fa.userId = userId;
             fa.createTime = new Date();
             ds.save(fa);
-        } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
+        } catch (NullPointerException | IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
@@ -216,7 +216,7 @@ public class MiscCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, ret);
             } else
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, MsgConstants.FAVORITE_NOT_EXIT_MSG, true);
-        } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
+        } catch (NullPointerException | IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
@@ -232,7 +232,7 @@ public class MiscCtrl extends Controller {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
             Query<Favorite> query = ds.createQuery(Favorite.class).field("id").equal(oid);
             ds.delete(query);
-        } catch (NullPointerException | IllegalArgumentException | TravelPiException e) {
+        } catch (NullPointerException | IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
@@ -243,13 +243,13 @@ public class MiscCtrl extends Controller {
      *
      * @param id
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
     public static Result getWeatherDetail(String id) {
         try {
             YahooWeather weather = WeatherAPI.weatherDetails(new ObjectId(id));
             return Utils.createResponse(ErrorCode.NORMAL, new WeatherFormatter().format(weather));
-        } catch (NullPointerException | TravelPiException e) {
+        } catch (NullPointerException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -390,7 +390,7 @@ public class MiscCtrl extends Controller {
                 list.add(new MiscFormatter().format(first));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(list));
-        } catch (TravelPiException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -414,7 +414,7 @@ public class MiscCtrl extends Controller {
 
             MiscAPI.saveColumns(pageFirst);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -446,7 +446,7 @@ public class MiscCtrl extends Controller {
 
             MiscAPI.saveComment(comment);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -467,7 +467,7 @@ public class MiscCtrl extends Controller {
                 list.add(new MiscFormatter().format(comment));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(list));
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -531,13 +531,13 @@ public class MiscCtrl extends Controller {
             }
 
 
-        } catch (TravelPiException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
-    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws TravelPiException {
+    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws AizouException {
         boolean detailsFlag = (details != 0);
         ObjectNode results = Json.newObject();
 

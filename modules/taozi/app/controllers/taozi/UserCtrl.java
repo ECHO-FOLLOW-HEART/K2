@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.SelfUserFormatter;
 import formatter.taozi.user.SideUserFormatter;
@@ -80,7 +80,7 @@ public class UserCtrl extends Controller {
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -92,8 +92,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, info);
             }
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
@@ -125,8 +125,8 @@ public class UserCtrl extends Controller {
             } else
                 result.put("isValid", false);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -171,8 +171,8 @@ public class UserCtrl extends Controller {
             } else {
                 return Utils.createResponse(MsgConstants.TOKEN_ERROR, MsgConstants.TOKEN_ERROR_MSG, true);
             }
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -206,8 +206,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else
                 return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -240,7 +240,7 @@ public class UserCtrl extends Controller {
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -253,8 +253,8 @@ public class UserCtrl extends Controller {
             } else
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -307,8 +307,8 @@ public class UserCtrl extends Controller {
             builder.add("coolDown", resendMs);
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -347,7 +347,7 @@ public class UserCtrl extends Controller {
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -359,8 +359,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, info);
             } else
                 return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         } catch (NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
@@ -381,8 +381,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
             }
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.add("valid", true).get()));
     }
@@ -448,7 +448,7 @@ public class UserCtrl extends Controller {
                 Credential cre = UserAPI.getCredentialByUserId(us.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -476,7 +476,7 @@ public class UserCtrl extends Controller {
             Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
             if (cre == null)
-                throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "Credential info is null.");
+                throw new AizouException(ErrorCode.USER_NOT_EXIST, "Credential info is null.");
 
             // 返回机密数据
             JsonNode creNode = new CredentialFormatter().format(cre);
@@ -485,7 +485,7 @@ public class UserCtrl extends Controller {
                 info.put(entry.getKey(), entry.getValue());
             }
             return Utils.createResponse(ErrorCode.NORMAL, info);
-        } catch (IOException | NullPointerException | TravelPiException e) {
+        } catch (IOException | NullPointerException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
@@ -538,12 +538,12 @@ public class UserCtrl extends Controller {
         return info_url.toString();
     }
 
-    private static JsonNode getSelfUserProfileById(int targetId) throws TravelPiException {
+    private static JsonNode getSelfUserProfileById(int targetId) throws AizouException {
         UserInfo result = UserAPI.getUserInfo(targetId, SelfUserFormatter.retrievedFields);
         return result != null ? new SelfUserFormatter().format(result) : null;
     }
 
-    private static JsonNode getSideUserProfileById(int targetId) throws TravelPiException {
+    private static JsonNode getSideUserProfileById(int targetId) throws AizouException {
         UserInfo result = UserAPI.getUserInfo(targetId, SideUserFormatter.retrievedFields);
         return result != null ? new SideUserFormatter().format(result) : null;
     }
@@ -571,8 +571,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, result);
             else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -605,7 +605,7 @@ public class UserCtrl extends Controller {
                 result.add(node);
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-        } catch (TravelPiException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user : %s.", keyword));
         } catch (NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
@@ -663,7 +663,7 @@ public class UserCtrl extends Controller {
             LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
             LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (NullPointerException | TravelPiException e) {
+        } catch (NullPointerException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
         }
     }
@@ -685,8 +685,8 @@ public class UserCtrl extends Controller {
         try {
             UserAPI.addContact(userId, contactId);
             return Utils.createResponse(ErrorCode.NORMAL, "");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -707,8 +707,8 @@ public class UserCtrl extends Controller {
         try {
             UserAPI.delContact(userId, id);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -739,8 +739,8 @@ public class UserCtrl extends Controller {
             node.put("contacts", Json.toJson(nodelist));
             return Utils.createResponse(ErrorCode.NORMAL, node);
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -769,7 +769,7 @@ public class UserCtrl extends Controller {
                 nodelist.add(new SideUserFormatter().format(userInfo));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodelist));
-        } catch (NumberFormatException | NullPointerException | TravelPiException e) {
+        } catch (NumberFormatException | NullPointerException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }
@@ -788,7 +788,7 @@ public class UserCtrl extends Controller {
 //            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
 //            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, Json.toJson(e.getMessage()));
+//            return Utils.createResponse(e.getErrCode(), Json.toJson(e.getMessage()));
 //        } catch (NullPointerException | NumberFormatException e) {
 //            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
 //        }
