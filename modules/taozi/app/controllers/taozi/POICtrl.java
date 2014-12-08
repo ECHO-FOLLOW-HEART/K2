@@ -274,42 +274,48 @@ public class POICtrl extends Controller {
     public static Result getPoiNear(double lng, double lat, double maxDist, boolean spot, boolean hotel,
                                     boolean restaurant, int page, int pageSize) {
         try {
-            ObjectNode results = Json.newObject();
-            //发现poi
-            List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
-            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
-            if (spot) {
-                poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
-                poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
-            }
-
-            if (hotel) {
-                poiKeyList.add(PoiAPI.POIType.HOTEL);
-                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
-            }
-
-            if (restaurant) {
-                poiKeyList.add(PoiAPI.POIType.HOTEL);
-                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
-            }
-
-            for (PoiAPI.POIType poiType : poiKeyList) {
-                List<JsonNode> retPoiList = new ArrayList<>();
-                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lng, lat, maxDist,
-                        page, pageSize);
-                if (iterator != null) {
-                    for (; iterator.hasNext(); ) {
-                        AbstractPOI poi = iterator.next();
-                        retPoiList.add(new SimplePOIFormatter().format(poi));
-                    }
-                    results.put(poiMap.get(poiType), Json.toJson(retPoiList));
-                }
-
-            }
+            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, page, pageSize);
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException | NullPointerException | NumberFormatException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
+    }
+
+    private static ObjectNode getPoiNearImpl(double lng, double lat, double maxDist, boolean spot, boolean hotel,
+                                             boolean restaurant, int page, int pageSize) throws AizouException {
+        ObjectNode results = Json.newObject();
+        //发现poi
+        List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
+        HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
+        if (spot) {
+            poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
+            poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
+        }
+
+        if (hotel) {
+            poiKeyList.add(PoiAPI.POIType.HOTEL);
+            poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
+        }
+
+        if (restaurant) {
+            poiKeyList.add(PoiAPI.POIType.RESTAURANT);
+            poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
+        }
+
+        for (PoiAPI.POIType poiType : poiKeyList) {
+            List<JsonNode> retPoiList = new ArrayList<>();
+            Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lng, lat, maxDist,
+                    page, pageSize);
+            if (iterator != null) {
+                for (; iterator.hasNext(); ) {
+                    AbstractPOI poi = iterator.next();
+                    retPoiList.add(new SimplePOIFormatter().format(poi));
+                }
+                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+            }
+
+        }
+        return results;
     }
 
     /**

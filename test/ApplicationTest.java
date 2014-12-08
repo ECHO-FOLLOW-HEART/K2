@@ -2,8 +2,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import controllers.MiscCtrl;
 import controllers.POICtrl;
 import controllers.PlanCtrl;
-import exception.TravelPiException;
-import org.junit.Ignore;
+import exception.AizouException;
 import org.junit.Test;
 import play.test.WithApplication;
 
@@ -40,12 +39,12 @@ public class ApplicationTest extends WithApplication {
                 try {
                     testHelper(true);
                     testHelper(false);
-                } catch (TravelPiException e) {
+                } catch (AizouException e) {
                     assertThat(false);
                 }
             }
 
-            private void testHelper(boolean abroad) throws TravelPiException {
+            private void testHelper(boolean abroad) throws AizouException {
                 JsonNode result = MiscCtrl.exploreImpl(false, true, false, false, false, abroad, 0, 200);
                 for (JsonNode loc : result.get("loc")) {
                     for (String key : new String[]{"id", "zhName", "enName", "desc", "_id", "name", "fullName"}) {
@@ -76,7 +75,7 @@ public class ApplicationTest extends WithApplication {
             public void run() {
                 try {
                     testHelper();
-                } catch (TravelPiException e) {
+                } catch (AizouException e) {
                     assertThat(false);
                 }
             }
@@ -95,7 +94,7 @@ public class ApplicationTest extends WithApplication {
                 assertThat(ranking >= 0 && ranking <= 1);
             }
 
-            private void testHelper() throws TravelPiException {
+            private void testHelper() throws AizouException {
                 JsonNode result = MiscCtrl.getSuggestionsImpl("北京", true, true, true, true, 10);
                 for (JsonNode loc : result.get("loc")) {
                     parseLoc(loc);
@@ -127,7 +126,7 @@ public class ApplicationTest extends WithApplication {
             public void run() {
                 try {
                     testHelper();
-                } catch (TravelPiException e) {
+                } catch (AizouException e) {
                     assertThat(false);
                 }
             }
@@ -137,7 +136,7 @@ public class ApplicationTest extends WithApplication {
                     assertThat(node.get(key).asText().trim().isEmpty()).isFalse();
             }
 
-            private void testHelper() throws TravelPiException {
+            private void testHelper() throws AizouException {
                 JsonNode result = PlanCtrl.getUgcPlanByIdImpl("547f3714e4b0fda55223d7c4");
 
                 for (String key : new String[]{"_id", "title", "moreDesc", "uid",
@@ -223,12 +222,12 @@ public class ApplicationTest extends WithApplication {
             public void run() {
                 try {
                     testHelper();
-                } catch (TravelPiException e) {
+                } catch (AizouException e) {
                     assertThat(false);
                 }
             }
 
-            private void testHelper() throws TravelPiException {
+            private void testHelper() throws AizouException {
                 JsonNode result = POICtrl.poiSearchImpl("vs", "546f2da8b8ce0440eddb2870", "", "", 0, 20, "", "asc", "");
 
                 for (JsonNode poi : result) {

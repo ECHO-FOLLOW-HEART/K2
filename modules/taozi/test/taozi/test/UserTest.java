@@ -1,3 +1,5 @@
+package taozi.test;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.taozi.UserCtrl;
 import org.junit.Test;
