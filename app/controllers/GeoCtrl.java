@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import formatter.travelpi.geo.LocalityFormatter;
+import formatter.travelpi.geo.SimpleLocalityFormatter;
 import models.backup.geos.Locality;
 import models.geo.Country;
 import models.poi.AbstractPOI;
@@ -14,8 +16,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-import formatter.travelpi.geo.LocalityFormatter;
-import formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -129,17 +129,17 @@ public class GeoCtrl extends Controller {
      * @param id    城市ID。
      * @param relVs 是否查看相关景点
      */
-    public static Result getLocality(String id, int relVs, int relHotel, int relRestaurant) {
+    public static Result getLocality(String id, boolean relVs, boolean relHotel, boolean relRestaurant) {
         try {
             models.geo.Locality loc = LocalityAPI.locDetails(id, 3);
-            if (loc==null)
+            if (loc == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
 
             ObjectNode result = (ObjectNode) LocalityFormatter.getInstance().format(loc);
 
             int page = 0;
             int pageSize = 10;
-            if (relVs != 0) {
+            if (relVs) {
                 List<JsonNode> retVsNodes = new ArrayList<>();
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(PoiAPI.POIType.VIEW_SPOT, id, page, pageSize);
                      it.hasNext(); ) {
