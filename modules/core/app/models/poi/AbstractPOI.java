@@ -95,13 +95,13 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String detTargets = "targets";
 
     @Transient
-    public static String simpEnName = "enName";
+    public static final String FD_EN_NAME = "enName";
 
     @Transient
-    public static String simpRating = "rating";
+    public static final String FD_RATING = "rating";
 
     @Transient
-    public static String fnLocation = "location";
+    public static final String FD_LOCATION = "location";
 
     @Transient
     public static String simpAddress = "address";
@@ -161,6 +161,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     /**
      * 坐标
      */
+    @Embedded
     private GeoJsonPoint location;
 
     /**

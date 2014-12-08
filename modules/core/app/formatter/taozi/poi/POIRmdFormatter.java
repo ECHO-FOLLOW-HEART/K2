@@ -80,7 +80,7 @@ public class POIRmdFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.FD_DESC);
                 includedFields.add(AbstractPOI.simpID);
                 includedFields.add(AbstractPOI.FD_NAME);
-                includedFields.add(AbstractPOI.simpEnName);
+                includedFields.add(AbstractPOI.FD_EN_NAME);
                 includedFields.add(AbstractPOI.fnRating);
                 includedFields.add(ImageItem.FD_URL);
                 return (includedFields.contains(writer.getName()));

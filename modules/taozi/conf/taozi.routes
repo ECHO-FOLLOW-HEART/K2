@@ -85,7 +85,7 @@ GET           /poi/shopping/localities/:locId           controllers.taozi.POICtr
 # 景点列表
 GET           /poi/vs/localities/:locId                 controllers.taozi.POICtrl.viewPoiList(poiDesc: String="vs",locId: String, tagFilter: String?="", sortFilter: String?="rating", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
 #获得景点周边的POI列表
-GET           /poi/nearby                               controllers.taozi.POICtrl.getPoiNear(lng: Double,lat: Double,spot:Boolean=true,hotel:Boolean?=false,restaurant:Boolean?=false,page:Int?=0,pageSize :Int?=20)
+GET           /poi/nearby                               controllers.taozi.POICtrl.getPoiNear(lng: Double, lat: Double, maxDist: Double?=2000, spot: Boolean=true, hotel: Boolean?=false, restaurant: Boolean?=false, page: Int?=0, pageSize: Int?=10)
 
 #----------攻略接口----------
 #根据目的地获得攻略

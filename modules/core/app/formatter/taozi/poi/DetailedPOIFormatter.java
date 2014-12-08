@@ -56,12 +56,12 @@ public class DetailedPOIFormatter implements JsonFormatter {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractPOI.simpID);
                 includedFields.add(AbstractPOI.FD_ZH_NAME);
-                includedFields.add(AbstractPOI.simpEnName);
+                includedFields.add(AbstractPOI.FD_EN_NAME);
                 includedFields.add(AbstractPOI.FD_DESC);
                 includedFields.add(AbstractPOI.FD_IMAGES);
-                includedFields.add(AbstractPOI.fnLocation);
+                includedFields.add(AbstractPOI.FD_LOCATION);
                 includedFields.add(AbstractPOI.detAlias);
-                includedFields.add(AbstractPOI.simpRating);
+                includedFields.add(AbstractPOI.FD_RATING);
                 includedFields.add(AbstractPOI.simpAddress);
                 includedFields.add(AbstractPOI.FD_PRICE_DESC);
                 includedFields.add(AbstractPOI.simpTelephone);
@@ -105,7 +105,7 @@ public class DetailedPOIFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.FD_COORDS);
                 includedFields.add(GeoJsonPoint.fnType);
                 return (includedFields.contains(writer.getName()));
             }

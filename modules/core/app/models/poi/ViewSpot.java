@@ -18,7 +18,6 @@ import java.util.*;
  *
  * @author Zephyre
  */
-@JsonFilter("viewSpotFilter")
 public class ViewSpot extends AbstractPOI {
 
     @Transient

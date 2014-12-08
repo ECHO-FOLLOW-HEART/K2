@@ -839,14 +839,14 @@ public class PoiAPI {
      * @param poiType
      * @param lng
      * @param lat
-     * @param page
-     * @param pageSize
-     * @return
+     * @param maxDistance
+     *@param page
+     * @param pageSize   @return
      * @throws AizouException
      */
     public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, double lng, double lat,
-                                                               int page, int pageSize) throws AizouException {
-
+                                                               double maxDistance, int page, int pageSize)
+            throws AizouException {
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case VIEW_SPOT:
@@ -859,12 +859,14 @@ public class PoiAPI {
                 poiClass = Restaurant.class;
                 break;
             default:
-                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "");
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT);
         }
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        query = query.field(AbstractPOI.fnLocation).near(lng, lat, true);
+        query = query.field(AbstractPOI.FD_LOCATION).near(lng, lat, maxDistance, true);
+        query.retrievedFields(true, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.FD_IMAGES,
+                AbstractPOI.FD_IMAGES, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }

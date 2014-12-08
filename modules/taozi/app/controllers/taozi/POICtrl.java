@@ -244,7 +244,7 @@ public class POICtrl extends Controller {
         try {
             it = PoiAPI.viewPoiList(type, new ObjectId(locId), sf, sort, page, pageSize);
             for (AbstractPOI temp : it) {
-                ObjectNode ret = (ObjectNode) new SimplePOIFormatter().format(temp, poiType);
+                ObjectNode ret = (ObjectNode) new SimplePOIFormatter().format(temp);
                 if (poiType.equals("restaurant") || poiType.equals("shopping") ||
                         poiType.equals("hotel")) {
                     commentsEntities = PoiAPI.getPOIComment(temp.getId().toString(), commentPage, commentPageSize);
@@ -271,7 +271,8 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getPoiNear(double lng, double lat, boolean spot, boolean hotel, boolean restaurant, int page, int pageSize) {
+    public static Result getPoiNear(double lng, double lat, double maxDist, boolean spot, boolean hotel,
+                                    boolean restaurant, int page, int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             //发现poi
@@ -294,10 +295,13 @@ public class POICtrl extends Controller {
 
             for (PoiAPI.POIType poiType : poiKeyList) {
                 List<JsonNode> retPoiList = new ArrayList<>();
-                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lng, lat, page, pageSize);
+                Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lng, lat, maxDist,
+                        page, pageSize);
                 if (iterator != null) {
-                    for (; iterator.hasNext(); )
-                        retPoiList.add(new SimplePOIFormatter().format(iterator.next()));
+                    for (; iterator.hasNext(); ) {
+                        AbstractPOI poi = iterator.next();
+                        retPoiList.add(new SimplePOIFormatter().format(poi));
+                    }
                     results.put(poiMap.get(poiType), Json.toJson(retPoiList));
                 }
 

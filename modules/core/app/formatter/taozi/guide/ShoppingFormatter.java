@@ -86,7 +86,7 @@ public class ShoppingFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.FD_DESC);
                 includedFields.add(AbstractPOI.simpID);
                 includedFields.add(AbstractPOI.FD_ZH_NAME);
-                includedFields.add(AbstractPOI.simpEnName);
+                includedFields.add(AbstractPOI.FD_EN_NAME);
                 includedFields.add(AbstractPOI.fnRating);
                 includedFields.add(AbstractPOI.FD_IMAGES);
                 return (includedFields.contains(writer.getName()));
@@ -143,7 +143,7 @@ public class ShoppingFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.FD_COORDS);
                 includedFields.add(GeoJsonPoint.fnType);
                 return (includedFields.contains(writer.getName()));
             }

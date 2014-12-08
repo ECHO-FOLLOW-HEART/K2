@@ -108,7 +108,7 @@ public class DestinationFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.FD_COORDS);
                 includedFields.add(GeoJsonPoint.fnType);
                 return (includedFields.contains(writer.getName()));
             }

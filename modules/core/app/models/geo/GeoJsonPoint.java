@@ -12,30 +12,30 @@ import org.mongodb.morphia.annotations.Transient;
  */
 @Embedded
 @JsonFilter("geoJsonPointFilter")
-public class GeoJsonPoint extends TravelPiBaseItem {
+public class GeoJsonPoint {
 
     @Transient
     public static String fnType = "type";
 
     @Transient
-    public static String fnCoordinates = "coordinates";
+    public static String FD_COORDS = "coordinates";
 
     public static String type = "Point";
+
+    private double[] coordinates;
 
     public double[] getCoordinates() {
         return coordinates;
     }
 
-    private double[] coordinates;
+    public void setCoordinates(double[] coordinates) {
+        this.coordinates = coordinates;
+    }
 
     public GeoJsonPoint() {
     }
 
     private GeoJsonPoint(double lng, double lat) {
         coordinates = new double[]{lng, lat};
-    }
-
-    public static GeoJsonPoint newInstance(double lng, double lat) {
-        return new GeoJsonPoint(lng, lat);
     }
 }

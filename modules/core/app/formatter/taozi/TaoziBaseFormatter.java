@@ -1,18 +1,17 @@
 package formatter.taozi;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
+import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.JsonFormatter;
+import models.geo.GeoJsonPoint;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,53 +39,31 @@ public abstract class TaoziBaseFormatter implements JsonFormatter {
         objectIdModule.addSerializer(ObjectId.class, new ObjectIdSerializer());
         mapper.registerModule(objectIdModule);
 
-        DefaultSerializerProvider.Impl sp = new DefaultSerializerProvider.Impl();
-        sp.setNullValueSerializer(new JsonSerializer<Object>() {
-            @Override
-            public void serialize(Object o, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
-                    throws IOException {
-                jsonGenerator.writeString("");
-            }
-        });
-        mapper.setSerializerProvider(sp);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("geoJsonPointFilter",
+                SimpleBeanPropertyFilter.filterOutAllExcept(GeoJsonPoint.FD_COORDS));
+        mapper.setFilters(filters);
 
         return mapper;
     }
 
     protected ObjectNode postProcess(ObjectNode result) {
         // 处理字符串字段
-        if (stringFields != null) {
-            for (String key : stringFields) {
-                if (result.get(key) == null || result.get(key).isNull())
-                    result.put(key, "");
-            }
+        for (String key : stringFields) {
+            if (result.get(key) == null || result.get(key).isNull())
+                result.put(key, "");
         }
 
         // 处理列表字段
-        if (listFields != null) {
-            for (String key : listFields) {
-                if (result.get(key) == null || result.get(key).isNull())
-                    result.put(key, Json.toJson(new ArrayList<>()));
-            }
+        for (String key : listFields) {
+            if (result.get(key) == null || result.get(key).isNull())
+                result.put(key, Json.toJson(new ArrayList<>()));
         }
 
         // 处理字典字段
-        if (mapFields != null) {
-            for (String key : mapFields) {
-                if (result.get(key) == null || result.get(key).isNull())
-                    result.put(key, Json.toJson(new HashMap<>()));
-            }
+        for (String key : mapFields) {
+            if (result.get(key) == null || result.get(key).isNull())
+                result.put(key, Json.toJson(new HashMap<>()));
         }
-
-//        // 处理id
-//        JsonNode oid = result.get("id");
-//        int time = oid.get("timestamp").asInt();
-//        int mach = oid.get("machine").asInt();
-//        int inc = oid.get("inc").asInt();
-
-//        String oidText = ObjectId.createFromLegacyFormat(time, mach, inc).toString();
-//        result.put("_id", oidText);
-//        result.put("id", oidText);
 
         return result;
     }
