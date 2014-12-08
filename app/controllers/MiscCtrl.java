@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import formatter.travelpi.geo.LocalityFormatter;
+import formatter.travelpi.geo.SimpleLocalityFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Feedback;
@@ -25,8 +27,6 @@ import play.mvc.Http;
 import play.mvc.Result;
 import utils.DataFilter;
 import utils.Utils;
-import formatter.travelpi.geo.LocalityFormatter;
-import formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.net.UnknownHostException;
 import java.util.*;
@@ -378,6 +378,22 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "");
     }
 
+    private static JsonNode appHomeImageImpl(int width, int height, int quality, String format, int interlace)
+            throws TravelPiException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        MiscInfo info = ds.createQuery(MiscInfo.class).get();
+
+        if (info == null)
+            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+
+        ObjectNode node = Json.newObject();
+        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
+        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
+        node.put("image", url);
+
+        return node;
+    }
+
     /**
      * 获得App首页的图像。
      *
@@ -387,19 +403,7 @@ public class MiscCtrl extends Controller {
      */
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
-
-//            UserAPI.updateUserInfo(request());
-
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            MiscInfo info = ds.createQuery(MiscInfo.class).get();
-
-            if (info == null)
-                return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
-
-            ObjectNode node = Json.newObject();
-            // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
-            node.put("image", url);
+            JsonNode node = appHomeImageImpl(width, height, quality, format, interlace);
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (TravelPiException e) {
             return Utils.createResponse(e.errCode, e.getMessage());

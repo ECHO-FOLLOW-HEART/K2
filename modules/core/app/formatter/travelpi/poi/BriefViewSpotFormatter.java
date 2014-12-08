@@ -8,14 +8,14 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import formatter.AizouBeanPropertyFilter;
+import formatter.travelpi.TravelPiBaseFormatter;
 import models.TravelPiBaseItem;
 import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
 import play.libs.Json;
-import formatter.AizouBeanPropertyFilter;
-import formatter.travelpi.TravelPiBaseFormatter;
 
 import java.util.*;
 
@@ -68,7 +68,7 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, ImageItem.fnUrl, ImageItem.FD_CROP_HINT, ImageItem.FD_WIDTH,
+                Collections.addAll(includedFields, ImageItem.FD_URL, ImageItem.FD_CROP_HINT, ImageItem.FD_WIDTH,
                         ImageItem.FD_HEIGHT);
 
                 return (includedFields.contains(writer.getName()));
@@ -95,7 +95,8 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
             Map<String, Integer> cropHint = img.getCropHint();
             String url;
             if (cropHint == null) {
-                url = String.format("http://lvxingpai-img-store.qiniudn.com/%s?imageView2/2/w/%d", img.key, maxWidth);
+                url = String.format("http://lvxingpai-img-store.qiniudn.com/%s?imageView2/2/w/%d", img.getKey(),
+                        maxWidth);
             } else {
                 int top = cropHint.get("top");
                 int right = cropHint.get("right");
@@ -104,7 +105,7 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
 
                 url = String.format("http://lvxingpai-img-store.qiniudn.com/%s?imageMogr2/auto-orient/strip/gravity" +
                                 "/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
-                        img.key, (right - left), (bottom - top), left, top, maxWidth);
+                        img.getKey(), (right - left), (bottom - top), left, top, maxWidth);
             }
 
             imageList.add(url);

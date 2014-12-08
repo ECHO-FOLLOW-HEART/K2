@@ -103,12 +103,17 @@ public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatt
         // 如果存在更高阶的images字段，则使用之
         if (images != null && !images.isEmpty()) {
 
-            if (images != null) {
-                ArrayList<JsonNode> tmpList = new ArrayList<>();
-                for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size())))
-                    tmpList.add(img.toJson());
-                builder.add("image", tmpList);
+            ArrayList<JsonNode> tmpList = new ArrayList<>();
+            for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size()))) {
+
+                BasicDBObjectBuilder bld = BasicDBObjectBuilder.start()
+                        .add("url", img.getFullUrl())
+                        .add("w", img.getW())
+                        .add("h", img.getH());
+
+                tmpList.add(Json.toJson(bld.get()));
             }
+            builder.add("image", tmpList);
 
         }
         return Json.toJson(builder.get());

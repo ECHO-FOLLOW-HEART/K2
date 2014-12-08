@@ -31,20 +31,18 @@ public class Share extends TravelPiBaseItem implements ITravelPiFormatter {
         if (images != null && !images.isEmpty()) {
             List<ImageItem> imgList = new ArrayList<>();
             for (ImageItem img : images) {
-                if (img.enabled != null && !img.enabled)
-                    continue;
                 imgList.add(img);
             }
 
             Collections.sort(imgList, new Comparator<ImageItem>() {
                 @Override
                 public int compare(ImageItem o1, ImageItem o2) {
-                    if (o1.fSize != null && o2.fSize != null)
-                        return o2.fSize - o1.fSize;
-                    else if (o1.w != null && o2.w != null)
-                        return o2.w - o1.w;
-                    else if (o1.h != null && o2.h != null)
-                        return o2.h - o1.h;
+                    if (o1.getSize() != null && o2.getSize() != null)
+                        return o2.getSize() - o1.getSize();
+                    else if (o1.getW() != null && o2.getW() != null)
+                        return o2.getW() - o1.getW();
+                    else if (o1.getH() != null && o2.getH() != null)
+                        return o2.getH() - o1.getH();
                     else
                         return 0;
                 }
@@ -52,8 +50,8 @@ public class Share extends TravelPiBaseItem implements ITravelPiFormatter {
 
             List<String> ret = new ArrayList<>();
             for (ImageItem img : imgList) {
-                if (img.url != null)
-                    ret.add(img.url);
+                if (img.getFullUrl() != null)
+                    ret.add(img.getFullUrl());
             }
             builder.add("imageList", ret);
         }
