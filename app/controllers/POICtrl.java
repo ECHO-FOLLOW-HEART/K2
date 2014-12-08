@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import exception.ErrorCode;
 import exception.TravelPiException;
+import formatter.travelpi.poi.BriefViewSpotFormatter;
 import models.MorphiaFactory;
 import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
@@ -18,7 +19,6 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import formatter.travelpi.poi.BriefViewSpotFormatter;
 
 import java.net.UnknownHostException;
 import java.util.ArrayList;

@@ -1,13 +1,19 @@
 package formatter.travelpi;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
+import formatter.taozi.ObjectIdSerializer;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import formatter.JsonFormatter;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -17,11 +23,33 @@ import java.util.Set;
  */
 public abstract class TravelPiBaseFormatter implements JsonFormatter {
 
-    protected Set<String> stringFields;
+    protected Set<String> stringFields = new HashSet<>();
 
-    protected Set<String> listFields;
+    protected Set<String> listFields = new HashSet<>();
 
-    protected Set<String> mapFields;
+    protected Set<String> mapFields = new HashSet<>();
+
+    protected ObjectMapper getObjectMapper() {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
+        mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+
+        SimpleModule objectIdModule = new SimpleModule();
+        objectIdModule.addSerializer(ObjectId.class, new ObjectIdSerializer());
+        mapper.registerModule(objectIdModule);
+
+        DefaultSerializerProvider.Impl sp = new DefaultSerializerProvider.Impl();
+        sp.setNullValueSerializer(new JsonSerializer<Object>() {
+            @Override
+            public void serialize(Object o, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
+                    throws IOException {
+                jsonGenerator.writeString("");
+            }
+        });
+        mapper.setSerializerProvider(sp);
+
+        return mapper;
+    }
 
     protected ObjectNode postProcess(ObjectNode result) {
         // 处理字符串字段
