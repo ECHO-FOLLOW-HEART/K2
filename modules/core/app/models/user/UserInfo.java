@@ -148,8 +148,6 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 环信的账号
      */
-    // TODO easemob需要改成credential
-    @Transient
     private String easemobUser;
 
     /**

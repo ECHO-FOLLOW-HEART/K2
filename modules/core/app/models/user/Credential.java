@@ -32,19 +32,23 @@ public class Credential extends TravelPiBaseItem {
      */
     @Constraints.Required
     private Integer userId;
+
     /**
      * 密码加盐hash
      */
     private String pwdHash;
+
     /**
      * 该用户对应的盐值
      */
     @Constraints.Required
     private String salt;
+
     /**
      * 环信密码
      */
     private String easemobPwd;
+
     /**
      * 用户密钥，鉴权的时候使用
      */

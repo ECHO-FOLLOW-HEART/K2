@@ -7,7 +7,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.user.SideUserFormatter;
+import formatter.taozi.user.UserFormatter;
 import models.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.misc.Sequence;
@@ -76,12 +76,12 @@ public class UserAPI {
      *
      * @throws exception.AizouException
      */
-    public static UserInfo getUserInfo(Integer id, List<String> fieldList) throws AizouException {
+    public static UserInfo getUserInfo(Integer id, Collection<String> fieldList) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(id);
-        if (fieldList != null && !fieldList.isEmpty()) {
+        if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
-        }
+
         return query.get();
     }
 
@@ -1174,7 +1174,7 @@ public class UserAPI {
     public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType) throws AizouException {
         if (selfInfo.getEasemobUser() == null)
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
-        ObjectNode info = (ObjectNode) new SideUserFormatter().format(selfInfo);
+        ObjectNode info = (ObjectNode) new UserFormatter(false).format(selfInfo);
 
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);

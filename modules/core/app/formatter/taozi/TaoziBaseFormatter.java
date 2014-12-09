@@ -30,6 +30,10 @@ public abstract class TaoziBaseFormatter implements JsonFormatter {
 
     protected Set<String> filteredFields;
 
+    public Set<String> getFilteredFields() {
+        return filteredFields;
+    }
+
     protected TaoziBaseFormatter() {
         stringFields = new HashSet<>();
         listFields = new HashSet<>();

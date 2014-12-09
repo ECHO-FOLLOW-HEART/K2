@@ -8,8 +8,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.user.CredentialFormatter;
-import formatter.taozi.user.SelfUserFormatter;
-import formatter.taozi.user.SideUserFormatter;
+import formatter.taozi.user.UserFormatter;
 import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
@@ -38,7 +37,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -78,7 +77,7 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
             if (userInfo != null) {
-                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
 
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -239,7 +238,7 @@ public class UserCtrl extends Controller {
                 UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, tel);
                 UserAPI.resetPwd(userInfo, pwd);
 
-                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
@@ -345,7 +344,7 @@ public class UserCtrl extends Controller {
 
             //验证密码
             if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd)) {
-                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
 
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -446,7 +445,7 @@ public class UserCtrl extends Controller {
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserInfo.fnOauthId, infoNode.get("openid").asText());
             if (us != null) {
-                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(us);
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(us);
 
                 Credential cre = UserAPI.getCredentialByUserId(us.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -474,7 +473,7 @@ public class UserCtrl extends Controller {
             UserInfo userInfo = UserAPI.regByWeiXin(us);
 
             //返回注册信息
-            ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
 
             Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -541,14 +540,10 @@ public class UserCtrl extends Controller {
         return info_url.toString();
     }
 
-    private static JsonNode getSelfUserProfileById(int targetId) throws AizouException {
-        UserInfo result = UserAPI.getUserInfo(targetId, SelfUserFormatter.retrievedFields);
-        return result != null ? new SelfUserFormatter().format(result) : null;
-    }
-
-    private static JsonNode getSideUserProfileById(int targetId) throws AizouException {
-        UserInfo result = UserAPI.getUserInfo(targetId, SideUserFormatter.retrievedFields);
-        return result != null ? new SideUserFormatter().format(result) : null;
+    private static JsonNode getUserProfileByIdImpl(Integer userId, Integer selfId) throws AizouException {
+        UserFormatter formatter = new UserFormatter(selfId != null && userId.equals(selfId));
+        UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
+        return result != null ? formatter.format(result) : null;
     }
 
     /**
@@ -564,11 +559,7 @@ public class UserCtrl extends Controller {
             selfId = Integer.parseInt(tmp);
 
         try {
-            JsonNode result;
-            if (selfId != null && userId == selfId)
-                result = getSelfUserProfileById(userId);
-            else
-                result = getSideUserProfileById(userId);
+            JsonNode result = getUserProfileByIdImpl(userId, selfId);
 
             if (result != null)
                 return Utils.createResponse(ErrorCode.NORMAL, result);
@@ -603,7 +594,7 @@ public class UserCtrl extends Controller {
             List<JsonNode> result = new ArrayList<>();
             while (itr != null && itr.hasNext()) {
                 UserInfo user = itr.next();
-                ObjectNode node = (ObjectNode) new SideUserFormatter().format(user);
+                ObjectNode node = (ObjectNode) new UserFormatter(false).format(user);
                 node.put("memo", "");
                 result.add(node);
             }
@@ -735,7 +726,7 @@ public class UserCtrl extends Controller {
 
             List<JsonNode> nodelist = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new SideUserFormatter().format(userInfo));
+                nodelist.add(new UserFormatter(false).format(userInfo));
             }
 
             ObjectNode node = Json.newObject();
@@ -769,7 +760,7 @@ public class UserCtrl extends Controller {
             List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
             List<JsonNode> nodelist = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new SideUserFormatter().format(userInfo));
+                nodelist.add(new UserFormatter(false).format(userInfo));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodelist));
         } catch (NumberFormatException | NullPointerException | AizouException e) {
