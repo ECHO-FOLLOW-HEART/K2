@@ -1,10 +1,11 @@
 package formatter.taozi;
 
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.JsonFormatter;
@@ -12,10 +13,7 @@ import models.geo.GeoJsonPoint;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 旅行派的formatter基类
@@ -24,23 +22,47 @@ import java.util.Set;
  */
 public abstract class TaoziBaseFormatter implements JsonFormatter {
 
-    protected Set<String> stringFields = new HashSet<>();
+    protected Set<String> stringFields;
 
-    protected Set<String> listFields = new HashSet<>();
+    protected Set<String> listFields;
 
-    protected Set<String> mapFields = new HashSet<>();
+    protected Set<String> mapFields;
+
+    protected Set<String> filteredFields;
+
+    protected TaoziBaseFormatter() {
+        stringFields = new HashSet<>();
+        listFields = new HashSet<>();
+        mapFields = new HashSet<>();
+        filteredFields = new HashSet<>();
+    }
 
     protected ObjectMapper getObjectMapper() {
+        return getObjectMapper(null, null);
+    }
+
+    protected <T> ObjectMapper getObjectMapper(Map<String, PropertyFilter> filterMap,
+                                               Map<Class<? extends T>, JsonSerializer<T>> serializerMap) {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
-        SimpleModule objectIdModule = new SimpleModule();
-        objectIdModule.addSerializer(ObjectId.class, new ObjectIdSerializer());
-        mapper.registerModule(objectIdModule);
+        if (filterMap == null)
+            filterMap = new HashMap<>();
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("geoJsonPointFilter",
-                SimpleBeanPropertyFilter.filterOutAllExcept(GeoJsonPoint.FD_COORDS));
+        if (serializerMap == null)
+            serializerMap = new HashMap<>();
+
+        SimpleModule module = new SimpleModule();
+        module.addSerializer(ObjectId.class, new ObjectIdSerializer());
+        for (Map.Entry<Class<? extends T>, JsonSerializer<T>> entry : serializerMap.entrySet())
+            module.addSerializer(entry.getKey(), entry.getValue());
+        mapper.registerModule(module);
+
+        SimpleFilterProvider filters = new SimpleFilterProvider()
+                .addFilter("geoJsonPointFilter", SimpleBeanPropertyFilter.filterOutAllExcept(GeoJsonPoint.FD_COORDS));
+        for (Map.Entry<String, PropertyFilter> entry : filterMap.entrySet())
+            filters.addFilter(entry.getKey(), entry.getValue());
         mapper.setFilters(filters);
 
         return mapper;

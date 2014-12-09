@@ -102,7 +102,7 @@ public class MiscFormatter implements JsonFormatter{
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Comment.fnNickName,Comment.fnScore,Comment.fnCommentDetails,Comment.fnCommentTime,Comment.fnAvatar);
+                Collections.addAll(includedFields, Comment.FD_NICK_NAME,Comment.FD_RATING,Comment.FD_CONTENTS,Comment.FD_TIME,Comment.FD_AVATAR);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -117,7 +117,7 @@ public class MiscFormatter implements JsonFormatter{
             }
         };
         FilterProvider filters = new SimpleFilterProvider().addFilter("travelColumnsFilter", travelColumnsFilter)
-                .addFilter("commentsFilter",commentsFilter).addFilter("userInfoFilter",userInfoFilter);
+                .addFilter("commentFilter",commentsFilter).addFilter("userInfoFilter",userInfoFilter);
         mapper.setFilters(filters);
         return mapper.valueToTree(item);
     }

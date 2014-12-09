@@ -1,9 +1,11 @@
 package formatter.taozi.poi;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.ImageItemSerializer;
@@ -15,10 +17,7 @@ import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
@@ -29,17 +28,16 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
 
     private final Class<T> poiClass;
 
+    public Set<String> getFilteredFields() {
+        return filteredFields;
+    }
+
     public Class<T> getPoiClass() {
         return poiClass;
     }
 
     public DetailedPOIFormatter(Class<T> poiClass) {
         this.poiClass = poiClass;
-    }
-
-    @Override
-    public JsonNode format(TravelPiBaseItem item) {
-        ObjectMapper mapper = getObjectMapper();
 
         stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC,
                 AbstractPOI.FD_ADDRESS, AbstractPOI.FD_PRICE_DESC, AbstractPOI.FD_TELEPHONE));
@@ -48,7 +46,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
 
         mapFields.add(AbstractPOI.FD_LOCATION);
 
-        Set<String> filteredFields = new HashSet<>();
+        filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
                 TravelPiBaseItem.FD_ID,
                 AbstractPOI.FD_ZH_NAME,
@@ -70,19 +68,22 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
             Collections.addAll(filteredFields, keyList);
             Collections.addAll(stringFields, keyList);
         }
+    }
 
-        SimpleFilterProvider provider = (SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider();
-        provider.addFilter("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields))
-                .addFilter("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
-                        TravelPiBaseItem.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME))
-                .addFilter("countryFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
-                        TravelPiBaseItem.FD_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME));
+    @Override
+    public JsonNode format(TravelPiBaseItem item) {
 
-        SimpleModule imageItemModule = new SimpleModule();
-        imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
-        mapper.registerModule(imageItemModule);
+        Map<String, PropertyFilter> filterMap = new HashMap<>();
+        filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
+        filterMap.put("countryFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
+                TravelPiBaseItem.FD_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME));
+        filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
+                TravelPiBaseItem.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
+        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap =new HashMap<>();
+        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+
+        ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 
         return postProcess((ObjectNode) mapper.valueToTree(item));
     }
