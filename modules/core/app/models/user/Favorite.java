@@ -2,25 +2,18 @@ package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.TravelPiBaseItem;
-import models.geo.Locality;
 import models.misc.ImageItem;
-import models.misc.TravelNote;
-import models.poi.Hotel;
-import models.poi.Restaurant;
-import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 /**
  * 用户的收藏夹
- * <p/>
+ * <p>
  * Created by topy on 2014/10/27.
  */
 @Entity
@@ -35,7 +28,7 @@ public class Favorite extends TravelPiBaseItem {
 
 
     @Transient
-    public static String fnUserId= "userId";
+    public static String fnUserId = "userId";
 
     @Transient
     public static String fnType = "type";
@@ -50,7 +43,7 @@ public class Favorite extends TravelPiBaseItem {
     public static String fnImage = "images";
 
     @Transient
-    public static String fnCreateTime= "createTime";
+    public static String fnCreateTime = "createTime";
 
     @Transient
     public static String TYPE_VS = "vs";
@@ -73,6 +66,9 @@ public class Favorite extends TravelPiBaseItem {
     @Transient
     public static String TYPE_LOCALITY = "locality";
 
+    @Transient
+    public static String fnDesc = "desc";
+
     /**
      * 用户ID
      */
@@ -87,12 +83,18 @@ public class Favorite extends TravelPiBaseItem {
 
     public String enName;
 
+    public String desc;
+
     public List<ImageItem> images;
 
     public Date createTime;
 
     public String getItemId() {
         return itemId.toString();
+    }
+
+    public String getEnName() {
+        return enName == null ? "" : enName;
     }
 
 }

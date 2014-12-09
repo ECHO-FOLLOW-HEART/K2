@@ -24,13 +24,18 @@ import java.util.List;
  */
 public class TravelNoteCtrl extends Controller {
 
-    public static Result searchNotes(String locId, int pageSize) {
+    public static Result searchNotes(String keyWord, String locId, int page, int pageSize) {
         try {
 
-            ObjectId oid = new ObjectId(locId);
-            Locality locality = LocalityAPI.getLocality(oid);
-            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null,
-                    pageSize);
+            List<TravelNote> noteList;
+            if (!locId.isEmpty()) {
+                ObjectId oid = new ObjectId(locId);
+                Locality locality = LocalityAPI.getLocality(oid);
+                noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, page, pageSize);
+            } else if (!keyWord.isEmpty())
+                noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(keyWord), Arrays.asList(keyWord), page, pageSize);
+            else
+                noteList = new ArrayList();
             List<JsonNode> ret = new ArrayList<>();
             for (TravelNote note : noteList)
                 ret.add(note.toJson());

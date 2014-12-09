@@ -26,17 +26,6 @@ public class GeoAPI {
      * @param field
      * @return
      */
-    public static Country countryDetails(String countryId, List<String> field) throws AizouException {
-        return countryDetails(new ObjectId(countryId), field);
-    }
-
-    /**
-     * 获得国家详情
-     *
-     * @param countryId
-     * @param field
-     * @return
-     */
     public static Country countryDetails(ObjectId countryId, List<String> field) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Country> query = ds.createQuery(Country.class).field("_id").equal(countryId);
@@ -59,17 +48,6 @@ public class GeoAPI {
         if (fields != null && !fields.isEmpty())
             query.retrievedFields(true, fields.toArray(new String[fields.size()]));
         return query.get();
-    }
-
-    /**
-     * 获得城市详情。
-     *
-     * @param locId 城市ID。
-     * @return 如果没有找到，返回null。
-     * @throws exception.AizouException
-     */
-    public static Locality locDetails(ObjectId locId) throws AizouException {
-        return locDetails(locId, null);
     }
 
     /**

@@ -127,6 +127,9 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     @Transient
     public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
 
+    @Transient
+    public static String fnType = "type";
+
     @Embedded
     public CheckinRatings ratings;
 

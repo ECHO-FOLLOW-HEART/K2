@@ -1,9 +1,11 @@
 package aizou.core;
 
 import exception.AizouException;
+import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.guide.*;
+import models.poi.AbstractPOI;
 import models.poi.Restaurant;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
@@ -11,6 +13,8 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import utils.Constants;
+import utils.LogUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -229,4 +233,66 @@ public class GuideAPI {
         query.field("locId").equal(id);
         return query.get();
     }
+
+    /**
+     * @return
+     */
+    public static Guide fillGuideInfo(Guide guide) throws AizouException {
+        if (guide == null)
+            return new Guide();
+        AbstractPOI poi;
+        String type;
+        PoiAPI.POIType poiType;
+        List<ItinerItem> itinerary = guide.itinerary;
+        List<ItinerItem> newItinerary = new ArrayList<>();
+        List<Shopping> shopping = guide.shopping;
+        List<Restaurant> restaurant = guide.restaurant;
+        if (itinerary != null && itinerary.size() > 0) {
+            for (ItinerItem temp : itinerary) {
+                type = temp.type;
+                switch (type) {
+                    case "vs":
+                        poiType = PoiAPI.POIType.VIEW_SPOT;
+                        break;
+                    case "hotel":
+                        poiType = PoiAPI.POIType.HOTEL;
+                        break;
+                    case "restaurant":
+                        poiType = PoiAPI.POIType.RESTAURANT;
+                        break;
+                    case "shopping":
+                        poiType = PoiAPI.POIType.SHOPPING;
+                        break;
+                    default:
+                        throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", type));
+                }
+                poi = PoiAPI.getPOIInfo(temp.poi.getId(), poiType, true);
+                if (poi == null) {
+                    LogUtils.info(GuideAPI.class, String.format("POI is not exist.Id: %s, Type: %s.", temp.poi.getId().toString(), type));
+                    continue;
+                } else {
+                    temp.poi = poi;
+                    newItinerary.add(temp);
+                }
+            }
+            guide.itinerary = newItinerary;
+        }
+        List<ObjectId> ids;
+        if (shopping != null && shopping.size() > 0) {
+            ids = new ArrayList();
+            for (Shopping temp : shopping) {
+                ids.add(temp.getId());
+            }
+            guide.shopping = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping",null,Constants.ZERO_COUNT , Constants.MAX_COUNT);
+        }
+        if (restaurant != null && restaurant.size() > 0) {
+            ids = new ArrayList();
+            for (Restaurant temp : restaurant) {
+                ids.add(temp.getId());
+            }
+            guide.restaurant = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant",null,Constants.ZERO_COUNT , Constants.MAX_COUNT);
+        }
+        return guide;
+    }
+
 }

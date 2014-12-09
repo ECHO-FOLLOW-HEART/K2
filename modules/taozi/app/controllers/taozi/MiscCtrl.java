@@ -7,9 +7,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DestinationFormatter;
 import formatter.taozi.geo.DetailedLocalityFormatter;
-import formatter.taozi.geo.LocalityFormatter;
 import formatter.taozi.misc.MiscFormatter;
-import formatter.taozi.misc.SimpleRefFormatter;
 import formatter.taozi.misc.WeatherFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
@@ -31,6 +29,11 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.*;
+import utils.Constants;
+import utils.DataFilter;
+import utils.LogUtils;
+import utils.Utils;
+
 
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
@@ -43,6 +46,10 @@ import java.util.*;
  * @author Zephyre
  */
 public class MiscCtrl extends Controller {
+
+    public static String UPLOAD_URL = "url";
+
+    public static String UPLOAD_UID = "userId";
 
     /**
      * 封面故事,获取App首页的图像。
@@ -157,25 +164,15 @@ public class MiscCtrl extends Controller {
             String itemId = collection.get("itemId").asText();
             ObjectId oid = new ObjectId(itemId);
             String type = collection.get("type").asText();
-            String zhName = collection.get("zhName").asText();
-            String enName = collection.get("enName").asText();
-            String image = collection.get("image").asText();
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
             Query<Favorite> query = ds.createQuery(Favorite.class);
-            query.field("userId").equal("userId").field("type").equal(type).field("itemId").equal(oid);
+            query.field("userId").equal(userId).field("type").equal(type).field("itemId").equal(oid);
             if (query.iterator().hasNext())
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Favorite item has existed");
+                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Favorite item has existed");
             Favorite fa = new Favorite();
             fa.setId(new ObjectId());
             fa.itemId = oid;
-            fa.zhName = zhName;
-            fa.enName = enName;
             fa.type = type;
-//            ImageItem img = new ImageItem();
-//            img.setUrl(image);
-            // TODO 直接给ImageItem的url赋值是有问题的
-//            fa.images = Arrays.asList(img);
-            fa.images = new ArrayList<>();
             fa.userId = userId;
             fa.createTime = new Date();
             ds.save(fa);
@@ -190,7 +187,6 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @SuppressWarnings("unchecked")
     public static Result getFavorite(String faType, int page, int pageSize) {
 
         try {
@@ -209,15 +205,87 @@ public class MiscCtrl extends Controller {
             }
             query.offset(page * pageSize).limit(pageSize);
             query.order("-" + "createTime");
-            Favorite fa = query.get();
-            if (fa != null) {
-                JsonNode info = new SelfFavoriteFormatter().format(fa);
-                ObjectNode ret = (ObjectNode) info;
-                return Utils.createResponse(ErrorCode.NORMAL, ret);
-            } else
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, MsgConstants.FAVORITE_NOT_EXIT_MSG, true);
+
+            List<Favorite> faList = query.asList();
+            if (faList == null || faList.isEmpty())
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<Favorite>()));
+            List<Favorite> faShowList = new ArrayList<>();
+            List<Favorite> noteFav = new ArrayList<>();
+            List<String> travelNoteIds = new ArrayList<>();
+            String type;
+            Locality loc;
+            AbstractPOI poi;
+            PoiAPI.POIType poiType;
+            List locFields = new ArrayList();
+            Collections.addAll(locFields, "id", "type", "zhName", "enName", "images", "desc");
+            for (Favorite fa : faList) {
+                type = fa.type;
+                if (type.equals("locality")) {
+                    loc = GeoAPI.locDetails(fa.itemId, locFields);
+                    fa.zhName = loc.getZhName();
+                    fa.enName = loc.getEnName();
+                    fa.images = loc.getImages();
+                    fa.desc = loc.getDesc();
+                } else if (type.equals("travelNote")) {
+                    travelNoteIds.add(fa.itemId.toString());
+                    noteFav.add(fa);
+                } else if (type.equals("vs") || type.equals("hotel") || type.equals("restaurant") || type.equals("shopping")) {
+                    switch (type) {
+                        case "vs":
+                            poiType = PoiAPI.POIType.VIEW_SPOT;
+                            break;
+                        case "hotel":
+                            poiType = PoiAPI.POIType.HOTEL;
+                            break;
+                        case "restaurant":
+                            poiType = PoiAPI.POIType.RESTAURANT;
+                            break;
+                        case "shopping":
+                            poiType = PoiAPI.POIType.SHOPPING;
+                            break;
+                        default:
+                            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", type));
+                    }
+                    poi = PoiAPI.getPOIInfo(fa.itemId, poiType, locFields);
+                    fa.zhName = poi.zhName;
+                    fa.enName = poi.enName;
+                    fa.images = poi.images;
+                    fa.desc = poi.desc;
+                }
+                faShowList.add(fa);
+            }
+            List<TravelNote> travelNotes = TravelNoteAPI.searchNoteById(travelNoteIds, Constants.MAX_COUNT);
+            Map<String, TravelNote> travelNoteMap = new HashMap<>();
+            for (TravelNote temp : travelNotes)
+                travelNoteMap.put(temp.getId().toString(), temp);
+            TravelNote tnFromFavorate;
+            if (travelNotes != null && travelNotes.size() > 0) {
+                for (Favorite fa : noteFav) {
+                    tnFromFavorate = travelNoteMap.get(fa.itemId.toString());
+                    if (tnFromFavorate == null)
+                        continue;
+                    fa.zhName = tnFromFavorate.getName();
+                    fa.enName = tnFromFavorate.getName();
+                    ImageItem tmg = new ImageItem();
+                    // TODO 如何设置URL
+                    //tmg.setKey(tnFromFavorate.getCover());
+                    fa.images = Arrays.asList(tmg);
+                    fa.desc = tnFromFavorate.getDesc();
+                    faShowList.add(fa);
+                }
+            }
+            // 按照创建时间排序
+            Collections.sort(faShowList, new Comparator<Favorite>() {
+                public int compare(Favorite arg0, Favorite arg1) {
+                    return arg0.createTime.getTime() - arg1.createTime.getTime() > 0 ? -1 : 1;
+                }
+            });
+            List<ObjectNode> nodes = new ArrayList<>();
+            for (Favorite fa : faShowList)
+                nodes.add((ObjectNode) new SelfFavoriteFormatter().format(fa));
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodes));
         } catch (NullPointerException | IllegalArgumentException | AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getLocalizedMessage());
         }
     }
 
@@ -277,7 +345,7 @@ public class MiscCtrl extends Controller {
             } else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid scenario.");
             //取得上传策略
-            ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl);
+            ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId));
             // UrlBase64编码
             String encodedPutPolicy = Base64.encodeBase64URLSafeString(policy.toString().trim().getBytes());
             encodedPutPolicy = Utils.base64Padding(encodedPutPolicy);
@@ -307,12 +375,12 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl) {
+    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl, Integer userId) {
 
         ObjectNode info = Json.newObject();
         info.put("scope", scope + ":" + picName);
         info.put("deadline", System.currentTimeMillis() / 1000 + 2 * 3600);
-        info.put("callBackBody", getCallBackBody());
+        info.put("callBackBody", getCallBackBody(userId));
         info.put("callbackUrl", callbackUrl);
         return info;
     }
@@ -322,7 +390,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static String getCallBackBody() {
+    private static String getCallBackBody(Integer userId) {
         StringBuffer callbackBody = new StringBuffer(10);
         callbackBody.append("name=$(fname)");
         callbackBody.append("&size=$(fsize)");
@@ -332,7 +400,10 @@ public class MiscCtrl extends Controller {
         callbackBody.append("&hash=$(etag)");
         callbackBody.append("&bucket=$(bucket)");
         String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
-        callbackBody.append("&url=" + url);
+        // 定义图片的URL
+        callbackBody.append("&" + UPLOAD_URL + "=" + url);
+        // 定义用户ID
+        callbackBody.append("&" + UPLOAD_UID + "=" + userId);
         return callbackBody.toString();
     }
 
@@ -365,14 +436,24 @@ public class MiscCtrl extends Controller {
     public static Result getCallback() {
         Map<String, String[]> fav = request().body().asFormUrlEncoded();
         ObjectNode ret = Json.newObject();
+        String url = null;
+        String userId = null;
         for (Map.Entry<String, String[]> entry : fav.entrySet()) {
             String key = entry.getKey();
             String[] value = entry.getValue();
-            // TODO 日志
-            LogUtils.info(MiscCtrl.class, key + value);
+            //LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
+            if (key.equals(UPLOAD_URL))
+                url = value[0];
+            if (key.equals(UPLOAD_UID))
+                userId = value[0];
             ret.put(key, value[0]);
         }
         ret.put("success", true);
+        try {
+            UserAPI.resetAvater(Integer.valueOf(userId), url);
+        } catch (AizouException e) {
+            LogUtils.info(MiscCtrl.class, "Update user avatar error.");
+        }
         return ok(ret);
     }
 
@@ -529,8 +610,6 @@ public class MiscCtrl extends Controller {
                     retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
-
-
         } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }

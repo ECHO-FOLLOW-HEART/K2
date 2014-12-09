@@ -6,6 +6,7 @@ import models.geo.Locality;
 import models.misc.PageFirst;
 import models.misc.SimpleRef;
 import models.poi.Comment;
+import models.user.Favorite;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -111,4 +112,5 @@ public class MiscAPI {
         return query.order(String.format("-%s, %s", Locality.fnHotness, Locality.fnRating))
                 .offset(page * pageSize).limit(pageSize).asList();
     }
+
 }

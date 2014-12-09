@@ -493,6 +493,7 @@ public class PoiAPI {
         return ds.createQuery(poiClass).field("_id").equal(poiId).get();
     }
 
+
     /**
      * 获得POI详情（字段过滤）
      *
@@ -802,6 +803,9 @@ public class PoiAPI {
                 break;
             case "hotel":
                 poiClass = Hotel.class;
+                break;
+            case "shopping":
+                poiClass = Shopping.class;
                 break;
             case "restaurant":
                 poiClass = Restaurant.class;

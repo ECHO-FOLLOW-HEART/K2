@@ -172,6 +172,9 @@ public class GuideCtrl extends Controller {
                     throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Error guide part."));
             }
             Guide guide = GuideAPI.getGuideById(guideId, fields);
+            // TODO 数据完备后开启
+            // 填充攻略信息
+            //GuideAPI.fillGuideInfo(guide);
             ObjectNode node = (ObjectNode) jsonFormatter.format(guide);
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {

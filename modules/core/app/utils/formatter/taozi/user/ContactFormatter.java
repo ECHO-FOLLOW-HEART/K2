@@ -1,4 +1,4 @@
-package formatter.taozi.user;
+package utils.formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,20 +11,18 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import formatter.taozi.TaoziBaseFormatter;
 import models.TravelPiBaseItem;
-import models.misc.ImageItem;
-import models.user.Favorite;
-import formatter.JsonFormatter;
 
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回用户的详细信息（即：查看自己的用户信息时使用）
- * <p/>
+ * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
+ * <p>
  * Created by zephyre on 10/28/14.
  */
-public class SelfFavoriteFormatter implements JsonFormatter {
+public class ContactFormatter extends TaoziBaseFormatter {
     @Override
     public JsonNode format(TravelPiBaseItem item) {
         ObjectMapper mapper = new ObjectMapper();
@@ -32,7 +30,6 @@ public class SelfFavoriteFormatter implements JsonFormatter {
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
-        //收藏字段
         PropertyFilter theFilter = new SimpleBeanPropertyFilter() {
             @Override
             public void serializeAsField
@@ -43,17 +40,14 @@ public class SelfFavoriteFormatter implements JsonFormatter {
                     writer.serializeAsOmittedField(pojo, jgen, provider);
                 }
             }
+
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Favorite.fnZhName);
-                includedFields.add(Favorite.fnEnName);
-                includedFields.add(Favorite.fnItemId);
-                includedFields.add(Favorite.fnImage);
-                includedFields.add(Favorite.fnType);
-                includedFields.add(Favorite.fnUserId);
-                includedFields.add(Favorite.fnCreateTime);
-                includedFields.add(Favorite.fnId);
-                includedFields.add(Favorite.fnDesc);
+                includedFields.add("entryId");
+                includedFields.add("sourceId");
+                includedFields.add("isUser");
+                includedFields.add("isContact");
+                includedFields.add("userId");
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -68,34 +62,7 @@ public class SelfFavoriteFormatter implements JsonFormatter {
             }
         };
 
-        //图片
-        PropertyFilter imageItemFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(ImageItem.FD_URL);
-                return (includedFields.contains(writer.getName()));
-            }
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-        FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("imageItemFilter", imageItemFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("contactFilter", theFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);
