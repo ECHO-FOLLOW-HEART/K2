@@ -2,11 +2,13 @@ package formatter.taozi.user;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.TaoziBaseFormatter;
 import models.TravelPiBaseItem;
+import models.poi.AbstractPOI;
 import models.user.UserInfo;
 
 import java.util.*;
@@ -39,6 +41,11 @@ public class SideUserFormatter extends TaoziBaseFormatter {
                 SimpleBeanPropertyFilter.filterOutAllExcept(filterSet));
         mapper.setFilters(filters);
 
-        return mapper.valueToTree(item);
+        ObjectNode result = mapper.valueToTree(item);
+
+        stringFields.addAll(Arrays.asList(UserInfo.fnMemo,UserInfo.fnSignature,UserInfo.fnEasemobUser,
+                UserInfo.fnNickName,UserInfo.fnAvatar,UserInfo.fnGender));
+
+        return postProcess(result);
     }
 }
