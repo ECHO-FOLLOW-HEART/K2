@@ -43,7 +43,7 @@ public class SimpleLocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Locality.fnZhName,"id");
+                Collections.addAll(includedFields, Locality.FD_ZH_NAME,"id");
 
                 return (includedFields.contains(writer.getName()));
             }

@@ -88,7 +88,7 @@ public class LocalityAPI {
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
 
         List<String> fields = new ArrayList<>();
-        fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnEnName, Locality.fnSuperAdm, Locality.fnDesc,
+        fields.addAll(Arrays.asList(Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnSuperAdm, Locality.fnDesc,
                 Locality.fnImages, Locality.fnTags, Locality.fnLocation, Locality.fnHotness, Locality.fnAbroad));
 
         query.retrievedFields(true, fields.toArray(new String[fields.size()]));
@@ -106,10 +106,10 @@ public class LocalityAPI {
      */
     public static Iterator<Locality> getSuggestion(String searchWord, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Query<Locality> query = ds.createQuery(Locality.class).field(Locality.fnAlias)
+        Query<Locality> query = ds.createQuery(Locality.class).field(Locality.FD_ALIAS)
                 .hasThisOne(Pattern.compile("^" + searchWord));
 //        query.field("relPlanCnt").greaterThan(0);
-        return query.retrievedFields(true, Locality.fnZhName, Locality.fnEnName, Locality.fnAbroad, Locality.fnSuperAdm)
+        return query.retrievedFields(true, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnAbroad, Locality.fnSuperAdm)
                 .limit(pageSize).iterator();
     }
 
@@ -129,7 +129,7 @@ public class LocalityAPI {
 
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
-            query.filter(Locality.fnAlias, Pattern.compile(prefix ? "^" + keyword : keyword));
+            query.filter(Locality.FD_ALIAS, Pattern.compile(prefix ? "^" + keyword : keyword));
         if (countryId != null)
             query.filter(String.format("%s.id", Locality.fnCountry), countryId);
         switch (scope) {
@@ -167,7 +167,7 @@ public class LocalityAPI {
     public static List<Locality> explore(boolean showDetails, boolean abroad, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         List<String> fields = new ArrayList<>();
-        Collections.addAll(fields, Locality.fnZhName, Locality.fnEnName, Locality.fnDesc, Locality.fnTags,
+        Collections.addAll(fields, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnDesc, Locality.fnTags,
                 Locality.fnLocation, Locality.fnAbroad, Locality.fnHotness, Locality.fnRating, Locality.fnCountry,
                 Locality.fnLocation, Locality.fnImages);
 

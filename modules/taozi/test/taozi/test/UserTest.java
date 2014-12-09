@@ -5,6 +5,7 @@ import controllers.taozi.UserCtrl;
 import org.junit.Test;
 import play.test.WithApplication;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import static org.fest.assertions.Assertions.assertThat;

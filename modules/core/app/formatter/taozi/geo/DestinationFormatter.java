@@ -45,8 +45,8 @@ public class DestinationFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, "id", Locality.fnZhName, Locality.fnEnName, Locality.fnDesc,
-                        Locality.fnAlias, Locality.fnCountry, Locality.fnImages, Locality.fnTravelMonth,
+                Collections.addAll(includedFields, "id", Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnDesc,
+                        Locality.FD_ALIAS, Locality.fnCountry, Locality.fnImages, Locality.fnTravelMonth,
                         Locality.fnTimeCostDesc, Locality.FD_LOCLIST);
 
                 return (includedFields.contains(writer.getName()));
@@ -77,7 +77,7 @@ public class DestinationFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Country.fnZhName, Country.fnEnName, Country.fnId,
+                Collections.addAll(includedFields, Country.FD_ZH_NAME, Country.FD_EN_NAME, Country.fnId,
                         Country.fnImages, Country.fnDesc);
 
                 return (includedFields.contains(writer.getName()));

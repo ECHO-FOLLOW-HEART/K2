@@ -43,7 +43,7 @@ public class SimpleDestinationFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, "id", Locality.fnZhName, Locality.fnEnName);
+                Collections.addAll(includedFields, "id", Locality.FD_ZH_NAME, Locality.FD_EN_NAME);
 
                 return (includedFields.contains(writer.getName()));
             }

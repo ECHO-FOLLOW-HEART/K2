@@ -24,19 +24,19 @@ public class ViewSpot extends AbstractPOI {
     public static final String FD_TIME_COST_DESC = "timeCostDesc";
 
     @Transient
-    public static String fnTravelMonth = "travelMonth";
+    public static String FD_TRAVEL_MONTH = "travelMonth";
 
     @Transient
-    public static String fnOpenTime = "openTime";
+    public static String FD_OPEN_TIME = "openTime";
 
     @Transient
-    public static String detTrafficInfoUrl = "trafficInfoUrl";
+    public static String FD_TRAFFIC_URL = "trafficInfoUrl";
 
     @Transient
-    public static String detGuideInfoUrl = "guideUrl";
+    public static String FD_GUIDE_URL = "guideUrl";
 
     @Transient
-    public static String detKengDieInfoUrl = "kengdieUrl";
+    public static String FD_KENGDIE_URL = "kengdieUrl";
 
     @Transient
     public static String FD_DESC_FLAGS = "descriptionFlag";
@@ -84,6 +84,27 @@ public class ViewSpot extends AbstractPOI {
      */
     public Description descriptionFlag;
 
+    @Transient
+    private String trafficInfoUrl;
+
+    @Transient
+    private String guideUrl;
+
+    @Transient
+    private String kengdieUrl;
+
+    public void setTrafficInfoUrl(String trafficInfoUrl) {
+        this.trafficInfoUrl = trafficInfoUrl;
+    }
+
+    public void setGuideUrl(String guideUrl) {
+        this.guideUrl = guideUrl;
+    }
+
+    public void setKengdieUrl(String kengdieUrl) {
+        this.kengdieUrl = kengdieUrl;
+    }
+
     public static List<String> getRetrievedFields(int level) {
         List<String> fieldList = AbstractPOI.getRetrievedFields(level);
         if (level > 2)
@@ -92,52 +113,31 @@ public class ViewSpot extends AbstractPOI {
     }
 
     public String getTravelMonth() {
-        if (travelMonth == null)
-            return "";
-        else
-            return travelMonth;
+        return travelMonth;
     }
 
     public String getTimeCostDesc() {
-        if (timeCostDesc == null)
-            return "";
-        else
-            return timeCostDesc;
+        return timeCostDesc;
     }
 
     public String getTrafficInfoUrl() {
-        if (trafficInfoUrl == null) {
-            return "";
-        } else
-            return trafficInfoUrl;
+        return trafficInfoUrl;
     }
 
     public String getGuideUrl() {
-        if (guideUrl == null) {
-            return "";
-        } else
-            return guideUrl;
+        return guideUrl;
     }
 
     public String getKengdieUrl() {
-        if (kengdieUrl == null) {
-            return "";
-        } else
-            return kengdieUrl;
+        return kengdieUrl;
     }
 
     public String getPriceDesc() {
-        if (priceDesc == null)
-            return "";
-        else
-            return priceDesc;
+        return priceDesc;
     }
 
     public String getTelephone() {
-        if (telephone == null)
-            return "";
-        else
-            return telephone;
+        return telephone;
     }
 
     @Override

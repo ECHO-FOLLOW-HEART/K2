@@ -45,7 +45,7 @@ public class SimpleCountryFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Country.fnDesc, Country.fnEnName, Country.fnZhName, Country.fnCode,
+                Collections.addAll(includedFields, Country.fnDesc, Country.FD_EN_NAME, Country.FD_ZH_NAME, Country.fnCode,
                         "id", Country.fnImages);
                 return (includedFields.contains(writer.getName()));
             }

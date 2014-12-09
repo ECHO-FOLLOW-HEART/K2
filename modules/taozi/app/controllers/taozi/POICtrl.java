@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.taozi.poi.CommentFormatter;
+import formatter.taozi.poi.DetailedPOIFormatter;
+import formatter.taozi.poi.POIRmdFormatter;
+import formatter.taozi.poi.SimplePOIFormatter;
 import models.poi.*;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -13,10 +17,6 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import formatter.taozi.poi.CommentFormatter;
-import formatter.taozi.poi.DetailedPOIFormatter;
-import formatter.taozi.poi.POIRmdFormatter;
-import formatter.taozi.poi.SimplePOIFormatter;
 
 import java.util.*;
 
@@ -25,68 +25,74 @@ import java.util.*;
  */
 public class POICtrl extends Controller {
 
+    public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
+                                           int commentPage, int commentPageSize,
+                                           int rmdPage, int rmdPageSize) throws AizouException {
+        AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, null);
+        if (poiInfo == null)
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
+        JsonNode info = new DetailedPOIFormatter<>(poiClass).format(poiInfo);
+
+        //取得推荐
+        List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
+        int rmdCnt = (int) PoiAPI.getPOIRmdCount(spotId);
+        List<JsonNode> recommends = new ArrayList<>();
+        for (POIRmd temp : rmdEntities) {
+            recommends.add(new POIRmdFormatter().format(temp));
+        }
+
+        // 取得评论
+        List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
+        int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
+        List<JsonNode> comments = new ArrayList<>();
+        for (Comment temp : commentsEntities) {
+            comments.add(new CommentFormatter().format(temp));
+        }
+        ObjectNode ret = (ObjectNode) info;
+        ret.put("recommends", Json.toJson(recommends));
+        ret.put("recommendCnt", rmdCnt);
+
+        ret.put("comments", Json.toJson(comments));
+        ret.put("commentCnt", commCnt);
+
+        return ret;
+    }
+
     /**
      * 获得POI的详细信息。
      *
-     * @param poiDesc     POI的类型说明:
-     *                    vs: 景点
-     *                    hotel: 酒店
-     *                    restaurant: 餐饮
-     *                    shopping:购物
-     *                    entertainment:美食
-     * @param spotId      POI的ID。
-     * @param showDetails 获得更多的详情。
+     * @param poiDesc POI的类型说明:
+     *                vs: 景点
+     *                hotel: 酒店
+     *                restaurant: 餐饮
+     *                shopping:购物
+     *                entertainment:美食
+     * @param spotId  POI的ID。
      */
-    public static Result viewPOIInfo(String poiDesc, String spotId, int showDetails, int commentPage, int commentPageSize, int rmdPage, int rmdPageSize) {
-        try {
-            PoiAPI.POIType poiType = null;
-            switch (poiDesc) {
-                case "vs":
-                    poiType = PoiAPI.POIType.VIEW_SPOT;
-                    break;
-                case "hotel":
-                    poiType = PoiAPI.POIType.HOTEL;
-                    break;
-                case "restaurant":
-                    poiType = PoiAPI.POIType.RESTAURANT;
-                    break;
-                case "shopping":
-                    poiType = PoiAPI.POIType.SHOPPING;
-                    break;
-                case "entertainment":
-                    poiType = PoiAPI.POIType.ENTERTAINMENT;
-                    break;
-            }
-            if (poiType == null)
+    public static Result viewPOIInfo(String poiDesc, String spotId, int commentPage, int commentPageSize,
+                                     int rmdPage, int rmdPageSize) {
+        Class<? extends AbstractPOI> poiClass;
+        switch (poiDesc) {
+            case "vs":
+                poiClass = ViewSpot.class;
+                break;
+            case "hotel":
+                poiClass = Hotel.class;
+                break;
+            case "restaurant":
+                poiClass = Restaurant.class;
+                break;
+            case "shopping":
+                poiClass = Shopping.class;
+                break;
+            case "entertainment":
+                poiClass = Entertainment.class;
+                break;
+            default:
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
-
-            boolean details = (showDetails != 0);
-            AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
-            if (poiInfo == null)
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
-            JsonNode info = details ? new DetailedPOIFormatter().format(poiInfo, poiDesc) : new SimplePOIFormatter().format(poiInfo);
-
-            //取得推荐
-            List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
-            int rmdCnt = (int) PoiAPI.getPOIRmdCount(spotId);
-            List<JsonNode> recommends = new ArrayList<>();
-            for (POIRmd temp : rmdEntities) {
-                recommends.add(new POIRmdFormatter().format(temp));
-            }
-
-            // 取得评论
-            List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-            int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
-            List<JsonNode> comments = new ArrayList<>();
-            for (Comment temp : commentsEntities) {
-                comments.add(new CommentFormatter().format(temp));
-            }
-            ObjectNode ret = (ObjectNode) info;
-            ret.put("recommends", Json.toJson(recommends));
-            ret.put("recommendCnt", rmdCnt);
-
-            ret.put("comments", Json.toJson(comments));
-            ret.put("commentCnt", commCnt);
+        }
+        try {
+            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, rmdPage, rmdPageSize);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());

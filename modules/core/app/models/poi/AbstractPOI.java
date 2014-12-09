@@ -86,7 +86,7 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static String detOpenTime = "openTime";
 
     @Transient
-    public static String fnAlias = "alias";
+    public static final String FD_ALIAS = "alias";
 
     @Transient
     public static String detAlias = "alias";
@@ -104,10 +104,10 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public static final String FD_LOCATION = "location";
 
     @Transient
-    public static String simpAddress = "address";
+    public static String FD_ADDRESS = "address";
 
     @Transient
-    public static String simpTelephone = "telephone";
+    public static String FD_TELEPHONE = "telephone";
 
     @Transient
     public static String fnHotness = "hotness";

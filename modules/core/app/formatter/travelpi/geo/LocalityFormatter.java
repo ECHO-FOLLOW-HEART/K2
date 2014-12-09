@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import formatter.taozi.ImageItemSerializer;
 import formatter.travelpi.ImageItemPlainSerializer;
 import models.TravelPiBaseItem;
 import models.geo.GeoJsonPoint;
@@ -32,7 +31,7 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
 
     private LocalityFormatter() {
         stringFields = new HashSet<>();
-        stringFields.addAll(Arrays.asList(Locality.fnEnName, Locality.fnZhName));
+        stringFields.addAll(Arrays.asList(Locality.FD_EN_NAME, Locality.FD_ZH_NAME));
 
         listFields = new HashSet<>();
         listFields.addAll(Arrays.asList(Locality.fnTags, Locality.fnImages, "relVs"));
@@ -63,7 +62,7 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, "id", Locality.fnEnName, Locality.fnZhName, Locality.fnDesc,
+                Collections.addAll(includedFields, "id", Locality.FD_EN_NAME, Locality.FD_ZH_NAME, Locality.fnDesc,
                         Locality.fnRating, Locality.fnHotness, Locality.fnTags, Locality.fnAbroad,
                         Locality.fnImages);
 
@@ -90,7 +89,7 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
 
         String name;
         try {
-            name = result.get(Locality.fnZhName).asText();
+            name = result.get(Locality.FD_ZH_NAME).asText();
         } catch (NullPointerException e) {
             name = "";
         }

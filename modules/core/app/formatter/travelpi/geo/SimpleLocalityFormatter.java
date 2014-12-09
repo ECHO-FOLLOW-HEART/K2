@@ -11,7 +11,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.AizouObjectId;
 import models.TravelPiBaseItem;
 import models.geo.Locality;
-import org.bson.types.ObjectId;
 import formatter.AizouBeanPropertyFilter;
 import formatter.travelpi.TravelPiBaseFormatter;
 
@@ -28,7 +27,7 @@ public class SimpleLocalityFormatter extends TravelPiBaseFormatter {
 
     private SimpleLocalityFormatter() {
         stringFields = new HashSet<>();
-        stringFields.addAll(Arrays.asList(Locality.fnEnName, Locality.fnZhName));
+        stringFields.addAll(Arrays.asList(Locality.FD_EN_NAME, Locality.FD_ZH_NAME));
     }
 
     public synchronized static SimpleLocalityFormatter getInstance() {
@@ -57,8 +56,8 @@ public class SimpleLocalityFormatter extends TravelPiBaseFormatter {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Locality.fnEnName);
-                includedFields.add(Locality.fnZhName);
+                includedFields.add(Locality.FD_EN_NAME);
+                includedFields.add(Locality.FD_ZH_NAME);
                 includedFields.add("id");
 
                 return (includedFields.contains(writer.getName()));

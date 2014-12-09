@@ -46,10 +46,10 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
 //    public static String SimpZhRegion = "zhRegion";
 
     @Transient
-    public static String fnZhName = "zhName";
+    public static final String FD_ZH_NAME = "zhName";
 
     @Transient
-    public static String fnEnName = "enName";
+    public static final String FD_EN_NAME = "enName";
 
     @Transient
     public static String fnId = "id";

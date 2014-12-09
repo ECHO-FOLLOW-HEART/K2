@@ -29,7 +29,7 @@ public class DestinationFormatter extends TravelPiBaseFormatter {
 
     public DestinationFormatter() {
         stringFields = new HashSet<>();
-        stringFields.addAll(Arrays.asList(Locality.fnEnName, Locality.fnZhName));
+        stringFields.addAll(Arrays.asList(Locality.FD_EN_NAME, Locality.FD_ZH_NAME));
 
         listFields = new HashSet<>();
         listFields.addAll(Arrays.asList(Locality.fnTags, Locality.fnImages));
@@ -56,8 +56,8 @@ public class DestinationFormatter extends TravelPiBaseFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Locality.fnEnName);
-                includedFields.add(Locality.fnZhName);
+                includedFields.add(Locality.FD_EN_NAME);
+                includedFields.add(Locality.FD_ZH_NAME);
                 includedFields.add(Locality.fnDesc);
                 includedFields.add(Locality.fnRating);
                 includedFields.add(Locality.fnHotness);
@@ -86,7 +86,7 @@ public class DestinationFormatter extends TravelPiBaseFormatter {
 
         String name;
         try {
-            name = result.get(Locality.fnZhName).asText();
+            name = result.get(Locality.FD_ZH_NAME).asText();
         } catch (NullPointerException e) {
             name = "";
         }

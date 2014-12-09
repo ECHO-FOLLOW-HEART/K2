@@ -49,7 +49,7 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        query.filter(AbstractPOI.fnAlias, Pattern.compile("^" + word))
+        query.filter(AbstractPOI.FD_ALIAS, Pattern.compile("^" + word))
                 .order(String.format("-%s, -%s", AbstractPOI.fnHotness, AbstractPOI.fnRating));
         return query.limit(pageSize).iterator();
     }
@@ -281,14 +281,20 @@ public class PoiAPI {
      * @see PoiAPI#getPOIInfo(org.bson.types.ObjectId, PoiAPI.POIType, boolean)
      */
     public static AbstractPOI getPOIInfo(String poiId, POIType poiType, boolean showDetails) throws AizouException {
-        ObjectId id;
-        try {
-            id = new ObjectId(poiId);
-        } catch (IllegalArgumentException e) {
-            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.",
-                    poiId != null ? poiId : "NULL"));
-        }
-        return getPOIInfo(id, poiType, showDetails);
+        return getPOIInfo(new ObjectId(poiId), poiType, showDetails);
+    }
+
+    /**
+     * 获得POI信息。
+     */
+    public static <T extends AbstractPOI> T getPOIInfo(ObjectId poiId, Class<T> poiClass, Collection<String> fieldList)
+            throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<T> query = ds.createQuery(poiClass).field("_id").equal(poiId);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+
+        return query.get();
     }
 
     /**
@@ -769,7 +775,7 @@ public class PoiAPI {
 
         Map<String, List<Locality>> results = new HashMap<>();
         for (Object obj : countryList) {
-            Country country = GeoAPI.countryDetails((ObjectId) obj, Arrays.asList(Country.fnEnName, Country.fnZhName));
+            Country country = GeoAPI.countryDetails((ObjectId) obj, Arrays.asList(Country.FD_EN_NAME, Country.FD_ZH_NAME));
             if (country.getEnName().equals("China"))
                 continue;
 
@@ -840,8 +846,8 @@ public class PoiAPI {
      * @param lng
      * @param lat
      * @param maxDistance
-     *@param page
-     * @param pageSize   @return
+     * @param page
+     * @param pageSize    @return
      * @throws AizouException
      */
     public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, double lng, double lat,

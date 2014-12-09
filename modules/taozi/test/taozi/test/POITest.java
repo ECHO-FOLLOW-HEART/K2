@@ -3,10 +3,15 @@ package taozi.test;
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.taozi.POICtrl;
 import controllers.taozi.UserCtrl;
+import models.poi.AbstractPOI;
+import models.poi.Hotel;
+import models.poi.ViewSpot;
 import org.junit.Test;
 import play.test.WithApplication;
 
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -20,9 +25,7 @@ public class POITest extends WithApplication {
     }
 
     private void assertText(JsonNode node, String[] fields, boolean allowEmpty) {
-        System.out.println(node.toString());
         for (String key : fields) {
-            System.out.println(key);
             JsonNode txtNode = node.get(key);
             if (txtNode == null)
                 assertThat(false).isTrue();
@@ -71,5 +74,59 @@ public class POITest extends WithApplication {
                 assertThat(Math.abs(lat)).isLessThan(90);
             }
         }
+    }
+
+    /**
+     * 测试获得景点详情
+     *
+     * @throws ReflectiveOperationException
+     */
+    @Test
+    public void poiInfoCheck() throws ReflectiveOperationException {
+
+        Method method = POICtrl.class.getDeclaredMethod("viewPOIInfoImpl", Class.class, String.class, int.class,
+                int.class, int.class, int.class);
+        method.setAccessible(true);
+
+        Map<String, Class<? extends AbstractPOI>> checker = new HashMap<>();
+        checker.put("54814af98b5f77f8306decf4", ViewSpot.class);
+        checker.put("53b053c110114e050b1d24ea", Hotel.class);
+
+        for (Map.Entry<String, Class<? extends AbstractPOI>> entry : checker.entrySet()) {
+            String oid = entry.getKey();
+            Class<? extends AbstractPOI> poiClass = entry.getValue();
+
+            JsonNode ret = (JsonNode) method.invoke(POICtrl.class, poiClass, oid, 0, 10, 0, 10);
+            assertText(ret, new String[]{"id", "zhName"}, false);
+            assertText(ret, new String[]{"enName", "priceDesc", "desc", "address", "telephone"}, true);
+
+            if (poiClass == ViewSpot.class)
+                assertText(ret, new String[]{"travelMonth", "openTime", "timeCostDesc", "trafficInfoUrl",
+                        "kengdieUrl", "guideUrl"}, true);
+
+            JsonNode coords = ret.get("location").get("coordinates");
+            double lng = coords.get(0).asDouble();
+            double lat = coords.get(1).asDouble();
+            assertThat(Math.abs(lng)).isGreaterThan(0);
+            assertThat(Math.abs(lng)).isLessThan(180);
+            assertThat(Math.abs(lat)).isGreaterThan(0);
+            assertThat(Math.abs(lat)).isLessThan(90);
+
+            JsonNode imagesNode = ret.get("images");
+            assertThat(imagesNode.size()).isGreaterThan(0);
+            for (JsonNode imgEntry : imagesNode) {
+                assertText(imgEntry, "url", false);
+                for (String key : new String[]{"width", "height"})
+                    assertThat(imgEntry.get(key).asInt()).isGreaterThan(0);
+            }
+
+            for (String key : new String[]{"recommends", "comments"})
+                assertThat(ret.get(key).isArray()).isTrue();
+
+            for (String key : new String[]{"recommendCnt", "commentCnt"})
+                assertThat(ret.get(key).asInt()).isGreaterThanOrEqualTo(0);
+        }
+
+
     }
 }

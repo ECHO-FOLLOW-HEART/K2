@@ -67,6 +67,10 @@ public class ApplicationTest extends WithApplication {
         r.run();
     }
 
+    public void fooCheck() {
+        assertThat(false).isTrue();
+    }
+
     @Test
     public void getSuggestionsCheck() {
         Runnable r = new Runnable() {

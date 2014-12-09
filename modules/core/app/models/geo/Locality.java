@@ -7,6 +7,7 @@ import models.poi.Cuisine;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
+import play.data.validation.Constraints;
 
 import java.util.List;
 
@@ -20,13 +21,13 @@ import java.util.List;
 public class Locality extends TravelPiBaseItem {
 
     @Transient
-    public static String fnZhName = "zhName";
+    public static final String FD_ZH_NAME = "zhName";
 
     @Transient
-    public static String fnEnName = "enName";
+    public static final String FD_EN_NAME = "enName";
 
     @Transient
-    public static String fnAlias = "alias";
+    public static final String FD_ALIAS = "alias";
 
     @Transient
     public static String fnVisitCnt = "visitCnt";
@@ -414,10 +415,10 @@ public class Locality extends TravelPiBaseItem {
 //public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 //
 //    @Transient
-//    public static String fnEnName = "enName";
+//    public static String FD_EN_NAME = "enName";
 //
 //    @Transient
-//    public static String fnZhName = "zhName";
+//    public static String FD_ZH_NAME = "zhName";
 //
 //    @Transient
 //    public static String fnCountry = "country";

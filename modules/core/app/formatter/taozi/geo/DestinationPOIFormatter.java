@@ -21,7 +21,7 @@ public class DestinationPOIFormatter extends TaoziBaseFormatter {
     public static final Collection<String> retrievedFields;
 
     static {
-        retrievedFields = Arrays.asList(TravelPiBaseItem.FD_ID, Locality.fnZhName, Locality.fnEnName, Locality.fnDesc,
+        retrievedFields = Arrays.asList(TravelPiBaseItem.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnDesc,
                 Locality.fnImages);
     }
 
@@ -61,7 +61,7 @@ public class DestinationPOIFormatter extends TaoziBaseFormatter {
 //
 //            private boolean includeImpl(PropertyWriter writer) {
 //                Set<String> includedFields = new HashSet<>();
-//                Collections.addAll(includedFields, "id", Locality.fnZhName, Locality.fnEnName, Locality.fnDesc,
+//                Collections.addAll(includedFields, "id", Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnDesc,
 //                        Locality.fnImages);
 //
 //                return (includedFields.contains(writer.getName()));

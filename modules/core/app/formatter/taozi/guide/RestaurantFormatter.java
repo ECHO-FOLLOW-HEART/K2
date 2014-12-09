@@ -170,8 +170,8 @@ public class RestaurantFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Locality.fnZhName);
-                includedFields.add(Locality.fnEnName);
+                includedFields.add(Locality.FD_ZH_NAME);
+                includedFields.add(Locality.FD_EN_NAME);
                 includedFields.add("id");
                 return (includedFields.contains(writer.getName()));
             }
@@ -199,7 +199,7 @@ public class RestaurantFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, "id", Locality.fnZhName, Locality.fnEnName);
+                Collections.addAll(includedFields, "id", Locality.FD_ZH_NAME, Locality.FD_EN_NAME);
 
                 return (includedFields.contains(writer.getName()));
             }
