@@ -2,8 +2,10 @@ package taozi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.taozi.UserCtrl;
+import exception.AizouException;
 import org.junit.Test;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,7 +19,7 @@ import static org.fest.assertions.Assertions.assertThat;
 public class UserTest extends AizouTest {
 
     /**
-     * 测试查看他人详情的功能
+     * 测试获得用户详情的功能
      *
      * @throws ReflectiveOperationException
      */
@@ -32,7 +34,9 @@ public class UserTest extends AizouTest {
             Set<String> txtKeyList = new HashSet<>();
             if (selfId != null)
                 txtKeyList.add("tel");
-            txtKeyList.addAll(Arrays.asList("memo", "gender", "signature", "avatar"));
+            else
+                txtKeyList.add("memo");
+            txtKeyList.addAll(Arrays.asList("gender", "signature", "avatar"));
             assertText(ret, txtKeyList.toArray(new String[txtKeyList.size()]), true);
             assertText(ret, new String[]{"easemobUser", "nickName"}, false);
 
@@ -41,24 +45,28 @@ public class UserTest extends AizouTest {
     }
 
     /**
-     * 测试查看本人详情的功能
-     *
-     * @throws ReflectiveOperationException
+     * 测试自有账户登录功能
      */
-//    @Test
-    public void selfUserCheck() throws ReflectiveOperationException {
-        Method method = UserCtrl.class.getDeclaredMethod("getSelfUserProfileById", int.class);
+    @Test
+    public void loginCheck() throws ReflectiveOperationException {
+        Method method = UserCtrl.class.getDeclaredMethod("signinImpl", String.class, String.class);
         method.setAccessible(true);
 
-        int userId = 100128;
-        JsonNode ret = (JsonNode) method.invoke(UserCtrl.class, userId);
+        try {
+            method.invoke(UserCtrl.class, "18600441776", "fake");
+            assertThat(false).isTrue();
+        } catch (InvocationTargetException e) {
+            AizouException causeErr = (AizouException) e.getCause();
+            assertThat(causeErr.getErrCode()).isEqualTo(407);
+        }
 
-        for (String key : new String[]{"easemobUser", "nickName", "avatar", "gender", "signature", "tel"})
-            assertThat(ret.get(key).asText()).isNotNull();
+        JsonNode ret = (JsonNode) method.invoke(UserCtrl.class, "18600441776", "james890526");
 
-        assertThat(ret.get("dialCode").asInt()).isGreaterThan(0);
-
-        assertThat(ret.get("userId").asInt()).isEqualTo(userId);
+        assertText(ret, new String[]{"id", "easemobUser", "easemobPwd", "nickName", "secKey"}, false);
+        assertText(ret, new String[]{"avatar", "gender", "signature", "tel"}, true);
+        assertThat(ret.get("dialCode") != null).isTrue();
+        assertThat(ret.get("userId").asInt()).isGreaterThan(0);
+        assertThat(ret.get("tel").asText()).isEqualTo("18600441776");
     }
 
 }

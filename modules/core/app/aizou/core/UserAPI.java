@@ -337,18 +337,24 @@ public class UserAPI {
         return true;
     }
 
-    public static Iterator<UserInfo> searchUser(List<String> fieldDesc, Object value, List<String> fieldList, int page, int pageSize)
+    public static Iterator<UserInfo> searchUser(Collection<String> fieldDesc, Collection<?> valueList,
+                                                Collection<String> fieldList,
+                                                int page, int pageSize)
             throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        Query<UserInfo> query = ds.createQuery(UserInfo.class);
 
         if (fieldDesc == null || fieldDesc.isEmpty())
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
 
         List<CriteriaContainerImpl> criList = new ArrayList<>();
-        for (String fd : fieldDesc)
-            criList.add(query.criteria(fd).equal(value));
+        for (String fd : fieldDesc) {
+            if (valueList.size() == 1)
+                criList.add(ds.createQuery(UserInfo.class).criteria(fd).equal(valueList.iterator().next()));
+            else if (valueList.size() > 1)
+                criList.add(ds.createQuery(UserInfo.class).criteria(fd).hasAnyOf(valueList));
+        }
 
+        Query<UserInfo> query = ds.createQuery(UserInfo.class);
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
 
         if (fieldList != null && !fieldList.isEmpty())
@@ -365,13 +371,24 @@ public class UserAPI {
      * @param fieldDesc 哪些字段为查询目标？
      * @param fieldList 返回结果包含哪些字段？
      */
-    public static UserInfo getUserByField(List<String> fieldDesc, String value, List<String> fieldList)
+    public static UserInfo getUserByField(List<String> fieldDesc, Object value, List<String> fieldList)
             throws AizouException {
-        Iterator<UserInfo> itr = searchUser(fieldDesc, value, fieldList, 0, 1);
+        Iterator<UserInfo> itr = searchUser(fieldDesc, Arrays.asList(value), fieldList, 0, 1);
         if (itr != null && itr.hasNext())
             return itr.next();
         else
             return null;
+    }
+
+
+    /**
+     * 根据字段获得用户信息。
+     *
+     * @param fieldDesc 哪些字段为查询目标？
+     */
+    public static UserInfo getUserByField(String fieldDesc, Object value, List<String> fieldList)
+            throws AizouException {
+        return getUserByField(Arrays.asList(fieldDesc), Arrays.asList(value), fieldList);
     }
 
     /**
@@ -379,33 +396,9 @@ public class UserAPI {
      *
      * @param fieldDesc 哪些字段为查询目标？
      */
-    public static UserInfo getUserByField(String fieldDesc, Integer value, List<String> fieldList)
-            throws AizouException {
-        Iterator<UserInfo> itr = searchUser(Arrays.asList(fieldDesc), value, fieldList, 0, 1);
-        if (itr != null && itr.hasNext())
-            return itr.next();
-        else
-            return null;
-    }
-
-    /**
-     * 根据字段获得用户信息。
-     *
-     * @param fieldDesc 哪些字段为查询目标？
-     */
-    public static UserInfo getUserByField(String fieldDesc, String value)
+    public static UserInfo getUserByField(String fieldDesc, Object value)
             throws AizouException {
         return getUserByField(Arrays.asList(fieldDesc), value, null);
-    }
-
-    /**
-     * 根据字段获得用户信息。
-     *
-     * @param fieldDesc 哪些字段为查询目标？
-     */
-    public static UserInfo getUserByField(String fieldDesc, String value, List<String> fieldFilter)
-            throws AizouException {
-        return getUserByField(Arrays.asList(fieldDesc), value, fieldFilter);
     }
 
 

@@ -314,6 +314,50 @@ public class UserCtrl extends Controller {
         }
     }
 
+    private static JsonNode signinImpl(String loginName, String passwd) throws AizouException {
+
+        PhoneEntity telEntry = null;
+        try {
+            telEntry = PhoneParserFactory.newInstance().parse(loginName);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        ArrayList<Object> valueList = new ArrayList<>();
+        valueList.add(loginName);
+        if (telEntry != null && telEntry.getPhoneNumber() != null)
+            valueList.add(telEntry.getPhoneNumber());
+
+        UserFormatter userFormatter = new UserFormatter(true);
+
+        Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
+                userFormatter.getFilteredFields(), 0, 1);
+        UserInfo userInfo = itr.hasNext() ? itr.next() : null;
+
+
+        if (userInfo == null)
+            throw new AizouException(ErrorCode.AUTH_ERROR);
+
+        //验证密码
+        if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
+            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+
+            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
+                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+            if (cre == null)
+                throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+
+            // 机密数据
+            JsonNode creNode = new CredentialFormatter().format(cre);
+            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                Map.Entry<String, JsonNode> entry = it.next();
+                info.put(entry.getKey(), entry.getValue());
+            }
+
+            return info;
+        } else
+            throw new AizouException(ErrorCode.AUTH_ERROR);
+    }
+
     /**
      * 手机号登录
      *
@@ -326,47 +370,11 @@ public class UserCtrl extends Controller {
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
 
-            PhoneEntity telEntry = null;
-            try {
-                telEntry = PhoneParserFactory.newInstance().parse(loginName);
-            } catch (IllegalArgumentException ignore) {
-            }
-
-            UserInfo userInfo = null;
-            if (telEntry != null)
-                userInfo = UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber());
-            if (userInfo == null)
-                userInfo = UserAPI.getUserByField(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName),
-                        loginName, null);
-
-            if (userInfo == null)
-                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.USER_NOT_EXIST_MSG, true);
-
-            //验证密码
-            if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd)) {
-                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
-
-                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-                if (cre == null)
-                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
-
-                // 机密数据
-                JsonNode creNode = new CredentialFormatter().format(cre);
-                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                    Map.Entry<String, JsonNode> entry = it.next();
-                    info.put(entry.getKey(), entry.getValue());
-                }
-
-                return Utils.createResponse(ErrorCode.NORMAL, info);
-            } else
-                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
+            JsonNode result = signinImpl(loginName, pwd);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
-        } catch (NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
-
     }
 
     /**
@@ -584,18 +592,20 @@ public class UserCtrl extends Controller {
         }
 
         try {
-            Iterator<UserInfo> itr = null;
-            if (telEntry != null)
-                itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel), telEntry.getPhoneNumber(), null, 0, 20);
-            if (itr == null || !itr.hasNext())
-                itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnNickName, UserInfo.fnTel, UserInfo.fnEasemobUser),
-                        keyword, null, 0, 20);
+            ArrayList<Object> valueList = new ArrayList<>();
+            valueList.add(keyword);
+            if (telEntry != null && telEntry.getPhoneNumber() != null)
+                valueList.add(telEntry.getPhoneNumber());
+
+            UserFormatter userFormatter = new UserFormatter(false);
+
+            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
+                    userFormatter.getFilteredFields(), 0, 20);
 
             List<JsonNode> result = new ArrayList<>();
             while (itr != null && itr.hasNext()) {
                 UserInfo user = itr.next();
-                ObjectNode node = (ObjectNode) new UserFormatter(false).format(user);
-                node.put("memo", "");
+                JsonNode node = userFormatter.format(user);
                 result.add(node);
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));

@@ -21,16 +21,19 @@ import java.util.Map;
 public class UserFormatter extends TaoziBaseFormatter {
     public UserFormatter(boolean self) {
         stringFields.addAll(Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar, UserInfo.fnGender,
-                UserInfo.fnSignature, UserInfo.fnEasemobUser, UserInfo.fnMemo));
+                UserInfo.fnSignature, UserInfo.fnEasemobUser));
 
         if (self)
-            stringFields.addAll(Arrays.asList(UserInfo.fnTel));
+            stringFields.add(UserInfo.fnTel);
+        else
+            stringFields.add(UserInfo.fnMemo);
 
         filteredFields.addAll(stringFields);
         filteredFields.addAll(Arrays.asList(TravelPiBaseItem.FD_ID, UserInfo.fnUserId));
         if (self)
             filteredFields.add(UserInfo.fnDialCode);
-        filteredFields.remove(UserInfo.fnMemo);
+        else
+            filteredFields.remove(UserInfo.fnMemo);
     }
 
     @Override
