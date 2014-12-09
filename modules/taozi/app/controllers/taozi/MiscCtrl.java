@@ -5,6 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.taozi.geo.DestinationFormatter;
+import formatter.taozi.misc.MiscFormatter;
+import formatter.taozi.misc.SimpleRefFormatter;
+import formatter.taozi.misc.WeatherFormatter;
+import formatter.taozi.recom.RecomFormatter;
+import formatter.taozi.user.SelfFavoriteFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
@@ -22,13 +28,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.*;
-import formatter.taozi.geo.DestinationFormatter;
-import formatter.taozi.misc.MiscFormatter;
-import formatter.taozi.misc.SimpleRefFormatter;
-import formatter.taozi.misc.WeatherFormatter;
-import formatter.taozi.recom.RecomFormatter;
-import formatter.taozi.recom.RecomTypeFormatter;
-import formatter.taozi.user.SelfFavoriteFormatter;
 
 import java.net.UnknownHostException;
 import java.security.InvalidKeyException;
@@ -109,23 +108,21 @@ public class MiscCtrl extends Controller {
             query.field("enabled").equal(Boolean.TRUE);
             query.order("weight").offset(page * pageSize).limit(pageSize);
             Recom recom;
-            Map<ObjectId, List<Recom>> map = new HashMap<>();
-            Map<ObjectId, RecomType> typeMap = new HashMap<>();
+            Map<String, List<Recom>> map = new HashMap<>();
             List<Recom> tempList;
             for (Iterator<Recom> it = query.iterator(); it.hasNext(); ) {
                 recom = it.next();
-                tempList = map.get(recom.type.getId());
+                tempList = map.get(recom.title);
                 if (tempList == null)
                     tempList = new ArrayList<>();
                 tempList.add(recom);
-                map.put(recom.type.getId(), tempList);
-                typeMap.put(recom.type.getId(), recom.type);
+                map.put(recom.title, tempList);
             }
-            ObjectId key;
+            String key;
             ObjectNode tempNode;
             List<Recom> recList;
             List<ObjectNode> recNodeList;
-            for (Map.Entry<ObjectId, List<Recom>> entry : map.entrySet()) {
+            for (Map.Entry<String, List<Recom>> entry : map.entrySet()) {
                 key = entry.getKey();
                 recList = entry.getValue();
                 recNodeList = new ArrayList();
@@ -133,8 +130,8 @@ public class MiscCtrl extends Controller {
                     recNodeList.add((ObjectNode) new RecomFormatter().format(tem));
                 }
                 tempNode = Json.newObject();
-                tempNode.put("type", new RecomTypeFormatter().format(typeMap.get(key)));
-                tempNode.put("localities", Json.toJson(recNodeList));
+                tempNode.put("title", key == null ? "" : key);
+                tempNode.put("contents", Json.toJson(recNodeList));
                 retNodeList.add(tempNode);
             }
 
@@ -175,7 +172,7 @@ public class MiscCtrl extends Controller {
 //            img.setUrl(image);
             // TODO 直接给ImageItem的url赋值是有问题的
 //            fa.images = Arrays.asList(img);
-            fa.images= new ArrayList<>();
+            fa.images = new ArrayList<>();
             fa.userId = userId;
             fa.createTime = new Date();
             ds.save(fa);

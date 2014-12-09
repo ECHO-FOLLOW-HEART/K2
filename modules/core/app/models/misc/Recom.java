@@ -30,8 +30,7 @@ public class Recom extends TravelPiBaseItem {
     /**
      * 推荐类型
      */
-    @Embedded
-    public RecomType type;
+    public String title;
     /**
      * 图片
      */
