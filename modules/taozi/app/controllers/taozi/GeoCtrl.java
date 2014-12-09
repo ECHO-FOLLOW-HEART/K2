@@ -45,7 +45,7 @@ public class GeoCtrl extends Controller {
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
             ObjectNode response = (ObjectNode) new LocalityFormatter().format(locality);
-            List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName), null, noteCnt);
+            List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.zhName), null, 0, noteCnt);
             List<ObjectNode> objs = new ArrayList<>();
             for (TravelNote tra : tras) {
                 objs.add((ObjectNode) new TravelNoteFormatter().format(tra));

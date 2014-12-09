@@ -61,7 +61,7 @@ GET           /misc/put-policy/:scenario                controllers.taozi.MiscCt
 #处理资源上传的回调
 POST          /misc/upload-callback                     controllers.taozi.MiscCtrl.getCallback()
 #游记
-GET           /misc/notes/search                        controllers.taozi.TravelNoteCtrl.searchNotes(locId: String,pageSize: Int)
+GET           /misc/notes/search                        controllers.taozi.TravelNoteCtrl.searchNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
 #搜索
 GET           /search                                   controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 

@@ -135,9 +135,8 @@ public class TravelNoteAPI {
         }
     }
 
-    public static List<TravelNote> searchNoteByLoc(List<String> lcoNames, List<String> vsNames, int pageSize) throws TravelPiException {
+    public static List<TravelNote> searchNoteByLoc(List<String> lcoNames, List<String> vsNames,int page,int pageSize) throws TravelPiException {
 
-        List<TravelNote> results = new ArrayList<>();
         SolrDocumentList docs;
         try {
             Configuration config = Configuration.root().getConfig("solr");
@@ -162,9 +161,9 @@ public class TravelNoteAPI {
                 for (String t : vsNames)
                     sb.append(String.format(" contents:%s", t));
             }
-
             query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title")
                     .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id");
+            query.setStart(page);
             query.setRows(pageSize);
 
             docs = server.query(query).getResults();
