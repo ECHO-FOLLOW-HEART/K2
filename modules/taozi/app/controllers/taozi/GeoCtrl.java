@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.taozi.geo.*;
 import models.geo.Country;
 import models.geo.Locality;
 import models.misc.TravelNote;
@@ -18,9 +19,6 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.Utils;
-import formatter.taozi.geo.LocalityFormatter;
-import formatter.taozi.geo.SimpleCountryFormatter;
-import formatter.taozi.geo.SimpleDestinationFormatter;
 import formatter.taozi.misc.TravelNoteFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 
@@ -44,7 +42,7 @@ public class GeoCtrl extends Controller {
             Locality locality = GeoAPI.locDetails(id);
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
-            ObjectNode response = (ObjectNode) new LocalityFormatter().format(locality);
+            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().format(locality);
             List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, 0, noteCnt);
             List<ObjectNode> objs = new ArrayList<>();
             for (TravelNote tra : tras) {
@@ -129,7 +127,7 @@ public class GeoCtrl extends Controller {
                 // TODO 全部取出，不要分页，暂时取100个
                 List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 100);
                 for (Locality des : destinations) {
-                    objs.add((ObjectNode) new SimpleDestinationFormatter().format(des));
+                    objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
                 }
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
@@ -151,7 +149,7 @@ public class GeoCtrl extends Controller {
         List<ObjectNode> result = new ArrayList<>(pageSize);
         List<Locality> localities = GeoAPI.getDestinationsByCountry(id, page, pageSize);
         for (Locality des : localities) {
-            result.add((ObjectNode) new SimpleDestinationFormatter().format(des));
+            result.add((ObjectNode) new SimpleLocalityFormatter().format(des));
         }
         return result;
     }

@@ -52,7 +52,7 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
     public static final String FD_EN_NAME = "enName";
 
     @Transient
-    public static String fnId = "id";
+    public static String FN_ID = "id";
 
     @Transient
     public static String fnImages = "images";

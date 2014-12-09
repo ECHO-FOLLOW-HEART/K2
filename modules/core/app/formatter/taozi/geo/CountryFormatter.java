@@ -43,7 +43,7 @@ public class CountryFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Country.FD_ZH_NAME,Country.FD_EN_NAME,Country.fnId,
+                Collections.addAll(includedFields, Country.FD_ZH_NAME,Country.FD_EN_NAME,Country.FN_ID,
                 Country.fnImages,Country.fnDesc);
 
                 return (includedFields.contains(writer.getName()));
