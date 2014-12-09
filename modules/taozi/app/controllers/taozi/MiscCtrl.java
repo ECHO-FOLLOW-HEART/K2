@@ -7,9 +7,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DestinationFormatter;
 import formatter.taozi.geo.DetailedLocalityFormatter;
-import formatter.taozi.geo.LocalityFormatter;
 import formatter.taozi.misc.MiscFormatter;
-import formatter.taozi.misc.SimpleRefFormatter;
 import formatter.taozi.misc.WeatherFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
@@ -437,12 +435,12 @@ public class MiscCtrl extends Controller {
             UserInfo userInfo = UserAPI.getUserInfo(Integer.parseInt(userId), Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar));
 
             Comment comment = new Comment();
-            comment.userId = userInfo.getUserId();
-            comment.poiId = poiObjid;
-            comment.commentDetails = commentDetails;
-            comment.poiType = type;
-            comment.rating = score;
-            comment.commentTime = commentTime;
+            comment.setUserId(userInfo.getUserId());
+            comment.setPoiId(poiObjid);
+            comment.setCommentDetails(commentDetails);
+            comment.setPoiType(type);
+            comment.setRating(score);
+            comment.setCommentTime(commentTime);
 
             MiscAPI.saveComment(comment);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
