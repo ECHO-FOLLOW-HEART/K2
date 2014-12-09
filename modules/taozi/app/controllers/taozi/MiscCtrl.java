@@ -6,9 +6,12 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DestinationFormatter;
+import formatter.taozi.geo.DetailedLocalityFormatter;
+import formatter.taozi.geo.LocalityFormatter;
 import formatter.taozi.misc.MiscFormatter;
 import formatter.taozi.misc.SimpleRefFormatter;
 import formatter.taozi.misc.WeatherFormatter;
+import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
 import formatter.taozi.user.SelfFavoriteFormatter;
 import models.MorphiaFactory;
@@ -494,7 +497,7 @@ public class MiscCtrl extends Controller {
                 it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
                 while (it.hasNext()) {
                     locality = (Locality) it.next();
-                    retLocList.add(new SimpleRefFormatter().format(locality));
+                    retLocList.add(new DetailedLocalityFormatter().format(locality));
                 }
                 results.put("loc", Json.toJson(retLocList));
             }
@@ -523,7 +526,7 @@ public class MiscCtrl extends Controller {
                 List<JsonNode> retPoiList = new ArrayList<>();
                 List<? extends AbstractPOI> itPoi = PoiAPI.poiSearchForTaozi(poiType, keyWord, oid, true, page, pageSize);
                 for (AbstractPOI poi : itPoi)
-                    retPoiList.add(new SimpleRefFormatter().format(poi));
+                    retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
 
