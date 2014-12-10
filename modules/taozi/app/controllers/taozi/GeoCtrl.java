@@ -43,12 +43,12 @@ public class GeoCtrl extends Controller {
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().format(locality);
-            List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, 0, noteCnt);
-            List<ObjectNode> objs = new ArrayList<>();
-            for (TravelNote tra : tras) {
-                objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
-            }
-            response.put("travelNote", Json.toJson(objs));
+            //List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, 0, noteCnt);
+            //List<ObjectNode> objs = new ArrayList<>();
+            //for (TravelNote tra : tras) {
+            //    objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
+            //}
+            response.put("imageCnt", locality.getImages().size());
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
