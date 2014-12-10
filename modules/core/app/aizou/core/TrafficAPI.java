@@ -345,7 +345,7 @@ public class TrafficAPI {
         if (trafficType.equals(TRAFFIC_TYPE_AIRPOT)) {
             query = ds.createQuery(Airport.class);
             query.field("id").equal(id);
-        } else if (trafficType.equals(TRAFFIC_TYPE_AIRPOT)) {
+        } else if (trafficType.equals(TRAFFIC_TYPE_TRAINSTATION)) {
             query = ds.createQuery(TrainStation.class);
             query.field("id").equal(id);
         }
