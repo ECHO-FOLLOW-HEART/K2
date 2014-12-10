@@ -100,7 +100,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     /**
      * 发表时间
      */
-    public Date publishDate;
+    public Long publishDate;
 
     /**
      * 发表时间
@@ -209,7 +209,8 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("title", title).add("authorName", authorName);
+        builder.add("id", this.getId().toString()).add("title", title).add("authorName", authorName)
+                .add("cover", cover);
         for (String k : new String[]{"source", "sourceUrl", "summary", "authorName", "authorAvatar", "title"}) {
             try {
                 Object val = TravelNote.class.getField(k).get(this);
@@ -227,7 +228,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
             }
         }
 
-        builder.add("publishDate", publishDate == null ? "" : new SimpleDateFormat("yyyy-MM-dd").format(publishDate));
+        builder.add("publishDate", publishDate == null ? "" : publishDate);
 
         return Json.toJson(builder.get());
     }

@@ -44,7 +44,7 @@ GET           /users/contacts                          controllers.taozi.UserCtr
 #----------其他接口----------
 #其他
 #添加收藏
-PUT           /misc/favorites                          controllers.taozi.MiscCtrl.addFavorite()
+POST           /misc/favorites                          controllers.taozi.MiscCtrl.addFavorite()
 #取得收藏
 GET           /misc/favorites                          controllers.taozi.MiscCtrl.getFavorite(faType: String?="", page: Int?=0, pageSize: Int?=20)
 #删除收藏
@@ -65,6 +65,8 @@ POST          /misc/upload-callback                    controllers.taozi.MiscCtr
 GET           /misc/notes/search                       controllers.taozi.TravelNoteCtrl.searchNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
 #搜索
 GET           /search                                  controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
+#提示
+GET           /suggestions                             controllers.taozi.MiscCtrl.getSuggestions(word: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, pageSize: Int?=5)
 
 #----------POI接口----------
 #查看POI详情
