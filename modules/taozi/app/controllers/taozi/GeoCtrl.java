@@ -66,7 +66,7 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping,
+    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping,boolean hotel,boolean restaurant,
                                         int page, int pageSize) {
         //TODO 没有美食/购物的数据
         try {
@@ -80,6 +80,11 @@ public class GeoCtrl extends Controller {
 
             if (shopping)
                 poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
+            if (hotel)
+                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
+
+            if (restaurant)
+                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
 
             for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
                 List<JsonNode> retPoiList = new ArrayList<>();
@@ -87,7 +92,7 @@ public class GeoCtrl extends Controller {
                 String poiTypeName = entry.getValue();
 
                 // TODO 暂时返回国内数据
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, new ObjectId(locId), false, page, pageSize);
+                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, null, false, page, pageSize);
                      it.hasNext(); )
                     retPoiList.add(new SimplePOIFormatter().format(it.next()));
                 results.put(poiTypeName, Json.toJson(retPoiList));
@@ -128,6 +133,7 @@ public class GeoCtrl extends Controller {
                 List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 100);
                 for (Locality des : destinations) {
                     objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
+
                 }
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));

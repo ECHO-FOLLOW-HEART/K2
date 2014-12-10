@@ -78,6 +78,7 @@ public class Locality extends TravelPiBaseItem {
 
     public static String fnImageCnt = "imageCnt";
 
+
     /**
      * 中文名称
      */

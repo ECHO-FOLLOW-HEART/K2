@@ -4,6 +4,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Country;
+import models.geo.Destination;
 import models.geo.Locality;
 import models.poi.*;
 import org.bson.types.ObjectId;
@@ -22,6 +23,30 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 public class PoiAPI {
+
+
+    public enum SortField {
+        SCORE, PRICE, RATING
+    }
+
+    public enum POIType {
+        VIEW_SPOT,
+        HOTEL,
+        RESTAURANT,
+        SHOPPING,
+        ENTERTAINMENT,
+        DINNING
+    }
+
+    public enum DestinationType {
+        REMOTE_TRAFFIC,
+        LOCAL_TRAFFIC,
+        ACTIVITY,
+        TIPS,
+        CULTURE,
+        DINNING,
+        SHOPPING
+    }
 
     /**
      * 获得POI联想列表。
@@ -336,6 +361,7 @@ public class PoiAPI {
      * @throws exception.AizouException
      */
     public static List<Comment> getPOIComment(String poiId, int page, int pageSize) throws AizouException {
+
         ObjectId id = new ObjectId(poiId);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class);
@@ -912,7 +938,7 @@ public class PoiAPI {
     }
 
     /**
-     * 通过id返回游玩攻略
+     * 获取特定字段的destination
      *
      * @param id
      * @return
@@ -922,7 +948,36 @@ public class PoiAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<TravelGuide> query = ds.createQuery(TravelGuide.class).field("id").equal(id);
         return query.get();
-
+    }
+    public static Destination getTravelGuideApi(ObjectId id, DestinationType type, int page, int pageSize) throws AizouException {
+        Destination destination = null;
+        // TODO 补充getDestinationByField()
+//        switch (type) {
+//            case REMOTE_TRAFFIC:
+//                destination = getDestinationByField(id, Arrays.asList(Destination.fnRemoteTraffic), page, pageSize);
+//                break;
+//            case LOCAL_TRAFFIC:
+//                destination = getDestinationByField(id, Arrays.asList(Destination.fnLocalTraffic), page, pageSize);
+//                break;
+//            case ACTIVITY:
+//                destination = getDestinationByField(id, Arrays.asList(Destination.fnActivityIntro, Destination.fnActivities), page, pageSize);
+//                break;
+//            case TIPS:
+//                destination = getDestinationByField(id, Arrays.asList(Destination.fnTips), page, pageSize);
+//                break;
+//            /*case CULTURE:
+//                destination = getDestinationByField(id, Arrays.asList(Destination.fnCulture);
+//                break;*/
+//            case DINNING:
+//                destination = getDestinationByField(id, Arrays.asList(Destination.fnDinningIntro, Destination.fnCommodities), page, pageSize);
+//                break;
+//            case SHOPPING:
+//                destination = getDestinationByField(id, Arrays.asList(Destination.fnShoppingIntro, Destination.fnCuisines), page, pageSize);
+//                break;
+//            default:
+//                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+//        }
+        return destination;
     }
 
 
@@ -1030,16 +1085,4 @@ public class PoiAPI {
         return query.asList();
     }
 
-    public enum SortField {
-        SCORE, PRICE, RATING
-    }
-
-    public enum POIType {
-        VIEW_SPOT,
-        HOTEL,
-        RESTAURANT,
-        SHOPPING,
-        ENTERTAINMENT,
-        DINNING
-    }
 }

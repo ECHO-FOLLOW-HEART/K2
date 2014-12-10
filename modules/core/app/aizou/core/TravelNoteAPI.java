@@ -15,6 +15,8 @@ import org.apache.solr.common.SolrDocumentList;
 import org.bson.types.ObjectId;
 import play.Configuration;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -244,6 +246,9 @@ public class TravelNoteAPI {
             note.publishDate = new Date();
             tmp = doc.get("sourceUrl");
             note.sourceUrl = (tmp != null ? (String) tmp : "");
+            note.contents = (List) doc.get("contents");
+            note.source = getSource((String) doc.get("source"));
+            note.publishDate = (Date) doc.get("publishDate");
 
             if (note.contents.size() > 1) {
                 sb = new StringBuilder();
@@ -263,8 +268,125 @@ public class TravelNoteAPI {
             }
             results.add(note);
         }
+
+        return results;
+    }
+
+    /**
+     * 游记来源
+     *
+     * @param source
+     * @return
+     */
+    public static String getSource(String source) {
+        Map<String, String> map = new HashMap<>();
+        map.put("chanyouji", "禅游记");
+        map.put("baidu", "百度");
+        map.put("mafengwo", "蚂蜂窝");
+        if (map.containsKey(source))
+            return map.get(source);
+        else
+            return "";
+    }
+
+    /**
+     * 转换日期格式
+     *
+     * @param date
+     * @return
+     * @throws ParseException
+     */
+    public static String dateFormat(Date date) throws ParseException {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+        return dateFormat.format(date);
+    }
+
+
+    /**
+     * 通过id获取游记
+     *
+     * @param id
+     * @return
+     * @throws SolrServerException
+     * @throws ParseException
+     */
+    public static List<TravelNote> getTravelNoteDetailApi(String id) throws SolrServerException, ParseException {
+        SolrDocumentList docs;
+        List<TravelNote> results = new ArrayList<>();
+        //配置solr
+        Configuration config = Configuration.root().getConfig("solr");
+        String host = config.getString("host", "http://api.lvxingpai.cn");
+        Integer port = config.getInt("port", 8983);
+        String url = String.format("http://%s:%d/solr", host, port);
+        SolrServer server = new HttpSolrServer(url);
+        SolrQuery query = new SolrQuery();
+
+        String queryString = String.format("id:%s", id);
+        query.setQuery(queryString.trim());
+                /*.addField("id").addField("authorName").addField("title")
+                .addField("authorAvatar").addField("contents").addField("cover").addField("elite")
+                .addField("source").addField("startDate").addField("sourceUrl").addField("toLoc")
+                .addField("viewCnt").addField("commentCnt");*/
+
+        docs = server.query(query).getResults();
+
+        for (SolrDocument doc : docs) {
+            Boolean elite = (Boolean) doc.get("elite");
+                /*if (!elite)
+                    continue;*/
+            TravelNote note = new TravelNote();
+            Object tmp;
+            note.authorName = (String) doc.get("authorName");
+            note.title = (String) doc.get("title");
+            tmp = doc.get("authorAvatar");
+            note.authorAvatar = (tmp != null ? (String) tmp : "");
+            if (!note.authorAvatar.startsWith("http://"))
+                note.authorAvatar = "http://" + note.authorAvatar;
+            tmp = doc.get("favorCnt");
+            note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+            note.contents = procContents((List) doc.get("contents"));
+            note.sourceUrl = (String) doc.get("url");
+            note.source = getSource((String) doc.get("source"));
+            tmp = doc.get("commentCnt");
+            note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+            tmp = doc.get("viewCnt");
+            note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+            tmp = doc.get("sourceUrl");
+            note.sourceUrl = (tmp != null ? (String) tmp : "");
+            tmp = doc.get("costUpper");
+            note.costUpper = (tmp != null ? Float.parseFloat(String.valueOf(tmp)) : -1);
+            tmp = doc.get("costLower");
+            note.costLower = (tmp != null ? Float.parseFloat(String.valueOf(tmp)) : -1);
+            note.publishDate = (Date) doc.get("publishDate");
+            results.add(note);
+        }
         return results;
 
     }
+
+    /**
+     * 处理游记正文
+     *
+     * @param contents
+     * @return
+     */
+    public static List<String> procContents(List<String> contents) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div>");
+        for (String line : contents) {
+            if (line.startsWith("img src")) {
+                line = line.replaceAll("\\\\", "");
+                sb.append("<" + line + ">");
+            } else if (line.startsWith("http://")) {
+                sb.append("<img src=" + line + " >");
+            } else
+                sb.append("<p> " + line + "</p>");
+        }
+        sb.append("</div>");
+        List<String> list = new ArrayList<>();
+        list.add(sb.toString().trim());
+        return list;
+    }
+
 
 }

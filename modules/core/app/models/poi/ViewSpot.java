@@ -41,6 +41,7 @@ public class ViewSpot extends AbstractPOI {
     @Transient
     public static String FD_DESC_FLAGS = "descriptionFlag";
 
+
     public Integer spotId;
 
     public String trafficInfo;

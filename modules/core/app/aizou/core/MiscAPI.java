@@ -6,7 +6,6 @@ import models.geo.Locality;
 import models.misc.PageFirst;
 import models.misc.SimpleRef;
 import models.poi.Comment;
-import models.user.Favorite;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -37,6 +36,7 @@ public class MiscAPI {
         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ds.save(pageFirst);
     }
+
     /**
      * 储存评论信息
      *
@@ -89,7 +89,6 @@ public class MiscAPI {
             query = query.filter("score <", 0.3);
             return query.offset(page * pageSize).limit(pageSize).asList();
         }*/
-
         return query.filter(Comment.FD_RATING +" >=",lower).filter(Comment.FD_RATING +" <",upper).offset(page * pageSize).limit(page).asList();
     }
 

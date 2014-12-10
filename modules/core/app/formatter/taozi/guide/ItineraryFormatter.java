@@ -54,7 +54,7 @@ public class ItineraryFormatter implements JsonFormatter {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractGuide.fdId);
                 includedFields.add(Guide.fnUserId);
-                includedFields.add(Guide.fnDestinations);
+                includedFields.add(Guide.fnLocalities);
                 includedFields.add(AbstractGuide.fnTitle);
                 includedFields.add(Guide.fnUpdateTime);
                 //行程单
