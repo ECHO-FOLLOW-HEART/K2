@@ -32,7 +32,6 @@ public class TravelNoteCtrl extends Controller {
 
     public static Result searchNotes(String keyWord, String locId, int page, int pageSize) {
         try {
-
             List<TravelNote> noteList;
             if (!locId.isEmpty()) {
                 ObjectId oid = new ObjectId(locId);
@@ -42,7 +41,6 @@ public class TravelNoteCtrl extends Controller {
                 noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(keyWord), Arrays.asList(keyWord), page, pageSize);
             else
                 noteList = new ArrayList();
-
             List<JsonNode> ret = new ArrayList<>();
             for (TravelNote note : noteList)
                 ret.add(note.toJson());
@@ -128,6 +126,9 @@ public class TravelNoteCtrl extends Controller {
         } catch (ParseException | SolrServerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
+
     }
+
+
 }
 

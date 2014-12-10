@@ -74,7 +74,6 @@ public class GeoCtrl extends Controller {
             HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
             if (vs)
                 poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
-
             if (dinning)
                 poiMap.put(PoiAPI.POIType.DINNING, "dinning");
 
@@ -133,7 +132,6 @@ public class GeoCtrl extends Controller {
                 List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 100);
                 for (Locality des : destinations) {
                     objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
-
                 }
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
@@ -159,29 +157,4 @@ public class GeoCtrl extends Controller {
         }
         return result;
     }
-
-//    /**
-//     * 获得某国家的目的地
-//     *
-//     * @param countyrId
-//     * @param page
-//     * @param pageSize
-//     * @return
-//     */
-//    public static Result getDestinationsByCountry(String countyrId, int page, int pageSize) {
-//
-//        try {
-//            List<ObjectNode> objs = new ArrayList<>();
-//            ObjectId oid = new ObjectId(countyrId);
-//            List<Locality> destinations = GeoAPI.getDestinationsByCountry(oid, page, pageSize);
-//            for (Locality des : destinations) {
-//                objs.add((ObjectNode) new SimpleDestinationFormatter().format(des));
-//            }
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
-//        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.getErrCode(), e.getMessage());
-//        }
-//    }
-
-
 }

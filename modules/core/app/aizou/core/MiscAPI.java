@@ -77,6 +77,7 @@ public class MiscAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class).field("poiId").equal(poiId);
         query = query.order(Comment.FD_TIME);
+
         /*if (goodComment) {
             query = query.filter("score >=", 0.7).filter("score <", 1.0);
             return query.offset(page * pageSize).limit(pageSize).asList();
@@ -90,6 +91,7 @@ public class MiscAPI {
             return query.offset(page * pageSize).limit(pageSize).asList();
         }*/
         return query.filter(Comment.FD_RATING +" >=",lower).filter(Comment.FD_RATING +" <",upper).offset(page * pageSize).limit(page).asList();
+
     }
 
     /**

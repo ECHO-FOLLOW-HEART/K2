@@ -24,7 +24,6 @@ import java.util.regex.Pattern;
  */
 public class PoiAPI {
 
-
     public enum SortField {
         SCORE, PRICE, RATING
     }
@@ -949,6 +948,7 @@ public class PoiAPI {
         Query<TravelGuide> query = ds.createQuery(TravelGuide.class).field("id").equal(id);
         return query.get();
     }
+
     public static Destination getTravelGuideApi(ObjectId id, DestinationType type, int page, int pageSize) throws AizouException {
         Destination destination = null;
         // TODO 补充getDestinationByField()
@@ -1084,5 +1084,6 @@ public class PoiAPI {
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
     }
+
 
 }

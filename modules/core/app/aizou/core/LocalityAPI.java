@@ -164,6 +164,7 @@ public class LocalityAPI {
      * @return
      */
     public static Locality getLocality(ObjectId locId,List<String> fieldList) throws AizouException {
+
         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
         if (fieldList != null && !fieldList.isEmpty())

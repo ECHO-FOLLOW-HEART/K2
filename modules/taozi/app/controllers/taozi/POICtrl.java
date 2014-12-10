@@ -11,6 +11,7 @@ import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import models.geo.Destination;
 import models.poi.*;
+
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -19,7 +20,6 @@ import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
 import utils.formatter.taozi.geo.DestinationGuideFormatter;
-
 import java.util.*;
 
 /**
@@ -354,6 +354,46 @@ public class POICtrl extends Controller {
     }
 
     /**
+     * 特定地点美食、购物发现
+     *
+     * @param locId
+     * @param dinning
+     * @param shopping
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result getDinShop(String locId, boolean dinning, boolean shopping,
+                                    int page, int pageSize) {
+        //TODO 缺少店铺推荐数据
+        try {
+            ObjectNode results = Json.newObject();
+            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
+            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
+            if (dinning) {
+                destKeyList.add(PoiAPI.DestinationType.DINNING);
+                poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
+            }
+
+            if (shopping) {
+                destKeyList.add(PoiAPI.DestinationType.SHOPPING);
+                poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
+            }
+            ObjectId oid = new ObjectId(locId);
+            for (PoiAPI.DestinationType type : destKeyList) {
+
+                Destination destination = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
+                String kind = poiMap.get(type);
+                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
+                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, results);
+        } catch (AizouException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
+
+    /**
      * 游玩攻略
      *
      * @param locId
@@ -402,46 +442,6 @@ public class POICtrl extends Controller {
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException | NullPointerException | NumberFormatException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
-
-    /**
-     * 特定地点美食、购物发现
-     *
-     * @param locId
-     * @param dinning
-     * @param shopping
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result getDinShop(String locId, boolean dinning, boolean shopping,
-                                    int page, int pageSize) {
-        //TODO 缺少店铺推荐数据
-        try {
-            ObjectNode results = Json.newObject();
-            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
-            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
-            if (dinning) {
-                destKeyList.add(PoiAPI.DestinationType.DINNING);
-                poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
-            }
-
-            if (shopping) {
-                destKeyList.add(PoiAPI.DestinationType.SHOPPING);
-                poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
-            }
-            ObjectId oid = new ObjectId(locId);
-            for (PoiAPI.DestinationType type : destKeyList) {
-
-                Destination destination = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
-                String kind = poiMap.get(type);
-                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
