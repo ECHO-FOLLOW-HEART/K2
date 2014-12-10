@@ -1,24 +1,15 @@
 package formatter.taozi.poi;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.TaoziBaseFormatter;
-import models.TravelPiBaseItem;
-import models.geo.Country;
-import models.geo.Locality;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 import models.poi.Comment;
-import models.poi.ViewSpot;
 
 import java.util.*;
 
@@ -40,7 +31,7 @@ public class CommentFormatter extends TaoziBaseFormatter {
 
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
-                TravelPiBaseItem.FD_ID,
+                AizouBaseEntity.FD_ID,
                 Comment.FD_USER_ID,
                 Comment.FD_AVATAR,
                 Comment.FD_NICK_NAME,
@@ -51,7 +42,7 @@ public class CommentFormatter extends TaoziBaseFormatter {
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         Map<String, PropertyFilter> filterMap=new HashMap<>();
         filterMap.put("commentFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
 

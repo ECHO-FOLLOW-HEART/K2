@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.TaoziBaseFormatter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
@@ -32,12 +32,12 @@ public class GuideFormatter extends TaoziBaseFormatter {
     private Set<String> localityStringFields;
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
 
         Map<String, PropertyFilter> filterMap = new HashMap<>();
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
-                TravelPiBaseItem.FD_ID,
+                AizouBaseEntity.FD_ID,
                 AbstractPOI.FD_ZH_NAME,
                 AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_DESC,
@@ -52,7 +52,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
         filterMap.put("itinerItemFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
                 ItinerItem.fdDayIndex, ItinerItem.fdPoi));
         filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
-                TravelPiBaseItem.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
+                AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
         serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));

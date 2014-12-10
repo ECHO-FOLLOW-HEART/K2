@@ -2,8 +2,8 @@ package models.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import models.misc.CheckinRatings;
 import models.misc.Description;
 import models.misc.ImageItem;
@@ -26,7 +26,7 @@ import java.util.Random;
  * @author Zephyre
  */
 @Entity
-abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPiFormatter {
+abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiFormatter {
     @Transient
     public static final String FD_TARGETS = "targets";
 

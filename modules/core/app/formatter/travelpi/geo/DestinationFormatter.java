@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.geo.GeoJsonPoint;
 import play.libs.Json;
@@ -36,7 +36,7 @@ public class DestinationFormatter extends TravelPiBaseFormatter {
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
         Locality destItem = (Locality) item;
 

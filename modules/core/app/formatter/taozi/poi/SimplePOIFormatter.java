@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.TaoziBaseFormatter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 
@@ -22,7 +22,7 @@ import java.util.Arrays;
 public class SimplePOIFormatter extends TaoziBaseFormatter {
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = getObjectMapper();
 
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())

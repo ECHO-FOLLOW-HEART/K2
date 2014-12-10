@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
 import models.misc.ImageItem;
@@ -27,7 +27,7 @@ import java.util.Set;
  */
 public class SimpleGuideFormatter implements JsonFormatter {
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);

@@ -3,8 +3,8 @@ package models.geo;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import models.misc.ImageItem;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
@@ -20,18 +20,15 @@ import java.util.List;
  */
 @JsonFilter("countryFilter")
 @Entity
-public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
+public class Country extends AizouBaseEntity implements ITravelPiFormatter {
+    @Transient
+    public static final String FD_ZH_NAME = "zhName";
+    @Transient
+    public static final String FD_EN_NAME = "enName";
     @Transient
     public static String fnCode = "code";
-
     @Transient
     public static String fnCode3 = "code3";
-
-    @Transient
-    public static String fnAlias = "alias";
-
-    @Transient
-    public static String fnIsHot = "isHot";
 
 //    @Transient
 //    public static String simpZhCont = "zhCont";
@@ -44,13 +41,10 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
 //
 //    @Transient
 //    public static String SimpZhRegion = "zhRegion";
-
     @Transient
-    public static final String FD_ZH_NAME = "zhName";
-
+    public static String fnAlias = "alias";
     @Transient
-    public static final String FD_EN_NAME = "enName";
-
+    public static String fnIsHot = "isHot";
     @Transient
     public static String FN_ID = "id";
 
@@ -59,155 +53,155 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnDesc = "desc";
-
-    /**
-     * ISO 3166-2标准的国家代码
-     */
-    private String code;
-
-    /**
-     * ISO 3166-3标准的国家代码
-     */
-    private String code3;
-
-    /**
-     * 标准的ISO-Numeric代码
-     */
-    private String isoNum;
-
     /**
      * FIPS国家代码
      */
     public String fips;
-
-    /**
-     * 所在大洲的中文名称
-     */
-    private String zhCont;
-
-    /**
-     * 所在大洲的英文名称
-     */
-    private String enCont;
-
-    /**
-     * 所在大洲的代码
-     */
-    private String contCode;
-
-    /**
-     * 所在区域的中文名称
-     */
-    private String zhRegion;
-
-    /**
-     * 所在区域的英文名称
-     */
-    private String enRegion;
-
-    /**
-     * 中文名称
-     */
-    private String zhName;
-
-    /**
-     * 英文名称
-     */
-    private String enName;
-
-    /**
-     * 描述
-     */
-    private String desc;
-
-    /**
-     * 首都
-     */
-    private String enCapital;
-
-    /**
-     * 面积（平方千米）
-     */
-    private Integer area;
-
     /**
      * 人口数量
      */
     public Integer population;
-
+    /**
+     * 相邻的国家
+     */
+    public List<String> citys;
+    /**
+     * 图片
+     */
+    public List<ImageItem> images;
+    /**
+     * ISO 3166-2标准的国家代码
+     */
+    private String code;
+    /**
+     * ISO 3166-3标准的国家代码
+     */
+    private String code3;
+    /**
+     * 标准的ISO-Numeric代码
+     */
+    private String isoNum;
+    /**
+     * 所在大洲的中文名称
+     */
+    private String zhCont;
+    /**
+     * 所在大洲的英文名称
+     */
+    private String enCont;
+    /**
+     * 所在大洲的代码
+     */
+    private String contCode;
+    /**
+     * 所在区域的中文名称
+     */
+    private String zhRegion;
+    /**
+     * 所在区域的英文名称
+     */
+    private String enRegion;
+    /**
+     * 中文名称
+     */
+    private String zhName;
+    /**
+     * 英文名称
+     */
+    private String enName;
+    /**
+     * 描述
+     */
+    private String desc;
+    /**
+     * 首都
+     */
+    private String enCapital;
+    /**
+     * 面积（平方千米）
+     */
+    private Integer area;
     /**
      * 别名
      */
     private List<String> alias;
-
     /**
      * 默认货币
      */
     private String currencyCode;
-
     /**
      * 货币英文名称
      */
     private String currencyEnName;
-
     /**
      * 货币中文名称
      */
     private String currencyZhName;
-
     /**
      * 电话的国家代码
      */
     private Integer dialCode;
-
     /**
      * 语言
      */
     private List<String> lang;
-
     /**
      * 相邻的国家
      */
     private List<String> neighbours;
-
     /**
      * 是否为热门旅游目的地国家
      */
     private Boolean isHot;
 
-    /**
-     * 相邻的国家
-     */
-    public List<String> citys;
-
-    /**
-     * 图片
-     */
-    public List<ImageItem> images;
-
     public String getZhCont() {
         return zhCont != null ? zhCont : "";
+    }
+
+    public void setZhCont(String zhCont) {
+        this.zhCont = zhCont;
     }
 
     public String getEnCont() {
         return enCont != null ? enCont : "";
     }
 
+    public void setEnCont(String enCont) {
+        this.enCont = enCont;
+    }
+
     public String getZhRegion() {
         return zhRegion != null ? zhRegion : "";
+    }
+
+    public void setZhRegion(String zhRegion) {
+        this.zhRegion = zhRegion;
     }
 
     public String getEnRegion() {
         return enRegion != null ? enRegion : "";
     }
 
+    public void setEnRegion(String enRegion) {
+        this.enRegion = enRegion;
+    }
+
     public String getEnName() {
         return enName != null ? enName : "";
+    }
+
+    public void setEnName(String enName) {
+        this.enName = enName;
     }
 
     public String getZhName() {
         return zhName != null ? zhName : "";
     }
+
+    public void setZhName(String zhName) {
+        this.zhName = zhName;
+    }
+
     public String getDesc() {
         return desc != null ? desc : "";
     }
@@ -248,36 +242,12 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
         this.fips = fips;
     }
 
-    public void setZhCont(String zhCont) {
-        this.zhCont = zhCont;
-    }
-
-    public void setEnCont(String enCont) {
-        this.enCont = enCont;
-    }
-
     public String getContCode() {
         return contCode != null ? contCode : "";
     }
 
     public void setContCode(String contCode) {
         this.contCode = contCode;
-    }
-
-    public void setZhRegion(String zhRegion) {
-        this.zhRegion = zhRegion;
-    }
-
-    public void setEnRegion(String enRegion) {
-        this.enRegion = enRegion;
-    }
-
-    public void setZhName(String zhName) {
-        this.zhName = zhName;
-    }
-
-    public void setEnName(String enName) {
-        this.enName = enName;
     }
 
     public String getEnCapital() {
@@ -367,6 +337,7 @@ public class Country extends TravelPiBaseItem implements ITravelPiFormatter {
             return images;
         }
     }
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

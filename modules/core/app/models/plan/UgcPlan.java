@@ -79,6 +79,68 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
      */
     private Boolean persisted;
 
+    public UgcPlan() {
+        this.updateTime = 0L;
+        this.isFromWeb = false;
+        this.persisted = false;
+    }
+
+    public UgcPlan(Plan plan) throws AizouException {
+        this();
+        Class<?> cls = Plan.class;
+        while (!cls.equals(Object.class)) {
+            for (Method method : cls.getDeclaredMethods()) {
+                if (!(Modifier.isPublic(method.getModifiers()) && isGetter(method)))
+                    continue;
+
+                String setterName = method.getName().replaceFirst("^get", "set");
+                try {
+                    Method setterMethod = this.getClass().getMethod(setterName, method.getReturnType());
+                    if (!isSetter(setterMethod))
+                        continue;
+                    setterMethod.invoke(this, method.invoke(plan));
+                } catch (ReflectiveOperationException ignored) {
+                }
+            }
+            cls = cls.getSuperclass();
+        }
+
+        //设置ID
+        this.setId(new ObjectId());
+        this.templateId = plan.getId();
+        this.setEnabled(true);
+    }
+
+    public UgcPlan(Plan plan, String uid, String startD, String endD, String id, String title) throws AizouException {
+        this(plan);
+        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+
+        try {
+            this.startDate = format.parse(startD);
+            this.endDate = format.parse(endD);
+        } catch (ParseException e) {
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+        }
+
+        this.setId(new ObjectId(id));
+        this.setTitle(title);
+        this.uid = new ObjectId(uid);
+        this.updateTime = (new Date()).getTime();
+        this.setEnabled(true);
+    }
+
+    private static boolean isGetter(Method method) {
+        return method.getName().startsWith("get")
+                && method.getParameterTypes().length == 0
+                && !void.class.equals(method.getReturnType());
+    }
+
+    public static boolean isSetter(Method method) {
+        return method.getName().startsWith("set")
+                && method.getParameterTypes().length == 1
+                && void.class.equals(method.getReturnType());
+    }
+
     public ObjectId getUid() {
         return uid;
     }
@@ -133,68 +195,6 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
 
     public void setPersisted(Boolean persisted) {
         this.persisted = persisted;
-    }
-
-    public UgcPlan() {
-        this.updateTime = 0L;
-        this.isFromWeb = false;
-        this.persisted = false;
-    }
-
-    private static boolean isGetter(Method method) {
-        return method.getName().startsWith("get")
-                && method.getParameterTypes().length == 0
-                && !void.class.equals(method.getReturnType());
-    }
-
-    public static boolean isSetter(Method method) {
-        return method.getName().startsWith("set")
-                && method.getParameterTypes().length == 1
-                && void.class.equals(method.getReturnType());
-    }
-
-    public UgcPlan(Plan plan) throws AizouException {
-        this();
-        Class<?> cls = Plan.class;
-        while (!cls.equals(Object.class)) {
-            for (Method method : cls.getDeclaredMethods()) {
-                if (!(Modifier.isPublic(method.getModifiers()) && isGetter(method)))
-                    continue;
-
-                String setterName = method.getName().replaceFirst("^get", "set");
-                try {
-                    Method setterMethod = this.getClass().getMethod(setterName, method.getReturnType());
-                    if (!isSetter(setterMethod))
-                        continue;
-                    setterMethod.invoke(this, method.invoke(plan));
-                } catch (ReflectiveOperationException ignored) {
-                }
-            }
-            cls = cls.getSuperclass();
-        }
-
-        //设置ID
-        this.setId(new ObjectId());
-        this.templateId = plan.getId();
-        this.setEnabled(true);
-    }
-
-    public UgcPlan(Plan plan, String uid, String startD, String endD, String id, String title) throws AizouException {
-        this(plan);
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-
-        try {
-            this.startDate = format.parse(startD);
-            this.endDate = format.parse(endD);
-        } catch (ParseException e) {
-            throw new AizouException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
-        }
-
-        this.setId(new ObjectId(id));
-        this.setTitle(title);
-        this.uid = new ObjectId(uid);
-        this.updateTime = (new Date()).getTime();
-        this.setEnabled(true);
     }
 
     @Override

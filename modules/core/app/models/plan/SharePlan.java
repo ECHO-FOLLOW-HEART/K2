@@ -3,12 +3,14 @@ package models.plan;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.ITravelPiFormatter;
+import org.mongodb.morphia.annotations.Entity;
 
 import java.lang.reflect.Field;
 
 /**
  * Created by topy on 2014/9/5.
  */
+@Entity
 public class SharePlan extends UgcPlan implements ITravelPiFormatter {
 
     public SharePlan() {

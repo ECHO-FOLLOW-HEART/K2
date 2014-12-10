@@ -1,7 +1,7 @@
 package models.guide;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Transient;
@@ -10,11 +10,11 @@ import java.util.List;
 
 /**
  * 目的地与攻略相关的信息
- *
+ * <p/>
  * Created by topy on 2014/11/28.
  */
 @JsonFilter("destGuideInfoFilter")
-public class DestGuideInfo extends TravelPiBaseItem {
+public class DestGuideInfo extends AizouBaseEntity {
 
     @Transient
     public static final String fnShoppingImages = "shoppingImages";
@@ -26,7 +26,7 @@ public class DestGuideInfo extends TravelPiBaseItem {
     public static final String fnRestaurantImages = "restaurantImages";
 
     @Transient
-    public static final String fnRestaurantDesc= "restaurantDesc";
+    public static final String fnRestaurantDesc = "restaurantDesc";
 
     public List<ImageItem> shoppingImages;
 

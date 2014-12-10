@@ -3,8 +3,8 @@ package models.misc;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
@@ -22,7 +22,7 @@ import java.util.List;
  */
 @Entity
 @JsonFilter("travelNoteFilter")
-public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
+public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnId = "id";

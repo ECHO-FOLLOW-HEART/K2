@@ -1,6 +1,7 @@
 package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import models.AizouBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
@@ -14,7 +15,7 @@ import java.util.Map;
  */
 @JsonFilter("imageItemFilter")
 @Embedded
-public class ImageItem {
+public class ImageItem extends AizouBaseItem {
 
     @Transient
     public static final String FD_URL = "url";

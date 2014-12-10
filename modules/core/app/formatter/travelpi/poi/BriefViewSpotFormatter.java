@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.AizouBeanPropertyFilter;
 import formatter.travelpi.TravelPiBaseFormatter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
@@ -44,7 +44,7 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
         ViewSpot vsItem = (ViewSpot) item;

@@ -4,6 +4,7 @@ import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
+import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import models.misc.SimpleRef;
 import models.poi.Hotel;
@@ -24,7 +25,7 @@ import java.util.TimeZone;
  * @author Zephyre
  */
 @Embedded
-public class PlanItem implements ITravelPiFormatter {
+public class PlanItem extends AizouBaseItem implements ITravelPiFormatter {
     @Transient
     public static final String FD_ITEM = "item";
 

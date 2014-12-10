@@ -2,8 +2,8 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
-import models.TravelPiBaseItem;
 import models.geo.Locality;
 import models.misc.SimpleRef;
 import models.plan.*;
@@ -47,7 +47,7 @@ public class PlanAPI {
         query.and(query.criteria(AbstractPlan.FD_DAYS).greaterThanOrEq(minDays),
                 query.criteria(AbstractPlan.FD_DAYS).lessThanOrEq(maxDays));
 
-        query.field(TravelPiBaseItem.FD_ENABLED).equal(Boolean.TRUE);
+        query.field(AizouBaseEntity.FD_ENABLED).equal(Boolean.TRUE);
         query.order(AbstractPlan.FD_MANUAL_PRIORITY).offset(page * pageSize).limit(pageSize);
 
         return query.asList();

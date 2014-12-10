@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.TaoziBaseFormatter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.misc.ImageItem;
 
@@ -21,12 +21,12 @@ public class DestinationPOIFormatter extends TaoziBaseFormatter {
     public static final Collection<String> retrievedFields;
 
     static {
-        retrievedFields = Arrays.asList(TravelPiBaseItem.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnDesc,
+        retrievedFields = Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnDesc,
                 Locality.fnImages);
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = getObjectMapper();
 
         SimpleModule imageItemModule = new SimpleModule();

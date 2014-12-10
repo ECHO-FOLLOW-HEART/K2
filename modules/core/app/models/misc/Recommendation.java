@@ -2,8 +2,9 @@ package models.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
+import org.mongodb.morphia.annotations.Entity;
 import play.libs.Json;
 
 import java.text.DateFormat;
@@ -15,7 +16,8 @@ import java.util.List;
 /**
  * Created by topy on 2014/9/13.
  */
-public class Recommendation extends TravelPiBaseItem implements ITravelPiFormatter {
+@Entity
+public class Recommendation extends AizouBaseEntity implements ITravelPiFormatter {
 
     /**
      * 名称

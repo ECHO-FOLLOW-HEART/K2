@@ -2,8 +2,8 @@ package models.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -17,7 +17,7 @@ import java.util.Map;
  * @author Zephyre
  */
 @Entity
-public class MiscInfo extends TravelPiBaseItem implements ITravelPiFormatter {
+public class MiscInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;

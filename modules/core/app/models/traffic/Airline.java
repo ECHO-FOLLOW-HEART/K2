@@ -2,8 +2,8 @@ package models.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import models.misc.Contact;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
@@ -18,7 +18,7 @@ import play.libs.Json;
  * @author Zephyre
  */
 @Entity
-public class Airline extends TravelPiBaseItem implements ITravelPiFormatter {
+public class Airline extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;
