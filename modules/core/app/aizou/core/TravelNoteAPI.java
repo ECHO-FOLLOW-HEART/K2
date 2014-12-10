@@ -138,7 +138,7 @@ public class TravelNoteAPI {
         }
     }
 
-    public static List<TravelNote> searchNoteByLoc(List<String> lcoNames, List<String> vsNames,int page,int pageSize) throws AizouException {
+    public static List<TravelNote> searchNoteByLoc(List<String> lcoNames, List<String> vsNames, int page, int pageSize) throws AizouException {
 
         SolrDocumentList docs;
         try {
@@ -164,7 +164,7 @@ public class TravelNoteAPI {
                 for (String t : vsNames)
                     sb.append(String.format(" contents:%s", t));
             }
-            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title")
+            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("source")
                     .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id");
             query.setStart(page);
             query.setRows(pageSize);
@@ -177,7 +177,7 @@ public class TravelNoteAPI {
         }
     }
 
-    public static List<TravelNote> searchNoteById(List<String> ids,int pageSize) throws AizouException {
+    public static List<TravelNote> searchNoteById(List<String> ids, int pageSize) throws AizouException {
 
         List<TravelNote> results = new ArrayList<>();
         SolrDocumentList docs;
@@ -224,6 +224,7 @@ public class TravelNoteAPI {
         for (SolrDocument doc : docs) {
             note = new TravelNote();
             Object tmp;
+            note.setId(new ObjectId(doc.get("id").toString()));
             note.authorName = (String) doc.get("authorName");
             note.title = (String) doc.get("title");
             tmp = doc.get("authorAvatar");
@@ -231,14 +232,14 @@ public class TravelNoteAPI {
             if (!note.authorAvatar.startsWith("http://"))
                 note.authorAvatar = "http://" + note.authorAvatar;
             tmp = doc.get("favorCnt");
-            try{
+            try {
                 note.setId(new ObjectId(doc.get("id").toString()));
-            }catch (IllegalArgumentException e){
+            } catch (IllegalArgumentException e) {
             }
             note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
             note.contents = (List) doc.get("contents");
             note.sourceUrl = (String) doc.get("url");
-            note.source = "baidu";
+            note.source = (String) doc.get("source");
             tmp = doc.get("commentCnt");
             note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
             tmp = doc.get("viewCnt");
@@ -249,6 +250,8 @@ public class TravelNoteAPI {
             note.contents = (List) doc.get("contents");
             note.source = getSource((String) doc.get("source"));
             note.publishDate = (Date) doc.get("publishDate");
+            // TODO
+            note.cover = "http://e.hiphotos.baidu.com/lvpics/s%3D800/sign=caab32ee3987e9504617fe6c2039531b/9a504fc2d56285359976ef0c93ef76c6a7ef630c.jpg";
 
             if (note.contents.size() > 1) {
                 sb = new StringBuilder();

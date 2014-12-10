@@ -209,7 +209,8 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("title", title).add("authorName", authorName);
+        builder.add("id", this.getId().toString()).add("title", title).add("authorName", authorName)
+                .add("cover", cover);
         for (String k : new String[]{"source", "sourceUrl", "summary", "authorName", "authorAvatar", "title"}) {
             try {
                 Object val = TravelNote.class.getField(k).get(this);
