@@ -102,7 +102,7 @@ public class GuideAPI {
             }
             index++;
         }
-        ugcGuide.destinations = destinations;
+        ugcGuide.localities = destinations;
         ugcGuide.title = titlesBuffer.toString();
         ugcGuide.itinerary = itineraries;
         ugcGuide.shopping = shoppingList;

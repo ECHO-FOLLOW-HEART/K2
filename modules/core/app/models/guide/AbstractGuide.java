@@ -32,7 +32,7 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     public static final String fdId = "id";
 
     @Transient
-    public static final String fnDestinations = "destinations";
+    public static final String fnLocalities = "localities";
 
     @Transient
     public static final String fnImages = "images";
@@ -41,7 +41,7 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
 
     public ObjectId locId;
 
-    public List<Locality> destinations;
+    public List<Locality> localities;
 
     public List<ItinerItem> itinerary;
 
