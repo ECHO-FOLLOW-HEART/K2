@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 public class PoiAPI {
 
     public enum SortField {
-        SCORE, PRICE, RATING
+        SCORE, PRICE, RATING,HOTNESS
     }
 
     public enum POIType {
@@ -109,6 +109,9 @@ public class PoiAPI {
             case RESTAURANT:
                 poiClass = Restaurant.class;
                 break;
+            case SHOPPING:
+                poiClass = Shopping.class;
+                break;
         }
         if (poiClass == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
@@ -132,8 +135,6 @@ public class PoiAPI {
         } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException ignored) {
             return null;
         }
-//        if (!details)
-//            query.retrievedFields(true, AbstractPOI.getRetrievedFields(2).toArray(new String[]{""}));
         if (extra != null) {
             for (Map.Entry<String, Object> entry : extra.entrySet())
                 query = query.filter(entry.getKey(), entry.getValue());
@@ -147,6 +148,12 @@ public class PoiAPI {
                     break;
                 case SCORE:
                     stKey = "ratings.score";
+                    break;
+                case RATING:
+                    stKey = "ratings";
+                    break;
+                case HOTNESS:
+                    stKey = "hotness";
                     break;
             }
             query.order(String.format("%s%s", asc ? "" : "-", stKey));
@@ -1084,6 +1091,5 @@ public class PoiAPI {
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
     }
-
 
 }
