@@ -1,14 +1,12 @@
 package models.poi;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 /**
@@ -17,7 +15,7 @@ import java.util.List;
  */
 @JsonFilter("commentFilter")
 @Entity
-public class Comment extends TravelPiBaseItem {
+public class Comment extends AizouBaseEntity {
 
     @Transient
     public static final String FD_AVATAR = "avatar";

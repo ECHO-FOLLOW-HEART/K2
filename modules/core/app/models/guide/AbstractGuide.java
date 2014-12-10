@@ -1,6 +1,6 @@
 package models.guide;
 
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.Restaurant;
@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Created by topy on 2014/11/8.
  */
-public abstract class AbstractGuide extends TravelPiBaseItem {
+public abstract class AbstractGuide extends AizouBaseEntity {
 
     @Transient
     public static final String fnTitle = "title";

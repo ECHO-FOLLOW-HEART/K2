@@ -71,7 +71,7 @@ public class MiscAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<Comment> displayCommentApi(String poiId, Double lower,Double upper, int page, int pageSize)
+    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower,Double upper, int page, int pageSize)
             throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);

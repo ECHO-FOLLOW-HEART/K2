@@ -1,6 +1,5 @@
 package models.poi;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
@@ -94,18 +93,6 @@ public class ViewSpot extends AbstractPOI {
     @Transient
     private String kengdieUrl;
 
-    public void setTrafficInfoUrl(String trafficInfoUrl) {
-        this.trafficInfoUrl = trafficInfoUrl;
-    }
-
-    public void setGuideUrl(String guideUrl) {
-        this.guideUrl = guideUrl;
-    }
-
-    public void setKengdieUrl(String kengdieUrl) {
-        this.kengdieUrl = kengdieUrl;
-    }
-
     public static List<String> getRetrievedFields(int level) {
         List<String> fieldList = AbstractPOI.getRetrievedFields(level);
         if (level > 2)
@@ -125,12 +112,24 @@ public class ViewSpot extends AbstractPOI {
         return trafficInfoUrl;
     }
 
+    public void setTrafficInfoUrl(String trafficInfoUrl) {
+        this.trafficInfoUrl = trafficInfoUrl;
+    }
+
     public String getGuideUrl() {
         return guideUrl;
     }
 
+    public void setGuideUrl(String guideUrl) {
+        this.guideUrl = guideUrl;
+    }
+
     public String getKengdieUrl() {
         return kengdieUrl;
+    }
+
+    public void setKengdieUrl(String kengdieUrl) {
+        this.kengdieUrl = kengdieUrl;
     }
 
     public String getPriceDesc() {

@@ -2,8 +2,8 @@ package models.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.mongodb.morphia.annotations.Entity;
 import play.libs.Json;
 
@@ -16,7 +16,7 @@ import java.util.List;
  * Created by topy on 2014/9/3.
  */
 @Entity
-public class Share extends TravelPiBaseItem implements ITravelPiFormatter {
+public class Share extends AizouBaseEntity implements ITravelPiFormatter {
 
     public List<ImageItem> images;
 

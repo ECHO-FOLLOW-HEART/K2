@@ -1,7 +1,7 @@
 package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -13,12 +13,12 @@ import java.util.List;
 
 /**
  * 用户的收藏夹
- * <p>
+ * <p/>
  * Created by topy on 2014/10/27.
  */
 @Entity
 @JsonFilter("favoriteFilter")
-public class Favorite extends TravelPiBaseItem {
+public class Favorite extends AizouBaseEntity {
 
     @Transient
     public static String fnId = "id";

@@ -8,8 +8,8 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import models.AizouBaseEntity;
 import models.AizouObjectId;
-import models.TravelPiBaseItem;
 import models.geo.Locality;
 import formatter.AizouBeanPropertyFilter;
 import formatter.travelpi.TravelPiBaseFormatter;
@@ -40,11 +40,11 @@ public class SimpleLocalityFormatter extends TravelPiBaseFormatter {
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         return format(item, true);
     }
 
-    private JsonNode format(TravelPiBaseItem item, boolean includeParents) {
+    private JsonNode format(AizouBaseEntity item, boolean includeParents) {
         ObjectMapper mapper = new ObjectMapper();
 
         Locality locItem = (Locality) item;

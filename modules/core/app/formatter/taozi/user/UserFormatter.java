@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import formatter.taozi.TaoziBaseFormatter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.user.UserInfo;
 
 import java.util.Arrays;
@@ -19,7 +19,11 @@ import java.util.Map;
  * Created by zephyre on 10/28/14.
  */
 public class UserFormatter extends TaoziBaseFormatter {
+    private boolean selfFormatter;
+
     public UserFormatter(boolean self) {
+        selfFormatter = self;
+
         stringFields.addAll(Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar, UserInfo.fnGender,
                 UserInfo.fnSignature, UserInfo.fnEasemobUser));
 
@@ -29,7 +33,7 @@ public class UserFormatter extends TaoziBaseFormatter {
             stringFields.add(UserInfo.fnMemo);
 
         filteredFields.addAll(stringFields);
-        filteredFields.addAll(Arrays.asList(TravelPiBaseItem.FD_ID, UserInfo.fnUserId));
+        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnUserId));
         if (self)
             filteredFields.add(UserInfo.fnDialCode);
         else
@@ -37,11 +41,20 @@ public class UserFormatter extends TaoziBaseFormatter {
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
+        item.fillNullMembers(filteredFields);
+
         Map<String, PropertyFilter> filterMap = new HashMap<>();
         filterMap.put("userInfoFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
         ObjectMapper mapper = getObjectMapper(filterMap, null);
 
-        return postProcess((ObjectNode) mapper.valueToTree(item));
+        ObjectNode results = mapper.valueToTree(item);
+        if (!selfFormatter){
+            JsonNode memoNode = results.get("memo");
+            if (memoNode==null || memoNode.isNull())
+                results.put("memo", "");
+        }
+
+        return results;
     }
 }

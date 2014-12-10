@@ -2,8 +2,8 @@ package models.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Id;
 import play.libs.Json;
@@ -17,7 +17,7 @@ import java.util.List;
 /**
  * Created by topy on 2014/8/20.
  */
-public class Feedback extends TravelPiBaseItem implements ITravelPiFormatter {
+public class Feedback extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;

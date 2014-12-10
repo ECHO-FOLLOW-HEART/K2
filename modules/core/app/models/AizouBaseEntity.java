@@ -1,6 +1,5 @@
 package models;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -14,7 +13,8 @@ import java.util.Map;
  * @author Zephyre
  */
 @Entity
-public abstract class TravelPiBaseItem {
+public abstract class AizouBaseEntity extends AizouBaseItem {
+
     @Transient
     public static final String FD_ENABLED = "enabled";
 
@@ -32,16 +32,16 @@ public abstract class TravelPiBaseItem {
         return id;
     }
 
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
+
     public Map<String, Object> getMisc() {
         return misc;
     }
 
     public void setMisc(Map<String, Object> misc) {
         this.misc = misc;
-    }
-
-    public void setId(ObjectId id) {
-        this.id = id;
     }
 
     public boolean isEnabled() {

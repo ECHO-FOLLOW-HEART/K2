@@ -1,7 +1,7 @@
 package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import org.mongodb.morphia.annotations.Entity;
 import play.data.validation.Constraints;
 
@@ -13,7 +13,7 @@ import java.util.Map;
  */
 @Entity
 @JsonFilter("proxyFilter")
-public class Proxy extends TravelPiBaseItem {
+public class Proxy extends AizouBaseEntity {
     @Constraints.Required
     public String scheme;
 

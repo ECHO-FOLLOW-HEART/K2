@@ -551,7 +551,10 @@ public class UserCtrl extends Controller {
     private static JsonNode getUserProfileByIdImpl(Integer userId, Integer selfId) throws AizouException {
         UserFormatter formatter = new UserFormatter(selfId != null && userId.equals(selfId));
         UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
-        return result != null ? formatter.format(result) : null;
+        if (result == null)
+            return null;
+
+        return formatter.format(result);
     }
 
     /**

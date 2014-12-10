@@ -1,7 +1,7 @@
 package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
@@ -10,14 +10,14 @@ import org.mongodb.morphia.annotations.Transient;
  */
 @JsonFilter("travelColumnsFilter")
 @Entity
-public class PageFirst extends TravelPiBaseItem{
+public class PageFirst extends AizouBaseEntity {
 
     @Transient
-    public static String fnCover="cover";
+    public static String fnCover = "cover";
     @Transient
-    public static String fnLink="link";
+    public static String fnLink = "link";
     @Transient
-    public static String fnTitle="title";
+    public static String fnTitle = "title";
 
     /**
      * 标题
@@ -33,15 +33,15 @@ public class PageFirst extends TravelPiBaseItem{
      */
     public String link;
 
-    public String getCover(){
-        if (cover==null)
+    public String getCover() {
+        if (cover == null)
             return "";
         else
             return cover;
     }
 
-    public String getLink(){
-        if (link==null)
+    public String getLink() {
+        if (link == null)
             return "";
         else
             return link;

@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.TaoziBaseFormatter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.TravelNote;
 
 import java.util.Collections;
@@ -24,7 +24,7 @@ import java.util.Set;
  */
 public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
 
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -43,9 +43,9 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, TravelNote.fnId,TravelNote.fnAuthorAvatar,TravelNote.fnAuthorName,TravelNote.fnCover,
-                        TravelNote.fnTitle,TravelNote.fnPublishDate,TravelNote.fnSource,TravelNote.fnContents,TravelNote.fnCostLower,
-                        TravelNote.fnCostUpper,TravelNote.fnSourceUrl,TravelNote.fnCommentCnt,TravelNote.fnViewCnt,TravelNote.fnFavorCnt);
+                Collections.addAll(includedFields, TravelNote.fnId, TravelNote.fnAuthorAvatar, TravelNote.fnAuthorName, TravelNote.fnCover,
+                        TravelNote.fnTitle, TravelNote.fnPublishDate, TravelNote.fnSource, TravelNote.fnContents, TravelNote.fnCostLower,
+                        TravelNote.fnCostUpper, TravelNote.fnSourceUrl, TravelNote.fnCommentCnt, TravelNote.fnViewCnt, TravelNote.fnFavorCnt);
 
                 return (includedFields.contains(writer.getName()));
             }

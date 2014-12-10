@@ -1,7 +1,7 @@
 package models.geo;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import models.poi.Cuisine;
 import org.mongodb.morphia.annotations.Entity;
@@ -17,7 +17,7 @@ import java.util.Map;
  */
 @Entity
 @JsonFilter("destinationFilter")
-public class Destination extends TravelPiBaseItem {
+public class Destination extends AizouBaseEntity {
 
     @Transient
     public static String fnId = "id";

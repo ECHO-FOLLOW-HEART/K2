@@ -4,6 +4,7 @@ package models.geo;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import models.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
@@ -17,7 +18,7 @@ import play.libs.Json;
  */
 @Embedded
 @JsonFilter("addressFilter")
-public class Address implements ITravelPiFormatter {
+public class Address extends AizouBaseItem implements ITravelPiFormatter {
     @Transient
     public static String simpAddress = "address";
 

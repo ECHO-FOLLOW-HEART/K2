@@ -1,12 +1,8 @@
 package models.guide;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.poi.Restaurant;
-import models.poi.Shopping;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
-
-import java.util.List;
 
 /**
  * 攻略

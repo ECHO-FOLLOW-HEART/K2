@@ -1,15 +1,15 @@
 package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
-
-import java.util.List;
+import models.AizouBaseEntity;
+import org.mongodb.morphia.annotations.Entity;
 
 /**
  * Created by topy on 2014/12/8.
  */
 @JsonFilter("contactFilter")
-public class Contact extends TravelPiBaseItem {
+@Entity
+public class Contact extends AizouBaseEntity {
 
     public Integer entryId;
 

@@ -1,7 +1,8 @@
 package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 
@@ -11,7 +12,8 @@ import play.data.validation.Constraints;
  * @author Zephyre
  */
 @JsonFilter("credentialFilter")
-public class Credential extends TravelPiBaseItem {
+@Entity
+public class Credential extends AizouBaseEntity {
     @Transient
     public static String fnUserId = "userId";
 

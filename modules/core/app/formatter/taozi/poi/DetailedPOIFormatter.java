@@ -3,14 +3,12 @@ package formatter.taozi.poi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.TaoziBaseFormatter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Country;
 import models.geo.Locality;
 import models.misc.ImageItem;
@@ -48,7 +46,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
 
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
-                TravelPiBaseItem.FD_ID,
+                AizouBaseEntity.FD_ID,
                 AbstractPOI.FD_ZH_NAME,
                 AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_DESC,
@@ -71,14 +69,14 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
 
         Map<String, PropertyFilter> filterMap = new HashMap<>();
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
         filterMap.put("countryFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
-                TravelPiBaseItem.FD_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME));
+                AizouBaseEntity.FD_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME));
         filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
-                TravelPiBaseItem.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
+                AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap =new HashMap<>();
         serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
