@@ -86,10 +86,10 @@ public class TravelNoteAPI {
                 sb.append(String.format(" contents:%s", t));
 
             query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("contents")
-                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar");
+                    .addField("publishDate").addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar");
 
             docs = server.query(query).getResults();
-
+            Date publishDate;
             for (SolrDocument doc : docs) {
                 TravelNote note = new TravelNote();
                 Object tmp;
@@ -108,9 +108,10 @@ public class TravelNoteAPI {
                 note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
                 tmp = doc.get("viewCnt");
                 note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-                note.publishDate = new Date();
                 tmp = doc.get("sourceUrl");
                 note.sourceUrl = (tmp != null ? (String) tmp : "");
+                publishDate = ((Date) doc.get("publishDate"));
+                note.publishDate = publishDate == null ? null : publishDate.getTime();
 
                 if (note.contents.size() > 1) {
                     sb = new StringBuilder();
@@ -164,7 +165,7 @@ public class TravelNoteAPI {
                 for (String t : vsNames)
                     sb.append(String.format(" contents:%s", t));
             }
-            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("source")
+            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("source").addField("publishDate")
                     .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id");
             query.setStart(page);
             query.setRows(pageSize);
@@ -221,6 +222,7 @@ public class TravelNoteAPI {
         List<TravelNote> results = new ArrayList<>();
         StringBuilder sb;
         TravelNote note;
+        Date publishDate;
         for (SolrDocument doc : docs) {
             note = new TravelNote();
             Object tmp;
@@ -244,12 +246,12 @@ public class TravelNoteAPI {
             note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
             tmp = doc.get("viewCnt");
             note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-            note.publishDate = new Date();
             tmp = doc.get("sourceUrl");
             note.sourceUrl = (tmp != null ? (String) tmp : "");
             note.contents = (List) doc.get("contents");
             note.source = getSource((String) doc.get("source"));
-            note.publishDate = (Date) doc.get("publishDate");
+            publishDate = ((Date) doc.get("publishDate"));
+            note.publishDate = publishDate == null ? null : publishDate.getTime();
             // TODO
             note.cover = "http://e.hiphotos.baidu.com/lvpics/s%3D800/sign=caab32ee3987e9504617fe6c2039531b/9a504fc2d56285359976ef0c93ef76c6a7ef630c.jpg";
 
@@ -360,7 +362,7 @@ public class TravelNoteAPI {
             note.costUpper = (tmp != null ? Float.parseFloat(String.valueOf(tmp)) : -1);
             tmp = doc.get("costLower");
             note.costLower = (tmp != null ? Float.parseFloat(String.valueOf(tmp)) : -1);
-            note.publishDate = (Date) doc.get("publishDate");
+            note.publishDate = ((Date) doc.get("publishDate")).getTime();
             results.add(note);
         }
         return results;
