@@ -96,7 +96,7 @@ public class GuideCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
             Integer selfId = Integer.parseInt(tmp);
             List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle, Guide.fnUpdateTime,
-                    Guide.fnDestinations, Guide.fnImages, Guide.fnItineraryDays);
+                    Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays);
             List<Guide> guides = GuideAPI.getGuideByUser(selfId, fields, page, pageSize);
             List<JsonNode> result = new ArrayList<>();
             ObjectNode node;
@@ -120,7 +120,7 @@ public class GuideCtrl extends Controller {
      * @param node  攻略JSON内容
      */
     private static void addGuideInfoToNode(Guide guide, ObjectNode node) {
-        List<Locality> dests = guide.destinations;
+        List<Locality> dests = guide.localities;
         StringBuilder sb = new StringBuilder();
         List<ImageItem> images = new ArrayList();
         for (Locality des : dests) {
@@ -146,7 +146,7 @@ public class GuideCtrl extends Controller {
             JsonFormatter jsonFormatter;
             ObjectId guideId = new ObjectId(id);
             List<String> fields = new ArrayList<>();
-            Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnDestinations, Guide.fnUpdateTime);
+            Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime);
             switch (part) {
                 case AbstractGuide.fnItinerary:
                     jsonFormatter = new ItineraryFormatter();

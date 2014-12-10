@@ -274,6 +274,12 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     public String moreCommentsUrl;
 
+    /**
+     * 景点-建议游玩时间。
+     */
+    public String timeCostDesc;
+
+
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:
