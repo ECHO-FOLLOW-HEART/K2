@@ -7,9 +7,9 @@ import com.mongodb.BasicDBObject;
 import com.mongodb.DBCollection;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
-import models.poi.AbstractPOI;
+import models.poi.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -18,7 +18,6 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.user.SimpleUserFormatter;
 import utils.formatter.web.poi.WebPOIFormatter;
 
 import java.net.UnknownHostException;
@@ -45,7 +44,7 @@ public class POICtrl extends Controller {
      * @param showDetails 获得更多的详情。
      * @param showRelated 获得相关POI信息。
      */
-    public static Result viewSpotInfo(String poiDesc, String spotId, int showDetails, int showRelated, int pageSize) throws TravelPiException {
+    public static Result viewSpotInfo(String poiDesc, String spotId, int showDetails, int showRelated, int pageSize) throws AizouException {
 
         PoiAPI.POIType poiType = null;
         switch (poiDesc) {
@@ -88,9 +87,9 @@ public class POICtrl extends Controller {
                 }
                 results.put("related", Json.toJson(vsList));
             } catch (NullPointerException e) {
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
-            } catch (TravelPiException e) {
-                throw new TravelPiException(e.errCode, e.getMessage());
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
+            } catch (AizouException e) {
+                throw new AizouException(e.getErrCode(), e.getMessage());
             }
         }
         JsonNode result = DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC);
@@ -99,17 +98,17 @@ public class POICtrl extends Controller {
 
 
     public static Result viewSpotList(String locality, String tagFilter, String sortFilter, String sort,
-                                      int page, int pageSize) throws UnknownHostException, TravelPiException {
+                                      int page, int pageSize) throws UnknownHostException, AizouException {
         return poiList("vs", locality, tagFilter, sortFilter, sort, page, pageSize);
     }
 
     public static Result hotelList(String locality, String tagFilter, String sortFilter, String sort,
-                                   int page, int pageSize) throws UnknownHostException, TravelPiException {
+                                   int page, int pageSize) throws UnknownHostException, AizouException {
         return poiList("hotel", locality, tagFilter, sortFilter, sort, page, pageSize);
     }
 
     public static Result restaurantList(String locality, String tagFilter, String sortFilter, String sort,
-                                        int page, int pageSize) throws UnknownHostException, TravelPiException {
+                                        int page, int pageSize) throws UnknownHostException, AizouException {
         return poiList("restaurant", locality, tagFilter, sortFilter, sort, page, pageSize);
     }
 
@@ -124,7 +123,7 @@ public class POICtrl extends Controller {
      * @param pageSize   页面大小。
      */
     private static Result poiList(String poiType, String locality, String tagFilter, String sortFilter, String sort,
-                                  int page, int pageSize) throws UnknownHostException, TravelPiException {
+                                  int page, int pageSize) throws UnknownHostException, AizouException {
         String colName = null;
         switch (poiType) {
             case "vs":
@@ -217,13 +216,13 @@ public class POICtrl extends Controller {
             JsonNode results = poiSearchImpl(poiType, locId, tag, keyword, page, pageSize, sortField, sortType,
                     hotelTypeStr);
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
     private static JsonNode poiSearchImpl(String poiType, String locId, String tag, String keyword, int page, int pageSize,
-                                          String sortField, String sortType, String hotelTypeStr) throws TravelPiException {
+                                          String sortField, String sortType, String hotelTypeStr) throws AizouException {
         if (locId.isEmpty())
             locId = null;
         int hotelType = 0;
@@ -235,23 +234,28 @@ public class POICtrl extends Controller {
             }
         }
 
+        Class<? extends AbstractPOI> poiClass = null;
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":
                 type = PoiAPI.POIType.VIEW_SPOT;
+                poiClass = ViewSpot.class;
                 break;
             case "hotel":
                 type = PoiAPI.POIType.HOTEL;
+                poiClass = Hotel.class;
                 break;
             case "restaurant":
                 type = PoiAPI.POIType.RESTAURANT;
+                poiClass = Restaurant.class;
                 break;
             case "shopping":
                 type = PoiAPI.POIType.SHOPPING;
+                poiClass = Shopping.class;
                 break;
         }
         if (type == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
         //排序顺序
         boolean sort = false;
@@ -276,12 +280,12 @@ public class POICtrl extends Controller {
             if (locId != null)
                 locOid = new ObjectId(locId);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s", locId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s", locId));
         }
         List<JsonNode> results = new ArrayList<>();
         Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
         while (it.hasNext())
-            results.add(new WebPOIFormatter().format(it.next(),poiType));
+            results.add(new WebPOIFormatter(poiClass).format(it.next()));
 
         return Json.toJson(results);
     }
@@ -289,7 +293,7 @@ public class POICtrl extends Controller {
     /**
      *
      */
-    public static Result explore(String poiType, String locId, int page, int pageSize) throws TravelPiException {
+    public static Result explore(String poiType, String locId, int page, int pageSize) throws AizouException {
 
         ObjectId oLocId = locId.equals("") ? null : new ObjectId(locId);
         PoiAPI.POIType pt = null;

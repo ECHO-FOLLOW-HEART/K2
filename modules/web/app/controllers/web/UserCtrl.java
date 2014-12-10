@@ -2,21 +2,13 @@ package controllers.web;
 
 import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.mongodb.*;
+import com.mongodb.BasicDBObjectBuilder;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.user.UserInfo;
-import org.bson.types.ObjectId;
-import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-
-import java.net.UnknownHostException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 /**
  * 用户相关的Controller。
@@ -46,8 +38,8 @@ public class UserCtrl extends Controller {
         try {
             UserInfo user = UserAPI.regByOAuth(provider, oauthId, builder.get(), secToken);
             return Utils.createResponse(ErrorCode.NORMAL, user.toJson());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 

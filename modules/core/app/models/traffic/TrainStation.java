@@ -20,23 +20,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class TrainStation extends AizouBaseEntity implements ITravelPiFormatter {
-
-    @Embedded
-    public Address addr;
-
-    public String zhName;
-
-    public String enName;
-
-    public String url;
-
-    public String desc;
-
-    @Embedded
-    public Contact contact;
-
-    public List<String> alias;
+public class TrainStation extends AbstractTrafficHub {
 
     /**
      * 拼音

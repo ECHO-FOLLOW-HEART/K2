@@ -2,8 +2,8 @@ package controllers.web;
 
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.misc.TravelNote;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -32,8 +32,8 @@ public class TravelNoteCtrl extends Controller {
                 ret.add(note.toJson());
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(ret));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 }

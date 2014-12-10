@@ -4,8 +4,11 @@ import aizou.core.TrafficAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
+import formatter.taozi.poi.TrafficHubFormatter;
+import models.AizouBaseEntity;
+import models.traffic.AbstractTrafficHub;
 import models.traffic.AirRoute;
 import models.traffic.RouteIterator;
 import models.traffic.TrainRoute;
@@ -31,6 +34,7 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 public class TrafficCtrl extends Controller {
+
 
     /**
      * 按照航班号获得航班信息。
@@ -66,11 +70,11 @@ public class TrafficCtrl extends Controller {
         try {
             AirRoute route = TrafficAPI.getAirRouteByCode(flightCode, cal);
             if (route == null)
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid flight code: %s.",
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid flight code: %s.",
                         flightCode != null ? flightCode : "NULL"));
             return Utils.createResponse(ErrorCode.NORMAL, route.toJson());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -89,7 +93,7 @@ public class TrafficCtrl extends Controller {
      */
     public static Result searchAirRoutes(String depId, String arrId, String ts, String sortField, String sortType,
                                          String timeFilterType, int timeFilter, int page, int pageSize)
-            throws TravelPiException {
+            throws AizouException {
         int sort = -1;
         if (sortType != null && sortType.equals("asc"))
             sort = 1;
@@ -188,8 +192,8 @@ public class TrafficCtrl extends Controller {
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid IDs. Dep: %s, arr: %s.",
                     (depId != null ? depId : "NULL"), (arrId != null ? arrId : "NULL")));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
     }
@@ -207,7 +211,7 @@ public class TrafficCtrl extends Controller {
      */
     public static Result getTrainRoutes(String depId, String arrId, String ts, String trainType, String sortField, String sortType,
                                         String timeFilterType, int timeFilter, int page, int pageSize)
-            throws UnknownHostException, TravelPiException {
+            throws UnknownHostException, AizouException {
         int sort = -1;
         if (sortType != null && sortType.equals("asc"))
             sort = 1;
@@ -310,8 +314,8 @@ public class TrafficCtrl extends Controller {
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid IDs. Dep: %s, arr: %s.",
                     (depId != null ? depId : "NULL"), (arrId != null ? arrId : "NULL")));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
     }
@@ -350,8 +354,8 @@ public class TrafficCtrl extends Controller {
             if (route == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid train code: %s.", trainCode));
             return Utils.createResponse(ErrorCode.NORMAL, route.toJson());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -361,7 +365,7 @@ public class TrafficCtrl extends Controller {
      * @param trainCode
      * @return
      */
-    public static Result getTrainRouteByCodeOld(String trainCode) throws UnknownHostException, TravelPiException {
+    public static Result getTrainRouteByCodeOld(String trainCode) throws UnknownHostException, AizouException {
         trainCode = trainCode.toUpperCase();
         MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
@@ -422,7 +426,7 @@ public class TrafficCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result searchTrainStationByLoc(String id) throws UnknownHostException, TravelPiException {
+    public static Result searchTrainStationByLoc(String id) throws AizouException {
         MongoClient client = Utils.getMongoClient();
         DB db = client.getDB("traffic");
         DBCollection col = db.getCollection("train_route");
@@ -430,5 +434,23 @@ public class TrafficCtrl extends Controller {
 //        QueryBuilder.start("locId").is(new ObjectId(id))
 
         return Results.TODO;
+    }
+
+    /**
+     * 获得交通枢纽信息
+     *
+     * @param trafficType
+     * @param id
+     * @return
+     */
+    public static Result getTrafficHubInfo(String trafficType, String id) {
+        try {
+            ObjectId oid = new ObjectId(id);
+            AbstractTrafficHub entity  = TrafficAPI.getTrafficHubInfo(trafficType, oid);
+            ObjectNode node = (ObjectNode)new TrafficHubFormatter().format(entity);
+            return Utils.createResponse(ErrorCode.NORMAL, node);
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
     }
 }

@@ -2,8 +2,8 @@ package controllers.web;
 
 
 import aizou.core.WeatherAPI;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.misc.YahooWeather;
 import org.bson.types.ObjectId;
 import play.mvc.Controller;
@@ -15,7 +15,7 @@ import utils.Utils;
  */
 public class WeatherCtrl extends Controller {
 
-    public static Result getWeatherDetail(String cityId) throws TravelPiException {
+    public static Result getWeatherDetail(String cityId) throws AizouException {
         ObjectId cityOid;
         try {
             cityOid = new ObjectId(cityId);

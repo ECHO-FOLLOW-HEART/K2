@@ -2,11 +2,9 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
-import models.traffic.AirRoute;
-import models.traffic.RouteIterator;
-import models.traffic.TrainEntry;
-import models.traffic.TrainRoute;
+import models.traffic.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -20,6 +18,18 @@ import java.util.*;
  * @author Zephyre
  */
 public class TrafficAPI {
+
+
+    public static final String TRAFFIC_TYPE_AIRPOT = "airport";
+
+    public static final String TRAFFIC_TYPE_TRAINSTATION = "trainstation";
+
+    /**
+     * 排序的字段。
+     */
+    public enum SortField {
+        PRICE, DEP_TIME, ARR_TIME, TIME_COST, CODE
+    }
 
     /**
      * 获得航班信息。
@@ -329,10 +339,17 @@ public class TrafficAPI {
         return RouteIterator.getInstance(pagingList.iterator(), (cal != null ? cal.getTime() : null));
     }
 
-    /**
-     * 排序的字段。
-     */
-    public enum SortField {
-        PRICE, DEP_TIME, ARR_TIME, TIME_COST, CODE
+    public static  AbstractTrafficHub getTrafficHubInfo(String trafficType, ObjectId id) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Query<? extends AbstractTrafficHub> query = null;
+        if (trafficType.equals(TRAFFIC_TYPE_AIRPOT)) {
+            query = ds.createQuery(Airport.class);
+            query.field("id").equal(id);
+        } else if (trafficType.equals(TRAFFIC_TYPE_AIRPOT)) {
+            query = ds.createQuery(TrainStation.class);
+            query.field("id").equal(id);
+        }
+        return query.get();
     }
+
 }
