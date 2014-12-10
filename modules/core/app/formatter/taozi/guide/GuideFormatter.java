@@ -29,6 +29,8 @@ public class GuideFormatter extends TaoziBaseFormatter {
 
     private Set<String> poiStringFields;
 
+    private Set<String> localityStringFields;
+
     @Override
     public JsonNode format(TravelPiBaseItem item) {
 
@@ -88,6 +90,11 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_TELEPHONE,
                 AbstractPOI.FD_RATING);
 
+        localityStringFields = new HashSet<String>() {
+        };
+        Collections.addAll(localityStringFields,
+                Locality.FD_EN_NAME);
+
         listFields.add(AbstractPOI.FD_IMAGES);
 
         return postProcess(result);
@@ -99,13 +106,15 @@ public class GuideFormatter extends TaoziBaseFormatter {
         JsonNode oNode = result.get("itinerary");
         postProcessPoiInItinerary(oNode);
         oNode = result.get("shopping");
-        postProcessPoiInList(oNode);
+        postProcessPoiInList(oNode, poiStringFields);
         oNode = result.get("restaurant");
-        postProcessPoiInList(oNode);
+        postProcessPoiInList(oNode, poiStringFields);
+        oNode = result.get("localities");
+        postProcessPoiInList(oNode, localityStringFields);
         return result;
     }
 
-    private void postProcessPoiInItinerary(JsonNode oNode){
+    private void postProcessPoiInItinerary(JsonNode oNode) {
         ObjectNode tempObjNode;
         if (oNode.findValues("poi") != null) {
             for (JsonNode node : oNode.findValues("poi")) {
@@ -119,12 +128,12 @@ public class GuideFormatter extends TaoziBaseFormatter {
         }
     }
 
-    private void postProcessPoiInList(JsonNode oNode){
+    private void postProcessPoiInList(JsonNode oNode, Set<String> fields) {
         ObjectNode tempObjNode;
-        if (oNode != null&&oNode.isArray()) {
+        if (oNode != null && oNode.isArray()) {
             for (JsonNode node : oNode) {
                 tempObjNode = (ObjectNode) node;
-                for (String key : poiStringFields) {
+                for (String key : fields) {
                     if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
                         tempObjNode.put(key, "");
                 }
