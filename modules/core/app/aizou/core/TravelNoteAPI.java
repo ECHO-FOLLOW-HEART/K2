@@ -202,7 +202,8 @@ public class TravelNoteAPI {
                     sb.append(String.format(" id:%s", t));
             }
             query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title")
-                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id");
+                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id")
+                    .addField("summary");
             query.setRows(pageSize);
             docs = server.query(query).getResults();
             return getTravelNotesByDocuments(docs);
@@ -226,7 +227,7 @@ public class TravelNoteAPI {
         for (SolrDocument doc : docs) {
             note = new TravelNote();
             Object tmp;
-            note.setId(new ObjectId(doc.get("id").toString()));
+            //note.setId(new ObjectId(doc.get("id").toString()));
             note.authorName = (String) doc.get("authorName");
             note.title = (String) doc.get("title");
             tmp = doc.get("authorAvatar");
@@ -240,6 +241,7 @@ public class TravelNoteAPI {
             }
             note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
             note.contents = (List) doc.get("contents");
+            note.noteContents = note.contents.toString();
             note.sourceUrl = (String) doc.get("url");
             note.source = (String) doc.get("source");
             tmp = doc.get("commentCnt");
@@ -250,7 +252,7 @@ public class TravelNoteAPI {
             note.sourceUrl = (tmp != null ? (String) tmp : "");
             note.contents = (List) doc.get("contents");
             note.source = getSource((String) doc.get("source"));
-            publishDate = ((Date) doc.get("publishDate"));
+            publishDate = (Date) doc.get("publishDate");
             note.publishDate = publishDate == null ? null : publishDate.getTime();
             // TODO
             note.cover = "http://e.hiphotos.baidu.com/lvpics/s%3D800/sign=caab32ee3987e9504617fe6c2039531b/9a504fc2d56285359976ef0c93ef76c6a7ef630c.jpg";
@@ -334,12 +336,12 @@ public class TravelNoteAPI {
                 .addField("viewCnt").addField("commentCnt");*/
 
         docs = server.query(query).getResults();
-
+        TravelNote note;
         for (SolrDocument doc : docs) {
             Boolean elite = (Boolean) doc.get("elite");
                 /*if (!elite)
                     continue;*/
-            TravelNote note = new TravelNote();
+            note = new TravelNote();
             Object tmp;
             note.authorName = (String) doc.get("authorName");
             note.title = (String) doc.get("title");
@@ -349,7 +351,8 @@ public class TravelNoteAPI {
                 note.authorAvatar = "http://" + note.authorAvatar;
             tmp = doc.get("favorCnt");
             note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-            note.contents = procContents((List) doc.get("contents"));
+            note.contents = (List) doc.get("contents");
+            note.noteContents = procContents(note.contents);
             note.sourceUrl = (String) doc.get("url");
             note.source = getSource((String) doc.get("source"));
             tmp = doc.get("commentCnt");
@@ -375,22 +378,21 @@ public class TravelNoteAPI {
      * @param contents
      * @return
      */
-    public static List<String> procContents(List<String> contents) {
+    public static String procContents(List<String> contents) {
         StringBuilder sb = new StringBuilder();
         sb.append("<div>");
         for (String line : contents) {
             if (line.startsWith("img src")) {
-                line = line.replaceAll("\\\\", "");
-                sb.append("<" + line + ">");
+                continue; //不添加表情
             } else if (line.startsWith("http://")) {
                 sb.append("<img src=" + line + " >");
             } else
                 sb.append("<p> " + line + "</p>");
         }
         sb.append("</div>");
-        List<String> list = new ArrayList<>();
-        list.add(sb.toString().trim());
-        return list;
+        /*List<String> list = new ArrayList<>();
+        list.add(sb.toString().trim());*/
+        return sb.toString().trim();
     }
 
 }

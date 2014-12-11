@@ -5,11 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.taozi.geo.LocalityGuideFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
-import models.geo.Destination;
+import models.geo.Locality;
 import models.poi.*;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -18,7 +19,6 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.geo.DestinationGuideFormatter;
 
 import java.util.*;
 
@@ -331,7 +331,7 @@ public class POICtrl extends Controller {
      * @param traffic
      * @return
      */
-    public static Result getViewSpotDetail(String id, boolean desc, boolean traffic) {
+    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
         try {
             ObjectNode results = Json.newObject();
             ObjectId oid = new ObjectId(id);
@@ -378,10 +378,10 @@ public class POICtrl extends Controller {
             ObjectId oid = new ObjectId(locId);
             for (PoiAPI.DestinationType type : destKeyList) {
 
-                Destination destination = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
+                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
                 String kind = poiMap.get(type);
                 //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
+                results.put(kind, new LocalityGuideFormatter().format(locality, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
@@ -401,7 +401,7 @@ public class POICtrl extends Controller {
      * @return
      */
     public static Result getTravelGuide(String locId, boolean remoteTraffic, boolean localTraffic,
-                                        boolean activity, boolean tips, boolean culture, int page, int pageSize) {
+                                        boolean activity, boolean tips, boolean culture, boolean desc, int page, int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
@@ -430,11 +430,15 @@ public class POICtrl extends Controller {
                 destKeyList.add(PoiAPI.DestinationType.CULTURE);
                 poiMap.put(PoiAPI.DestinationType.CULTURE,Destination.fnCulture);
             }*/
+            if (desc){
+                destKeyList.add(PoiAPI.DestinationType.DESC);
+                poiMap.put(PoiAPI.DestinationType.DESC,"desc");
+            }
             for (PoiAPI.DestinationType type : destKeyList) {
-                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), type, page, pageSize);
+                Locality locality = PoiAPI.getTravelGuideApi(new ObjectId(locId), type, page, pageSize);
                 String kind = poiMap.get(type);
                 //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
+                results.put(kind, new LocalityGuideFormatter().format(locality, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException | NullPointerException | NumberFormatException e) {

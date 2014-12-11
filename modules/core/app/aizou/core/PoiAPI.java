@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 public class PoiAPI {
 
     public enum SortField {
-        SCORE, PRICE, RATING,HOTNESS
+        SCORE, PRICE, RATING, HOTNESS
     }
 
     public enum POIType {
@@ -44,7 +44,8 @@ public class PoiAPI {
         TIPS,
         CULTURE,
         DINNING,
-        SHOPPING
+        SHOPPING,
+        DESC
     }
 
     /**
@@ -938,9 +939,12 @@ public class PoiAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static ViewSpot getVsDetails(ObjectId id) throws AizouException {
+    public static Locality getLocDetails(ObjectId id, List<String> list) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        Query<ViewSpot> query = ds.createQuery(ViewSpot.class).field("_id").equal(id);
+        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(id);
+        if (list != null && !list.isEmpty()) {
+            query.retrievedFields(true, list.toArray(new String[list.size()]));
+        }
         return query.get();
     }
 
@@ -957,35 +961,62 @@ public class PoiAPI {
         return query.get();
     }
 
-    public static Destination getTravelGuideApi(ObjectId id, DestinationType type, int page, int pageSize) throws AizouException {
-        Destination destination = null;
-        // TODO 补充getDestinationByField()
-//        switch (type) {
-//            case REMOTE_TRAFFIC:
-//                destination = getDestinationByField(id, Arrays.asList(Destination.fnRemoteTraffic), page, pageSize);
-//                break;
-//            case LOCAL_TRAFFIC:
-//                destination = getDestinationByField(id, Arrays.asList(Destination.fnLocalTraffic), page, pageSize);
-//                break;
-//            case ACTIVITY:
-//                destination = getDestinationByField(id, Arrays.asList(Destination.fnActivityIntro, Destination.fnActivities), page, pageSize);
-//                break;
-//            case TIPS:
-//                destination = getDestinationByField(id, Arrays.asList(Destination.fnTips), page, pageSize);
-//                break;
-//            /*case CULTURE:
-//                destination = getDestinationByField(id, Arrays.asList(Destination.fnCulture);
-//                break;*/
-//            case DINNING:
-//                destination = getDestinationByField(id, Arrays.asList(Destination.fnDinningIntro, Destination.fnCommodities), page, pageSize);
-//                break;
-//            case SHOPPING:
-//                destination = getDestinationByField(id, Arrays.asList(Destination.fnShoppingIntro, Destination.fnCuisines), page, pageSize);
-//                break;
-//            default:
-//                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-//        }
-        return destination;
+    /**
+     * 获取特定字段的destination
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    public static Locality getLocalityByField(ObjectId id, List<String> fieldList, int page, int pageSize) throws AizouException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(id);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+
+        return query.offset(page * pageSize).limit(page).get();
+    }
+
+    /**
+     * @param id
+     * @param type
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws AizouException
+     */
+    public static Locality getTravelGuideApi(ObjectId id, DestinationType type, int page, int pageSize) throws AizouException {
+        Locality locality = null;
+        switch (type) {
+            case REMOTE_TRAFFIC:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnRemoteTraffic), page, pageSize);
+                break;
+            case LOCAL_TRAFFIC:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnLocalTraffic), page, pageSize);
+                break;
+            case ACTIVITY:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnActivityIntro, Locality.fnActivities), page, pageSize);
+                break;
+            case TIPS:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnTips), page, pageSize);
+                break;
+            /*case CULTURE:
+                destination = getDestinationByField(id, Arrays.asList(Destination.fnCulture);
+                break;*/
+            case DINNING:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnDinningIntro, Locality.fnCuisines), page, pageSize);
+                break;
+            case SHOPPING:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnShoppingIntro, Locality.fnCommodities), page, pageSize);
+                break;
+            case DESC:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnDesc), page, pageSize);
+                break;
+            default:
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+        return locality;
     }
 
 

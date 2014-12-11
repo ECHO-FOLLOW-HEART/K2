@@ -72,6 +72,8 @@ GET           /suggestions                                       controllers.tao
 #查看POI详情
 # 景点详情
 GET           /poi/vs/$spotId<[0-9a-f]{24}>                      controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
+#获取景点的深度介绍
+GET           /poi/view-spots/$id<[0-9a-f]{24}>/details          controllers.taozi.POICtrl.getTravelGuide(id: String, arrive: Boolean?=false, remote: Boolean?=false, activity: Boolean?=false, tips: Boolean?=false, culture: Boolean?=false, desc:Boolean?=false, page: Int?=0, pageSize: Int?=10)
 # 酒店详情
 GET           /poi/hotel/:spotId                                 controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #美食详情
@@ -123,9 +125,9 @@ POST          /im/chatgroups/detail/groupId                      controllers.tao
 #----------地理信息接口----------
 # 搜索城市
 #查看目的地详情
-GET           /geo/localities/:id                                controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
-#展示目的地
-GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
+GET           /geo/localities/$id<[0-9a-f]{24}>                  controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
+##展示目的地
+#GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
 #获取国家的目的地
 #GET           /destinations/country/:id                 controllers.taozi.GeoCtrl.getDestinationsByCountry(id: String,page:Int?=0,pageSize:Int?=10)
 #发现城市、国家、poi详情
@@ -145,12 +147,8 @@ GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.tao
 
 #特定地区的美食、购物发现
 GET           /poi/:locId/details                                controllers.taozi.POICtrl.getDinShop(locId:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
-#获取特定景点的交通与简介
-GET           /view-spot/:id/details                             controllers.taozi.POICtrl.getViewSpotDetail(id: String,desc: Boolean?=true,traffic: Boolean?=false)
-#游玩攻略
-GET           /travel-guide/:id                                  controllers.taozi.POICtrl.getTravelGuide(id: String, arrive: Boolean?=true, traffic: Boolean?=false, activity: Boolean?=false, tips: Boolean?=false, culture: Boolean?=false, page: Int?=0, pageSize: Int?=0)
-#展示目的地
-GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page: Int?=0, pageSize: Int?=10)
+##展示目的地
+#GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page: Int?=0, pageSize: Int?=10)
 #更多精选游记
 GET           /travel-note/:id                                   controllers.taozi.TravelNoteCtrl.getNotes(id:String,pageSize:Int?=10)
 #返回单篇游记详情
