@@ -35,9 +35,7 @@ public abstract class AizouBaseItem {
                     } else if (Map.class.isAssignableFrom(fieldCls) && field.get(this) == null) {
                         field.set(this, new HashMap<>());
                     } else if (AizouBaseItem.class.isAssignableFrom(fieldCls)) {
-                        if (field.get(this) == null)
-                            field.set(this, new HashMap<>());
-                        else
+                        if (field.get(this) != null)
                             ((AizouBaseItem) field.get(this)).fillNullMembers();
                     }
                 } catch (IllegalAccessException ignored) {
