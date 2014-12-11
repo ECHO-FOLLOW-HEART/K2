@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import models.AizouBaseEntity;
-import models.misc.PageFirst;
+import models.misc.Column;
 import models.poi.Comment;
 import models.user.UserInfo;
 import formatter.JsonFormatter;
@@ -45,7 +45,7 @@ public class MiscFormatter implements JsonFormatter{
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, PageFirst.fnCover, PageFirst.fnLink,PageFirst.fnTitle);
+                Collections.addAll(includedFields, Column.FD_COVER, Column.FD_LINK, Column.FD_TITLE);
 
                 return (includedFields.contains(writer.getName()));
             }

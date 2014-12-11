@@ -3,7 +3,7 @@ package aizou.core;
 import exception.AizouException;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.misc.PageFirst;
+import models.misc.Column;
 import models.misc.SimpleRef;
 import models.poi.Comment;
 import org.bson.types.ObjectId;
@@ -25,15 +25,15 @@ public class MiscAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<PageFirst> getColumns() throws AizouException {
-         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-         Query<PageFirst> query=ds.createQuery(PageFirst.class);
-         return query.asList();
+    public static List<Column> getColumns() throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Column> query = ds.createQuery(Column.class);
+        return query.asList();
 
     }
 
-    public static void saveColumns(PageFirst pageFirst) throws AizouException {
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+    public static void saveColumns(Column pageFirst) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ds.save(pageFirst);
     }
 
@@ -71,7 +71,7 @@ public class MiscAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower,Double upper, int page, int pageSize)
+    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower, Double upper, int page, int pageSize)
             throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
@@ -90,7 +90,7 @@ public class MiscAPI {
             query = query.filter("score <", 0.3);
             return query.offset(page * pageSize).limit(pageSize).asList();
         }*/
-        return query.filter(Comment.FD_RATING +" >=",lower).filter(Comment.FD_RATING +" <",upper).offset(page * pageSize).limit(page).asList();
+        return query.filter(Comment.FD_RATING + " >=", lower).filter(Comment.FD_RATING + " <", upper).offset(page * pageSize).limit(page).asList();
 
     }
 

@@ -460,39 +460,15 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    public static Result getPageFirst() {
+    public static Result getColumns() {
+        MiscFormatter formatter = new MiscFormatter();
         try {
-            List<PageFirst> pageFirsts = MiscAPI.getColumns();
-            List<JsonNode> list = new ArrayList<>();
-            for (PageFirst first : pageFirsts) {
-                list.add(new MiscFormatter().format(first));
+            List<JsonNode> columns = new ArrayList<>();
+            for (Column c : MiscAPI.getColumns()) {
+                columns.add(formatter.format(c));
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(list));
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(columns));
         } catch (AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
-
-    /**
-     * 保存专栏信息
-     *
-     * @return
-     */
-    public static Result saveColumns() {
-        try {
-            JsonNode req = request().body().asJson();
-            String title = req.get("title").asText();
-            String cover = req.get("cover").asText();
-            String link = req.get("link").asText();
-
-            PageFirst pageFirst = new PageFirst();
-            pageFirst.cover = cover;
-            pageFirst.title = title;
-            pageFirst.link = link;
-
-            MiscAPI.saveColumns(pageFirst);
-            return Utils.createResponse(ErrorCode.NORMAL, "success");
-        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }

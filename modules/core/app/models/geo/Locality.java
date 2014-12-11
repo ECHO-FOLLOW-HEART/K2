@@ -425,7 +425,7 @@ public class Locality extends AizouBaseEntity {
 //    public static String fntravelMonth = "travelMonth";
 //
 //    @Transient
-//    public static String fnCover = "cover";
+//    public static String FD_COVER = "cover";
 //
 //    @Transient
 //    public static String fnimageCnt = "imageCnt";
