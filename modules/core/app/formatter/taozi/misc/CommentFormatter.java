@@ -26,7 +26,6 @@ public class CommentFormatter extends TaoziBaseFormatter {
         Map<String, PropertyFilter> filterMap = new HashMap<>();
         filterMap.put("commentFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept(
-                        AizouBaseEntity.FD_ID,
                         Comment.FD_AVATAR,
                         Comment.FD_USER_NAME,
                         Comment.FD_USER_ID,
