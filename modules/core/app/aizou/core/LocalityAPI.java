@@ -1,7 +1,7 @@
 package aizou.core;
 
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
@@ -27,13 +27,13 @@ public class LocalityAPI {
      *
      * @param countryId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Country countryDetails(String countryId) throws TravelPiException {
+    public static Country countryDetails(String countryId) throws AizouException {
         try {
             return countryDetails(new ObjectId(countryId));
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid countryDetails ID: %s.", countryId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid countryDetails ID: %s.", countryId));
         }
     }
 
@@ -42,9 +42,9 @@ public class LocalityAPI {
      *
      * @param countryId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Country countryDetails(ObjectId countryId) throws TravelPiException {
+    public static Country countryDetails(ObjectId countryId) throws AizouException {
         return MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
                 .createQuery(Country.class).field("_id").equal(countryId).get();
     }
@@ -55,13 +55,13 @@ public class LocalityAPI {
      * @param locId 城市ID。
      * @param level 查询级别。
      * @return 如果没有找到，返回null。
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Locality locDetails(String locId, int level) throws TravelPiException {
+    public static Locality locDetails(String locId, int level) throws AizouException {
         try {
             return locDetails(new ObjectId(locId), level);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", locId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", locId));
         }
     }
 
@@ -70,9 +70,9 @@ public class LocalityAPI {
      *
      * @param baiduId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Locality locDetailsBaiduId(int baiduId) throws TravelPiException {
+    public static Locality locDetailsBaiduId(int baiduId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         return ds.createQuery(Locality.class).field("baiduId").equal(baiduId).get();
     }
@@ -82,14 +82,14 @@ public class LocalityAPI {
      *
      * @param locId 城市ID。
      * @return 如果没有找到，返回null。
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Locality locDetails(ObjectId locId, int level) throws TravelPiException {
+    public static Locality locDetails(ObjectId locId, int level) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
 
         List<String> fields = new ArrayList<>();
-        fields.addAll(Arrays.asList(Locality.fnZhName, Locality.fnEnName, Locality.fnSuperAdm, Locality.fnDesc,
+        fields.addAll(Arrays.asList(Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnSuperAdm, Locality.fnDesc,
                 Locality.fnImages, Locality.fnTags, Locality.fnLocation, Locality.fnHotness, Locality.fnAbroad));
 
         query.retrievedFields(true, fields.toArray(new String[fields.size()]));
@@ -103,14 +103,14 @@ public class LocalityAPI {
      * @param searchWord
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Iterator<Locality> getSuggestion(String searchWord, int pageSize) throws TravelPiException {
+    public static Iterator<Locality> getSuggestion(String searchWord, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Query<Locality> query = ds.createQuery(Locality.class).field(Locality.fnAlias)
+        Query<Locality> query = ds.createQuery(Locality.class).field(Locality.FD_ALIAS)
                 .hasThisOne(Pattern.compile("^" + searchWord));
 //        query.field("relPlanCnt").greaterThan(0);
-        return query.retrievedFields(true, Locality.fnZhName, Locality.fnEnName, Locality.fnAbroad, Locality.fnSuperAdm)
+        return query.retrievedFields(true, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnAbroad, Locality.fnSuperAdm)
                 .limit(pageSize).iterator();
     }
 
@@ -125,12 +125,12 @@ public class LocalityAPI {
      */
     public static java.util.Iterator<Locality> searchLocalities(String keyword, ObjectId countryId,
                                                                 int scope, boolean prefix,
-                                                                int page, int pageSize) throws TravelPiException, PatternSyntaxException {
+                                                                int page, int pageSize) throws AizouException, PatternSyntaxException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
 
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
-            query.filter(Locality.fnAlias, Pattern.compile(prefix ? "^" + keyword : keyword));
+            query.filter(Locality.FD_ALIAS, Pattern.compile(prefix ? "^" + keyword : keyword));
         if (countryId != null)
             query.filter(String.format("%s.id", Locality.fnCountry), countryId);
         switch (scope) {
@@ -152,7 +152,7 @@ public class LocalityAPI {
      * @param locId
      * @return
      */
-    public static Locality getLocality(ObjectId locId) throws TravelPiException {
+    public static Locality getLocality(ObjectId locId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         return ds.createQuery(Locality.class).field("_id").equal(locId).field("enabled").equal(Boolean.TRUE).get();
     }
@@ -163,7 +163,8 @@ public class LocalityAPI {
      * @param fieldList
      * @return
      */
-    public static Locality getLocality(ObjectId locId,List<String> fieldList) throws TravelPiException {
+    public static Locality getLocality(ObjectId locId,List<String> fieldList) throws AizouException {
+
         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
         if (fieldList != null && !fieldList.isEmpty())
@@ -180,10 +181,10 @@ public class LocalityAPI {
      * @param page        分页。
      * @param pageSize    页面大小。   @return
      */
-    public static List<Locality> explore(boolean showDetails, boolean abroad, int page, int pageSize) throws TravelPiException {
+    public static List<Locality> explore(boolean showDetails, boolean abroad, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         List<String> fields = new ArrayList<>();
-        Collections.addAll(fields, Locality.fnZhName, Locality.fnEnName, Locality.fnDesc, Locality.fnTags,
+        Collections.addAll(fields, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnDesc, Locality.fnTags,
                 Locality.fnLocation, Locality.fnAbroad, Locality.fnHotness, Locality.fnRating, Locality.fnCountry,
                 Locality.fnLocation, Locality.fnImages);
 
@@ -222,9 +223,9 @@ public class LocalityAPI {
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<Country> exploreCountry(int page, int pageSize) throws TravelPiException {
+    public static List<Country> exploreCountry(int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         List<String> fields = new ArrayList<>();
         //限定字段显示
@@ -239,9 +240,9 @@ public class LocalityAPI {
      *
      * @param keyword
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws TravelPiException {
+    public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws AizouException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
         query.or(
                 query.criteria("zhName").equal(keyword),
@@ -257,7 +258,7 @@ public class LocalityAPI {
      * @param keyword
      * @return
      */
-    public static List<Country> searchCountryByCode(String keyword, int page, int pageSize) throws TravelPiException {
+    public static List<Country> searchCountryByCode(String keyword, int page, int pageSize) throws AizouException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
         query.or(
                 query.criteria("code").equal(keyword),
@@ -274,7 +275,7 @@ public class LocalityAPI {
      * @param pageSize
      * @return
      */
-    public static List<Country> searchCountryByRegion(String keyword, int page, int pageSize) throws TravelPiException {
+    public static List<Country> searchCountryByRegion(String keyword, int page, int pageSize) throws AizouException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
         if (keyword != null && !keyword.isEmpty()) {
             query.or(
@@ -297,9 +298,9 @@ public class LocalityAPI {
      * @param page
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<Locality> getLocalityList(List<ObjectId> ids, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+    public static List<Locality> getLocalityList(List<ObjectId> ids, List<String> fieldList, int page, int pageSize) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
@@ -317,10 +318,10 @@ public class LocalityAPI {
         return query.asList();
     }
 
-    public static List<Locality> getLocalityListByLoc(List<Locality> localities, String poiType, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+    public static List<Locality> getLocalityListByLoc(List<Locality> localities, String poiType, List<String> fieldList, int page, int pageSize) throws AizouException {
 
         if (localities == null) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid POIs.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POIs.");
         }
         List<ObjectId> ids = new ArrayList<>();
         for (Locality temp : localities) {

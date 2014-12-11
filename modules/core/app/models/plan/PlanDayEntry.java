@@ -2,6 +2,7 @@ package models.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
@@ -17,7 +18,7 @@ import java.util.*;
  * @author Zephyre
  */
 @Embedded
-public class PlanDayEntry implements ITravelPiFormatter {
+public class PlanDayEntry extends AizouBaseItem implements ITravelPiFormatter {
     @Transient
     public static final String FD_ACTV = "actv";
 

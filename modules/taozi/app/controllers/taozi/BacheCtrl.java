@@ -1,7 +1,7 @@
 package controllers.taozi;
 
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.user.UserInfo;
@@ -36,8 +36,8 @@ public class BacheCtrl extends Controller {
             miscInfo.coverStory = map;
             miscInfo.application = Constants.APP_FLAG_TAOZI;
             ds.save(miscInfo);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
@@ -52,8 +52,8 @@ public class BacheCtrl extends Controller {
                 us.setOrigin(Constants.APP_FLAG_TAOZI);
                 ds.save(us);
             }
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }

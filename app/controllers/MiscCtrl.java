@@ -6,8 +6,10 @@ import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
+import formatter.travelpi.geo.LocalityFormatter;
+import formatter.travelpi.geo.SimpleLocalityFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Feedback;
@@ -25,8 +27,6 @@ import play.mvc.Http;
 import play.mvc.Result;
 import utils.DataFilter;
 import utils.Utils;
-import formatter.travelpi.geo.LocalityFormatter;
-import formatter.travelpi.geo.SimpleLocalityFormatter;
 
 import java.net.UnknownHostException;
 import java.util.*;
@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
  * @author Zephyre
  */
 public class MiscCtrl extends Controller {
-    public static Result postFeedback() throws UnknownHostException, TravelPiException {
+    public static Result postFeedback() throws UnknownHostException, AizouException {
         JsonNode feedback = request().body().asJson();
         ObjectId uid = null;
 
@@ -53,7 +53,7 @@ public class MiscCtrl extends Controller {
             if (!query.iterator().hasNext())
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", uid));
         } catch (NullPointerException ignored) {
-        } catch (IllegalArgumentException | TravelPiException e) {
+        } catch (IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", feedback.get("uid").asText()));
         }
         String body = null;
@@ -130,8 +130,8 @@ public class MiscCtrl extends Controller {
         try {
             DBCollection col = Utils.getMongoClient().getDB("misc").getCollection("MiscInfo");
             ret = (BasicDBObject) col.findOne();
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         String newVerS = ret.getString("androidUpdates");
@@ -152,7 +152,7 @@ public class MiscCtrl extends Controller {
     }
 
     public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
-                                              int pageSize) throws TravelPiException {
+                                              int pageSize) throws AizouException {
         ObjectNode ret = Json.newObject();
 
         List<JsonNode> locList = new ArrayList<>();
@@ -228,8 +228,8 @@ public class MiscCtrl extends Controller {
         try {
             return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant,
                     pageSize));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
 
@@ -260,7 +260,7 @@ public class MiscCtrl extends Controller {
 //        return Utils.createResponse(ErrorCode.NORMAL, ret);
 //    }
 
-    private static List<JsonNode> getSpecSug(String word, int pageSize, String nameField, String dbName, String colName, DBObject extra) throws UnknownHostException, TravelPiException {
+    private static List<JsonNode> getSpecSug(String word, int pageSize, String nameField, String dbName, String colName, DBObject extra) throws UnknownHostException, AizouException {
         Pattern pattern = Pattern.compile("^" + word);
         DBCollection colLoc = Utils.getMongoClient().getDB(dbName).getCollection(colName);
 
@@ -310,13 +310,13 @@ public class MiscCtrl extends Controller {
         try {
             return Utils.createResponse(ErrorCode.NORMAL,
                     exploreImpl(details, loc, vs, hotel, restaurant, abroad, page, pageSize));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
     public static JsonNode exploreImpl(boolean details, boolean loc, boolean vs, boolean hotel, boolean restaurant,
-                                       boolean abroad, int page, int pageSize) throws TravelPiException {
+                                       boolean abroad, int page, int pageSize) throws AizouException {
         ObjectNode results = Json.newObject();
 
         // 发现城市
@@ -373,9 +373,25 @@ public class MiscCtrl extends Controller {
 //
 //            return Utils.createResponse(ErrorCode.NORMAL, "Update UserInfo Success");
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
         return Utils.createResponse(ErrorCode.NORMAL, "");
+    }
+
+    private static JsonNode appHomeImageImpl(int width, int height, int quality, String format, int interlace)
+            throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        MiscInfo info = ds.createQuery(MiscInfo.class).get();
+
+        if (info == null)
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
+
+        ObjectNode node = Json.newObject();
+        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
+        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
+        node.put("image", url);
+
+        return node;
     }
 
     /**
@@ -387,22 +403,10 @@ public class MiscCtrl extends Controller {
      */
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
-
-//            UserAPI.updateUserInfo(request());
-
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            MiscInfo info = ds.createQuery(MiscInfo.class).get();
-
-            if (info == null)
-                return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
-
-            ObjectNode node = Json.newObject();
-            // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
-            node.put("image", url);
+            JsonNode node = appHomeImageImpl(width, height, quality, format, interlace);
             return Utils.createResponse(ErrorCode.NORMAL, node);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -506,8 +510,8 @@ public class MiscCtrl extends Controller {
             result.put("sampleTime", tmp != null ? tmp.toString() : "");
             return Utils.createResponse(ErrorCode.NORMAL, result);
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -525,8 +529,8 @@ public class MiscCtrl extends Controller {
             for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
                 results.add(it.next().toJson());
             }
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
@@ -569,15 +573,15 @@ public class MiscCtrl extends Controller {
 
         try {
             if (actionCode != 1)
-                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+                throw new AizouException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
 
             boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v, userId);
 
             ObjectNode result = Json.newObject();
             result.put("isValid", valid);
             return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -613,7 +617,7 @@ public class MiscCtrl extends Controller {
 
         try {
             if (actionCode != 1)
-                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+                throw new AizouException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
 
             // 确定过期时间
             Map<String, Object> smsConf = Configuration.root().getConfig("sms").asMap();
@@ -626,8 +630,8 @@ public class MiscCtrl extends Controller {
             result.put("coolDown", resendMs / 1000);
             return Utils.createResponse(ErrorCode.NORMAL, result);
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -651,8 +655,8 @@ public class MiscCtrl extends Controller {
                 results.put(entry.getKey(), Json.toJson(locNodeList));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 }

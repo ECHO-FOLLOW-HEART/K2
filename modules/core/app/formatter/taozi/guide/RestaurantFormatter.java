@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.geo.GeoJsonPoint;
 import models.guide.AbstractGuide;
@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public class RestaurantFormatter implements JsonFormatter {
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -52,7 +52,7 @@ public class RestaurantFormatter implements JsonFormatter {
                 Set<String> includedFields = new HashSet<>();
                 includedFields.add(AbstractGuide.fdId);
                 includedFields.add(Guide.fnUserId);
-                includedFields.add(Guide.fnDestinations);
+                includedFields.add(Guide.fnLocalities);
                 includedFields.add(AbstractGuide.fnTitle);
                 includedFields.add(Guide.fnUpdateTime);
                 includedFields.add(AbstractGuide.fnRestaurant);
@@ -85,9 +85,9 @@ public class RestaurantFormatter implements JsonFormatter {
                 includedFields.add(AbstractPOI.FD_DESC);
                 includedFields.add(AbstractPOI.simpID);
                 includedFields.add(AbstractPOI.FD_ZH_NAME);
-                includedFields.add(AbstractPOI.simpEnName);
+                includedFields.add(AbstractPOI.FD_EN_NAME);
                 includedFields.add(AbstractPOI.FD_IMAGES);
-                includedFields.add(AbstractPOI.simpRating);
+                includedFields.add(AbstractPOI.FD_RATING);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -115,7 +115,7 @@ public class RestaurantFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(ImageItem.fnUrl);
+                includedFields.add(ImageItem.FD_URL);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -142,7 +142,7 @@ public class RestaurantFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.FD_COORDS);
                 includedFields.add(GeoJsonPoint.fnType);
                 return (includedFields.contains(writer.getName()));
             }
@@ -170,8 +170,8 @@ public class RestaurantFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(Locality.fnZhName);
-                includedFields.add(Locality.fnEnName);
+                includedFields.add(Locality.FD_ZH_NAME);
+                includedFields.add(Locality.FD_EN_NAME);
                 includedFields.add("id");
                 return (includedFields.contains(writer.getName()));
             }
@@ -199,7 +199,7 @@ public class RestaurantFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, "id", Locality.fnZhName, Locality.fnEnName);
+                Collections.addAll(includedFields, "id", Locality.FD_ZH_NAME, Locality.FD_EN_NAME);
 
                 return (includedFields.contains(writer.getName()));
             }

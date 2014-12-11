@@ -3,8 +3,8 @@ package models.traffic;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import models.geo.Address;
 import models.misc.Contact;
 import org.bson.types.ObjectId;
@@ -21,7 +21,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class Airport extends TravelPiBaseItem implements ITravelPiFormatter {
+public class Airport extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Id
     public ObjectId id;

@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Entity
 @JsonFilter("userInfoFilter")
-public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
+public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
     @Transient
     public static String fnContacts = "friends";
 
@@ -57,6 +57,77 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnOauthId = "oauthList.oauthId";
+    /**
+     * 昵称
+     */
+    @Constraints.Required
+    @JsonProperty("nickName")
+    private String nickName;
+    /**
+     * 头像
+     */
+    @JsonProperty("avatar")
+    private String avatar;
+    /**
+     * 性别： F\M\Both\None
+     */
+    @JsonProperty("gender")
+    private String gender;
+    /**
+     * 签名
+     */
+    @JsonProperty("signature")
+    private String signature;
+    /**
+     * 手机号
+     */
+    @JsonProperty("tel")
+    private String tel;
+    /**
+     * 国家编码
+     */
+    @JsonProperty("dialCode")
+    private Integer dialCode;
+    /**
+     * 用户ID
+     */
+    @JsonProperty("userId")
+    private Integer userId;
+    /**
+     * 好友列表:用户ID-用户简要信息
+     */
+    private List<UserInfo> friends;
+    /**
+     * 备注信息。这个字段比较特殊：每个用户的备注信息，是由其它用户决定的，而不会跟随自身这个UserInfo存放在数据库中。
+     */
+    @Transient
+    private String memo;
+    /**
+     * 邮箱
+     */
+    private String email;
+    /**
+     * 第三方OAuth登录信息
+     */
+    private List<OAuthInfo> oauthList;
+
+//    /**
+//     * 好友备注:用户ID-备注信息
+//     */
+//    public Map<Integer, String> remark;
+//
+//    /**
+//     * 黑名单：用户ID-用户简要信息
+//     */
+//    public Map<Integer, UserInfo> blackList;
+    /**
+     * 环信的账号
+     */
+    private String easemobUser;
+    /**
+     * 注册来源
+     */
+    private String origin;
 
     public UserInfo() {
     }
@@ -71,92 +142,6 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
         return user;
     }
 
-    /**
-     * 昵称
-     */
-    @Constraints.Required
-    @JsonProperty("nickName")
-    private String nickName;
-
-    /**
-     * 头像
-     */
-    @JsonProperty("avatar")
-    private String avatar;
-
-    /**
-     * 性别： F\M\Both\None
-     */
-    @JsonProperty("gender")
-    private String gender;
-
-    /**
-     * 签名
-     */
-    @JsonProperty("signature")
-    private String signature;
-
-    /**
-     * 手机号
-     */
-    @JsonProperty("tel")
-    private String tel;
-
-    /**
-     * 国家编码
-     */
-    @JsonProperty("dialCode")
-    private Integer dialCode;
-
-    /**
-     * 用户ID
-     */
-    @JsonProperty("userId")
-    private Integer userId;
-
-    /**
-     * 好友列表:用户ID-用户简要信息
-     */
-    private List<UserInfo> friends;
-
-    /**
-     * 备注信息。这个字段比较特殊：每个用户的备注信息，是由其它用户决定的，而不会跟随自身这个UserInfo存放在数据库中。
-     */
-    @Transient
-    private String memo;
-
-//    /**
-//     * 好友备注:用户ID-备注信息
-//     */
-//    public Map<Integer, String> remark;
-//
-//    /**
-//     * 黑名单：用户ID-用户简要信息
-//     */
-//    public Map<Integer, UserInfo> blackList;
-
-    /**
-     * 邮箱
-     */
-    private String email;
-
-    /**
-     * 第三方OAuth登录信息
-     */
-    private List<OAuthInfo> oauthList;
-
-    /**
-     * 环信的账号
-     */
-    // TODO easemob需要改成credential
-    @Transient
-    private String easemobUser;
-
-    /**
-     * 注册来源
-     */
-    private String origin;
-
 //    /**
 //     * 唯一设备号。
 //     */
@@ -168,7 +153,6 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
 //     * @return
 //     */
 //    public String appVersion;
-
 
     public String getNickName() {
         return nickName;

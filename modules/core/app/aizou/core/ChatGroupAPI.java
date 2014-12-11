@@ -2,8 +2,8 @@ package aizou.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.user.ChatGroupInfo;
@@ -32,9 +32,9 @@ public class ChatGroupAPI {
      * 存储数据
      *
      * @param chatGroupInfo
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
-    public static void saveData(ChatGroupInfo chatGroupInfo) throws TravelPiException {
+    public static void saveData(ChatGroupInfo chatGroupInfo) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(chatGroupInfo);
     }
@@ -43,9 +43,9 @@ public class ChatGroupAPI {
      * 移除数据
      *
      * @param chatGroupInfo
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
-    public static void deleteData(ChatGroupInfo chatGroupInfo) throws TravelPiException {
+    public static void deleteData(ChatGroupInfo chatGroupInfo) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.delete(chatGroupInfo);
     }
@@ -56,9 +56,9 @@ public class ChatGroupAPI {
      *
      * @param id
      * @return
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
-    public static ChatGroupInfo getChatGroupById(String id) throws TravelPiException {
+    public static ChatGroupInfo getChatGroupById(String id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         return ds.createQuery(ChatGroupInfo.class).field("groupId").equal(id).get();
 
@@ -70,9 +70,9 @@ public class ChatGroupAPI {
      * @param id
      * @param list
      * @return
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
-    public static ChatGroupInfo getUserGroupInfo(String id, List<String> list) throws TravelPiException {
+    public static ChatGroupInfo getUserGroupInfo(String id, List<String> list) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<ChatGroupInfo> query = ds.createQuery(ChatGroupInfo.class).field("groupId").equal(id);
         if (list != null && !list.isEmpty()) {
@@ -90,9 +90,9 @@ public class ChatGroupAPI {
      * @param httpmethod
      * @return
      * @throws java.io.IOException
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
-    public static String setUrlConnection(String href, JsonNode node, Boolean flag, String httpmethod) throws IOException, TravelPiException {
+    public static String setUrlConnection(String href, JsonNode node, Boolean flag, String httpmethod) throws IOException, AizouException {
         URL url = new URL(href);
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setDoOutput(flag);
@@ -114,9 +114,9 @@ public class ChatGroupAPI {
      * 获取环信系统的token,如果已经过期，则重新申请一个
      *
      * @return
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
-    private static String getEaseMobToken() throws TravelPiException {
+    private static String getEaseMobToken() throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         MiscInfo info = ds.createQuery(MiscInfo.class).get();
 
@@ -158,7 +158,7 @@ public class ChatGroupAPI {
                 info.easemobTokenExpire = System.currentTimeMillis() + tokenData.get("expires_in").asLong() * 1000;
                 ds.save(info);
             } catch (IOException e) {
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in retrieving token.");
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in retrieving token.");
             }
         }
         return info.easemobToken;
@@ -173,10 +173,10 @@ public class ChatGroupAPI {
      * @param isGroupPublic
      * @param maxusers
      * @return
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
 
-    public static String createGroupApi(Integer ownerId, String groupName, String desc, boolean isGroupPublic, Integer maxusers) throws TravelPiException {
+    public static String createGroupApi(Integer ownerId, String groupName, String desc, boolean isGroupPublic, Integer maxusers) throws AizouException {
         /**
          * 向环信注册群组
          */
@@ -188,7 +188,7 @@ public class ChatGroupAPI {
                 UserInfo.fnSignature, UserInfo.fnGender, UserInfo.fnUserId));
 
         if (owner == null) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
         /*JsonNode ownerNode = Json.toJson(owner);
         ObjectNode data = Json.newObject();*/
@@ -236,7 +236,7 @@ public class ChatGroupAPI {
      * @param groupId
      * @param id
      */
-    public static String deleteGroupApi(String groupId, Integer id) throws TravelPiException {
+    public static String deleteGroupApi(String groupId, Integer id) throws AizouException {
         /**
          * 环信删除
          */
@@ -247,7 +247,7 @@ public class ChatGroupAPI {
         ChatGroupInfo chatGroupInfo = getUserGroupInfo(groupId, Arrays.asList(ChatGroupInfo.OWNER));
         //判断是否为空
         if (chatGroupInfo == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         int sub = chatGroupInfo.owner.getUserId() - id;
         if (sub == 0) {       //判断id,删除操作只能由群主发起
             /*String href = String.format("https://a1.easemob.com/%s/%s/chargroups/%s", orgName, appName, groupId);
@@ -275,9 +275,9 @@ public class ChatGroupAPI {
      *
      * @param groupId
      * @param userList
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
-    public static void putUserIntoGroupApi(String groupId, List<Integer> userList) throws TravelPiException {
+    public static void putUserIntoGroupApi(String groupId, List<Integer> userList) throws AizouException {
         /**
          * 向环信中添加成员
          */
@@ -302,7 +302,7 @@ public class ChatGroupAPI {
          */
         ChatGroupInfo chatGroupInfo = getUserGroupInfo(groupId, Arrays.asList(ChatGroupInfo.MEMBERS, ChatGroupInfo.GROUPNAME));
         if (chatGroupInfo == null) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
         List<UserInfo> members = chatGroupInfo.members;
         List<UserInfo> userInfoList = new ArrayList<>();
@@ -321,7 +321,7 @@ public class ChatGroupAPI {
                     }
                 }
                 if (flag == true)
-                    throw new TravelPiException(ErrorCode.USER_EXIST, "USER_EXIST");
+                    throw new AizouException(ErrorCode.USER_EXIST, "USER_EXIST");
                 else
                     members.add(userInfo);
             }
@@ -339,7 +339,7 @@ public class ChatGroupAPI {
      * @param groupId
      * @param userList
      */
-    public static void deleteMemberFromGroupApi(String groupId, List<Integer> userList) throws TravelPiException {
+    public static void deleteMemberFromGroupApi(String groupId, List<Integer> userList) throws AizouException {
         /**
          * 环信中进行删除
          */
@@ -357,7 +357,7 @@ public class ChatGroupAPI {
                  */
                 ChatGroupInfo chatGroupInfo = getUserGroupInfo(groupId, Arrays.asList(ChatGroupInfo.MEMBERS));
                 if (chatGroupInfo == null)
-                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+                    throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
                 members = chatGroupInfo.members;
                 UserInfo userInfo = UserAPI.getUserInfo(id, Arrays.asList(UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnNickName, UserInfo.fnSignature, UserInfo.fnUserId));
                 if (members != null) {
@@ -367,17 +367,17 @@ public class ChatGroupAPI {
                             if ((tmpuserInfo.getUserId() - userInfo.getUserId()) == 0) {
                                 members.remove(tmpuserInfo);
                             } else
-                                throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "user not exists");
+                                throw new AizouException(ErrorCode.USER_NOT_EXIST, "user not exists");
                         }
                     }
                 } else
-                    throw new TravelPiException(ErrorCode.DATA_NOT_EXIST, "group members do not exist");
+                    throw new AizouException(ErrorCode.DATA_NOT_EXIST, "group members do not exist");
             }
             /*}catch(IOException e){
                 throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "delete failed");
             }*/
         } else
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "delete failed");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "delete failed");
         //更新库
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         UpdateOperations<ChatGroupInfo> os = ds.createUpdateOperations(ChatGroupInfo.class);
@@ -391,13 +391,13 @@ public class ChatGroupAPI {
      *
      * @param groupId
      * @return
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
 
-    public static JsonNode getChatGroupDetailApi(String groupId) throws TravelPiException {
+    public static JsonNode getChatGroupDetailApi(String groupId) throws AizouException {
         ChatGroupInfo chatGroupInfo = getChatGroupById(groupId);
         if (chatGroupInfo == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         // TODO 需要实现
 //        JsonNode response = chatGroupInfo.toJson();
         return Json.newObject();
@@ -412,16 +412,16 @@ public class ChatGroupAPI {
      * @param groupName
      * @param desc
      * @return
-     * @throws exception.TravelPiException
+     * @throws exception.AizouException
      */
-    public static String modifyChatGroupDetailApi(String groupId, String id, boolean isGroupPublic, String groupName, String desc) throws TravelPiException {
+    public static String modifyChatGroupDetailApi(String groupId, String id, boolean isGroupPublic, String groupName, String desc) throws AizouException {
         /**
          * 本地库的更新
          */
         ChatGroupInfo chatGroupInfo = getUserGroupInfo(groupId, Arrays.asList(ChatGroupInfo.GROUPNAME, ChatGroupInfo.DESC,
                 ChatGroupInfo.ISGROUPPUBLIC, ChatGroupInfo.OWNER));
         if (chatGroupInfo == null) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
         Boolean flag = ("" + chatGroupInfo.owner.getUserId()).equals(id);
         if (flag) {

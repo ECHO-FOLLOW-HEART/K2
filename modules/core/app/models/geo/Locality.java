@@ -1,7 +1,7 @@
 package models.geo;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import models.poi.Cuisine;
 import org.mongodb.morphia.annotations.Embedded;
@@ -17,35 +17,28 @@ import java.util.List;
  */
 @Entity
 @JsonFilter("localityFilter")
-public class Locality extends TravelPiBaseItem {
+public class Locality extends AizouBaseEntity {
 
     @Transient
-    public static String fnZhName = "zhName";
+    public static final String FD_ZH_NAME = "zhName";
 
     @Transient
-    public static String fnEnName = "enName";
+    public static final String FD_EN_NAME = "enName";
 
     @Transient
-    public static String fnAlias = "alias";
-
-    @Transient
-    public static String fnVisitCnt = "visitCnt";
-
-    @Transient
-    public static String fnCommentCnt = "commentCnt";
-
-    @Transient
-    public static String fnFavorCnt = "favorCnt";
-
-    @Transient
-    public static String fnAbroad = "abroad";
-
-    @Transient
-    public static String fnCountry = "country";
-
+    public static final String FD_ALIAS = "alias";
     @Transient
     public static final String FD_LOCLIST = "locList";
-
+    @Transient
+    public static String fnVisitCnt = "visitCnt";
+    @Transient
+    public static String fnCommentCnt = "commentCnt";
+    @Transient
+    public static String fnFavorCnt = "favorCnt";
+    @Transient
+    public static String fnAbroad = "abroad";
+    @Transient
+    public static String fnCountry = "country";
     @Transient
     public static String fnTags = "tags";
 
@@ -76,6 +69,7 @@ public class Locality extends TravelPiBaseItem {
     public static String fnSuperAdm = "superAdm";
 
     public static String fnImageCnt = "imageCnt";
+<<<<<<< HEAD
 
     /**
      * 中文名称
@@ -121,51 +115,72 @@ public class Locality extends TravelPiBaseItem {
      * 评分
      */
     private Double rating;
+=======
+>>>>>>> origin/refactor-h5
 
     /**
      * 外部交通信息。每个entry都是一个tip，为HTML格式
      */
     public List<String> remoteTraffic;
-
     /**
      * 内部交通信息。每个entry都是一个tip，为HTML格式
      */
     public List<String> localTraffic;
-
     /**
      * 购物综述，HTML格式
      */
     public String shoppingIntro;
-
     /**
      * 特产
      */
     public List<Commodities> commodities;
-
     /**
      * 美食综述，HTML格式
      */
     public String dinningIntro;
-
     /**
      * 特色菜式
      */
     public List<Cuisine> cuisines;
-
     /**
      * 活动综述
      */
     public String activityIntro;
-
     /**
      * 活动
      */
     public List<Activities> activities;
-
     /**
      * 小贴士
      */
     public List<Tip> tips;
+    /**
+     * 是否为热门城市
+     */
+    public Boolean isHot;
+    public List<String> pinyin;
+    public List<String> imageList;
+    public boolean provCap;
+    /**
+     * 中文名称
+     */
+    private String zhName;
+    /**
+     * 英文名称
+     */
+    private String enName;
+    /**
+     * 当地名称
+     */
+    private String locName;
+    /**
+     * 别名
+     */
+    private List<String> alias;
+    /**
+     * 去过的人数
+     */
+    private Integer visitCnt;
 
     /**
      * 其它信息
@@ -176,63 +191,59 @@ public class Locality extends TravelPiBaseItem {
       可能废弃的字段-Start
      */
     /**
-     * 是否为热门城市
+     * 评论条数
      */
-    public Boolean isHot;
-
-    public List<String> pinyin;
-
+    private Integer commentCnt;
+    /**
+     * 收藏次数
+     */
+    private Integer favorCnt;
+    /**
+     * 热门程度
+     */
+    private Double hotness;
+    /**
+     * 评分
+     */
+    private Double rating;
     /**
      * 是否为境外目的地
      */
     private Boolean abroad;
-
     /**
      * 经纬度信息
      */
     @Embedded
     private GeoJsonPoint location;
-
     /**
      * 所在国家（有效字段为_id, zhName, enName和code）
      */
     @Embedded
     private Country country;
-
     /**
      * 行政区从属链
      */
     private List<Locality> locList;
-
     /**
      * 父行政区
      */
     private Locality superAdm;
-
     /**
      * 标签
      */
     private List<String> tags;
-
     /**
      * 照片
      */
     private List<ImageItem> images;
-
     /**
      * 简介
      */
     private String desc;
-
     /**
      * 最佳旅行时间
      */
     private String travelMonth;
-
-    public List<String> imageList;
-
-    public boolean provCap;
-
     /**
      * 建议游玩时间
      */
@@ -414,10 +425,10 @@ public class Locality extends TravelPiBaseItem {
 //public class Locality extends TravelPiBaseItem implements ITravelPiFormatter {
 //
 //    @Transient
-//    public static String fnEnName = "enName";
+//    public static String FD_EN_NAME = "enName";
 //
 //    @Transient
-//    public static String fnZhName = "zhName";
+//    public static String FD_ZH_NAME = "zhName";
 //
 //    @Transient
 //    public static String fnCountry = "country";

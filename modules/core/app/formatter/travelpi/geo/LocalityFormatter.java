@@ -3,12 +3,14 @@ package formatter.travelpi.geo;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
+import formatter.travelpi.ImageItemPlainSerializer;
+import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
@@ -29,7 +31,7 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
 
     private LocalityFormatter() {
         stringFields = new HashSet<>();
-        stringFields.addAll(Arrays.asList(Locality.fnEnName, Locality.fnZhName));
+        stringFields.addAll(Arrays.asList(Locality.FD_EN_NAME, Locality.FD_ZH_NAME));
 
         listFields = new HashSet<>();
         listFields.addAll(Arrays.asList(Locality.fnTags, Locality.fnImages, "relVs"));
@@ -45,18 +47,22 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
         Locality destItem = (Locality) item;
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
 
+        SimpleModule imageItemModule = new SimpleModule();
+        imageItemModule.addSerializer(ImageItem.class, new ImageItemPlainSerializer());
+        mapper.registerModule(imageItemModule);
+
         PropertyFilter theFilter = new AizouBeanPropertyFilter() {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, "id", Locality.fnEnName, Locality.fnZhName, Locality.fnDesc,
+                Collections.addAll(includedFields, "id", Locality.FD_EN_NAME, Locality.FD_ZH_NAME, Locality.fnDesc,
                         Locality.fnRating, Locality.fnHotness, Locality.fnTags, Locality.fnAbroad,
                         Locality.fnImages);
 
@@ -68,7 +74,7 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
             @Override
             protected boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, ImageItem.fnUrl, ImageItem.FD_CROP_HINT, ImageItem.FD_WIDTH,
+                Collections.addAll(includedFields, ImageItem.FD_URL, ImageItem.FD_CROP_HINT, ImageItem.FD_WIDTH,
                         ImageItem.FD_HEIGHT);
 
                 return (includedFields.contains(writer.getName()));
@@ -83,7 +89,7 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
 
         String name;
         try {
-            name = result.get(Locality.fnZhName).asText();
+            name = result.get(Locality.FD_ZH_NAME).asText();
         } catch (NullPointerException e) {
             name = "";
         }
@@ -109,33 +115,33 @@ public class LocalityFormatter extends TravelPiBaseFormatter {
         ratings.put("ranking", r.doubleValue());
         result.put("ratings", ratings);
 
-        JsonNode images = result.get(Locality.fnImages);
-        result.remove(Locality.fnImages);
-        List<String> imageList = new ArrayList<>();
-        int idx = 0;
-        // 最大宽度800
-        int maxWidth = 800;
-        for (JsonNode img : images) {
-            JsonNode cropHint = img.get(ImageItem.FD_CROP_HINT);
-            String url;
-            if (cropHint == null || cropHint.isNull()) {
-                url = String.format("%s?imageView2/2/w/%d", img.get("url").asText(), maxWidth);
-            } else {
-                int top = cropHint.get("top").asInt();
-                int right = cropHint.get("right").asInt();
-                int bottom = cropHint.get("bottom").asInt();
-                int left = cropHint.get("left").asInt();
-
-                url = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
-                        img.get("url").asText(), (right - left), (bottom - top), left, top, maxWidth);
-            }
-
-            imageList.add(url);
-            idx++;
-            if (idx > 5)
-                break;
-        }
-        result.put("imageList", Json.toJson(imageList));
+//        JsonNode images = result.get(Locality.fnImages);
+//        result.remove(Locality.fnImages);
+//        List<String> imageList = new ArrayList<>();
+//        int idx = 0;
+//        // 最大宽度800
+//        int maxWidth = 800;
+//        for (JsonNode img : images) {
+//            JsonNode cropHint = img.get(ImageItem.FD_CROP_HINT);
+//            String url;
+//            if (cropHint == null || cropHint.isNull()) {
+//                url = String.format("%s?imageView2/2/w/%d", img.get("url").asText(), maxWidth);
+//            } else {
+//                int top = cropHint.get("top").asInt();
+//                int right = cropHint.get("right").asInt();
+//                int bottom = cropHint.get("bottom").asInt();
+//                int left = cropHint.get("left").asInt();
+//
+//                url = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
+//                        img.get("url").asText(), (right - left), (bottom - top), left, top, maxWidth);
+//            }
+//
+//            imageList.add(url);
+//            idx++;
+//            if (idx > 5)
+//                break;
+//        }
+//        result.put("imageList", Json.toJson(imageList));
 
         return result;
     }

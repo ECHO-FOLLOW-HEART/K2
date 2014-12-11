@@ -1,7 +1,7 @@
 package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Entity
 @JsonFilter("albumFilter")
-public class Album extends TravelPiBaseItem {
+public class Album extends AizouBaseEntity {
     /**
      * 照片信息
      */

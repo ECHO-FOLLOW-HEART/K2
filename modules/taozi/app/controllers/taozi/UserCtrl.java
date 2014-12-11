@@ -5,17 +5,18 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import formatter.taozi.user.CredentialFormatter;
-import formatter.taozi.user.SelfUserFormatter;
-import formatter.taozi.user.SideUserFormatter;
+import formatter.taozi.user.UserFormatter;
 import models.MorphiaFactory;
 import models.misc.Token;
 import models.plan.Plan;
+import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.Json;
@@ -24,6 +25,7 @@ import play.mvc.Result;
 import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
+import utils.formatter.taozi.user.ContactFormatter;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParserFactory;
 
@@ -75,12 +77,12 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
             if (userInfo != null) {
-                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
 
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -92,8 +94,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, info);
             }
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         } catch (IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
@@ -125,8 +127,8 @@ public class UserCtrl extends Controller {
             } else
                 result.put("isValid", false);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -171,8 +173,8 @@ public class UserCtrl extends Controller {
             } else {
                 return Utils.createResponse(MsgConstants.TOKEN_ERROR, MsgConstants.TOKEN_ERROR_MSG, true);
             }
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -206,8 +208,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, "Success!");
             } else
                 return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -236,11 +238,11 @@ public class UserCtrl extends Controller {
                 UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, tel);
                 UserAPI.resetPwd(userInfo, pwd);
 
-                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -253,8 +255,8 @@ public class UserCtrl extends Controller {
             } else
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -307,9 +309,53 @@ public class UserCtrl extends Controller {
             builder.add("coolDown", resendMs);
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
+    }
+
+    private static JsonNode signinImpl(String loginName, String passwd) throws AizouException {
+
+        PhoneEntity telEntry = null;
+        try {
+            telEntry = PhoneParserFactory.newInstance().parse(loginName);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        ArrayList<Object> valueList = new ArrayList<>();
+        valueList.add(loginName);
+        if (telEntry != null && telEntry.getPhoneNumber() != null)
+            valueList.add(telEntry.getPhoneNumber());
+
+        UserFormatter userFormatter = new UserFormatter(true);
+
+        Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
+                userFormatter.getFilteredFields(), 0, 1);
+        UserInfo userInfo = itr.hasNext() ? itr.next() : null;
+
+
+        if (userInfo == null)
+            throw new AizouException(ErrorCode.AUTH_ERROR);
+
+        //验证密码
+        if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
+            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+
+            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
+                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+            if (cre == null)
+                throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+
+            // 机密数据
+            JsonNode creNode = new CredentialFormatter().format(cre);
+            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                Map.Entry<String, JsonNode> entry = it.next();
+                info.put(entry.getKey(), entry.getValue());
+            }
+
+            return info;
+        } else
+            throw new AizouException(ErrorCode.AUTH_ERROR);
     }
 
     /**
@@ -324,47 +370,11 @@ public class UserCtrl extends Controller {
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
 
-            PhoneEntity telEntry = null;
-            try {
-                telEntry = PhoneParserFactory.newInstance().parse(loginName);
-            } catch (IllegalArgumentException ignore) {
-            }
-
-            UserInfo userInfo = null;
-            if (telEntry != null)
-                userInfo = UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber());
-            if (userInfo == null)
-                userInfo = UserAPI.getUserByField(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName),
-                        loginName, null);
-
-            if (userInfo == null)
-                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.USER_NOT_EXIST_MSG, true);
-
-            //验证密码
-            if ((!pwd.equals("")) && UserAPI.validCredential(userInfo, pwd)) {
-                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
-
-                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-                if (cre == null)
-                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
-
-                // 机密数据
-                JsonNode creNode = new CredentialFormatter().format(cre);
-                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                    Map.Entry<String, JsonNode> entry = it.next();
-                    info.put(entry.getKey(), entry.getValue());
-                }
-
-                return Utils.createResponse(ErrorCode.NORMAL, info);
-            } else
-                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-        } catch (NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+            JsonNode result = signinImpl(loginName, pwd);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
-
     }
 
     /**
@@ -381,8 +391,8 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
             }
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.add("valid", true).get()));
     }
@@ -443,12 +453,12 @@ public class UserCtrl extends Controller {
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserInfo.fnOauthId, infoNode.get("openid").asText());
             if (us != null) {
-                ObjectNode info = (ObjectNode) new SelfUserFormatter().format(us);
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(us);
 
                 Credential cre = UserAPI.getCredentialByUserId(us.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -471,12 +481,12 @@ public class UserCtrl extends Controller {
             UserInfo userInfo = UserAPI.regByWeiXin(us);
 
             //返回注册信息
-            ObjectNode info = (ObjectNode) new SelfUserFormatter().format(userInfo);
+            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
 
             Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
             if (cre == null)
-                throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "Credential info is null.");
+                throw new AizouException(ErrorCode.USER_NOT_EXIST, "Credential info is null.");
 
             // 返回机密数据
             JsonNode creNode = new CredentialFormatter().format(cre);
@@ -485,7 +495,7 @@ public class UserCtrl extends Controller {
                 info.put(entry.getKey(), entry.getValue());
             }
             return Utils.createResponse(ErrorCode.NORMAL, info);
-        } catch (IOException | NullPointerException | TravelPiException e) {
+        } catch (IOException | NullPointerException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
@@ -538,14 +548,13 @@ public class UserCtrl extends Controller {
         return info_url.toString();
     }
 
-    private static JsonNode getSelfUserProfileById(int targetId) throws TravelPiException {
-        UserInfo result = UserAPI.getUserInfo(targetId, SelfUserFormatter.retrievedFields);
-        return result != null ? new SelfUserFormatter().format(result) : null;
-    }
+    private static JsonNode getUserProfileByIdImpl(Integer userId, Integer selfId) throws AizouException {
+        UserFormatter formatter = new UserFormatter(selfId != null && userId.equals(selfId));
+        UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
+        if (result == null)
+            return null;
 
-    private static JsonNode getSideUserProfileById(int targetId) throws TravelPiException {
-        UserInfo result = UserAPI.getUserInfo(targetId, SideUserFormatter.retrievedFields);
-        return result != null ? new SideUserFormatter().format(result) : null;
+        return formatter.format(result);
     }
 
     /**
@@ -561,18 +570,14 @@ public class UserCtrl extends Controller {
             selfId = Integer.parseInt(tmp);
 
         try {
-            JsonNode result;
-            if (selfId != null && userId == selfId)
-                result = getSelfUserProfileById(userId);
-            else
-                result = getSideUserProfileById(userId);
+            JsonNode result = getUserProfileByIdImpl(userId, selfId);
 
             if (result != null)
                 return Utils.createResponse(ErrorCode.NORMAL, result);
             else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -590,22 +595,24 @@ public class UserCtrl extends Controller {
         }
 
         try {
-            Iterator<UserInfo> itr = null;
-            if (telEntry != null)
-                itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel), telEntry.getPhoneNumber(), null, 0, 20);
-            if (itr == null || !itr.hasNext())
-                itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnNickName, UserInfo.fnTel, UserInfo.fnEasemobUser),
-                        keyword, null, 0, 20);
+            ArrayList<Object> valueList = new ArrayList<>();
+            valueList.add(keyword);
+            if (telEntry != null && telEntry.getPhoneNumber() != null)
+                valueList.add(telEntry.getPhoneNumber());
+
+            UserFormatter userFormatter = new UserFormatter(false);
+
+            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
+                    userFormatter.getFilteredFields(), 0, 20);
 
             List<JsonNode> result = new ArrayList<>();
             while (itr != null && itr.hasNext()) {
                 UserInfo user = itr.next();
-                ObjectNode node = (ObjectNode) new SideUserFormatter().format(user);
-                node.put("memo", "");
+                JsonNode node = userFormatter.format(user);
                 result.add(node);
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-        } catch (TravelPiException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user : %s.", keyword));
         } catch (NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
@@ -663,7 +670,7 @@ public class UserCtrl extends Controller {
             LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
             LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (NullPointerException | TravelPiException e) {
+        } catch (NullPointerException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
         }
     }
@@ -685,8 +692,8 @@ public class UserCtrl extends Controller {
         try {
             UserAPI.addContact(userId, contactId);
             return Utils.createResponse(ErrorCode.NORMAL, "");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -707,8 +714,8 @@ public class UserCtrl extends Controller {
         try {
             UserAPI.delContact(userId, id);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -732,15 +739,15 @@ public class UserCtrl extends Controller {
 
             List<JsonNode> nodelist = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new SideUserFormatter().format(userInfo));
+                nodelist.add(new UserFormatter(false).format(userInfo));
             }
 
             ObjectNode node = Json.newObject();
             node.put("contacts", Json.toJson(nodelist));
             return Utils.createResponse(ErrorCode.NORMAL, node);
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -766,14 +773,64 @@ public class UserCtrl extends Controller {
             List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
             List<JsonNode> nodelist = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new SideUserFormatter().format(userInfo));
+                nodelist.add(new UserFormatter(false).format(userInfo));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodelist));
-        } catch (NumberFormatException | NullPointerException | TravelPiException e) {
+        } catch (NumberFormatException | NullPointerException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }
 
+    /**
+     * 根据通讯录进行用户匹配
+     *
+     * @return
+     */
+    public static Result matchAddressBook() {
+        try {
+            JsonNode req = request().body().asJson();
+            Iterator<JsonNode> it = req.get("contants").elements();
+            Integer selfUserId = Integer.parseInt(request().getHeader("UserId"));
+            List<Contact> contacts = new ArrayList();
+            ObjectMapper m = new ObjectMapper();
+            while (it.hasNext()) {
+                contacts.add(m.convertValue(it.next(), Contact.class));
+            }
+            UserInfo userInfo;
+            List<UserInfo> friends;
+            for (Contact temp : contacts) {
+                temp.setId(new ObjectId());
+                userInfo = UserAPI.getUserByField(UserInfo.fnTel, temp.tel, Arrays.asList(UserInfo.fnUserId));
+                if (userInfo != null) {
+                    temp.isUser = true;
+                    temp.userId = userInfo.getUserId();
+                    friends = UserAPI.getContactList(selfUserId);
+                    temp.isContact = isFriend(temp.userId, friends);
+                } else {
+                    temp.isUser = false;
+                    temp.isContact = false;
+                }
+            }
+            List<JsonNode> nodes = new ArrayList<>();
+            for (Contact temp : contacts) {
+                nodes.add(new ContactFormatter().format(temp));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodes));
+        } catch (AizouException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        }
+
+    }
+
+    private static boolean isFriend(Integer aFriend, List<UserInfo> friends) {
+        if (friends == null)
+            return false;
+        for (UserInfo userInfo : friends) {
+            if (userInfo.getUserId().equals(aFriend))
+                return true;
+        }
+        return false;
+    }
 //    /**
 //     * 添加用户的备注信息
 //     *
@@ -788,7 +845,7 @@ public class UserCtrl extends Controller {
 //            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
 //            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, Json.toJson(e.getMessage()));
+//            return Utils.createResponse(e.getErrCode(), Json.toJson(e.getMessage()));
 //        } catch (NullPointerException | NumberFormatException e) {
 //            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
 //        }

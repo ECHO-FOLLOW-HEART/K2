@@ -1,6 +1,6 @@
 package models.geo;
 
-import models.TravelPiBaseItem;
+import models.AizouBaseItem;
 import models.misc.ImageItem;
 import org.mongodb.morphia.annotations.Embedded;
 
@@ -8,11 +8,11 @@ import java.util.List;
 
 /**
  * 活动
- *
+ * <p/>
  * Created by topy on 2014/11/20.
  */
 @Embedded
-public class Activities extends TravelPiBaseItem {
+public class Activities extends AizouBaseItem {
 
     public String zhName;
     public String enName;

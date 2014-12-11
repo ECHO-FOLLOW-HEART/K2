@@ -1,7 +1,7 @@
 package aizou.core;
 
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.traffic.AirRoute;
 import models.traffic.RouteIterator;
@@ -26,11 +26,11 @@ public class TrafficAPI {
      *
      * @param flightCode 航班号。
      * @return 航班信息。如果没有找到，返回null。
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static AirRoute getAirRouteByCode(String flightCode, Calendar cal) throws TravelPiException {
+    public static AirRoute getAirRouteByCode(String flightCode, Calendar cal) throws AizouException {
         if (flightCode == null || flightCode.isEmpty())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
 
         flightCode = flightCode.toUpperCase();
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
@@ -67,7 +67,7 @@ public class TrafficAPI {
     public static RouteIterator searchAirRoutes(ObjectId depId, ObjectId arrId, Calendar baseCal, final List<Calendar> depTimeLimit,
 
                                                 final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits,
-                                                final SortField sortField, int sortType, int page, int pageSize) throws TravelPiException {
+                                                final SortField sortField, int sortType, int page, int pageSize) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<AirRoute> query = ds.createQuery(AirRoute.class);
@@ -152,11 +152,11 @@ public class TrafficAPI {
      *
      * @param trainCode 航班号。
      * @return 航班信息。如果没有找到，返回null。
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static TrainRoute getTrainRouteByCode(String trainCode, Calendar cal) throws TravelPiException {
+    public static TrainRoute getTrainRouteByCode(String trainCode, Calendar cal) throws AizouException {
         if (trainCode == null || trainCode.isEmpty())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid train code.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid train code.");
 
         trainCode = trainCode.toUpperCase();
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
@@ -193,7 +193,7 @@ public class TrafficAPI {
      */
     public static RouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId, String trainType, Calendar baseCal, final List<Calendar> depTimeLimit,
                                                   final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField,
-                                                  int sortType, int page, int pageSize) throws TravelPiException {
+                                                  int sortType, int page, int pageSize) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<TrainRoute> query = ds.createQuery(TrainRoute.class);

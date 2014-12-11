@@ -3,8 +3,8 @@ package controllers;
 import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.*;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -53,7 +53,7 @@ public class UserCtrl extends Controller {
 
             return Utils.createResponse(ErrorCode.NORMAL,
                     Json.toJson(builder.get()));
-        } catch (IllegalArgumentException | TravelPiException e) {
+        } catch (IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
     }
@@ -64,7 +64,7 @@ public class UserCtrl extends Controller {
      * @param userName
      * @return
      */
-    public static Result getUserProfileByName(String userName) throws UnknownHostException, TravelPiException {
+    public static Result getUserProfileByName(String userName) throws UnknownHostException, AizouException {
         DBCollection col = Utils.getMongoClient("localhost", 27017).getDB("user").getCollection("user_info");
         DBObject userItem = col.findOne(QueryBuilder.start("name").is(userName).get());
         if (userItem == null)
@@ -96,7 +96,7 @@ public class UserCtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
-        } catch (IllegalArgumentException | TravelPiException e) {
+        } catch (IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", userId));
         }
     }
@@ -107,7 +107,7 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static Result putUserFavoredVS(String userId) throws UnknownHostException, TravelPiException {
+    public static Result putUserFavoredVS(String userId) throws UnknownHostException, AizouException {
         ObjectId vsId, uid;
         try {
             uid = new ObjectId(userId);
@@ -139,7 +139,7 @@ public class UserCtrl extends Controller {
      * @param vsId
      * @return
      */
-    public static Result removeUserFavoredVS(String userId, String vsId) throws UnknownHostException, TravelPiException {
+    public static Result removeUserFavoredVS(String userId, String vsId) throws UnknownHostException, AizouException {
         ObjectId vsOid, userOid;
         try {
             userOid = new ObjectId(userId);
@@ -161,7 +161,7 @@ public class UserCtrl extends Controller {
      * @param udid
      * @return
      */
-    public static Result getUserByUDID(String udid) throws UnknownHostException, TravelPiException {
+    public static Result getUserByUDID(String udid) throws UnknownHostException, AizouException {
         DBCollection col = Utils.getMongoClient().getDB("user").getCollection("user_info");
         DBObject user = col.findOne(BasicDBObjectBuilder.start("udid", udid).get());
         if (user == null) {
@@ -195,8 +195,8 @@ public class UserCtrl extends Controller {
             // TODO 如果已经存在，则更新相应信息，比如todo
             UserInfo user = UserAPI.regByOAuth(provider, oauthId, builder.get(), secToken);
             return Utils.createResponse(ErrorCode.NORMAL, user.toJson());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -204,8 +204,8 @@ public class UserCtrl extends Controller {
         try {
             UserInfo user = UserAPI.regByUdid(udid);
             return Utils.createResponse(ErrorCode.NORMAL, user.toJson());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 }

@@ -11,9 +11,15 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+<<<<<<< HEAD:modules/core/app/formatter/taozi/TravelNote/SimpTravelNoteFormatter.java
 import models.TravelPiBaseItem;
 import models.misc.TravelNote;
 import formatter.JsonFormatter;
+=======
+import formatter.taozi.TaoziBaseFormatter;
+import models.AizouBaseEntity;
+import models.misc.TravelNote;
+>>>>>>> origin/refactor-h5:modules/core/app/utils/formatter/taozi/TravelNote/SimpTravelNoteFormatter.java
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,9 +28,8 @@ import java.util.Set;
 /**
  * Created by lxf on 14-11-1.
  */
-public class SimpTravelNoteFormatter implements JsonFormatter {
-    @Override
-    public JsonNode format(TravelPiBaseItem item) {
+public class SimpTravelNoteFormatter extends TaoziBaseFormatter {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -43,8 +48,8 @@ public class SimpTravelNoteFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, TravelNote.fnId,TravelNote.fnAuthorAvatar,TravelNote.fnAuthorName,TravelNote.fnCover,
-                        TravelNote.fnTitle,TravelNote.fnPublishDate,TravelNote.fnSource,TravelNote.fnSummary);
+                Collections.addAll(includedFields, TravelNote.fnId, TravelNote.fnAuthorAvatar, TravelNote.fnAuthorName, TravelNote.fnCover,
+                        TravelNote.fnTitle, TravelNote.fnPublishDate, TravelNote.fnSource, TravelNote.fnSummary);
 
                 return (includedFields.contains(writer.getName()));
             }

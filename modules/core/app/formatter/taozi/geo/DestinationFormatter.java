@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Country;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class DestinationFormatter implements JsonFormatter {
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -45,8 +45,8 @@ public class DestinationFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, "id", Locality.fnZhName, Locality.fnEnName, Locality.fnDesc,
-                        Locality.fnAlias, Locality.fnCountry, Locality.fnImages, Locality.fnTravelMonth,
+                Collections.addAll(includedFields, "id", Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnDesc,
+                        Locality.FD_ALIAS, Locality.fnCountry, Locality.fnImages, Locality.fnTravelMonth,
                         Locality.fnTimeCostDesc, Locality.FD_LOCLIST);
 
                 return (includedFields.contains(writer.getName()));
@@ -77,7 +77,7 @@ public class DestinationFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Country.fnZhName, Country.fnEnName, Country.fnId,
+                Collections.addAll(includedFields, Country.FD_ZH_NAME, Country.FD_EN_NAME, Country.FN_ID,
                         Country.fnImages, Country.fnDesc);
 
                 return (includedFields.contains(writer.getName()));
@@ -108,7 +108,7 @@ public class DestinationFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.FD_COORDS);
                 includedFields.add(GeoJsonPoint.fnType);
                 return (includedFields.contains(writer.getName()));
             }

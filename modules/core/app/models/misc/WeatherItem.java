@@ -2,6 +2,7 @@ package models.misc;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
@@ -14,7 +15,7 @@ import play.libs.Json;
  * @author Zephyre
  */
 @Embedded
-public class WeatherItem implements ITravelPiFormatter {
+public class WeatherItem extends AizouBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnLowerTemperature = "lowerTemperature";
     @Transient

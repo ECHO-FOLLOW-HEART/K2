@@ -1,10 +1,11 @@
 package aizou.core;
 
-import exception.TravelPiException;
+import exception.AizouException;
+import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.geo.Locality;
 import models.guide.*;
+import models.poi.AbstractPOI;
 import models.poi.Restaurant;
 import models.poi.Shopping;
 import org.bson.types.ObjectId;
@@ -12,6 +13,8 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import utils.Constants;
+import utils.LogUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -26,9 +29,9 @@ public class GuideAPI {
      * 根据ID取得攻略
      *
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Guide getGuideByDestination(List<ObjectId> ids, Integer userId) throws TravelPiException {
+    public static Guide getGuideByDestination(List<ObjectId> ids, Integer userId) throws AizouException {
         Query<GuideTemplate> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
                 .createQuery(GuideTemplate.class);
         List<CriteriaContainerImpl> criList = new ArrayList<>();
@@ -99,7 +102,7 @@ public class GuideAPI {
             }
             index++;
         }
-        ugcGuide.destinations = destinations;
+        ugcGuide.localities = destinations;
         ugcGuide.title = titlesBuffer.toString();
         ugcGuide.itinerary = itineraries;
         ugcGuide.shopping = shoppingList;
@@ -117,9 +120,9 @@ public class GuideAPI {
      *
      * @param id
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Guide getGuideById(ObjectId id, List<String> fieldList) throws TravelPiException {
+    public static Guide getGuideById(ObjectId id, List<String> fieldList) throws AizouException {
         Query<Guide> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
                 .createQuery(Guide.class);
         if (fieldList != null && !fieldList.isEmpty())
@@ -132,9 +135,9 @@ public class GuideAPI {
      * 根据ID删除攻略
      *
      * @param id
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void deleteGuideById(ObjectId id) throws TravelPiException {
+    public static void deleteGuideById(ObjectId id) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class);
@@ -147,9 +150,9 @@ public class GuideAPI {
      *
      * @param uid
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<Guide> getGuideByUser(Integer uid, List<String> fieldList, int page, int pageSize) throws TravelPiException {
+    public static List<Guide> getGuideByUser(Integer uid, List<String> fieldList, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class);
         query.field(Guide.fnUserId).equal(uid);
@@ -165,9 +168,9 @@ public class GuideAPI {
      *
      * @param guideId
      * @param guide
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws TravelPiException {
+    public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId).field("userId").equal(userId);
         if (query.iterator().hasNext()) {
@@ -191,9 +194,9 @@ public class GuideAPI {
      * @param id
      * @param list
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Guide getGuideInfo(ObjectId id, List<String> list) throws TravelPiException {
+    public static Guide getGuideInfo(ObjectId id, List<String> list) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("_id").equal(id);
         if (list != null && !list.isEmpty()) {
@@ -207,9 +210,9 @@ public class GuideAPI {
      *
      * @param id
      * @param title
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void saveGuideTitle(ObjectId id, String title) throws TravelPiException {
+    public static void saveGuideTitle(ObjectId id, String title) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
         uo.set(Guide.fnTitle, title);
@@ -222,12 +225,74 @@ public class GuideAPI {
      *
      * @param id
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static DestGuideInfo getDestinationGuideInfo(ObjectId id) throws TravelPiException {
+    public static DestGuideInfo getDestinationGuideInfo(ObjectId id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<DestGuideInfo> query = ds.createQuery(DestGuideInfo.class);
         query.field("locId").equal(id);
         return query.get();
     }
+
+    /**
+     * @return
+     */
+    public static Guide fillGuideInfo(Guide guide) throws AizouException {
+        if (guide == null)
+            return new Guide();
+        AbstractPOI poi;
+        String type;
+        PoiAPI.POIType poiType;
+        List<ItinerItem> itinerary = guide.itinerary;
+        List<ItinerItem> newItinerary = new ArrayList<>();
+        List<Shopping> shopping = guide.shopping;
+        List<Restaurant> restaurant = guide.restaurant;
+        if (itinerary != null && itinerary.size() > 0) {
+            for (ItinerItem temp : itinerary) {
+                type = temp.type;
+                switch (type) {
+                    case "vs":
+                        poiType = PoiAPI.POIType.VIEW_SPOT;
+                        break;
+                    case "hotel":
+                        poiType = PoiAPI.POIType.HOTEL;
+                        break;
+                    case "restaurant":
+                        poiType = PoiAPI.POIType.RESTAURANT;
+                        break;
+                    case "shopping":
+                        poiType = PoiAPI.POIType.SHOPPING;
+                        break;
+                    default:
+                        throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", type));
+                }
+                poi = PoiAPI.getPOIInfo(temp.poi.getId(), poiType, true);
+                if (poi == null) {
+                    LogUtils.info(GuideAPI.class, String.format("POI is not exist.Id: %s, Type: %s.", temp.poi.getId().toString(), type));
+                    continue;
+                } else {
+                    temp.poi = poi;
+                    newItinerary.add(temp);
+                }
+            }
+            guide.itinerary = newItinerary;
+        }
+        List<ObjectId> ids;
+        if (shopping != null && shopping.size() > 0) {
+            ids = new ArrayList();
+            for (Shopping temp : shopping) {
+                ids.add(temp.getId());
+            }
+            guide.shopping = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping",null,Constants.ZERO_COUNT , Constants.MAX_COUNT);
+        }
+        if (restaurant != null && restaurant.size() > 0) {
+            ids = new ArrayList();
+            for (Restaurant temp : restaurant) {
+                ids.add(temp.getId());
+            }
+            guide.restaurant = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant",null,Constants.ZERO_COUNT , Constants.MAX_COUNT);
+        }
+        return guide;
+    }
+
 }

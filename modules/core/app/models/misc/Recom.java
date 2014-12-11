@@ -1,8 +1,7 @@
 package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
-import org.mongodb.morphia.annotations.Embedded;
+import models.AizouBaseEntity;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
@@ -11,7 +10,7 @@ import org.mongodb.morphia.annotations.Transient;
  */
 @JsonFilter("recomFilter")
 @Entity
-public class Recom extends TravelPiBaseItem {
+public class Recom extends AizouBaseEntity {
 
     @Transient
     public static String fnId = "id";
@@ -30,8 +29,7 @@ public class Recom extends TravelPiBaseItem {
     /**
      * 推荐类型
      */
-    @Embedded
-    public RecomType type;
+    public String title;
     /**
      * 图片
      */

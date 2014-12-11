@@ -1,14 +1,10 @@
 package utils;
 
-import exception.TravelPiException;
-import models.MorphiaFactory;
+import exception.AizouException;
 import models.geo.Locality;
 import org.bson.types.ObjectId;
-import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.Query;
 
 import java.util.Hashtable;
-import java.util.Iterator;
 
 /**
  * Created by topy on 2014/9/25.
@@ -20,7 +16,7 @@ public class GEOUtils {
     //Key-目的地的LocId,Value-目的地附近省会
     private static Hashtable<ObjectId, Locality> dsMap = new Hashtable<>();
 
-    public synchronized static GEOUtils getInstance() throws TravelPiException {
+    public synchronized static GEOUtils getInstance() throws AizouException {
         if (ourInstance == null)
             ourInstance = new GEOUtils();
 

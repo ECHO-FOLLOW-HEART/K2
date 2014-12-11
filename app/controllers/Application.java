@@ -1,12 +1,12 @@
 package controllers;
 
-import exception.TravelPiException;
+import exception.AizouException;
 import play.mvc.Controller;
 import play.mvc.Result;
 
 public class Application extends Controller {
 
-    public static Result index() throws TravelPiException {
+    public static Result index() throws AizouException {
         return ok("WELCOME");
     }
 

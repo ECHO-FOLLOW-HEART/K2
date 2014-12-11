@@ -1,7 +1,7 @@
 package utils;
 
 import com.mongodb.*;
-import exception.TravelPiException;
+import exception.AizouException;
 import org.bson.types.ObjectId;
 
 import java.util.*;
@@ -21,29 +21,22 @@ public class Traffic {
      * @param priceLimits
      * @param depTimeLimit
      * @param arrTimeLimit
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
     public static BasicDBList searchAirRoutes(String depId, String arrId, final List<Double> priceLimits,
                                               final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit,
                                               final List<Calendar> epTimeLimit,
-                                              final SortField sortField, final SortType sortType, int page, int pageSize) throws TravelPiException {
+                                              final SortField sortField, final SortType sortType, int page, int pageSize) throws AizouException {
         MongoClient client;
-        try {
-            client = Utils.getMongoClient();
-        } catch (NullPointerException e) {
-            throw new TravelPiException(e);
-        }
+        client = Utils.getMongoClient();
+
         assert client != null;
         DB db = client.getDB("traffic");
         DBCollection col = db.getCollection("air_route");
 
         ObjectId dep, arr;
-        try {
-            dep = new ObjectId(depId);
-            arr = new ObjectId(arrId);
-        } catch (IllegalArgumentException e) {
-            throw new TravelPiException(String.format("Invalid departure/arrival ID: %s / %s.", depId, arrId), e);
-        }
+        dep = new ObjectId(depId);
+        arr = new ObjectId(arrId);
 
         QueryBuilder query1 = new QueryBuilder().or(QueryBuilder.start("arrAirport._id").is(arr).get(),
                 QueryBuilder.start("arr._id").is(arr).get());
@@ -212,29 +205,22 @@ public class Traffic {
      * @param depTimeLimit
      * @param arrTimeLimit
      * @param trainClasses
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
     public static BasicDBList searchTrainRoute(String depId, String arrId, final List<Double> priceLimits,
                                                final List<Calendar> depTimeLimit, final List<Calendar> arrTimeLimit,
                                                final List<Calendar> epTimeLimit, final List<String> trainClasses,
-                                               final SortField sortField, final SortType sortType) throws TravelPiException {
+                                               final SortField sortField, final SortType sortType) throws AizouException {
         MongoClient client;
-        try {
-            client = Utils.getMongoClient();
-        } catch (NullPointerException e) {
-            throw new TravelPiException(e);
-        }
+        client = Utils.getMongoClient();
+
         assert client != null;
         DB db = client.getDB("traffic");
         DBCollection col = db.getCollection("train_route");
 
         ObjectId dep, arr;
-        try {
-            dep = new ObjectId(depId);
-            arr = new ObjectId(arrId);
-        } catch (IllegalArgumentException e) {
-            throw new TravelPiException(String.format("Invalid departure/arrival ID: %s / %s.", depId, arrId), e);
-        }
+        dep = new ObjectId(depId);
+        arr = new ObjectId(arrId);
 
         QueryBuilder query1 = new QueryBuilder().or(QueryBuilder.start("details.locId").is(dep).get(),
                 QueryBuilder.start("details.stopId").is(dep).get());

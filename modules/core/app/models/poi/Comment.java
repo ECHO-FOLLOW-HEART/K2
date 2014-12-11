@@ -1,75 +1,157 @@
 package models.poi;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
+import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.util.List;
 
 /**
  * 推薦
  * Created by lxf on 14-11-12.
  */
-@JsonFilter("commentsFilter")
+@JsonFilter("commentFilter")
 @Entity
-public class Comment extends TravelPiBaseItem {
+public class Comment extends AizouBaseEntity {
 
     @Transient
-    public static String fnAvatar = "avatar";
+    public static final String FD_AVATAR = "avatar";
+
     @Transient
-    public static String fnNickName = "nickName";
+    public static final String FD_NICK_NAME = "nickName";
+
     @Transient
-    public static String fnScore = "rating";
+    public static final String FD_USER_ID = "userId";
+
     @Transient
-    public static String fnCommentDetails = "commentDetails";
+    public static final String FD_RATING = "rating";
+
     @Transient
-    public static String fnCommentTime = "commentTime";
+    public static final String FD_CONTENTS = "commentDetails";
+
+    @Transient
+    public static final String FD_TIME = "commentTime";
+
+    @Transient
+    public static final String FD_IMAGS = "images";
 
     /**
      * 用户ID
      */
-    public Integer userId;
+    private Integer userId;
 
     /**
      * 用户头像
      */
-    public String avatar;
+    private String avatar;
 
     /**
      * 用户昵称
      */
-    public String nickName;
+    private String nickName;
 
     /**
      * 评论的类型
      */
-    public String poiType;
+    private String poiType;
 
     /**
      * 评分数
      */
-    public Double rating;
+    private Double rating;
+
     /**
      * 评价的详情
      */
-    public String commentDetails;
+    private String commentDetails;
+
     /**
      * 评价时间
      */
-    public long commentTime;
+    private long commentTime;
 
     /**
      * 评价的poiId
      */
-    public ObjectId poiId;
+    private ObjectId poiId;
 
+    /**
+     * 评论附带的照片
+     */
+    private List<ImageItem> images;
 
-    public String getCommentTime() {
-        DateFormat timeFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-        return timeFormat.format(commentTime);
+    public Integer getUserId() {
+        return userId;
     }
 
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public String getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
+
+    public String getPoiType() {
+        return poiType;
+    }
+
+    public void setPoiType(String poiType) {
+        this.poiType = poiType;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public String getCommentDetails() {
+        return commentDetails;
+    }
+
+    public void setCommentDetails(String commentDetails) {
+        this.commentDetails = commentDetails;
+    }
+
+    public long getCommentTime() {
+        return commentTime;
+    }
+
+    public void setCommentTime(long commentTime) {
+        this.commentTime = commentTime;
+    }
+
+    public ObjectId getPoiId() {
+        return poiId;
+    }
+
+    public void setPoiId(ObjectId poiId) {
+        this.poiId = poiId;
+    }
+
+    public List<ImageItem> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ImageItem> images) {
+        this.images = images;
+    }
 }

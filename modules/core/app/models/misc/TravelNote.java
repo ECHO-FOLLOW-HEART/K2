@@ -3,8 +3,8 @@ package models.misc;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
@@ -22,7 +22,7 @@ import java.util.List;
  */
 @Entity
 @JsonFilter("travelNoteFilter")
-public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
+public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnId = "id";
@@ -100,7 +100,7 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 发表时间
      */
-    public Date publishDate;
+    public Long publishDate;
 
     /**
      * 发表时间
@@ -209,7 +209,8 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
 
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("title", title).add("authorName", authorName);
+        builder.add("id", this.getId().toString()).add("title", title).add("authorName", authorName)
+                .add("cover", cover);
         for (String k : new String[]{"source", "sourceUrl", "summary", "authorName", "authorAvatar", "title"}) {
             try {
                 Object val = TravelNote.class.getField(k).get(this);
@@ -227,7 +228,7 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
             }
         }
 
-        builder.add("publishDate", publishDate == null ? "" : new SimpleDateFormat("yyyy-MM-dd").format(publishDate));
+        builder.add("publishDate", publishDate == null ? "" : publishDate);
 
         return Json.toJson(builder.get());
     }

@@ -1,7 +1,7 @@
 package formatter.travelpi.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.plan.UgcPlan;
 import formatter.travelpi.TravelPiBaseFormatter;
 
@@ -34,7 +34,7 @@ public class PlanFormatter extends TravelPiBaseFormatter {
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
 
         return null;
     }

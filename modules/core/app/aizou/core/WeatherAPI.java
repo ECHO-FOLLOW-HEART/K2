@@ -1,6 +1,6 @@
 package aizou.core;
 
-import exception.TravelPiException;
+import exception.AizouException;
 import models.MorphiaFactory;
 import models.misc.YahooWeather;
 import org.bson.types.ObjectId;
@@ -16,7 +16,7 @@ public class WeatherAPI {
      *
      * @param id
      */
-    public static YahooWeather weatherDetails(ObjectId id) throws TravelPiException {
+    public static YahooWeather weatherDetails(ObjectId id) throws AizouException {
         return MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC).
                 createQuery(YahooWeather.class).field("loc.id").equal(id).get();
     }

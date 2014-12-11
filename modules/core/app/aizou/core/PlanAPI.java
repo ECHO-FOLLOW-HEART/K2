@@ -1,9 +1,9 @@
 package aizou.core;
 
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
-import models.TravelPiBaseItem;
 import models.geo.Locality;
 import models.misc.SimpleRef;
 import models.plan.*;
@@ -31,7 +31,7 @@ import java.util.*;
 public class PlanAPI {
 
     private static List<Plan> planExploreHelper(ObjectId targetId, boolean isLoc, String tag, int minDays, int maxDays,
-                                                int page, int pageSize) throws TravelPiException {
+                                                int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<Plan> query = ds.createQuery(Plan.class);
 
@@ -47,7 +47,7 @@ public class PlanAPI {
         query.and(query.criteria(AbstractPlan.FD_DAYS).greaterThanOrEq(minDays),
                 query.criteria(AbstractPlan.FD_DAYS).lessThanOrEq(maxDays));
 
-        query.field(TravelPiBaseItem.FD_ENABLED).equal(Boolean.TRUE);
+        query.field(AizouBaseEntity.FD_ENABLED).equal(Boolean.TRUE);
         query.order(AbstractPlan.FD_MANUAL_PRIORITY).offset(page * pageSize).limit(pageSize);
 
         return query.asList();
@@ -63,9 +63,9 @@ public class PlanAPI {
      * @param page
      * @param pageSize
      * @param sortField @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
+    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, int minDays, int maxDays, int page, int pageSize, String sortField) throws AizouException {
         List<Plan> planList = null;
         if (locId != null)
             planList = planExploreHelper(locId, true, tag, minDays, maxDays, page, pageSize);
@@ -110,16 +110,16 @@ public class PlanAPI {
      * @param page
      * @param pageSize
      * @param sortField @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Iterator<Plan> explore(String locId, String poiId, String sort, String tag, int minDays, int maxDays, int page, int pageSize, String sortField) throws TravelPiException {
+    public static Iterator<Plan> explore(String locId, String poiId, String sort, String tag, int minDays, int maxDays, int page, int pageSize, String sortField) throws AizouException {
         try {
             return explore(
                     locId != null && !locId.isEmpty() ? new ObjectId(locId) : null,
                     poiId != null && !poiId.isEmpty() ? new ObjectId(poiId) : null,
                     sort, tag != null && !tag.isEmpty() ? tag : null, minDays, maxDays, page, pageSize, sortField);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
         }
     }
 
@@ -130,7 +130,7 @@ public class PlanAPI {
      * @param isUgc
      * @return
      */
-    public static Plan getPlan(ObjectId planId, boolean isUgc) throws TravelPiException {
+    public static Plan getPlan(ObjectId planId, boolean isUgc) throws AizouException {
         Class<? extends Plan> cls = isUgc ? UgcPlan.class : Plan.class;
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         return ds.createQuery(cls).field("_id").equal(planId).field("enabled").equal(Boolean.TRUE).get();
@@ -143,11 +143,11 @@ public class PlanAPI {
      * @param ugc
      * @return
      */
-    public static Plan getPlan(String planId, boolean ugc) throws TravelPiException {
+    public static Plan getPlan(String planId, boolean ugc) throws AizouException {
         try {
             return getPlan(new ObjectId(planId), ugc);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
         }
     }
 
@@ -157,7 +157,7 @@ public class PlanAPI {
      * @param userId
      * @return
      */
-    public static Iterator<UgcPlan> getPlanByUser(String userId, int page, int pageSize) throws TravelPiException {
+    public static Iterator<UgcPlan> getPlanByUser(String userId, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         ObjectId userOid = new ObjectId(userId);
@@ -175,13 +175,13 @@ public class PlanAPI {
      * @param ugcPlanId
      * @return
      */
-    public static UgcPlan getPlanById(String ugcPlanId) throws TravelPiException {
+    public static UgcPlan getPlanById(String ugcPlanId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
         query.field("_id").equal(ugcOPlanId).field("enabled").equal(Boolean.TRUE);
         if (!query.iterator().hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", ugcPlanId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", ugcPlanId));
         return query.get();
     }
 
@@ -191,13 +191,13 @@ public class PlanAPI {
      * @param planId
      * @return
      */
-    public static SharePlan getSharePlanById(String planId) throws TravelPiException {
+    public static SharePlan getSharePlanById(String planId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<SharePlan> query = ds.createQuery(SharePlan.class);
         ObjectId sharePlanPlanId = new ObjectId(planId);
         query.field("_id").equal(sharePlanPlanId).field("enabled").equal(Boolean.TRUE);
         if (!query.iterator().hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid sharePlan ID: %s.", planId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid sharePlan ID: %s.", planId));
         return query.get();
     }
 
@@ -209,13 +209,13 @@ public class PlanAPI {
      * @param backLoc
      * @return
      */
-    public static UgcPlan doPlanner(String planId, String fromLoc, String backLoc, Calendar firstDate, Http.Request req) throws TravelPiException {
+    public static UgcPlan doPlanner(String planId, String fromLoc, String backLoc, Calendar firstDate, Http.Request req) throws AizouException {
         try {
             if (backLoc == null || backLoc.isEmpty())
                 backLoc = fromLoc;
             return doPlanner(new ObjectId(planId), new ObjectId(fromLoc), new ObjectId(backLoc), firstDate, req);
         } catch (IllegalArgumentException | NoSuchFieldException | IllegalAccessException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId));
         }
     }
 
@@ -227,11 +227,11 @@ public class PlanAPI {
      * @param backLoc
      * @return
      */
-    public static UgcPlan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate, Http.Request req) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+    public static UgcPlan doPlanner(ObjectId planId, ObjectId fromLoc, ObjectId backLoc, Calendar firstDate, Http.Request req) throws AizouException, NoSuchFieldException, IllegalAccessException {
         // 获取模板路线信息
         Plan plan = getPlan(planId, false);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId.toString()));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId.toString()));
 
         // TODO 景点需要照片、描述等内容。
 
@@ -440,7 +440,7 @@ public class PlanAPI {
 
                     dayEntry.actv.add(hotelItem);
                 }
-            } catch (TravelPiException ignored) {
+            } catch (AizouException ignored) {
             }
         }
         return;
@@ -511,7 +511,7 @@ public class PlanAPI {
     }
 
 
-    private static Plan addTelomere(boolean epDep, Plan plan, ObjectId remoteLoc) throws TravelPiException {
+    private static Plan addTelomere(boolean epDep, Plan plan, ObjectId remoteLoc) throws AizouException {
         List<PlanDayEntry> details = plan.getDetails();
         if (details == null || details.isEmpty())
             return plan;
@@ -607,7 +607,7 @@ public class PlanAPI {
         return plan;
     }
 
-    private static AbstractRoute searchOneWayRoutes(ObjectId remoteLoc, ObjectId travelLoc, Calendar calLower, final List<Calendar> timeLimits, TrafficAPI.SortField sortField) throws TravelPiException {
+    private static AbstractRoute searchOneWayRoutes(ObjectId remoteLoc, ObjectId travelLoc, Calendar calLower, final List<Calendar> timeLimits, TrafficAPI.SortField sortField) throws AizouException {
         RouteIterator it = TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
         //次推火车
         if (!it.hasNext()) {
@@ -617,7 +617,7 @@ public class PlanAPI {
     }
 
 
-    private static List<AbstractRoute> searchMoreWayRoutes(boolean epDep, Locality midLocality, ObjectId remoteLocPara, ObjectId travelLocPara, Calendar calLower, final List<Calendar> timeLimits) throws TravelPiException {
+    private static List<AbstractRoute> searchMoreWayRoutes(boolean epDep, Locality midLocality, ObjectId remoteLocPara, ObjectId travelLocPara, Calendar calLower, final List<Calendar> timeLimits) throws AizouException {
 
         int MAX_ROUTES = 20;
         ObjectId remoteLoc, travelLoc;
@@ -675,23 +675,23 @@ public class PlanAPI {
     }
 
 
-    public static void saveUGCPlan(UgcPlan ugcPlan) throws TravelPiException {
+    public static void saveUGCPlan(UgcPlan ugcPlan) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         ds.save(ugcPlan);
     }
 
-    public static void saveSharePlan(SharePlan sharePlan) throws TravelPiException {
+    public static void saveSharePlan(SharePlan sharePlan) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         ds.save(sharePlan);
     }
 
-    public static void updateUGCPlanByFiled(ObjectId ugcPlanId, String filed, String filedValue) throws TravelPiException, NoSuchFieldException, IllegalAccessException {
+    public static void updateUGCPlanByFiled(ObjectId ugcPlanId, String filed, String filedValue) throws AizouException, NoSuchFieldException, IllegalAccessException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         query.field("_id").equal(ugcPlanId);
         Iterator<UgcPlan> it = query.iterator();
         if (!it.hasNext())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid ugcPlan ID: %s.", ugcPlanId.toString()));
 
         UpdateOperations<UgcPlan> ops = ds.createUpdateOperations(UgcPlan.class);
         ops.set(filed, filed.equals("uid") ? new ObjectId(filedValue) : filedValue);
@@ -700,7 +700,7 @@ public class PlanAPI {
         ds.update(query, ops, true);
     }
 
-    public static void deleteUGCPlan(String ugcPlanId) throws TravelPiException {
+    public static void deleteUGCPlan(String ugcPlanId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         ObjectId ugcOPlanId = new ObjectId(ugcPlanId);

@@ -3,7 +3,8 @@ package models.plan;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
-import exception.TravelPiException;
+import exception.AizouException;
+import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import models.misc.SimpleRef;
 import models.poi.Hotel;
@@ -24,7 +25,7 @@ import java.util.TimeZone;
  * @author Zephyre
  */
 @Embedded
-public class PlanItem implements ITravelPiFormatter {
+public class PlanItem extends AizouBaseItem implements ITravelPiFormatter {
     @Transient
     public static final String FD_ITEM = "item";
 
@@ -110,7 +111,7 @@ public class PlanItem implements ITravelPiFormatter {
                 ViewSpot vs = (ViewSpot) PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.VIEW_SPOT, true);
                 if (null != vs)
                     builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.VIEW_SPOT, true).toJson(3));
-            } catch (TravelPiException ignored) {
+            } catch (AizouException ignored) {
             }
         }
         if (type != null && type.equals("hotel")) {
@@ -119,7 +120,7 @@ public class PlanItem implements ITravelPiFormatter {
                 Hotel ht = (Hotel) PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.HOTEL, true);
                 if (null != ht)
                     builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.HOTEL, true).toJson(3));
-            } catch (TravelPiException ignored) {
+            } catch (AizouException ignored) {
             }
         }
 

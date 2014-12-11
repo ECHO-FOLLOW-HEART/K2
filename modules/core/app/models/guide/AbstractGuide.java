@@ -1,6 +1,6 @@
 package models.guide;
 
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.Restaurant;
@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Created by topy on 2014/11/8.
  */
-public abstract class AbstractGuide extends TravelPiBaseItem {
+public abstract class AbstractGuide extends AizouBaseEntity {
 
     @Transient
     public static final String fnTitle = "title";
@@ -32,7 +32,7 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
     public static final String fdId = "id";
 
     @Transient
-    public static final String fnDestinations = "destinations";
+    public static final String fnLocalities = "localities";
 
     @Transient
     public static final String fnImages = "images";
@@ -41,7 +41,7 @@ public abstract class AbstractGuide extends TravelPiBaseItem {
 
     public ObjectId locId;
 
-    public List<Locality> destinations;
+    public List<Locality> localities;
 
     public List<ItinerItem> itinerary;
 

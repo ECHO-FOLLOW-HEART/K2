@@ -4,22 +4,18 @@ package models.user;
  * Created by lxf on 14-10-25.
  */
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.BasicDBObjectBuilder;
-import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
-import play.libs.Json;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class ChatGroupInfo extends TravelPiBaseItem {
+@Entity
+public class ChatGroupInfo extends AizouBaseEntity {
     @Transient
     public static final String OWNER = "owner";
     @Transient

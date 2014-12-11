@@ -1,8 +1,8 @@
 package utils;
 
 import com.mongodb.*;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import org.bson.types.ObjectId;
 
 import java.text.DateFormat;
@@ -17,7 +17,7 @@ import java.util.*;
 public class Planner {
 
     public static DBObject generateUgcPlan(DBObject plan, String fromLocId, String backLocId, Calendar baseDate)
-            throws TravelPiException {
+            throws AizouException {
         DBCollection locCol = Utils.getMongoClient().getDB("geo").getCollection("locality");
         DBCollection hotelCol = Utils.getMongoClient().getDB("poi").getCollection("hotel");
 
@@ -32,7 +32,7 @@ public class Planner {
             if (backLoc == null)
                 throw new NullPointerException();
         } catch (IllegalArgumentException | NullPointerException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
 
         BasicDBList details = (BasicDBList) plan.get("details");
@@ -114,7 +114,7 @@ public class Planner {
      * @param detailNodes
      * @param fromLoc
      */
-    private static void telomere(BasicDBList detailNodes, DBObject fromLoc, Calendar baseDate, boolean start) throws TravelPiException {
+    private static void telomere(BasicDBList detailNodes, DBObject fromLoc, Calendar baseDate, boolean start) throws AizouException {
         if (detailNodes == null || detailNodes.size() == 0)
             return;
 
