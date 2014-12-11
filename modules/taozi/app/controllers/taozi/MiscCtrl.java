@@ -479,30 +479,36 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    public static Result saveComment() {
+    public static Result saveComment(String poiId) {
+        Comment comment = new Comment();
+
         try {
             JsonNode req = request().body().asJson();
-            String userId = request().getHeader("userId");
-            String poiId = req.get("poiId").asText();
-            ObjectId poiObjid = new ObjectId(poiId);
-            Double score = req.get("score").asDouble();
-            String commentDetails = req.get("commentDetails").asText();
-            String type = req.get("type").asText();
-            long commentTime = req.get("commentTime").asLong();
-            UserInfo userInfo = UserAPI.getUserInfo(Integer.parseInt(userId), Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar));
+            String userId = request().getHeader("UserId");
+            Long userIdLong = Long.parseLong(userId);
+            UserInfo user = UserAPI.getUserInfo(userIdLong,
+                    Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar));
+            if (user != null) {
+                comment.setUserName(user.getNickName());
+                comment.setUserAvatar(user.getAvatar());
+                comment.setUserId(userIdLong);
+            }else{
+                throw new AizouException(ErrorCode.USER_NOT_EXIST);
+            }
 
-            Comment comment = new Comment();
-            comment.setUserId(userInfo.getUserId());
-            comment.setItemId(poiObjid);
-            comment.setContents(commentDetails);
-            comment.setPoiType(type);
-            comment.setRating(score);
+            Double rating = req.get("rating").asDouble();
+            String contents = req.get("contents").asText();
+
+            comment.setItemId(new ObjectId(poiId));
+            comment.setContents(contents);
+            comment.setRating(rating);
+            long commentTime = System.currentTimeMillis();
             comment.setcTime(commentTime);
             comment.setmTime(commentTime);
 
-            MiscAPI.saveComment(comment);
-            return Utils.createResponse(ErrorCode.NORMAL, "success");
-        } catch (AizouException | NullPointerException e) {
+            JsonNode result = MiscAPI.saveComment(comment);
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }

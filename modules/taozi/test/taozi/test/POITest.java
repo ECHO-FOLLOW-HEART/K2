@@ -9,7 +9,6 @@ import models.poi.Hotel;
 import models.poi.ViewSpot;
 import org.junit.Ignore;
 import org.junit.Test;
-import play.test.WithApplication;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -129,7 +128,7 @@ public class POITest extends AizouTest {
         JsonNode result = (JsonNode) method.invoke(MiscCtrl.class, poiId, minRating, maxRating, lastUpdate, 100);
 
         for (JsonNode comment : result) {
-            assertText(comment, new String[]{"id", "userAvatar", "userName", "contents"}, true);
+            assertText(comment, new String[]{"userAvatar", "userName", "contents"}, true);
             JsonNode imagesNode = comment.get("images");
             assertThat(imagesNode.isArray()).isTrue();
             JsonNode tsNode = comment.get("cTime");

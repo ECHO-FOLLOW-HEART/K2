@@ -548,7 +548,7 @@ public class UserCtrl extends Controller {
         return info_url.toString();
     }
 
-    private static JsonNode getUserProfileByIdImpl(Integer userId, Integer selfId) throws AizouException {
+    private static JsonNode getUserProfileByIdImpl(Long userId, Long selfId) throws AizouException {
         UserFormatter formatter = new UserFormatter(selfId != null && userId.equals(selfId));
         UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
         if (result == null)
@@ -563,11 +563,11 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static Result getUserProfileById(int userId) {
+    public static Result getUserProfileById(long userId) {
         String tmp = request().getHeader("UserId");
-        Integer selfId = null;
+        Long selfId = null;
         if (tmp != null)
-            selfId = Integer.parseInt(tmp);
+            selfId = Long.parseLong(tmp);
 
         try {
             JsonNode result = getUserProfileByIdImpl(userId, selfId);
@@ -625,7 +625,7 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static Result editorUserInfo(Integer userId) {
+    public static Result editorUserInfo(Long userId) {
         try {
             JsonNode req = request().body().asJson();
 
@@ -681,7 +681,7 @@ public class UserCtrl extends Controller {
      * @return
      */
     public static Result addContact() {
-        int userId, contactId;
+        long userId, contactId;
         try {
             userId = Integer.parseInt(request().getHeader("UserId"));
             contactId = Integer.parseInt(request().body().asJson().get("userId").asText());
@@ -703,8 +703,8 @@ public class UserCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result delContact(Integer id) {
-        int userId;
+    public static Result delContact(Long id) {
+        long userId;
         try {
             userId = Integer.parseInt(request().getHeader("UserId"));
         } catch (NumberFormatException | NullPointerException e) {
@@ -725,7 +725,7 @@ public class UserCtrl extends Controller {
      * @return
      */
     public static Result getContactList() {
-        int userId;
+        long userId;
         try {
             userId = Integer.parseInt(request().getHeader("UserId"));
         } catch (NumberFormatException | NullPointerException e) {
@@ -790,7 +790,7 @@ public class UserCtrl extends Controller {
         try {
             JsonNode req = request().body().asJson();
             Iterator<JsonNode> it = req.get("contants").elements();
-            Integer selfUserId = Integer.parseInt(request().getHeader("UserId"));
+            Long selfUserId = Long.parseLong(request().getHeader("UserId"));
             List<Contact> contacts = new ArrayList();
             ObjectMapper m = new ObjectMapper();
             while (it.hasNext()) {
@@ -822,7 +822,7 @@ public class UserCtrl extends Controller {
 
     }
 
-    private static boolean isFriend(Integer aFriend, List<UserInfo> friends) {
+    private static boolean isFriend(Long aFriend, List<UserInfo> friends) {
         if (friends == null)
             return false;
         for (UserInfo userInfo : friends) {

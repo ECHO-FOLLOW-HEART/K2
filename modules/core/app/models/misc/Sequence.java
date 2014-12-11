@@ -12,6 +12,6 @@ public class Sequence extends AizouBaseEntity {
 
     public static String USERID = "UserID";
     public String column;
-    public Integer count;
+    public Long count;
 
 }

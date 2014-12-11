@@ -1,6 +1,8 @@
 package aizou.core;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
+import formatter.taozi.misc.CommentFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Column;
@@ -10,6 +12,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import play.libs.Json;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -43,9 +46,13 @@ public class MiscAPI {
      * @param comment
      * @throws exception.AizouException
      */
-    public static void saveComment(Comment comment) throws AizouException {
+    public static JsonNode saveComment(Comment comment) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        comment.setId(new ObjectId());
         ds.save(comment);
+
+        CommentFormatter formatter = new CommentFormatter();
+        return formatter.format(comment);
     }
 
     /**
