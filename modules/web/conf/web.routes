@@ -40,7 +40,8 @@ GET            /itineraries/air-routes                        controllers.web.Tr
 GET            /itineraries/air-routes/:flightCode            controllers.web.TrafficCtrl.getAirRouteByCode(flightCode: String, depTime: String?="")
 GET            /itineraries/train-routes                      controllers.web.TrafficCtrl.getTrainRoutes(dep: String, arr: String,depTime: String?="", trainType: String?="", sortField: String?="price", sort: String?="asc", timeFilterType: String?="dep", timeFilter: Int?=0, page: Int?=0, pageSize: Int?=20)
 GET            /itineraries/train-routes/:trainCode           controllers.web.TrafficCtrl.getTrainRouteByCode(trainCode: String, depTime: String?="")
-
+GET            /itineraries/airport/:id                       controllers.web.TrafficCtrl.getTrafficHubInfo(trafficType: String="airport",id :String)
+GET            /itineraries/trainstation/:id                  controllers.web.TrafficCtrl.getTrafficHubInfo(trafficType: String="trainstation",id :String)
 #联想：目的地，景点，酒店，餐馆
 GET            /suggestions                                   controllers.web.MiscCtrl.getSuggestions(word: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, pageSize: Int?=5)
 

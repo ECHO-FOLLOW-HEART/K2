@@ -1045,7 +1045,7 @@ public class PlanCtrl extends Controller {
             case "airport":
                 Airport airport = ds.createQuery(Airport.class).field("_id").equal(new ObjectId(itemId)).get();
                 ref = new SimpleRef();
-                ref.id = airport.id;
+                ref.id = airport.getId();
                 ref.zhName = airport.zhName;
                 planItem = new PlanItem();
                 planItem.item = ref;

@@ -5,31 +5,30 @@ import aizou.core.PoiAPI;
 import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.mongodb.*;
+import com.mongodb.BasicDBObject;
+import com.mongodb.DBCollection;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
+import formatter.travelpi.geo.LocalityFormatter;
+import formatter.travelpi.geo.SimpleLocalityFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.misc.Feedback;
-import models.misc.MiscInfo;
 import models.misc.Recommendation;
 import models.poi.AbstractPOI;
-import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
-import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.travelpi.geo.LocalityFormatter;
-import utils.formatter.travelpi.geo.SimpleLocalityFormatter;
 
-import java.net.UnknownHostException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -73,8 +72,8 @@ public class MiscCtrl extends Controller {
         try {
             DBCollection col = Utils.getMongoClient().getDB("misc").getCollection("MiscInfo");
             ret = (BasicDBObject) col.findOne();
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         String newVerS = ret.getString("androidUpdates");
@@ -95,7 +94,7 @@ public class MiscCtrl extends Controller {
     }
 
     public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
-                                              int pageSize) throws TravelPiException {
+                                              int pageSize) throws AizouException {
         ObjectNode ret = Json.newObject();
 
         List<JsonNode> locList = new ArrayList<>();
@@ -160,8 +159,8 @@ public class MiscCtrl extends Controller {
         try {
             return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant,
                     pageSize));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
 
@@ -183,13 +182,13 @@ public class MiscCtrl extends Controller {
         try {
             return Utils.createResponse(ErrorCode.NORMAL,
                     exploreImpl(details, loc, vs, hotel, restaurant, abroad, page, pageSize));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
     public static JsonNode exploreImpl(boolean details, boolean loc, boolean vs, boolean hotel, boolean restaurant,
-                                       boolean abroad, int page, int pageSize) throws TravelPiException {
+                                       boolean abroad, int page, int pageSize) throws AizouException {
         ObjectNode results = Json.newObject();
 
         // 发现城市
@@ -248,8 +247,8 @@ public class MiscCtrl extends Controller {
             for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
                 results.add(it.next().toJson());
             }
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
@@ -292,15 +291,15 @@ public class MiscCtrl extends Controller {
 
         try {
             if (actionCode != 1)
-                throw new TravelPiException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+                throw new AizouException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
 
             boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v, userId);
 
             ObjectNode result = Json.newObject();
             result.put("isValid", valid);
             return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
