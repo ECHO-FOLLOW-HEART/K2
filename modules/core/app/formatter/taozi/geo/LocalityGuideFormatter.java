@@ -46,7 +46,10 @@ public class LocalityGuideFormatter extends TaoziBaseFormatter {
         if (kind.equals("dinning")) {
             Collections.addAll(set, Locality.fnDinningIntro, Locality.fnCuisines);
         }
-        filterMap.put("localityFilter",SimpleBeanPropertyFilter.filterOutAllExcept(set));
+        if (kind.equals("desc")) {
+            Collections.addAll(set, Locality.fnDesc);
+        }
+        filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(set));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
         serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));

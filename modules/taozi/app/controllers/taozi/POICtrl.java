@@ -331,7 +331,7 @@ public class POICtrl extends Controller {
      * @param traffic
      * @return
      */
-    public static Result getViewSpotDetail(String id, boolean desc, boolean traffic) {
+    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
         try {
             ObjectNode results = Json.newObject();
             ObjectId oid = new ObjectId(id);
@@ -401,7 +401,7 @@ public class POICtrl extends Controller {
      * @return
      */
     public static Result getTravelGuide(String locId, boolean remoteTraffic, boolean localTraffic,
-                                        boolean activity, boolean tips, boolean culture, int page, int pageSize) {
+                                        boolean activity, boolean tips, boolean culture, boolean desc, int page, int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
@@ -430,6 +430,10 @@ public class POICtrl extends Controller {
                 destKeyList.add(PoiAPI.DestinationType.CULTURE);
                 poiMap.put(PoiAPI.DestinationType.CULTURE,Destination.fnCulture);
             }*/
+            if (desc){
+                destKeyList.add(PoiAPI.DestinationType.DESC);
+                poiMap.put(PoiAPI.DestinationType.DESC,"desc");
+            }
             for (PoiAPI.DestinationType type : destKeyList) {
                 Locality locality = PoiAPI.getTravelGuideApi(new ObjectId(locId), type, page, pageSize);
                 String kind = poiMap.get(type);

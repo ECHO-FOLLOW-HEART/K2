@@ -235,13 +235,13 @@ public class TravelNoteAPI {
             if (!note.authorAvatar.startsWith("http://"))
                 note.authorAvatar = "http://" + note.authorAvatar;
             tmp = doc.get("favorCnt");
-            //TODO 游记id的类型
             try {
                 note.setId(new ObjectId(doc.get("id").toString()));
             } catch (IllegalArgumentException e) {
             }
             note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
             note.contents = (List) doc.get("contents");
+            note.noteContents = note.contents.toString();
             note.sourceUrl = (String) doc.get("url");
             note.source = (String) doc.get("source");
             tmp = doc.get("commentCnt");
@@ -351,7 +351,8 @@ public class TravelNoteAPI {
                 note.authorAvatar = "http://" + note.authorAvatar;
             tmp = doc.get("favorCnt");
             note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-            note.contents = procContents((List) doc.get("contents"));
+            note.contents = (List) doc.get("contents");
+            note.noteContents = procContents(note.contents);
             note.sourceUrl = (String) doc.get("url");
             note.source = getSource((String) doc.get("source"));
             tmp = doc.get("commentCnt");
@@ -377,7 +378,7 @@ public class TravelNoteAPI {
      * @param contents
      * @return
      */
-    public static List<String> procContents(List<String> contents) {
+    public static String procContents(List<String> contents) {
         StringBuilder sb = new StringBuilder();
         sb.append("<div>");
         for (String line : contents) {
@@ -389,9 +390,9 @@ public class TravelNoteAPI {
                 sb.append("<p> " + line + "</p>");
         }
         sb.append("</div>");
-        List<String> list = new ArrayList<>();
-        list.add(sb.toString().trim());
-        return list;
+        /*List<String> list = new ArrayList<>();
+        list.add(sb.toString().trim());*/
+        return sb.toString().trim();
     }
 
 }

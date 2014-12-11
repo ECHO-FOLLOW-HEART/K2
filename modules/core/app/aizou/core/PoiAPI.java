@@ -44,7 +44,8 @@ public class PoiAPI {
         TIPS,
         CULTURE,
         DINNING,
-        SHOPPING
+        SHOPPING,
+        DESC
     }
 
     /**
@@ -937,9 +938,12 @@ public class PoiAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static ViewSpot getVsDetails(ObjectId id) throws AizouException {
+    public static Locality getLocDetails(ObjectId id, List<String> list) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        Query<ViewSpot> query = ds.createQuery(ViewSpot.class).field("_id").equal(id);
+        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(id);
+        if (list != null && !list.isEmpty()) {
+            query.retrievedFields(true, list.toArray(new String[list.size()]));
+        }
         return query.get();
     }
 
@@ -1004,6 +1008,9 @@ public class PoiAPI {
                 break;
             case SHOPPING:
                 locality = getLocalityByField(id, Arrays.asList(Locality.fnShoppingIntro, Locality.fnCommodities), page, pageSize);
+                break;
+            case DESC:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnDesc), page, pageSize);
                 break;
             default:
                 throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");

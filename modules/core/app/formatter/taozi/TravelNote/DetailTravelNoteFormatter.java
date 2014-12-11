@@ -33,7 +33,7 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
                         TravelNote.fnTitle,
                         TravelNote.fnPublishDate,
                         TravelNote.fnSource,
-                        TravelNote.fnContents,
+                        TravelNote.fnNoteContents,
                         TravelNote.fnCostLower,
                         TravelNote.fnCostUpper,
                         TravelNote.fnSourceUrl,

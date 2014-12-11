@@ -62,7 +62,8 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnContents = "contents";
-
+    @Transient
+    public static String fnNoteContents = "noteContents";
     @Transient
     public static String fnCostLower = "costLower";
 
@@ -161,6 +162,10 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
      */
     public List<String> contents;
 
+    /**
+     * 游记正文
+     */
+    public String noteContents;
     /**
      * 游记来源
      */
