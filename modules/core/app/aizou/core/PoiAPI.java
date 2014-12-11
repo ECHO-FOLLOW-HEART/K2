@@ -371,7 +371,7 @@ public class PoiAPI {
         ObjectId id = new ObjectId(poiId);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class);
-        query.field("poiId").equal(id).offset(page * pageSize).limit(pageSize);
+        query.field(Comment.FD_ITEM_ID).equal(id).offset(page * pageSize).limit(pageSize);
 
         return query.asList();
     }

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
+import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.misc.MiscFormatter;
 import formatter.taozi.misc.WeatherFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
@@ -460,39 +461,15 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    public static Result getPageFirst() {
+    public static Result getColumns() {
+        MiscFormatter formatter = new MiscFormatter();
         try {
-            List<PageFirst> pageFirsts = MiscAPI.getColumns();
-            List<JsonNode> list = new ArrayList<>();
-            for (PageFirst first : pageFirsts) {
-                list.add(new MiscFormatter().format(first));
+            List<JsonNode> columns = new ArrayList<>();
+            for (Column c : MiscAPI.getColumns()) {
+                columns.add(formatter.format(c));
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(list));
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(columns));
         } catch (AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
-
-    /**
-     * 保存专栏信息
-     *
-     * @return
-     */
-    public static Result saveColumns() {
-        try {
-            JsonNode req = request().body().asJson();
-            String title = req.get("title").asText();
-            String cover = req.get("cover").asText();
-            String link = req.get("link").asText();
-
-            PageFirst pageFirst = new PageFirst();
-            pageFirst.cover = cover;
-            pageFirst.title = title;
-            pageFirst.link = link;
-
-            MiscAPI.saveColumns(pageFirst);
-            return Utils.createResponse(ErrorCode.NORMAL, "success");
-        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -516,11 +493,12 @@ public class MiscCtrl extends Controller {
 
             Comment comment = new Comment();
             comment.setUserId(userInfo.getUserId());
-            comment.setPoiId(poiObjid);
-            comment.setCommentDetails(commentDetails);
+            comment.setItemId(poiObjid);
+            comment.setContents(commentDetails);
             comment.setPoiType(type);
             comment.setRating(score);
-            comment.setCommentTime(commentTime);
+            comment.setcTime(commentTime);
+            comment.setmTime(commentTime);
 
             MiscAPI.saveComment(comment);
             return Utils.createResponse(ErrorCode.NORMAL, "success");
@@ -529,24 +507,29 @@ public class MiscCtrl extends Controller {
         }
     }
 
+    private static JsonNode getCommentsImpl(String poiId, double lower, double upper, long lastUpdate, int pageSize)
+            throws AizouException {
+        CommentFormatter formatter = new CommentFormatter();
+        List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, pageSize);
+        List<JsonNode> list = new ArrayList<>();
+        for (Comment comment : commentList)
+            list.add(formatter.format(comment));
+        return Json.toJson(list);
+    }
+
     /**
      * 显示评论信息
      *
      * @param poiId
-     * @param page
+     * @param lastUpdate
      * @param pageSize
      * @return
      */
-    public static Result displayComment(String poiId, Double lower, Double upper, int page, int pageSize) {
+    public static Result displayComment(String poiId, double lower, double upper, long lastUpdate, int pageSize) {
         try {
-            ObjectId oid = new ObjectId(poiId);
-            List<Comment> commentList = MiscAPI.displayCommentApi(oid, lower, upper, page, pageSize);
-            List<JsonNode> list = new ArrayList<>();
-            for (Comment comment : commentList) {
-                list.add(new MiscFormatter().format(comment));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(list));
-        } catch (AizouException | NullPointerException e) {
+            JsonNode results = getCommentsImpl(poiId, lower, upper, lastUpdate, pageSize);
+            return Utils.createResponse(ErrorCode.NORMAL, results);
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }

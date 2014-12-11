@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DestinationGuideFormatter;
-import formatter.taozi.poi.CommentFormatter;
+import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
@@ -19,7 +19,6 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-
 import java.util.*;
 
 /**
@@ -38,7 +37,6 @@ public class POICtrl extends Controller {
 
         //取得推荐
         List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
-        int rmdCnt = (int) PoiAPI.getPOIRmdCount(spotId);
         List<JsonNode> recommends = new ArrayList<>();
         for (POIRmd temp : rmdEntities) {
             recommends.add(new POIRmdFormatter().format(temp));
@@ -46,17 +44,14 @@ public class POICtrl extends Controller {
 
         // 取得评论
         List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-        int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
         List<JsonNode> comments = new ArrayList<>();
         for (Comment temp : commentsEntities) {
             comments.add(new CommentFormatter().format(temp));
         }
         ObjectNode ret = (ObjectNode) info;
         ret.put("recommends", Json.toJson(recommends));
-        ret.put("recommendCnt", rmdCnt);
 
         ret.put("comments", Json.toJson(comments));
-        ret.put("commentCnt", commCnt);
 
         return ret;
     }
@@ -335,7 +330,7 @@ public class POICtrl extends Controller {
      * @param traffic
      * @return
      */
-    public static Result getViewSpotDetail(String id, Boolean desc, Boolean traffic) {
+    public static Result getViewSpotDetail(String id, boolean desc, boolean traffic) {
         try {
             ObjectNode results = Json.newObject();
             ObjectId oid = new ObjectId(id);
@@ -404,8 +399,8 @@ public class POICtrl extends Controller {
      * @param culture
      * @return
      */
-    public static Result getTravelGuide(String locId, Boolean remoteTraffic, Boolean localTraffic,
-                                        Boolean activity, Boolean tips, Boolean culture, int page, int pageSize) {
+    public static Result getTravelGuide(String locId, boolean remoteTraffic, boolean localTraffic,
+                                        boolean activity, boolean tips, boolean culture, int page, int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();

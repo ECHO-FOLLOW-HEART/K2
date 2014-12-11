@@ -3,7 +3,7 @@ package aizou.core;
 import exception.AizouException;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.misc.PageFirst;
+import models.misc.Column;
 import models.misc.SimpleRef;
 import models.poi.Comment;
 import org.bson.types.ObjectId;
@@ -25,15 +25,15 @@ public class MiscAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<PageFirst> getColumns() throws AizouException {
-         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-         Query<PageFirst> query=ds.createQuery(PageFirst.class);
-         return query.asList();
+    public static List<Column> getColumns() throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Column> query = ds.createQuery(Column.class);
+        return query.asList();
 
     }
 
-    public static void saveColumns(PageFirst pageFirst) throws AizouException {
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+    public static void saveColumns(Column pageFirst) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ds.save(pageFirst);
     }
 
@@ -66,32 +66,26 @@ public class MiscAPI {
      * 通过poiId取得评论
      *
      * @param poiId
-     * @param page
+     * @param lastUpdate
      * @param pageSize
      * @return
      * @throws exception.AizouException
      */
-    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower,Double upper, int page, int pageSize)
+    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower, Double upper, long lastUpdate, int pageSize)
             throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        Query<Comment> query = ds.createQuery(Comment.class).field("poiId").equal(poiId);
-        query = query.order(Comment.FD_TIME);
+        Query<Comment> query = ds.createQuery(Comment.class).field(Comment.FD_ITEM_ID).equal(poiId);
+        query = query.order("-" + Comment.FD_CTIME);
 
-        /*if (goodComment) {
-            query = query.filter("score >=", 0.7).filter("score <", 1.0);
-            return query.offset(page * pageSize).limit(pageSize).asList();
-        }
-        if (midComment) {
-            query = query.filter("score >=", 0.3).filter("score <", 0.7);
-            return query.offset(page * pageSize).limit(pageSize).asList();
-        }
-        if (midComment) {
-            query = query.filter("score <", 0.3);
-            return query.offset(page * pageSize).limit(pageSize).asList();
-        }*/
-        return query.filter(Comment.FD_RATING +" >=",lower).filter(Comment.FD_RATING +" <",upper).offset(page * pageSize).limit(page).asList();
+        if (lastUpdate != 0)
+            query.field(Comment.FD_CTIME).lessThan(lastUpdate);
 
+//        query.field(Comment.FD_RATING).greaterThanOrEq(lower).field(Comment.FD_RATING).lessThanOrEq(upper);
+
+        query.limit(pageSize);
+
+        return query.asList();
     }
 
     /**
