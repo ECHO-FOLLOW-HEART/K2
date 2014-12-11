@@ -38,7 +38,8 @@ public class WebPlanAPI {
     public static final String HOTEL_FLAG_BUDGET = "budget";
     public static final String HOTEL_FLAG_YOUTH = "youth";
     public static final String HOTEL_FLAG_FOLK = "folk";
-    //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店
+    public static final String HOTEL_FLAG_YOUTH_AND_FOLK = "youthandfolk";
+    //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店 5-青年旅社和民俗酒店
 
     public static final String REST_FLAG_NULL = "none";
     public static final String REST_FLAG_REPUTATION = "reputation";
@@ -367,6 +368,9 @@ public class WebPlanAPI {
                 break;
             case HOTEL_FLAG_FOLK:
                 hotelTypeValue = 4.0d;
+                break;
+            case HOTEL_FLAG_YOUTH_AND_FOLK:
+                query.or(query.criteria("type").equal(3.0), query.criteria("type").equal(4.0));
                 break;
         }
         if (hotelTypeValue != null)
