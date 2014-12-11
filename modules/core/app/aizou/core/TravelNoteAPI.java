@@ -382,8 +382,7 @@ public class TravelNoteAPI {
         sb.append("<div>");
         for (String line : contents) {
             if (line.startsWith("img src")) {
-                line = "";      //表情置空
-                //sb.append(line);
+                continue; //不添加表情
             } else if (line.startsWith("http://")) {
                 sb.append("<img src=" + line + " >");
             } else

@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.geo.DestinationGuideFormatter;
+import formatter.taozi.geo.LocalityGuideFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
-import models.geo.Destination;
+import models.geo.Locality;
 import models.poi.*;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -19,6 +19,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
+
 import java.util.*;
 
 /**
@@ -377,10 +378,10 @@ public class POICtrl extends Controller {
             ObjectId oid = new ObjectId(locId);
             for (PoiAPI.DestinationType type : destKeyList) {
 
-                Destination destination = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
+                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
                 String kind = poiMap.get(type);
                 //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
+                results.put(kind, new LocalityGuideFormatter().format(locality, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
@@ -430,10 +431,10 @@ public class POICtrl extends Controller {
                 poiMap.put(PoiAPI.DestinationType.CULTURE,Destination.fnCulture);
             }*/
             for (PoiAPI.DestinationType type : destKeyList) {
-                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), type, page, pageSize);
+                Locality locality = PoiAPI.getTravelGuideApi(new ObjectId(locId), type, page, pageSize);
                 String kind = poiMap.get(type);
                 //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
+                results.put(kind, new LocalityGuideFormatter().format(locality, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException | NullPointerException | NumberFormatException e) {

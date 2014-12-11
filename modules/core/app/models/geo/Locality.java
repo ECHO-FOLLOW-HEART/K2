@@ -70,6 +70,32 @@ public class Locality extends AizouBaseEntity {
 
     public static String fnImageCnt = "imageCnt";
 
+    @Transient
+    public static String fnRemoteTraffic = "remoteTraffic";
+
+    @Transient
+    public static String fnLocalTraffic = "localTraffic";
+
+    @Transient
+    public static String fnShoppingIntro = "shoppingIntro";
+
+    @Transient
+    public static String fnDinningIntro = "dinningIntro";
+
+    @Transient
+    public static String fnActivityIntro = "activityIntro";
+
+    @Transient
+    public static String fnActivities = "activities";
+
+    @Transient
+    public static String fnTips = "tips";
+
+    @Transient
+    public static String fnCommodities = "commodities";
+
+    @Transient
+    public static String fnCuisines = "cuisines";
     /**
      * 外部交通信息。每个entry都是一个tip，为HTML格式
      */
