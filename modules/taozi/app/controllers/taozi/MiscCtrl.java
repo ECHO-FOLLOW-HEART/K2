@@ -214,7 +214,7 @@ public class MiscCtrl extends Controller {
             AbstractPOI poi;
             PoiAPI.POIType poiType;
             List locFields = new ArrayList();
-            Collections.addAll(locFields, "id", "type", "zhName", "enName", "images", "desc");
+            Collections.addAll(locFields, "id", "type", "zhName", "enName", "images", "desc","locality");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {
@@ -248,6 +248,7 @@ public class MiscCtrl extends Controller {
                     fa.enName = poi.enName;
                     fa.images = poi.images;
                     fa.desc = poi.desc;
+                    fa.locality = poi.getLocality();
                 }
                 faShowList.add(fa);
             }
