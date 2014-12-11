@@ -401,7 +401,8 @@ public class POICtrl extends Controller {
      * @return
      */
     public static Result getTravelGuide(String locId, boolean remoteTraffic, boolean localTraffic,
-                                        boolean activity, boolean tips, boolean culture, boolean desc, int page, int pageSize) {
+                                        boolean activity, boolean tips, boolean culture, boolean desc,
+                                        int page, int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();

@@ -100,7 +100,7 @@ public class Locality extends AizouBaseEntity {
     /**
      * 外部交通信息。每个entry都是一个tip，为HTML格式
      */
-    public List<String> remoteTraffic;
+    public List<Map<String, String>> remoteTraffic;
     /**
      * 内部交通信息。每个entry都是一个tip，为HTML格式
      */
