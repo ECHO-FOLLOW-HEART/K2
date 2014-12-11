@@ -294,8 +294,9 @@ public class MiscCtrl extends Controller {
     public static Result delFavorite(String id) {
         try {
             ObjectId oid = new ObjectId(id);
+            Integer userId = Integer.parseInt(request().getHeader("UserId"));
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-            Query<Favorite> query = ds.createQuery(Favorite.class).field("id").equal(oid);
+            Query<Favorite> query = ds.createQuery(Favorite.class).field("userId").equal(userId).field("itemId").equal(oid);
             ds.delete(query);
         } catch (NullPointerException | IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());

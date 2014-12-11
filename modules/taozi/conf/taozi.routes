@@ -48,7 +48,7 @@ POST           /misc/favorites                          controllers.taozi.MiscCt
 #取得收藏
 GET           /misc/favorites                          controllers.taozi.MiscCtrl.getFavorite(faType: String?="", page: Int?=0, pageSize: Int?=20)
 #删除收藏
-DELETE        /misc/favorites/$id<[0-9]+>              controllers.taozi.MiscCtrl.delFavorite(id: String)
+DELETE        /misc/favorites/:id                      controllers.taozi.MiscCtrl.delFavorite(id: String)
 #获得封面故事
 GET           /misc/cover-stories                      controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #反馈
