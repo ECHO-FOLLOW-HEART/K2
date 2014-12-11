@@ -271,8 +271,10 @@ public class TravelNoteAPI {
                 /*if (!elite)
                     continue;*/
             TravelNote note = new TravelNote();
+
             Object tmp;
-            note.id = new ObjectId(doc.get("id").toString());
+            ObjectId id = new ObjectId(doc.get("id").toString());
+            note.setId(id);
             note.authorName = (String) doc.get("authorName");
             note.title = (String) doc.get("title");
             tmp = doc.get("authorAvatar");
