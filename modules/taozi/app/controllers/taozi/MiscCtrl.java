@@ -516,7 +516,7 @@ public class MiscCtrl extends Controller {
 
             Comment comment = new Comment();
             comment.setUserId(userInfo.getUserId());
-            comment.setPoiId(poiObjid);
+            comment.setItemId(poiObjid);
             comment.setCommentDetails(commentDetails);
             comment.setPoiType(type);
             comment.setRating(score);

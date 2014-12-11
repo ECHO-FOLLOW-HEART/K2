@@ -76,7 +76,7 @@ public class Comment extends AizouBaseEntity {
     /**
      * 评价的poiId
      */
-    private ObjectId poiId;
+    private ObjectId itemId;
 
     /**
      * 评论附带的照片
@@ -139,12 +139,12 @@ public class Comment extends AizouBaseEntity {
         this.commentTime = commentTime;
     }
 
-    public ObjectId getPoiId() {
-        return poiId;
+    public ObjectId getItemId() {
+        return itemId;
     }
 
-    public void setPoiId(ObjectId poiId) {
-        this.poiId = poiId;
+    public void setItemId(ObjectId itemId) {
+        this.itemId = itemId;
     }
 
     public List<ImageItem> getImages() {
