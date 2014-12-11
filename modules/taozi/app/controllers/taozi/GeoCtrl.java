@@ -1,6 +1,7 @@
 package controllers.taozi;
 
 import aizou.core.GeoAPI;
+import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,7 +40,10 @@ public class GeoCtrl extends Controller {
      */
     public static Result getLocality(String id, int noteCnt) {
         try {
+            Integer userId = Integer.parseInt(request().getHeader("UserId"));
             Locality locality = GeoAPI.locDetails(id);
+            //是否被收藏
+            MiscAPI.isFavorite(locality, userId);
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().format(locality);

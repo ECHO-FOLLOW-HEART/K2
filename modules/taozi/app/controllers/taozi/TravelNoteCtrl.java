@@ -1,6 +1,7 @@
 package controllers.taozi;
 
 import aizou.core.LocalityAPI;
+import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -116,19 +117,20 @@ public class TravelNoteCtrl extends Controller {
      */
     public static Result getTravelNoteDetail(String noteId) {
         try {
+            Integer userId = Integer.parseInt(request().getHeader("UserId"));
             List<TravelNote> travelNoteList = TravelNoteAPI.getTravelNoteDetailApi(noteId);
             List<JsonNode> nodeList = new ArrayList<>();
             for (TravelNote note : travelNoteList) {
+                //是否被收藏
+                MiscAPI.isFavorite(note, userId);
                 nodeList.add(new DetailTravelNoteFormatter().format(note));
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch (ParseException | SolrServerException e) {
+        } catch (ParseException | SolrServerException |AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-
     }
-
 
 }
 

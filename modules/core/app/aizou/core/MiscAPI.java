@@ -3,19 +3,21 @@ package aizou.core;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
 import formatter.taozi.misc.CommentFormatter;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Column;
-import models.misc.SimpleRef;
+import models.misc.TravelNote;
+import models.poi.AbstractPOI;
 import models.poi.Comment;
+import models.user.Favorite;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
-import play.libs.Json;
 
+import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created by lxf on 14-11-12.
@@ -95,5 +97,20 @@ public class MiscAPI {
         return query.asList();
     }
 
+    /**
+     * 判断是否被收藏
+     *
+     * @param item
+     * @param userId
+     * @throws AizouException
+     */
+    public static void isFavorite(AizouBaseEntity item, Integer userId) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Favorite> query = ds.createQuery(Favorite.class);
+        query.field("userId").equal(userId).field(Favorite.fnItemId).equal(item.getId());
+        Iterator<Favorite> it = query.iterator();
+        if (it.hasNext())
+            item.setIsFavorite(true);
+    }
 
 }

@@ -63,9 +63,6 @@ public class SelfFavoriteFormatter extends TaoziBaseFormatter {
 
         listFields.add(Favorite.fnImage);
 
-        mapFields.add(Favorite.fnLocality);
-        mapFields.add(AbstractPOI.FD_LOCATION);
-
         return postProcess(result);
     }
 }

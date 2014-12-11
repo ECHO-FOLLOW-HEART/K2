@@ -30,6 +30,7 @@ public class DetailedLocalityFormatter extends TaoziBaseFormatter {
                 .addFilter("localityFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
                                 AizouBaseEntity.FD_ID,
+                                AizouBaseEntity.FD_IS_FAVORITE,
                                 Locality.FD_EN_NAME,
                                 Locality.FD_ZH_NAME,
                                 Locality.fnDesc,

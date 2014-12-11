@@ -1,5 +1,6 @@
 package controllers.taozi;
 
+import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -28,10 +29,12 @@ import java.util.*;
 public class POICtrl extends Controller {
 
     public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
-                                           int commentPage, int commentPageSize,
+                                           int commentPage, int commentPageSize,Integer userId,
                                            int rmdPage, int rmdPageSize) throws AizouException {
         DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
+        //是否被收藏
+        MiscAPI.isFavorite(poiInfo,userId);
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
         JsonNode info = poiFormatter.format(poiInfo);
@@ -91,7 +94,8 @@ public class POICtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
         }
         try {
-            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, rmdPage, rmdPageSize);
+            Integer userId = Integer.parseInt(request().getHeader("UserId"));
+            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize,userId, rmdPage, rmdPageSize);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
