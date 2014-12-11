@@ -26,7 +26,7 @@ public class SimpleLocalityFormatter extends TaoziBaseFormatter {
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
                 .addFilter("localityFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
-                                AbstractPOI.FD_ID,
+                                AizouBaseEntity.FD_ID,
                                 AbstractPOI.FD_EN_NAME,
                                 AbstractPOI.FD_ZH_NAME
 
@@ -39,7 +39,7 @@ public class SimpleLocalityFormatter extends TaoziBaseFormatter {
 
         ObjectNode result = mapper.valueToTree(item);
 
-        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_ID));
+        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AizouBaseEntity.FD_ID));
 
         return postProcess(result);
     }

@@ -28,7 +28,7 @@ public class SimplePOIFormatter extends TaoziBaseFormatter {
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
                 .addFilter("abstractPOIFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
-                                AbstractPOI.FD_ID,
+                                AizouBaseEntity.FD_ID,
                                 AbstractPOI.FD_EN_NAME,
                                 AbstractPOI.FD_ZH_NAME,
                                 AbstractPOI.FD_DESC,

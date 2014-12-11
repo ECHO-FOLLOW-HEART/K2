@@ -15,9 +15,7 @@ public class AizouTest extends WithApplication {
     }
 
     protected void assertText(JsonNode node, String[] fields, boolean allowEmpty) {
-        System.out.println(node);
         for (String key : fields) {
-            System.out.println(key);
             JsonNode txtNode = node.get(key);
             if (txtNode == null)
                 assertThat(false).isTrue();
