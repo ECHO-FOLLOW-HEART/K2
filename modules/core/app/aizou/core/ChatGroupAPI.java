@@ -176,7 +176,7 @@ public class ChatGroupAPI {
      * @throws exception.AizouException
      */
 
-    public static String createGroupApi(Integer ownerId, String groupName, String desc, boolean isGroupPublic, Integer maxusers) throws AizouException {
+    public static String createGroupApi(Long ownerId, String groupName, String desc, boolean isGroupPublic, Integer maxusers) throws AizouException {
         /**
          * 向环信注册群组
          */
@@ -236,7 +236,7 @@ public class ChatGroupAPI {
      * @param groupId
      * @param id
      */
-    public static String deleteGroupApi(String groupId, Integer id) throws AizouException {
+    public static String deleteGroupApi(String groupId, Long id) throws AizouException {
         /**
          * 环信删除
          */
@@ -248,7 +248,7 @@ public class ChatGroupAPI {
         //判断是否为空
         if (chatGroupInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        int sub = chatGroupInfo.owner.getUserId() - id;
+        long sub = chatGroupInfo.owner.getUserId() - id;
         if (sub == 0) {       //判断id,删除操作只能由群主发起
             /*String href = String.format("https://a1.easemob.com/%s/%s/chargroups/%s", orgName, appName, groupId);
             String data = "";
@@ -277,7 +277,7 @@ public class ChatGroupAPI {
      * @param userList
      * @throws exception.AizouException
      */
-    public static void putUserIntoGroupApi(String groupId, List<Integer> userList) throws AizouException {
+    public static void putUserIntoGroupApi(String groupId, List<Long> userList) throws AizouException {
         /**
          * 向环信中添加成员
          */
@@ -307,7 +307,7 @@ public class ChatGroupAPI {
         List<UserInfo> members = chatGroupInfo.members;
         List<UserInfo> userInfoList = new ArrayList<>();
         Boolean flag = false;
-        for (Integer id : userList) {
+        for (Long id : userList) {
             UserInfo userInfo = UserAPI.getUserInfo(id, Arrays.asList(UserInfo.fnNickName,
                     UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnUserId, UserInfo.fnAvatar));
             if (members == null) {
@@ -339,7 +339,7 @@ public class ChatGroupAPI {
      * @param groupId
      * @param userList
      */
-    public static void deleteMemberFromGroupApi(String groupId, List<Integer> userList) throws AizouException {
+    public static void deleteMemberFromGroupApi(String groupId, List<Long> userList) throws AizouException {
         /**
          * 环信中进行删除
          */
@@ -348,7 +348,7 @@ public class ChatGroupAPI {
         String appName = configuration.getString("app");*/
         List<UserInfo> members = null;
         if (userList != null) {
-            for (Integer id : userList) {
+            for (Long id : userList) {
                 /*String href = String.format("https://a1.easemob.com/%s/%s/chatgroups/%s/users'/%s", orgName, appName, groupId, id);
                 try {
                     setUrlConnection(href, Json.newObject(), false, "DELETE");*/

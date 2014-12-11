@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class UserCtrl extends Controller {
 
-    public static Result addEaseMobContacts(Integer userA, Integer userB, boolean actionAdd) {
+    public static Result addEaseMobContacts(Long userA, Long userB, boolean actionAdd) {
         if (userA == null || userB == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
 
@@ -27,13 +27,13 @@ public class UserCtrl extends Controller {
         }
     }
 
-    public static Result modEaseMobBlocks(Integer userA, Integer userB, boolean actionAdd) {
+    public static Result modEaseMobBlocks(Long userA, Long userB, boolean actionAdd) {
         if (userA == null || userB == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
 
         try {
             if (actionAdd) {
-                List<Integer> blockIds = new ArrayList<>();
+                List<Long> blockIds = new ArrayList<>();
                 blockIds.add(userB);
                 UserAPI.addEaseMobBlocks(userA, blockIds);
             } else {

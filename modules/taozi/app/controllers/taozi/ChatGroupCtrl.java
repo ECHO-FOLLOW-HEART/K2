@@ -32,7 +32,7 @@ public class ChatGroupCtrl {
             String desc = req.get("desc").asText();
             boolean isGroupPublic = req.get("isGroupPublic").asBoolean();
             Integer maxUsers = req.get("maxUsers").asInt();
-            String groupId = ChatGroupAPI.createGroupApi(Integer.parseInt(ownnerId), groupName, desc, isGroupPublic, maxUsers);
+            String groupId = ChatGroupAPI.createGroupApi(Long.parseLong(ownnerId), groupName, desc, isGroupPublic, maxUsers);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(groupId));
         } catch (AizouException | NumberFormatException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
@@ -49,7 +49,7 @@ public class ChatGroupCtrl {
             JsonNode req = request().body().asJson();
             String groupId = req.get("groupId").asText();
             String userId = req.get("userId").asText();
-            String response = ChatGroupAPI.deleteGroupApi(groupId, Integer.parseInt(userId));
+            String response = ChatGroupAPI.deleteGroupApi(groupId, Long.parseLong(userId));
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(response));
         } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
@@ -64,9 +64,9 @@ public class ChatGroupCtrl {
             JsonNode node = request().body().asJson();
             String groupId = node.get("groupId").asText();
             Iterator<JsonNode> iterable = node.get("userList").iterator();
-            List<Integer> userList = new ArrayList<>();
+            List<Long> userList = new ArrayList<>();
             while (iterable.hasNext()) {
-                Integer id = iterable.next().asInt();
+                Long id = iterable.next().asLong();
                 userList.add(id);
             }
             ChatGroupAPI.putUserIntoGroupApi(groupId, userList);
@@ -86,9 +86,9 @@ public class ChatGroupCtrl {
             JsonNode node = request().body().asJson();
             String groupId = node.get("groupId").asText();
             Iterator<JsonNode> iterator = node.get("userList").iterator();
-            List<Integer> userList = new ArrayList<>();
+            List<Long> userList = new ArrayList<>();
             while (iterator.hasNext()) {
-                Integer id = iterator.next().asInt();
+                Long id = iterator.next().asLong();
                 userList.add(id);
             }
             ChatGroupAPI.deleteMemberFromGroupApi(groupId, userList);

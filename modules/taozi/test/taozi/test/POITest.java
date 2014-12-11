@@ -1,13 +1,14 @@
 package taozi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import controllers.taozi.MiscCtrl;
 import controllers.taozi.POICtrl;
 import controllers.taozi.UserCtrl;
 import models.poi.AbstractPOI;
 import models.poi.Hotel;
 import models.poi.ViewSpot;
+import org.junit.Ignore;
 import org.junit.Test;
-import play.test.WithApplication;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -18,24 +19,7 @@ import static org.fest.assertions.Assertions.assertThat;
 /**
  * Created by zephyre on 12/8/14.
  */
-public class POITest extends WithApplication {
-
-    private void assertText(JsonNode node, String field, boolean allowEmpty) {
-        assertText(node, new String[]{field}, allowEmpty);
-    }
-
-    private void assertText(JsonNode node, String[] fields, boolean allowEmpty) {
-        for (String key : fields) {
-            JsonNode txtNode = node.get(key);
-            if (txtNode == null)
-                assertThat(false).isTrue();
-            else {
-                assertThat(txtNode.isTextual()).isTrue();
-                if (!allowEmpty)
-                    assertThat(txtNode.asText().trim().isEmpty()).isFalse();
-            }
-        }
-    }
+public class POITest extends AizouTest {
 
     /**
      * 测试查看某个地点周围的POI的功能
@@ -122,11 +106,33 @@ public class POITest extends WithApplication {
 
             for (String key : new String[]{"recommends", "comments"})
                 assertThat(ret.get(key).isArray()).isTrue();
-
-            for (String key : new String[]{"recommendCnt", "commentCnt"})
-                assertThat(ret.get(key).asInt()).isGreaterThanOrEqualTo(0);
         }
+    }
 
+    /**
+     * 测试评论
+     *
+     * @throws ReflectiveOperationException
+     */
+    @Test
+    public void commentsCheck() throws ReflectiveOperationException {
 
+        Method method = MiscCtrl.class.getDeclaredMethod("getCommentsImpl", String.class, double.class, double.class,
+                long.class, int.class);
+        method.setAccessible(true);
+
+        double minRating = 0.45;
+        double maxRating = 0.8;
+        String poiId = "548040a89fb7882b6dca5fa2";
+        long lastUpdate = 0;
+        JsonNode result = (JsonNode) method.invoke(MiscCtrl.class, poiId, minRating, maxRating, lastUpdate, 100);
+
+        for (JsonNode comment : result) {
+            assertText(comment, new String[]{"userAvatar", "userName", "contents"}, true);
+            JsonNode imagesNode = comment.get("images");
+            assertThat(imagesNode.isArray()).isTrue();
+            JsonNode tsNode = comment.get("cTime");
+            assertThat(tsNode.asLong()).isGreaterThan(0);
+        }
     }
 }

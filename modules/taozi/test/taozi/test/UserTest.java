@@ -25,11 +25,11 @@ public class UserTest extends AizouTest {
      */
     @Test
     public void sideUserCheck() throws ReflectiveOperationException {
-        Method method = UserCtrl.class.getDeclaredMethod("getUserProfileByIdImpl", Integer.class, Integer.class);
+        Method method = UserCtrl.class.getDeclaredMethod("getUserProfileByIdImpl", Long.class, Long.class);
         method.setAccessible(true);
 
-        Integer targetId = 100076;
-        for (Integer selfId : new Integer[]{null, targetId}) {
+        Long targetId = 100076L;
+        for (Long selfId : new Long[]{null, targetId}) {
             JsonNode ret = (JsonNode) method.invoke(UserCtrl.class, targetId, selfId);
             Set<String> txtKeyList = new HashSet<>();
             if (selfId != null)

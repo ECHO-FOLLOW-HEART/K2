@@ -18,10 +18,13 @@ import java.util.List;
 public class Comment extends AizouBaseEntity {
 
     @Transient
-    public static final String FD_AVATAR = "avatar";
+    public static final String FD_AVATAR = "userAvatar";
 
     @Transient
-    public static final String FD_NICK_NAME = "nickName";
+    public static final String FD_ITEM_ID = "itemId";
+
+    @Transient
+    public static final String FD_USER_NAME = "userName";
 
     @Transient
     public static final String FD_USER_ID = "userId";
@@ -30,28 +33,31 @@ public class Comment extends AizouBaseEntity {
     public static final String FD_RATING = "rating";
 
     @Transient
-    public static final String FD_CONTENTS = "commentDetails";
+    public static final String FD_CONTENTS = "contents";
 
     @Transient
-    public static final String FD_TIME = "commentTime";
+    public static final String FD_CTIME = "cTime";
 
     @Transient
-    public static final String FD_IMAGS = "images";
+    public static final String FD_MTIME = "mTime";
+
+    @Transient
+    public static final String FD_IMAGES = "images";
 
     /**
      * 用户ID
      */
-    private Integer userId;
+    private Long userId;
 
     /**
      * 用户头像
      */
-    private String avatar;
+    private String userAvatar;
 
     /**
      * 用户昵称
      */
-    private String nickName;
+    private String userName;
 
     /**
      * 评论的类型
@@ -66,15 +72,20 @@ public class Comment extends AizouBaseEntity {
     /**
      * 评价的详情
      */
-    private String commentDetails;
+    private String contents;
 
     /**
-     * 评价时间
+     * 评论发表时间
      */
-    private long commentTime;
+    private long cTime;
 
     /**
-     * 评价的poiId
+     * 评论修改时间
+     */
+    private long mTime;
+
+    /**
+     * 评论对应的item
      */
     private ObjectId itemId;
 
@@ -83,28 +94,28 @@ public class Comment extends AizouBaseEntity {
      */
     private List<ImageItem> images;
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public String getAvatar() {
-        return avatar;
+    public String getUserAvatar() {
+        return userAvatar;
     }
 
-    public void setAvatar(String avatar) {
-        this.avatar = avatar;
+    public void setUserAvatar(String userAvatar) {
+        this.userAvatar = userAvatar;
     }
 
-    public String getNickName() {
-        return nickName;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setNickName(String nickName) {
-        this.nickName = nickName;
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public String getPoiType() {
@@ -123,20 +134,28 @@ public class Comment extends AizouBaseEntity {
         this.rating = rating;
     }
 
-    public String getCommentDetails() {
-        return commentDetails;
+    public String getContents() {
+        return contents;
     }
 
-    public void setCommentDetails(String commentDetails) {
-        this.commentDetails = commentDetails;
+    public void setContents(String contents) {
+        this.contents = contents;
     }
 
-    public long getCommentTime() {
-        return commentTime;
+    public long getcTime() {
+        return cTime;
     }
 
-    public void setCommentTime(long commentTime) {
-        this.commentTime = commentTime;
+    public void setcTime(long cTime) {
+        this.cTime = cTime;
+    }
+
+    public long getmTime() {
+        return mTime;
+    }
+
+    public void setmTime(long mTime) {
+        this.mTime = mTime;
     }
 
     public ObjectId getItemId() {

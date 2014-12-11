@@ -33,7 +33,7 @@ public class Credential extends AizouBaseEntity {
      * 用户ID
      */
     @Constraints.Required
-    private Integer userId;
+    private Long userId;
 
     /**
      * 密码加盐hash
@@ -57,11 +57,11 @@ public class Credential extends AizouBaseEntity {
     @Constraints.Required
     private String secKey;
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer val) {
+    public void setUserId(Long val) {
         userId = val;
     }
 
