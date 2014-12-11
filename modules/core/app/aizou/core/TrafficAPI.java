@@ -339,16 +339,22 @@ public class TrafficAPI {
         return RouteIterator.getInstance(pagingList.iterator(), (cal != null ? cal.getTime() : null));
     }
 
+    /**
+     * 返回交通樞紐的信息
+     *
+     * @param trafficType
+     * @param id
+     * @return
+     * @throws AizouException
+     */
     public static  AbstractTrafficHub getTrafficHubInfo(String trafficType, ObjectId id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<? extends AbstractTrafficHub> query = null;
         if (trafficType.equals(TRAFFIC_TYPE_AIRPOT)) {
             query = ds.createQuery(Airport.class);
-            query.field("id").equal(id);
-        } else if (trafficType.equals(TRAFFIC_TYPE_TRAINSTATION)) {
+        } else if (trafficType.equals(TRAFFIC_TYPE_TRAINSTATION))
             query = ds.createQuery(TrainStation.class);
-            query.field("id").equal(id);
-        }
+        query.field("id").equal(id);
         return query.get();
     }
 

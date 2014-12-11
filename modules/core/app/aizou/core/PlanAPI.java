@@ -48,7 +48,7 @@ public class PlanAPI {
                 query.criteria(AbstractPlan.FD_DAYS).lessThanOrEq(maxDays));
 
         query.field(AizouBaseEntity.FD_ENABLED).equal(Boolean.TRUE);
-        query.order(AbstractPlan.FD_MANUAL_PRIORITY).offset(page * pageSize).limit(pageSize);
+        query.order("-forkedCnt," + AbstractPlan.FD_MANUAL_PRIORITY).offset(page * pageSize).limit(pageSize);
 
         return query.asList();
     }
@@ -644,7 +644,7 @@ public class PlanAPI {
 
         //再推飞机火车
         RouteIterator nextTrainIt = TrafficAPI.searchTrainRoutes(midLocality.getId(), travelLoc, "", calLower, null,
-                null,  timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+                null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
         List nextTrainList = DataFactory.asList(nextTrainIt);
 
         List<AbstractRoute> airTrainRoutes = PlanUtils.getFitRoutes(firstAirList, nextTrainList);
