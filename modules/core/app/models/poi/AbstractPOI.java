@@ -101,16 +101,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
 
     @Transient
     public static String simplocList = "locList";
-<<<<<<< HEAD
-
-    @Transient
-
-    public static final String FD_TAGS = "tags";
-
-    @Transient
-    public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
-
-=======
     @Transient
     public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
     @Transient
@@ -119,7 +109,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      * 标识POI的种类，jackson反序列还用
      */
     public String type;
->>>>>>> origin/refactor-h5
     @Embedded
     public CheckinRatings ratings;
 

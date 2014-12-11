@@ -199,13 +199,13 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
             return StringUtils.abbreviate(summary, Constants.ABBREVIATE_LEN);
     }
 
-    public String getPublishDate() {
+/*    public String getPublishDate() {
         if (publishDate == null)
             return "";
         else
             return new SimpleDateFormat("yyyy-MM-dd EE z").format(publishDate);
 
-    }
+    }*/
 
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

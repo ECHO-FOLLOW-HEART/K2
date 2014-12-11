@@ -50,13 +50,8 @@ public class GeoCtrl extends Controller {
             //}
             response.put("imageCnt", locality.getImages().size());
             return Utils.createResponse(ErrorCode.NORMAL, response);
-<<<<<<< HEAD
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
-=======
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
->>>>>>> origin/refactor-h5
         }
     }
 
@@ -71,11 +66,7 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-<<<<<<< HEAD
-    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping,
-=======
     public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping,boolean hotel,boolean restaurant,
->>>>>>> origin/refactor-h5
                                         int page, int pageSize) {
         //TODO 没有美食/购物的数据
         try {
@@ -86,13 +77,6 @@ public class GeoCtrl extends Controller {
             if (dinning)
                 poiMap.put(PoiAPI.POIType.DINNING, "dinning");
 
-<<<<<<< HEAD
-            if (dinning)
-                poiMap.put(PoiAPI.POIType.DINNING, "dinning");
-
-            if (shopping)
-                poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
-=======
             if (shopping)
                 poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
             if (hotel)
@@ -100,7 +84,6 @@ public class GeoCtrl extends Controller {
 
             if (restaurant)
                 poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
->>>>>>> origin/refactor-h5
 
             for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
                 List<JsonNode> retPoiList = new ArrayList<>();
@@ -108,11 +91,7 @@ public class GeoCtrl extends Controller {
                 String poiTypeName = entry.getValue();
 
                 // TODO 暂时返回国内数据
-<<<<<<< HEAD
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, new ObjectId(locId), false, page, pageSize);
-=======
                 for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, null, false, page, pageSize);
->>>>>>> origin/refactor-h5
                      it.hasNext(); )
                     retPoiList.add(new SimplePOIFormatter().format(it.next()));
                 results.put(poiTypeName, Json.toJson(retPoiList));
@@ -152,11 +131,7 @@ public class GeoCtrl extends Controller {
                 // TODO 全部取出，不要分页，暂时取100个
                 List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 100);
                 for (Locality des : destinations) {
-<<<<<<< HEAD
-                    objs.add((ObjectNode) new SimpleDestinationFormatter().format(des));
-=======
                     objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
->>>>>>> origin/refactor-h5
                 }
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));

@@ -69,54 +69,6 @@ public class Locality extends AizouBaseEntity {
     public static String fnSuperAdm = "superAdm";
 
     public static String fnImageCnt = "imageCnt";
-<<<<<<< HEAD
-
-    /**
-     * 中文名称
-     */
-    private String zhName;
-
-    /**
-     * 英文名称
-     */
-    private String enName;
-
-    /**
-     * 当地名称
-     */
-    private String locName;
-
-    /**
-     * 别名
-     */
-    private List<String> alias;
-
-    /**
-     * 去过的人数
-     */
-    private Integer visitCnt;
-
-    /**
-     * 评论条数
-     */
-    private Integer commentCnt;
-
-    /**
-     * 收藏次数
-     */
-    private Integer favorCnt;
-
-    /**
-     * 热门程度
-     */
-    private Double hotness;
-
-    /**
-     * 评分
-     */
-    private Double rating;
-=======
->>>>>>> origin/refactor-h5
 
     /**
      * 外部交通信息。每个entry都是一个tip，为HTML格式

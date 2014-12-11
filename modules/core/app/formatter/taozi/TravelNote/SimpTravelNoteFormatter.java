@@ -11,15 +11,9 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-<<<<<<< HEAD:modules/core/app/formatter/taozi/TravelNote/SimpTravelNoteFormatter.java
-import models.TravelPiBaseItem;
-import models.misc.TravelNote;
-import formatter.JsonFormatter;
-=======
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.misc.TravelNote;
->>>>>>> origin/refactor-h5:modules/core/app/utils/formatter/taozi/TravelNote/SimpTravelNoteFormatter.java
 
 import java.util.Collections;
 import java.util.HashSet;

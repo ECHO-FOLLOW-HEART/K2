@@ -39,11 +39,6 @@ public class ViewSpot extends AbstractPOI {
 
     @Transient
     public static String FD_DESC_FLAGS = "descriptionFlag";
-<<<<<<< HEAD
-=======
-
-
->>>>>>> origin/refactor-h5
 
     public Integer spotId;
 

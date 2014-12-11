@@ -14,10 +14,6 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.misc.TravelNote;
-<<<<<<< HEAD:modules/core/app/formatter/taozi/TravelNote/DetailTravelNoteFormatter.java
-import formatter.JsonFormatter;
-=======
->>>>>>> origin/refactor-h5:modules/core/app/utils/formatter/taozi/TravelNote/DetailTravelNoteFormatter.java
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,7 +44,7 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, TravelNote.fnId, TravelNote.fnAuthorAvatar, TravelNote.fnAuthorName, TravelNote.fnCover,
+                Collections.addAll(includedFields, TravelNote.fnAuthorAvatar, TravelNote.fnAuthorName, TravelNote.fnCover,
                         TravelNote.fnTitle, TravelNote.fnPublishDate, TravelNote.fnSource, TravelNote.fnContents, TravelNote.fnCostLower,
                         TravelNote.fnCostUpper, TravelNote.fnSourceUrl, TravelNote.fnCommentCnt, TravelNote.fnViewCnt, TravelNote.fnFavorCnt);
 

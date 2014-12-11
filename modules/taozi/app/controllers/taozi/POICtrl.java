@@ -5,18 +5,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
-<<<<<<< HEAD
-import exception.TravelPiException;
 import formatter.taozi.geo.DestinationGuideFormatter;
-=======
 import formatter.taozi.poi.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
->>>>>>> origin/refactor-h5
 import models.geo.Destination;
 import models.poi.*;
-
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -24,15 +19,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-<<<<<<< HEAD
-import formatter.taozi.poi.CommentFormatter;
-import formatter.taozi.poi.DetailedPOIFormatter;
-import formatter.taozi.poi.POIRmdFormatter;
-import formatter.taozi.poi.SimplePOIFormatter;
 
-=======
-import utils.formatter.taozi.geo.DestinationGuideFormatter;
->>>>>>> origin/refactor-h5
 import java.util.*;
 
 /**

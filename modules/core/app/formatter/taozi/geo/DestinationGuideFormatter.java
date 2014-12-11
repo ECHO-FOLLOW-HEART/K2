@@ -11,13 +11,8 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-<<<<<<< HEAD:modules/core/app/formatter/taozi/geo/DestinationGuideFormatter.java
-import formatter.JsonFormatter;
-import models.TravelPiBaseItem;
-=======
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
->>>>>>> origin/refactor-h5:modules/core/app/utils/formatter/taozi/geo/DestinationGuideFormatter.java
 import models.geo.Destination;
 
 import java.util.Collections;

@@ -202,7 +202,8 @@ public class TravelNoteAPI {
                     sb.append(String.format(" id:%s", t));
             }
             query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title")
-                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id");
+                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id")
+                    .addField("summary");
             query.setRows(pageSize);
             docs = server.query(query).getResults();
             return getTravelNotesByDocuments(docs);
@@ -224,20 +225,9 @@ public class TravelNoteAPI {
         TravelNote note;
         Date publishDate;
         for (SolrDocument doc : docs) {
-<<<<<<< HEAD
-            Boolean elite = (Boolean) doc.get("elite");
-                /*if (!elite)
-                    continue;*/
-            TravelNote note = new TravelNote();
-
-            Object tmp;
-            ObjectId id = new ObjectId(doc.get("id").toString());
-            note.setId(id);
-=======
             note = new TravelNote();
             Object tmp;
-            note.setId(new ObjectId(doc.get("id").toString()));
->>>>>>> origin/refactor-h5
+            //note.setId(new ObjectId(doc.get("id").toString()));
             note.authorName = (String) doc.get("authorName");
             note.title = (String) doc.get("title");
             tmp = doc.get("authorAvatar");
@@ -245,6 +235,7 @@ public class TravelNoteAPI {
             if (!note.authorAvatar.startsWith("http://"))
                 note.authorAvatar = "http://" + note.authorAvatar;
             tmp = doc.get("favorCnt");
+            //TODO 游记id的类型
             try {
                 note.setId(new ObjectId(doc.get("id").toString()));
             } catch (IllegalArgumentException e) {
@@ -261,7 +252,7 @@ public class TravelNoteAPI {
             note.sourceUrl = (tmp != null ? (String) tmp : "");
             note.contents = (List) doc.get("contents");
             note.source = getSource((String) doc.get("source"));
-            publishDate = ((Date) doc.get("publishDate"));
+            publishDate = (Date) doc.get("publishDate");
             note.publishDate = publishDate == null ? null : publishDate.getTime();
             // TODO
             note.cover = "http://e.hiphotos.baidu.com/lvpics/s%3D800/sign=caab32ee3987e9504617fe6c2039531b/9a504fc2d56285359976ef0c93ef76c6a7ef630c.jpg";
@@ -345,12 +336,12 @@ public class TravelNoteAPI {
                 .addField("viewCnt").addField("commentCnt");*/
 
         docs = server.query(query).getResults();
-
+        TravelNote note;
         for (SolrDocument doc : docs) {
             Boolean elite = (Boolean) doc.get("elite");
                 /*if (!elite)
                     continue;*/
-            TravelNote note = new TravelNote();
+            note = new TravelNote();
             Object tmp;
             note.authorName = (String) doc.get("authorName");
             note.title = (String) doc.get("title");

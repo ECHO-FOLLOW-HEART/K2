@@ -32,13 +32,6 @@ public class TravelNoteCtrl extends Controller {
 
     public static Result searchNotes(String keyWord, String locId, int page, int pageSize) {
         try {
-<<<<<<< HEAD
-
-            ObjectId oid = new ObjectId(locId);
-            Locality locality = LocalityAPI.getLocality(oid);
-            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null,
-                    pageSize);
-=======
             List<TravelNote> noteList;
             if (!locId.isEmpty()) {
                 ObjectId oid = new ObjectId(locId);
@@ -48,7 +41,6 @@ public class TravelNoteCtrl extends Controller {
                 noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(keyWord), Arrays.asList(keyWord), page, pageSize);
             else
                 noteList = new ArrayList();
->>>>>>> origin/refactor-h5
             List<JsonNode> ret = new ArrayList<>();
             for (TravelNote note : noteList)
                 ret.add(note.toJson());
@@ -71,49 +63,27 @@ public class TravelNoteCtrl extends Controller {
         try {
             ObjectId objectId = new ObjectId(id);
             List<JsonNode> nodeList = new ArrayList<>();
-<<<<<<< HEAD
-            Locality locality = LocalityAPI.getLocality(objectId, Arrays.asList(Locality.fnZhName, Locality.fnTags, Locality.fnAlias));
-            ViewSpot vs = PoiAPI.getVsDetail(objectId, Arrays.asList(ViewSpot.FD_ZH_NAME, ViewSpot.FD_TAGS, ViewSpot.detAlias));
-=======
             Locality locality = LocalityAPI.getLocality(objectId, Arrays.asList(Locality.FD_ZH_NAME, Locality.fnTags, Locality.FD_ALIAS));
             ViewSpot vs = PoiAPI.getVsDetail(objectId, Arrays.asList(ViewSpot.FD_ZH_NAME, ViewSpot.FD_TAGS, ViewSpot.FD_ALIAS));
->>>>>>> origin/refactor-h5
             List<String> locNames = new ArrayList<>();
             List<String> vsNames = new ArrayList<>();
             if (locality == null && vs == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
             else if (vs == null) {
-<<<<<<< HEAD
-                if (locality.fnAlias != null)
-                    locNames.addAll(locality.getAlias());
-                if (locality.fnTags != null)
-                    locNames.addAll(locality.getTags());
-                if (locality.fnZhName != null)
-=======
                 if (locality.getAlias() != null)
                     locNames.addAll(locality.getAlias());
                 if (locality.getTags() != null)
                     locNames.addAll(locality.getTags());
                 if (locality.getZhName() != null)
->>>>>>> origin/refactor-h5
-                    locNames.add(locality.getZhName());
+                locNames.add(locality.getZhName());
             } else if (locality == null) {
-                if (vs.fnAlias != null)
+                if (vs.alias != null)
                     vsNames.addAll(vs.alias);
                 if (vs.FD_TAGS != null)
                     vsNames.addAll(vs.tags);
                 if (vs.FD_ZH_NAME != null)
                     vsNames.add(vs.zhName);
             } else {
-<<<<<<< HEAD
-                if (locality.fnAlias != null)
-                    locNames.addAll(locality.getAlias());
-                if (locality.fnTags != null)
-                    locNames.addAll(locality.getTags());
-                if (locality.fnZhName != null)
-                    locNames.add(locality.getZhName());
-                if (vs.fnAlias != null)
-=======
                 if (locality.getAlias() != null)
                     locNames.addAll(locality.getAlias());
                 if (locality.getTags() != null)
@@ -121,8 +91,7 @@ public class TravelNoteCtrl extends Controller {
                 if (locality.getZhName() != null)
                     locNames.add(locality.getZhName());
                 if (vs.alias != null)
->>>>>>> origin/refactor-h5
-                    vsNames.addAll(vs.alias);
+                vsNames.addAll(vs.alias);
                 if (vs.FD_TAGS != null)
                     vsNames.addAll(vs.tags);
                 if (vs.FD_ZH_NAME != null)
@@ -134,7 +103,7 @@ public class TravelNoteCtrl extends Controller {
                 nodeList.add(new SimpTravelNoteFormatter().format(note));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch ( AizouException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
