@@ -36,6 +36,8 @@ public class ImageItem extends AizouBaseItem {
 
     private String bucket;
 
+    private String url;
+
     /**
      * 图像宽度
      */
@@ -79,6 +81,14 @@ public class ImageItem extends AizouBaseItem {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getBucket() {
