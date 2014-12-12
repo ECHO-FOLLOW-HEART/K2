@@ -83,13 +83,16 @@ public class PlanAPI {
 
         // 退而求其次，从上级Locality找
         if (locId != null) {
-            List<Locality> locList = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST)).getLocList();
-            if (locList != null && !locList.isEmpty()) {
-                for (int idx = locList.size() - 1; idx >= 0; idx--) {
-                    ObjectId itrLocId = locList.get(idx).getId();
-                    planList = planExploreHelper(itrLocId, true, tag, minDays, maxDays, page, pageSize);
-                    if (!planList.isEmpty())
-                        break;
+            Locality loc = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST));
+            if (loc != null) {
+                List<Locality> locList = loc.getLocList();
+                if (locList != null && !locList.isEmpty()) {
+                    for (int idx = locList.size() - 1; idx >= 0; idx--) {
+                        ObjectId itrLocId = locList.get(idx).getId();
+                        planList = planExploreHelper(itrLocId, true, tag, minDays, maxDays, page, pageSize);
+                        if (!planList.isEmpty())
+                            break;
+                    }
                 }
             }
         }
