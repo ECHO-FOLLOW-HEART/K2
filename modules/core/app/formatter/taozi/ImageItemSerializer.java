@@ -1,7 +1,6 @@
 package formatter.taozi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import models.misc.ImageItem;
@@ -35,46 +34,52 @@ public class ImageItemSerializer extends JsonSerializer<ImageItem> {
             throws IOException {
         jsonGenerator.writeStartObject();
 
-        String fullUrl = imageItem.getFullUrl();
-        Map<String, Integer> cropHint = imageItem.getCropHint();
-
         String imgUrl;
-        int width = imageItem.getW();
-        int height = imageItem.getH();
+        int width = 0;
+        int height = 0;
+        if (imageItem.getUrl() != null && imageItem.getKey() == null) {
+            imgUrl = imageItem.getUrl();
+        } else {
+            String fullUrl = imageItem.getFullUrl();
+            Map<String, Integer> cropHint = imageItem.getCropHint();
 
-        if (sizeDesc == ImageSizeDesc.FULL)
-            imgUrl = fullUrl;
-        else {
-            int maxWidth;
-            switch (sizeDesc) {
-                case SMALL:
-                    maxWidth = 400;
-                    break;
-                case MEDIUM:
-                    maxWidth = 640;
-                    break;
-                case LARGE:
-                default:
-                    maxWidth = 960;
-                    break;
-            }
+            width = imageItem.getW();
+            height = imageItem.getH();
 
-            if (cropHint == null) {
-                imgUrl = String.format("%s?imageView2/2/w/%d", fullUrl, maxWidth);
-                double r = (double) height / width;
-                width = maxWidth;
-                height = (int) (width * r);
-            } else {
-                int top = cropHint.get("top");
-                int right = cropHint.get("right");
-                int bottom = cropHint.get("bottom");
-                int left = cropHint.get("left");
+            if (sizeDesc == ImageSizeDesc.FULL)
+                imgUrl = fullUrl;
+            else {
+                int maxWidth;
+                switch (sizeDesc) {
+                    case SMALL:
+                        maxWidth = 400;
+                        break;
+                    case MEDIUM:
+                        maxWidth = 640;
+                        break;
+                    case LARGE:
+                    default:
+                        maxWidth = 960;
+                        break;
+                }
 
-                width = right - left;
-                height = bottom - top;
+                if (cropHint == null) {
+                    imgUrl = String.format("%s?imageView2/2/w/%d", fullUrl, maxWidth);
+                    double r = (double) height / width;
+                    width = maxWidth;
+                    height = (int) (width * r);
+                } else {
+                    int top = cropHint.get("top");
+                    int right = cropHint.get("right");
+                    int bottom = cropHint.get("bottom");
+                    int left = cropHint.get("left");
 
-                imgUrl = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
-                        fullUrl, width, height, left, top, maxWidth);
+                    width = right - left;
+                    height = bottom - top;
+
+                    imgUrl = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
+                            fullUrl, width, height, left, top, maxWidth);
+                }
             }
         }
 

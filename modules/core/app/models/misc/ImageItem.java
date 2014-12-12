@@ -36,6 +36,8 @@ public class ImageItem extends AizouBaseItem {
 
     private String bucket;
 
+    private String url;
+
     /**
      * 图像宽度
      */
@@ -143,5 +145,13 @@ public class ImageItem extends AizouBaseItem {
 
     public void setCropHint(Map<String, Integer> cropHint) {
         this.cropHint = cropHint;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setSize(String url) {
+        this.url = url;
     }
 }
