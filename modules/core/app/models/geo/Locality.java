@@ -392,6 +392,7 @@ public class Locality extends AizouBaseEntity {
     public void setTimeCostDesc(String timeCostDesc) {
         this.timeCostDesc = timeCostDesc;
     }
+
 }
 
 ///**

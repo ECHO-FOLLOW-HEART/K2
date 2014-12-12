@@ -1,5 +1,6 @@
 package controllers.taozi;
 
+import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -28,10 +29,12 @@ import java.util.*;
 public class POICtrl extends Controller {
 
     public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
-                                           int commentPage, int commentPageSize,
+                                           int commentPage, int commentPageSize, Long userId,
                                            int rmdPage, int rmdPageSize) throws AizouException {
         DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
+        //是否被收藏
+        MiscAPI.isFavorite(poiInfo, userId);
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
         JsonNode info = poiFormatter.format(poiInfo);
@@ -91,7 +94,12 @@ public class POICtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
         }
         try {
-            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, rmdPage, rmdPageSize);
+            Long userId;
+            if (request().hasHeader("UserId"))
+                userId = Long.parseLong(request().getHeader("UserId"));
+            else
+                userId = null;
+            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -277,9 +285,9 @@ public class POICtrl extends Controller {
      * @return
      */
     public static Result getPoiNear(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                    boolean restaurant, int page, int pageSize) {
+                                    boolean restaurant,boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) {
         try {
-            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, page, pageSize);
+            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant,shopping, page, pageSize, commentPage, commentPageSize);
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
@@ -287,7 +295,7 @@ public class POICtrl extends Controller {
     }
 
     private static ObjectNode getPoiNearImpl(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                             boolean restaurant, int page, int pageSize) throws AizouException {
+                                             boolean restaurant,boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) throws AizouException {
         ObjectNode results = Json.newObject();
         //发现poi
         List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
@@ -307,14 +315,34 @@ public class POICtrl extends Controller {
             poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
         }
 
+        if (shopping) {
+            poiKeyList.add(PoiAPI.POIType.SHOPPING);
+            poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
+        }
+
         for (PoiAPI.POIType poiType : poiKeyList) {
             List<JsonNode> retPoiList = new ArrayList<>();
             Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lng, lat, maxDist,
                     page, pageSize);
+            ObjectNode ret;
+            AbstractPOI poi;
+            List<Comment> commentsEntities;
             if (iterator != null) {
                 for (; iterator.hasNext(); ) {
-                    AbstractPOI poi = iterator.next();
-                    retPoiList.add(new SimplePOIFormatter().format(poi));
+                    poi = iterator.next();
+                    ret = (ObjectNode) new SimplePOIFormatter().format(poi);
+                    if (poiType.equals(PoiAPI.POIType.RESTAURANT) || poiType.equals(PoiAPI.POIType.SHOPPING) ||
+                            poiType.equals(PoiAPI.POIType.HOTEL)) {
+                        commentsEntities = PoiAPI.getPOIComment(poi.getId().toString(), commentPage, commentPageSize);
+                        int commCnt = (int) PoiAPI.getPOICommentCount(poi.getId().toString());
+                        List<JsonNode> comments = new ArrayList<>();
+                        for (Comment cmt : commentsEntities) {
+                            comments.add(new CommentFormatter().format(cmt));
+                        }
+                        ret.put("comments", Json.toJson(comments));
+                        ret.put("commentCnt", commCnt);
+                    }
+                    retPoiList.add(ret);
                 }
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }

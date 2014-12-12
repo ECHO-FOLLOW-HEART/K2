@@ -183,6 +183,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     public String cover;
 
+
     public String getName() {
         if (title == null)
             return "";

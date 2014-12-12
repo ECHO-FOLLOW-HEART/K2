@@ -215,11 +215,15 @@ public class MiscCtrl extends Controller {
             AbstractPOI poi;
             PoiAPI.POIType poiType;
             List locFields = new ArrayList();
-            Collections.addAll(locFields, "id", "type", "zhName", "enName", "images", "desc","locality");
+            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc");
+            List poiFields = new ArrayList();
+            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc","type", "locality");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {
                     loc = GeoAPI.locDetails(fa.itemId, locFields);
+                    if (loc == null)
+                        continue;
                     fa.zhName = loc.getZhName();
                     fa.enName = loc.getEnName();
                     fa.images = loc.getImages();
@@ -244,7 +248,9 @@ public class MiscCtrl extends Controller {
                         default:
                             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", type));
                     }
-                    poi = PoiAPI.getPOIInfo(fa.itemId, poiType, locFields);
+                    poi = PoiAPI.getPOIInfo(fa.itemId, poiType, poiFields);
+                    if (poi == null)
+                        continue;
                     fa.zhName = poi.zhName;
                     fa.enName = poi.enName;
                     fa.images = poi.images;
@@ -494,7 +500,7 @@ public class MiscCtrl extends Controller {
                 comment.setUserName(user.getNickName());
                 comment.setUserAvatar(user.getAvatar());
                 comment.setUserId(userIdLong);
-            }else{
+            } else {
                 throw new AizouException(ErrorCode.USER_NOT_EXIST);
             }
 

@@ -7,7 +7,6 @@ import controllers.taozi.UserCtrl;
 import models.poi.AbstractPOI;
 import models.poi.Hotel;
 import models.poi.ViewSpot;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
@@ -28,11 +27,13 @@ public class POITest extends AizouTest {
      */
     @Test
     public void poiNearByCheck() throws ReflectiveOperationException {
+//        (double lng, double lat, double maxDist, boolean spot, boolean hotel,
+//        boolean restaurant,boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) {
         Method method = POICtrl.class.getDeclaredMethod("getPoiNearImpl", double.class, double.class, double.class,
-                boolean.class, boolean.class, boolean.class, int.class, int.class);
+                boolean.class, boolean.class, boolean.class, boolean.class, int.class, int.class, int.class, int.class);
         method.setAccessible(true);
 
-        JsonNode ret = (JsonNode) method.invoke(UserCtrl.class, 119.228, 39.8, 2000, true, true, false, 0, 10);
+        JsonNode ret = (JsonNode) method.invoke(UserCtrl.class, 119.228, 39.8, 2000, true, true, false, false, 0, 10, 0, 10);
 
         for (String poiType : new String[]{"vs", "hotel"}) {
             JsonNode node = ret.get(poiType);
@@ -67,9 +68,8 @@ public class POITest extends AizouTest {
      */
     @Test
     public void poiInfoCheck() throws ReflectiveOperationException {
-
         Method method = POICtrl.class.getDeclaredMethod("viewPOIInfoImpl", Class.class, String.class, int.class,
-                int.class, int.class, int.class);
+                int.class, Long.class, int.class, int.class);
         method.setAccessible(true);
 
         Map<String, Class<? extends AbstractPOI>> checker = new HashMap<>();
@@ -80,7 +80,7 @@ public class POITest extends AizouTest {
             String oid = entry.getKey();
             Class<? extends AbstractPOI> poiClass = entry.getValue();
 
-            JsonNode ret = (JsonNode) method.invoke(POICtrl.class, poiClass, oid, 0, 10, 0, 10);
+            JsonNode ret = (JsonNode) method.invoke(POICtrl.class, poiClass, oid, 0, 10, null, 0, 10);
             assertText(ret, new String[]{"id", "zhName"}, false);
             assertText(ret, new String[]{"enName", "priceDesc", "desc", "address", "telephone"}, true);
 

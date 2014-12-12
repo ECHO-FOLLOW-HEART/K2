@@ -228,6 +228,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     private Double hotness;
 
+
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
             case 1:
