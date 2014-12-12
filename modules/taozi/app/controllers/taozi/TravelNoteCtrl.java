@@ -117,7 +117,11 @@ public class TravelNoteCtrl extends Controller {
      */
     public static Result getTravelNoteDetail(String noteId) {
         try {
-            Integer userId = Integer.parseInt(request().getHeader("UserId"));
+            Integer userId ;
+            if(request().hasHeader("UserId"))
+                userId = Integer.parseInt(request().getHeader("UserId"));
+            else
+                userId = null;
             List<TravelNote> travelNoteList = TravelNoteAPI.getTravelNoteDetailApi(noteId);
             List<JsonNode> nodeList = new ArrayList<>();
             for (TravelNote note : travelNoteList) {

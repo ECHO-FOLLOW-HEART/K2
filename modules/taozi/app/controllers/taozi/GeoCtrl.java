@@ -40,7 +40,11 @@ public class GeoCtrl extends Controller {
      */
     public static Result getLocality(String id, int noteCnt) {
         try {
-            Integer userId = Integer.parseInt(request().getHeader("UserId"));
+            Integer userId ;
+            if(request().hasHeader("UserId"))
+                userId = Integer.parseInt(request().getHeader("UserId"));
+            else
+                userId = null;
             Locality locality = GeoAPI.locDetails(id);
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
@@ -52,7 +56,8 @@ public class GeoCtrl extends Controller {
             //for (TravelNote tra : tras) {
             //    objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
             //}
-            response.put("imageCnt", locality.getImages().size());
+            int imageCnt = locality.getImages()== null?0:locality.getImages().size();
+            response.put("imageCnt", imageCnt);
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());

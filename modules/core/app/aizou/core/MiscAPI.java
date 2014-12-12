@@ -105,6 +105,10 @@ public class MiscAPI {
      * @throws AizouException
      */
     public static void isFavorite(AizouBaseEntity item, Integer userId) throws AizouException {
+        if(userId == null) {
+            item.setIsFavorite(false);
+            return;
+        }
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Favorite> query = ds.createQuery(Favorite.class);
         query.field("userId").equal(userId).field(Favorite.fnItemId).equal(item.getId());

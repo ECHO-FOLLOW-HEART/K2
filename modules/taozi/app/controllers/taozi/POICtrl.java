@@ -94,7 +94,11 @@ public class POICtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
         }
         try {
-            Integer userId = Integer.parseInt(request().getHeader("UserId"));
+            Integer userId ;
+            if(request().hasHeader("UserId"))
+                userId = Integer.parseInt(request().getHeader("UserId"));
+            else
+                userId = null;
             JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize,userId, rmdPage, rmdPageSize);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (AizouException e) {
