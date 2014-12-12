@@ -125,9 +125,11 @@ POST          /im/chatgroups/detail/groupId                      controllers.tao
 #----------地理信息接口----------
 # 搜索城市
 #查看目的地详情
-GET           /geo/localities/$id<[0-9a-f]{24}>                  controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
-##展示目的地
-#GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
+GET           /geo/localities/:id                                controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
+#查看目的地详情图集
+GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=20)
+#展示目的地
+GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
 #获取国家的目的地
 #GET           /destinations/country/:id                 controllers.taozi.GeoCtrl.getDestinationsByCountry(id: String,page:Int?=0,pageSize:Int?=10)
 #发现城市、国家、poi详情
@@ -147,8 +149,6 @@ GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.tao
 
 #特定地区的美食、购物发现
 GET           /poi/:locId/details                                controllers.taozi.POICtrl.getDinShop(locId:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
-##展示目的地
-#GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page: Int?=0, pageSize: Int?=10)
 #更多精选游记
 GET           /travel-note/:id                                   controllers.taozi.TravelNoteCtrl.getNotes(id:String,pageSize:Int?=10)
 #返回单篇游记详情
