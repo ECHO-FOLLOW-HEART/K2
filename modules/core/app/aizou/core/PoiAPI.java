@@ -4,7 +4,6 @@ import exception.AizouException;
 import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Country;
-import models.geo.Destination;
 import models.geo.Locality;
 import models.poi.*;
 import org.bson.types.ObjectId;

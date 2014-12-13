@@ -72,7 +72,10 @@ public class ImageItem extends AizouBaseItem {
      * 根据bucket和key，生成完整的图像链接
      */
     public String getFullUrl() {
-        return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
+        if (key != null)
+            return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
+        else
+            return null;
     }
 
     public String getKey() {
