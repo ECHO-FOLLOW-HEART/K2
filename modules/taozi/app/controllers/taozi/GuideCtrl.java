@@ -273,7 +273,7 @@ public class GuideCtrl extends Controller {
     public static Result getDestinationGuideInfo(String id, String guidePart) {
         try {
             DestGuideInfo destGuideInfo = GuideAPI.getDestinationGuideInfo(new ObjectId(id));
-            ObjectNode node = (ObjectNode) new DestGuideFormatter().format(destGuideInfo, guidePart);
+            ObjectNode node = (ObjectNode) new DestGuideFormatter(guidePart).format(destGuideInfo);
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
