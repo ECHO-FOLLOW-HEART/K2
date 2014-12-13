@@ -6,6 +6,7 @@ import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.misc.Column;
+import models.misc.Images;
 import models.poi.Comment;
 import models.user.Favorite;
 import models.user.UserInfo;
@@ -113,6 +114,15 @@ public class MiscAPI {
         Iterator<Favorite> it = query.iterator();
         if (it.hasNext())
             item.setIsFavorite(true);
+    }
+
+    public static List<Images> getLocalityAlbum(ObjectId id, int page, int pageSize) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Query<Images> query = ds.createQuery(Images.class);
+
+        query.field(Images.FD_ITEMID).equal(id);
+        query.offset(page).limit(page*pageSize);
+        return query.asList();
     }
 
 }

@@ -7,6 +7,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
 import formatter.taozi.misc.CommentFormatter;
+import formatter.taozi.misc.ImageFormatter;
 import formatter.taozi.misc.MiscFormatter;
 import formatter.taozi.misc.WeatherFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
@@ -678,6 +679,28 @@ public class MiscCtrl extends Controller {
             ret.put("restaurant", Json.toJson(new ArrayList<>()));
 
         return ret;
+    }
+
+    /**
+     * 取得图集
+     *
+     * @param id
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result getAlbums(String id, int page, int pageSize) {
+
+        try {
+            List<ObjectNode> result = new ArrayList<>();
+            ObjectId oid = new ObjectId(id);
+            List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
+            for(Images images :items)
+                result.add((ObjectNode)new ImageFormatter().format(images));
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
     }
 
 //    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws AizouException {

@@ -44,7 +44,7 @@ public class SimplePOIFormatter extends TaoziBaseFormatter {
 
         ObjectNode result = mapper.valueToTree(item);
 
-        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC,AbstractPOI.fnRating));
+        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC));
 
         listFields.add(AbstractPOI.FD_IMAGES);
 
