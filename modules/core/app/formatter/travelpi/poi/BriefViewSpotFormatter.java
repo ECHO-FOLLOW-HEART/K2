@@ -3,12 +3,14 @@ package formatter.travelpi.poi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.AizouBeanPropertyFilter;
+import formatter.travelpi.ImageItemPlainSerializer;
 import formatter.travelpi.TravelPiBaseFormatter;
 import models.AizouBaseEntity;
 import models.geo.Locality;
@@ -17,7 +19,10 @@ import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
 import play.libs.Json;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Zephyre
@@ -64,57 +69,49 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
             }
         };
 
-        PropertyFilter imageFilter = new AizouBeanPropertyFilter() {
-            @Override
-            protected boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, ImageItem.FD_URL, ImageItem.FD_CROP_HINT, ImageItem.FD_WIDTH,
-                        ImageItem.FD_HEIGHT);
-
-                return (includedFields.contains(writer.getName()));
-            }
-        };
-
-        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", theFilter)
-                .addFilter("imageItemFilter", imageFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", theFilter);
         mapper.setFilters(filters);
+
+        SimpleModule imageItemModule = new SimpleModule();
+        imageItemModule.addSerializer(ImageItem.class, new ImageItemPlainSerializer());
+        mapper.registerModule(imageItemModule);
 
         ObjectNode result = mapper.valueToTree(item);
         result.put("_id", result.get("id").asText());
 //        result.put("name", result.get("zhName").asText());
         result.put("fullName", result.get("name").asText());
 
-        List<ImageItem> images = vsItem.getImages();
-//        JsonNode images = result.get(Locality.fnImages);
-        result.remove(Locality.fnImages);
-        List<String> imageList = new ArrayList<>();
-        int idx = 0;
-        // 最大宽度800
-        int maxWidth = 800;
-        for (ImageItem img : images) {
-            Map<String, Integer> cropHint = img.getCropHint();
-            String url;
-            if (cropHint == null) {
-                url = String.format("http://lvxingpai-img-store.qiniudn.com/%s?imageView2/2/w/%d", img.getKey(),
-                        maxWidth);
-            } else {
-                int top = cropHint.get("top");
-                int right = cropHint.get("right");
-                int bottom = cropHint.get("bottom");
-                int left = cropHint.get("left");
-
-                url = String.format("http://lvxingpai-img-store.qiniudn.com/%s?imageMogr2/auto-orient/strip/gravity" +
-                                "/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
-                        img.getKey(), (right - left), (bottom - top), left, top, maxWidth);
-            }
-
-            imageList.add(url);
-            idx++;
-            if (idx > 5)
-                break;
-        }
-        result.put("imageList", Json.toJson(imageList));
-        result.remove(Locality.fnImages);
+//        List<ImageItem> images = vsItem.getImages();
+////        JsonNode images = result.get(Locality.fnImages);
+//        result.remove(Locality.fnImages);
+//        List<String> imageList = new ArrayList<>();
+//        int idx = 0;
+//        // 最大宽度800
+//        int maxWidth = 800;
+//        for (ImageItem img : images) {
+//            Map<String, Integer> cropHint = img.getCropHint();
+//            String url;
+//            if (cropHint == null) {
+//                url = String.format("http://lvxingpai-img-store.qiniudn.com/%s?imageView2/2/w/%d", img.getKey(),
+//                        maxWidth);
+//            } else {
+//                int top = cropHint.get("top");
+//                int right = cropHint.get("right");
+//                int bottom = cropHint.get("bottom");
+//                int left = cropHint.get("left");
+//
+//                url = String.format("http://lvxingpai-img-store.qiniudn.com/%s?imageMogr2/auto-orient/strip/gravity" +
+//                                "/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
+//                        img.getKey(), (right - left), (bottom - top), left, top, maxWidth);
+//            }
+//
+//            imageList.add(url);
+//            idx++;
+//            if (idx > 5)
+//                break;
+//        }
+//        result.put("imageList", Json.toJson(imageList));
+//        result.remove(Locality.fnImages);
 
         Locality loc = vsItem.getLocality();
         ObjectNode locJson = Json.newObject();
