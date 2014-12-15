@@ -47,6 +47,7 @@ public class GuideCtrl extends Controller {
                 ids.add(new ObjectId(iterator.next().asText()));
             }
             Guide temp = GuideAPI.getGuideByDestination(ids, selfId);
+            GuideAPI.fillGuideInfo(temp);
             node = (ObjectNode) new GuideFormatter().format(temp);
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");

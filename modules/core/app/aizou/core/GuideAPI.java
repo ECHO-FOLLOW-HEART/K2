@@ -39,6 +39,8 @@ public class GuideAPI {
             criList.add(query.criteria("locId").equal(id));
         }
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        List<GuideTemplate> guideTemplates = query.asList();
+
         Query<Locality> queryDes = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
                 .createQuery(Locality.class);
         List<String> fieldList = new ArrayList<>();
@@ -51,7 +53,7 @@ public class GuideAPI {
         queryDes.or(criListDes.toArray(new CriteriaContainerImpl[criListDes.size()]));
 
         List<Locality> destinations = queryDes.asList();
-        List<GuideTemplate> guideTemplates = query.asList();
+
 
         Guide result = constituteUgcGuide(guideTemplates, destinations, userId);
         //创建时即保存
@@ -249,7 +251,7 @@ public class GuideAPI {
         List<Restaurant> restaurant = guide.restaurant;
         if (itinerary != null && itinerary.size() > 0) {
             for (ItinerItem temp : itinerary) {
-                type = temp.type;
+                type = temp.poi.type;
                 if(type == null)
                     continue;
                 switch (type) {
