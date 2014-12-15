@@ -50,8 +50,6 @@ public class ImageItemSerializer extends JsonSerializer<ImageItem> {
         if (imageItem.getUrl() != null && imageItem.getKey() == null) {
             imgUrl = imageItem.getUrl();
         } else {
-            String fullUrl = imageItem.getFullUrl();
-            Map<String, Integer> cropHint = imageItem.getCropHint();
 
             width = imageItem.getW();
             height = imageItem.getH();

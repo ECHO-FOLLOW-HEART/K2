@@ -158,11 +158,4 @@ public class ImageItem extends AizouBaseItem {
         this.cropHint = cropHint;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public void setSize(String url) {
-        this.url = url;
-    }
 }
