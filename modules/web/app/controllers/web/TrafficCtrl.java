@@ -7,7 +7,6 @@ import com.mongodb.*;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.poi.TrafficHubFormatter;
-import models.AizouBaseEntity;
 import models.traffic.AbstractTrafficHub;
 import models.traffic.AirRoute;
 import models.traffic.RouteIterator;

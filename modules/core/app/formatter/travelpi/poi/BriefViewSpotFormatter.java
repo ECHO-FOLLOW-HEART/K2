@@ -75,7 +75,7 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("viewSpotFilter", theFilter)
+        FilterProvider filters = new SimpleFilterProvider().addFilter("abstractPOIFilter", theFilter)
                 .addFilter("imageItemFilter", imageFilter);
         mapper.setFilters(filters);
 

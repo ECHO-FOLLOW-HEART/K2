@@ -5,11 +5,8 @@ import exception.AizouException;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
 import models.MorphiaFactory;
-import models.geo.Locality;
 import models.misc.Column;
 import models.misc.Images;
-import models.misc.TravelNote;
-import models.poi.AbstractPOI;
 import models.poi.Comment;
 import models.user.Favorite;
 import models.user.UserInfo;
@@ -107,7 +104,7 @@ public class MiscAPI {
      * @throws AizouException
      */
     public static void isFavorite(AizouBaseEntity item, Long userId) throws AizouException {
-        if(userId == null) {
+        if (userId == null) {
             item.setIsFavorite(false);
             return;
         }
@@ -124,7 +121,7 @@ public class MiscAPI {
         Query<Images> query = ds.createQuery(Images.class);
 
         query.field(Images.FD_ITEMID).equal(id);
-        query.offset(page).limit(page*pageSize);
+        query.offset(page).limit(page * pageSize);
         return query.asList();
     }
 

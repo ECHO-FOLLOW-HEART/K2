@@ -76,6 +76,13 @@ public abstract class TravelPiBaseFormatter implements JsonFormatter {
             }
         }
 
+        // 处理图像
+        JsonNode images = result.get("images");
+        if (images!=null){
+            result.remove("images");
+            result.put("imageList", images);
+        }
+
         // 处理id
         JsonNode oid = result.get("id");
         int time = oid.get("timestamp").asInt();

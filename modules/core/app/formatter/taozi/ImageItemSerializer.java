@@ -34,6 +34,16 @@ public class ImageItemSerializer extends JsonSerializer<ImageItem> {
             throws IOException {
         jsonGenerator.writeStartObject();
 
+        if (imageItem.getKey() == null && imageItem.getUrl() != null) {
+            jsonGenerator.writeStringField("url", imageItem.getUrl());
+            jsonGenerator.writeNumberField("width", null);
+            jsonGenerator.writeNumberField("height", null);
+            jsonGenerator.writeEndObject();
+            return;
+        }
+
+        String fullUrl = imageItem.getFullUrl();
+        Map<String, Integer> cropHint = imageItem.getCropHint();
         String imgUrl;
         int width = 0;
         int height = 0;
