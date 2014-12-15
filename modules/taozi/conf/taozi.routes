@@ -103,7 +103,7 @@ POST          /guides                                            controllers.tao
 #查看攻略详情
 GET           /guides/:id/:part                                  controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
 #获得目的地的攻略信息
-GET           /guides/destination/:id/:part                      controllers.taozi.GuideCtrl.getDestinationGuideInfo(id:String,part: String)
+GET           /guides/locality/:id/:part                         controllers.taozi.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
 #修改攻略标题
 PUT           /guides/info/:id                                   controllers.taozi.GuideCtrl.setGuideTitle(id:String)
 #删除攻略

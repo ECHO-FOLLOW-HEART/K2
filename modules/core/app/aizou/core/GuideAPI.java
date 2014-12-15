@@ -229,9 +229,9 @@ public class GuideAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static DestGuideInfo getDestinationGuideInfo(ObjectId id) throws AizouException {
+    public static LocalityGuideInfo getLocalityGuideInfo(ObjectId id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        Query<DestGuideInfo> query = ds.createQuery(DestGuideInfo.class);
+        Query<LocalityGuideInfo> query = ds.createQuery(LocalityGuideInfo.class);
         query.field("locId").equal(id);
         return query.get();
     }

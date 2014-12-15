@@ -8,10 +8,11 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.JsonFormatter;
 import formatter.taozi.guide.*;
+import formatter.taozi.misc.ImageItemFormatter;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
-import models.guide.DestGuideInfo;
 import models.guide.Guide;
+import models.guide.LocalityGuideInfo;
 import models.misc.ImageItem;
 import models.poi.Dinning;
 import models.poi.Shopping;
@@ -271,11 +272,22 @@ public class GuideCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result getDestinationGuideInfo(String id, String guidePart) {
+    public static Result getLocalityGuideInfo(String id, String guidePart) {
         try {
-            DestGuideInfo destGuideInfo = GuideAPI.getDestinationGuideInfo(new ObjectId(id));
-            ObjectNode node = (ObjectNode) new DestGuideFormatter(guidePart).format(destGuideInfo);
-            return Utils.createResponse(ErrorCode.NORMAL, node);
+
+            LocalityGuideInfo localityGuideInfo = GuideAPI.getLocalityGuideInfo(new ObjectId(id));
+            ObjectNode node = (ObjectNode) new LocalityGuideFormatter().format(localityGuideInfo);
+            //重新设置Json-Key
+            ObjectNode result = Json.newObject();
+            if(guidePart.equals("shopping")){
+                result.put("images",node.get(LocalityGuideInfo.fnShoppingImages));
+                result.put("desc",node.get(LocalityGuideInfo.fnShoppingDesc));
+            }else if(guidePart.equals("restaurant")){
+                result.put("images",node.get(LocalityGuideInfo.fnRestaurantImages));
+                result.put("desc",node.get(LocalityGuideInfo.fnRestaurantDesc));
+            }
+
+            return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
