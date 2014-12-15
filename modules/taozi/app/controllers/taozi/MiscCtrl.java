@@ -218,7 +218,7 @@ public class MiscCtrl extends Controller {
             List locFields = new ArrayList();
             Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc");
             List poiFields = new ArrayList();
-            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc","type", "locality");
+            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {
@@ -694,9 +694,12 @@ public class MiscCtrl extends Controller {
         try {
             List<ObjectNode> result = new ArrayList<>();
             ObjectId oid = new ObjectId(id);
+            // 默认情况会取出全部图集
+            if (pageSize == 0)
+                pageSize = Constants.MAX_COUNT;
             List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
-            for(Images images :items)
-                result.add((ObjectNode)new ImageFormatter().format(images));
+            for (Images images : items)
+                result.add((ObjectNode) new ImageFormatter().format(images));
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());

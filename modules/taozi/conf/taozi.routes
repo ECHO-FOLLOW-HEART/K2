@@ -127,7 +127,7 @@ POST          /im/chatgroups/detail/groupId                      controllers.tao
 #查看目的地详情
 GET           /geo/localities/:id                                controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
 #查看目的地详情图集
-GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=20)
+GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=0)
 #展示目的地
 GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
 #获取国家的目的地

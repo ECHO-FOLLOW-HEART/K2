@@ -121,7 +121,7 @@ public class MiscAPI {
         Query<Images> query = ds.createQuery(Images.class);
 
         query.field(Images.FD_ITEMID).equal(id);
-        query.offset(page).limit(page * pageSize);
+        query.offset(page * pageSize).limit(pageSize);
         return query.asList();
     }
 
