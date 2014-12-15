@@ -19,10 +19,7 @@ import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
 import play.libs.Json;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Zephyre
@@ -124,6 +121,13 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
         locJson.put("lat", coords[1]);
 
         result.put("addr", locJson);
+
+        Map<String, Double> ratings = new HashMap<>();
+        Double r = vsItem.getRating();
+        if (r == null || r == 0)
+            r = (new Random().nextDouble()) * 0.2 + 0.5;
+        ratings.put("ranking", r);
+        result.put("ratings", Json.toJson(ratings));
 
         return postProcess(result);
     }

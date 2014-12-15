@@ -290,6 +290,13 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         return enName;
     }
 
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
 
     public Contact getContact() {
         return contact;
