@@ -4,35 +4,46 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import  play.mvc.Result;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import controllers.taozi.MiscCtrl;
 import org.junit.Test;
+import play.test.FakeRequest;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static play.test.Helpers.callAction;
 import static play.test.Helpers.contentAsString;
 
 /**
  * Created by Heaven on 2014/12/13.
  */
-public class RestTest extends AizouTest{
+public class MiscTest extends AizouTest{
 
     /**
      * 测试获取封面故事功能
      */
-//    @Test
-//    public void testCoverStories() throws Exception{
-//        Method method = MiscCtrl.class.getDeclaredMethod("getAppHomeImageImpl",
-//                int.class, int.class, int.class, String.class, int.class);
-//        method.setAccessible(true);
-//        JsonNode node = (JsonNode) method.invoke(MiscCtrl.class, 640, 1136, 80, "jpg", 1);
-//
-//        assertText(node, new String[]{"title", "content", "contentType", "image", "fmt"}, true);
-//        assertThat(node.get("contentType").equals("html") || node.get("contentType").equals("plain")).isTrue();
-//        assertThat(node.get("width").equals(640)).isTrue();
-//        assertThat(node.get("height").equals(1136)).isTrue();
-//    }
+    @Test
+    public void testCoverStories() throws Exception{
+        Method method = MiscCtrl.class.getDeclaredMethod("appHomeImage",
+                int.class, int.class, int.class, String.class, int.class);
+        method.setAccessible(true);
+        int width = 640;
+        int height = 1136;
+        Result res = (Result) method.invoke(MiscCtrl.class, width, height, 80, "jpg", 1);
+        JSONObject response = new JSONObject(contentAsString(res));
+
+        // The response code should be zero
+        assertThat(response.getInt("code")).isEqualTo(0);
+
+        // The image's width and height should equal to assigned width and height
+        JSONObject result = response.getJSONObject("result");
+        assertThat(result.getInt("width")).isEqualTo(width);
+        assertThat(result.getInt("height")).isEqualTo(height);
+
+        // The image and cover-stories url should not be null
+        assertThat(result.getString("image")).isNotNull();
+    }
 
     /**
      * 测试联合搜索功能
@@ -134,4 +145,24 @@ public class RestTest extends AizouTest{
             }
         }
     }
+
+    /**
+     * 针对 获得资源上传凭证
+     */
+//    @Test
+//    public void testPutPolicy() throws NoSuchMethodException {
+//        Method method = MiscCtrl.class.getDeclaredMethod("putPolicy", String.class);
+//        method.setAccessible(true);
+//        try{
+//            Result response = (Result) method.invoke(MiscCtrl.class, "portrait");
+//        } catch (InvocationTargetException e) {
+//            e.getTargetException().printStackTrace();
+//            int i = 0;
+//        } catch (IllegalAccessException e) {
+//            e.printStackTrace();
+//        }
+//        int kk = 0;
+//
+//    }
+
 }
