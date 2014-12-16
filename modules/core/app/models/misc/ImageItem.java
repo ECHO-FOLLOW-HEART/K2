@@ -31,7 +31,6 @@ public class ImageItem extends AizouBaseItem {
 
     private Map<String, Integer> cropHint;
 
-    @Constraints.Required
     private String key;
 
     private String bucket;

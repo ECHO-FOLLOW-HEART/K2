@@ -78,18 +78,22 @@ public class PlanAPI {
         // 无法找到路线，准备模糊匹配
         if (poiId != null) {
             AbstractPOI vs = PoiAPI.getPOIInfo(poiId, PoiAPI.POIType.VIEW_SPOT, Arrays.asList(AbstractPOI.FD_LOCALITY));
-            locId = vs.getLocality().getId();
+            if (vs!=null)
+                locId = vs.getLocality().getId();
         }
 
         // 退而求其次，从上级Locality找
         if (locId != null) {
-            List<Locality> locList = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST)).getLocList();
-            if (locList != null && !locList.isEmpty()) {
-                for (int idx = locList.size() - 1; idx >= 0; idx--) {
-                    ObjectId itrLocId = locList.get(idx).getId();
-                    planList = planExploreHelper(itrLocId, true, tag, minDays, maxDays, page, pageSize);
-                    if (!planList.isEmpty())
-                        break;
+            Locality loc = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST));
+            if (loc != null) {
+                List<Locality> locList = loc.getLocList();
+                if (locList != null && !locList.isEmpty()) {
+                    for (int idx = locList.size() - 1; idx >= 0; idx--) {
+                        ObjectId itrLocId = locList.get(idx).getId();
+                        planList = planExploreHelper(itrLocId, true, tag, minDays, maxDays, page, pageSize);
+                        if (!planList.isEmpty())
+                            break;
+                    }
                 }
             }
         }
@@ -644,7 +648,7 @@ public class PlanAPI {
 
         //再推飞机火车
         RouteIterator nextTrainIt = TrafficAPI.searchTrainRoutes(midLocality.getId(), travelLoc, "", calLower, null,
-                null,  timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
+                null, timeLimits, null, TrafficAPI.SortField.TIME_COST, -1, 0, MAX_ROUTES);
         List nextTrainList = DataFactory.asList(nextTrainIt);
 
         List<AbstractRoute> airTrainRoutes = PlanUtils.getFitRoutes(firstAirList, nextTrainList);

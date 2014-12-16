@@ -99,6 +99,14 @@ public class ViewSpot extends AbstractPOI {
         return fieldList;
     }
 
+    public Double getTimeCost() {
+        return timeCost;
+    }
+
+    public void setTimeCost(Double timeCost) {
+        this.timeCost = timeCost;
+    }
+
     public String getTravelMonth() {
         return travelMonth;
     }

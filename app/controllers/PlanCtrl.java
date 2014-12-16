@@ -867,9 +867,17 @@ public class PlanCtrl extends Controller {
 
         // 处理fromLoc/backLoc的映射
         Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
-        Object tmp = mapConf.get(fromLoc);
-        if (tmp != null)
-            fromLoc = tmp.toString();
+        if (fromLoc!=null) {
+            Object tmp = mapConf.get(fromLoc);
+            if (tmp != null)
+                fromLoc = tmp.toString();
+        }
+
+        if (locId!=null) {
+            Object tmp = mapConf.get(locId);
+            if (tmp != null)
+                locId = tmp.toString();
+        }
 
         try {
             Double trafficBudget = 0.0;

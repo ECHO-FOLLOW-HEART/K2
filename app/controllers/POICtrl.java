@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.travelpi.poi.BriefViewSpotFormatter;
+import formatter.travelpi.poi.BriefPOIFormatter;
 import models.MorphiaFactory;
 import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
@@ -354,7 +354,7 @@ public class POICtrl extends Controller {
         List<JsonNode> results = new ArrayList<>();
         Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
         while (it.hasNext()) {
-            results.add(BriefViewSpotFormatter.getInstance().format(it.next()));
+            results.add(BriefPOIFormatter.getInstance().format(it.next()));
         }
 //            results.add(it.next().toJson(2));
 
