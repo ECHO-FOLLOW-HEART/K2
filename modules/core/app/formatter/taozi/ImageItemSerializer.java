@@ -1,7 +1,6 @@
 package formatter.taozi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import models.misc.ImageItem;
@@ -34,6 +33,14 @@ public class ImageItemSerializer extends JsonSerializer<ImageItem> {
     public void serialize(ImageItem imageItem, JsonGenerator jsonGenerator, SerializerProvider serializerProvider)
             throws IOException {
         jsonGenerator.writeStartObject();
+
+        if (imageItem.getKey() == null && imageItem.getUrl() != null) {
+            jsonGenerator.writeStringField("url", imageItem.getUrl());
+            jsonGenerator.writeNumberField("width", null);
+            jsonGenerator.writeNumberField("height", null);
+            jsonGenerator.writeEndObject();
+            return;
+        }
 
         String fullUrl = imageItem.getFullUrl();
         Map<String, Integer> cropHint = imageItem.getCropHint();

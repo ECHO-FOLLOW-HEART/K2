@@ -44,7 +44,7 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, TravelNote.fnId, TravelNote.fnAuthorAvatar, TravelNote.fnAuthorName, TravelNote.fnCover,
+                Collections.addAll(includedFields, AizouBaseEntity.FD_IS_FAVORITE,TravelNote.fnId, TravelNote.fnAuthorAvatar, TravelNote.fnAuthorName, TravelNote.fnCover,
                         TravelNote.fnTitle, TravelNote.fnPublishDate, TravelNote.fnSource, TravelNote.fnContents, TravelNote.fnCostLower,
                         TravelNote.fnCostUpper, TravelNote.fnSourceUrl, TravelNote.fnCommentCnt, TravelNote.fnViewCnt, TravelNote.fnFavorCnt);
 

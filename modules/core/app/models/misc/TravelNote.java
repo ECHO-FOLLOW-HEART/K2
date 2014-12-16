@@ -62,7 +62,8 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnContents = "contents";
-
+    @Transient
+    public static String fnNoteContents = "noteContents";
     @Transient
     public static String fnCostLower = "costLower";
 
@@ -162,6 +163,10 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     public List<String> contents;
 
     /**
+     * 游记正文
+     */
+    public String noteContents;
+    /**
      * 游记来源
      */
     public String source;
@@ -177,6 +182,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     public Boolean elite;
 
     public String cover;
+
 
     public String getName() {
         if (title == null)
@@ -199,13 +205,13 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
             return StringUtils.abbreviate(summary, Constants.ABBREVIATE_LEN);
     }
 
-    public String getPublishDate() {
+/*    public String getPublishDate() {
         if (publishDate == null)
             return "";
         else
             return new SimpleDateFormat("yyyy-MM-dd EE z").format(publishDate);
 
-    }
+    }*/
 
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

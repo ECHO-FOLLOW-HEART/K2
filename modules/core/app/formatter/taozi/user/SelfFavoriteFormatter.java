@@ -1,103 +1,71 @@
 package formatter.taozi.user;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
+import models.geo.Locality;
 import models.misc.ImageItem;
+import models.poi.AbstractPOI;
 import models.user.Favorite;
-import formatter.JsonFormatter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
- * 返回用户的详细信息（即：查看自己的用户信息时使用）
- * <p/>
- * Created by zephyre on 10/28/14.
+ * 返回用户的收藏信息（即：查看自己的收藏信息时使用）
+ * <p>
+ * Created by topy on 10/28/14.
  */
-public class SelfFavoriteFormatter implements JsonFormatter {
+public class SelfFavoriteFormatter extends TaoziBaseFormatter {
+
+    public SelfFavoriteFormatter() {
+        filteredFields = new HashSet<>();
+        Collections.addAll(filteredFields,
+                Favorite.fnZhName,
+                Favorite.fnEnName,
+                Favorite.fnItemId,
+                Favorite.fnImage,
+                Favorite.fnType,
+                Favorite.fnUserId,
+                Favorite.fnCreateTime,
+                Favorite.fnId,
+                Favorite.fnDesc,
+                Favorite.fnLocality
+        );
+    }
+
     @Override
     public JsonNode format(AizouBaseEntity item) {
-        ObjectMapper mapper = new ObjectMapper();
 
-        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+        //过滤 Map
+        item.fillNullMembers(filteredFields);
+        Map<String, PropertyFilter> filterMap = new HashMap<>();
+        filterMap.put("favoriteFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
+        filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
+                AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
+        ObjectMapper mapper = getObjectMapper(filterMap, null);
 
-        //收藏字段
-        PropertyFilter theFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(Favorite.fnZhName);
-                includedFields.add(Favorite.fnEnName);
-                includedFields.add(Favorite.fnItemId);
-                includedFields.add(Favorite.fnImage);
-                includedFields.add(Favorite.fnType);
-                includedFields.add(Favorite.fnUserId);
-                includedFields.add(Favorite.fnCreateTime);
-                includedFields.add(Favorite.fnId);
-                includedFields.add(Favorite.fnDesc);
-                return (includedFields.contains(writer.getName()));
-            }
+        // 注册 SimpleModule
+        SimpleModule imageItemModule = new SimpleModule();
+        imageItemModule.addSerializer(ImageItem.class,
+                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+        mapper.registerModule(imageItemModule);
 
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
 
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
+        ObjectNode result = mapper.valueToTree(item);
 
-        //图片
-        PropertyFilter imageItemFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
+        stringFields.addAll(Arrays.asList(Favorite.fnZhName, Favorite.fnEnName, Favorite.fnDesc));
 
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(ImageItem.FD_URL);
-                return (includedFields.contains(writer.getName()));
-            }
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
+        listFields.add(Favorite.fnImage);
 
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-        FilterProvider filters = new SimpleFilterProvider().addFilter("favoriteFilter", theFilter).addFilter("imageItemFilter", imageItemFilter);
-        mapper.setFilters(filters);
+        mapFields.add(Favorite.fnLocality);
 
-        return mapper.valueToTree(item);
+        return postProcess(result);
     }
 }
+

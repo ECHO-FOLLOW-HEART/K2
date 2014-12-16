@@ -19,7 +19,7 @@ import java.util.*;
 
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p/>
+ * <p>
  * Created by zephyre on 10/28/14.
  */
 public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormatter {
@@ -47,6 +47,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
                 AizouBaseEntity.FD_ID,
+                AizouBaseEntity.FD_IS_FAVORITE,
                 AbstractPOI.FD_ZH_NAME,
                 AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_DESC,
@@ -78,7 +79,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
         filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
-        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap =new HashMap<>();
+        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
         serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
 
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);

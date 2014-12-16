@@ -1,4 +1,4 @@
-package taozi.test;
+package travelpi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import play.test.WithApplication;

@@ -1,6 +1,7 @@
 package controllers.taozi;
 
 import aizou.core.LocalityAPI;
+import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,8 +16,8 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-import utils.formatter.taozi.TravelNote.DetailTravelNoteFormatter;
-import utils.formatter.taozi.TravelNote.SimpTravelNoteFormatter;
+import formatter.taozi.TravelNote.DetailTravelNoteFormatter;
+import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -75,13 +76,13 @@ public class TravelNoteCtrl extends Controller {
                 if (locality.getTags() != null)
                     locNames.addAll(locality.getTags());
                 if (locality.getZhName() != null)
-                    locNames.add(locality.getZhName());
+                locNames.add(locality.getZhName());
             } else if (locality == null) {
                 if (vs.alias != null)
                     vsNames.addAll(vs.alias);
-                if (vs.tags != null)
+                if (vs.FD_TAGS != null)
                     vsNames.addAll(vs.tags);
-                if (vs.zhName != null)
+                if (vs.FD_ZH_NAME != null)
                     vsNames.add(vs.zhName);
             } else {
                 if (locality.getAlias() != null)
@@ -91,10 +92,10 @@ public class TravelNoteCtrl extends Controller {
                 if (locality.getZhName() != null)
                     locNames.add(locality.getZhName());
                 if (vs.alias != null)
-                    vsNames.addAll(vs.alias);
-                if (vs.tags != null)
+                vsNames.addAll(vs.alias);
+                if (vs.FD_TAGS != null)
                     vsNames.addAll(vs.tags);
-                if (vs.zhName != null)
+                if (vs.FD_ZH_NAME != null)
                     vsNames.add(vs.zhName);
             }
 
@@ -103,7 +104,7 @@ public class TravelNoteCtrl extends Controller {
                 nodeList.add(new SimpTravelNoteFormatter().format(note));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch ( AizouException | NullPointerException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -116,19 +117,24 @@ public class TravelNoteCtrl extends Controller {
      */
     public static Result getTravelNoteDetail(String noteId) {
         try {
+            Long userId ;
+            if(request().hasHeader("UserId"))
+                userId = Long.parseLong(request().getHeader("UserId"));
+            else
+                userId = null;
             List<TravelNote> travelNoteList = TravelNoteAPI.getTravelNoteDetailApi(noteId);
             List<JsonNode> nodeList = new ArrayList<>();
             for (TravelNote note : travelNoteList) {
+                //是否被收藏
+                MiscAPI.isFavorite(note, userId);
                 nodeList.add(new DetailTravelNoteFormatter().format(note));
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch (ParseException | SolrServerException e) {
+        } catch (ParseException | SolrServerException |AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-
     }
-
 
 }
 

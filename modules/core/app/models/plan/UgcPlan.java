@@ -129,13 +129,13 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
         this.setEnabled(true);
     }
 
-    private static boolean isGetter(Method method) {
+    protected static boolean isGetter(Method method) {
         return method.getName().startsWith("get")
                 && method.getParameterTypes().length == 0
                 && !void.class.equals(method.getReturnType());
     }
 
-    public static boolean isSetter(Method method) {
+    protected static boolean isSetter(Method method) {
         return method.getName().startsWith("set")
                 && method.getParameterTypes().length == 1
                 && void.class.equals(method.getReturnType());

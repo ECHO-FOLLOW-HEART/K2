@@ -2,6 +2,7 @@ package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.AizouBaseEntity;
+import models.geo.Locality;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -41,6 +42,9 @@ public class Favorite extends AizouBaseEntity {
 
     @Transient
     public static String fnImage = "images";
+
+    @Transient
+    public static String fnLocality = "locality";
 
     @Transient
     public static String fnCreateTime = "createTime";
@@ -88,13 +92,9 @@ public class Favorite extends AizouBaseEntity {
     public List<ImageItem> images;
 
     public Date createTime;
-
-    public String getItemId() {
-        return itemId.toString();
-    }
-
-    public String getEnName() {
-        return enName == null ? "" : enName;
-    }
+    /**
+     * 所在目的地
+     */
+    public Locality locality;
 
 }

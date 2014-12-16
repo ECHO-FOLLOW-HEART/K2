@@ -1,16 +1,18 @@
 package controllers.taozi;
 
 import aizou.core.GeoAPI;
+import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
-import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.geo.*;
+import formatter.taozi.geo.DetailedLocalityFormatter;
+import formatter.taozi.geo.SimpleCountryFormatter;
+import formatter.taozi.geo.SimpleLocalityFormatter;
+import formatter.taozi.poi.SimplePOIFormatter;
 import models.geo.Country;
 import models.geo.Locality;
-import models.misc.TravelNote;
 import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
 import play.Configuration;
@@ -19,14 +21,12 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.Utils;
-import formatter.taozi.misc.TravelNoteFormatter;
-import formatter.taozi.poi.SimplePOIFormatter;
 
 import java.util.*;
 
 /**
  * 地理相关
- * <p/>
+ * <p>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
@@ -39,7 +39,14 @@ public class GeoCtrl extends Controller {
      */
     public static Result getLocality(String id, int noteCnt) {
         try {
+            Long userId;
+            if (request().hasHeader("UserId"))
+                userId = Long.parseLong(request().getHeader("UserId"));
+            else
+                userId = null;
             Locality locality = GeoAPI.locDetails(id);
+            //是否被收藏
+            MiscAPI.isFavorite(locality, userId);
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().format(locality);
@@ -48,7 +55,8 @@ public class GeoCtrl extends Controller {
             //for (TravelNote tra : tras) {
             //    objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
             //}
-            response.put("imageCnt", locality.getImages().size());
+            int imageCnt = locality.getImages() == null ? 0 : locality.getImages().size();
+            response.put("imageCnt", imageCnt);
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -66,7 +74,7 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping,boolean hotel,boolean restaurant,
+    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping, boolean hotel, boolean restaurant,
                                         int page, int pageSize) {
         //TODO 没有美食/购物的数据
         try {

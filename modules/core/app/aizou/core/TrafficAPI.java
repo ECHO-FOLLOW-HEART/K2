@@ -2,7 +2,6 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
-import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.traffic.*;
 import org.bson.types.ObjectId;

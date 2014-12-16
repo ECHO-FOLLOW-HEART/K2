@@ -1,17 +1,18 @@
 package controllers.taozi;
 
+import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.poi.CommentFormatter;
+import formatter.taozi.geo.LocalityGuideFormatter;
+import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
-import models.geo.Destination;
+import models.geo.Locality;
 import models.poi.*;
-
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -19,7 +20,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
 import utils.Utils;
-import utils.formatter.taozi.geo.DestinationGuideFormatter;
+
 import java.util.*;
 
 /**
@@ -28,17 +29,18 @@ import java.util.*;
 public class POICtrl extends Controller {
 
     public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
-                                           int commentPage, int commentPageSize,
+                                           int commentPage, int commentPageSize, Long userId,
                                            int rmdPage, int rmdPageSize) throws AizouException {
         DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
+        //是否被收藏
+        MiscAPI.isFavorite(poiInfo, userId);
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
         JsonNode info = poiFormatter.format(poiInfo);
 
         //取得推荐
         List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
-        int rmdCnt = (int) PoiAPI.getPOIRmdCount(spotId);
         List<JsonNode> recommends = new ArrayList<>();
         for (POIRmd temp : rmdEntities) {
             recommends.add(new POIRmdFormatter().format(temp));
@@ -46,17 +48,14 @@ public class POICtrl extends Controller {
 
         // 取得评论
         List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-        int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
         List<JsonNode> comments = new ArrayList<>();
         for (Comment temp : commentsEntities) {
             comments.add(new CommentFormatter().format(temp));
         }
         ObjectNode ret = (ObjectNode) info;
         ret.put("recommends", Json.toJson(recommends));
-        ret.put("recommendCnt", rmdCnt);
 
         ret.put("comments", Json.toJson(comments));
-        ret.put("commentCnt", commCnt);
 
         return ret;
     }
@@ -95,7 +94,12 @@ public class POICtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
         }
         try {
-            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, rmdPage, rmdPageSize);
+            Long userId;
+            if (request().hasHeader("UserId"))
+                userId = Long.parseLong(request().getHeader("UserId"));
+            else
+                userId = null;
+            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -281,9 +285,9 @@ public class POICtrl extends Controller {
      * @return
      */
     public static Result getPoiNear(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                    boolean restaurant, int page, int pageSize) {
+                                    boolean restaurant,boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) {
         try {
-            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, page, pageSize);
+            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant,shopping, page, pageSize, commentPage, commentPageSize);
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
@@ -291,7 +295,7 @@ public class POICtrl extends Controller {
     }
 
     private static ObjectNode getPoiNearImpl(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                             boolean restaurant, int page, int pageSize) throws AizouException {
+                                             boolean restaurant,boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) throws AizouException {
         ObjectNode results = Json.newObject();
         //发现poi
         List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
@@ -311,14 +315,34 @@ public class POICtrl extends Controller {
             poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
         }
 
+        if (shopping) {
+            poiKeyList.add(PoiAPI.POIType.SHOPPING);
+            poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
+        }
+
         for (PoiAPI.POIType poiType : poiKeyList) {
             List<JsonNode> retPoiList = new ArrayList<>();
             Iterator<? extends AbstractPOI> iterator = PoiAPI.getPOINearBy(poiType, lng, lat, maxDist,
                     page, pageSize);
+            ObjectNode ret;
+            AbstractPOI poi;
+            List<Comment> commentsEntities;
             if (iterator != null) {
                 for (; iterator.hasNext(); ) {
-                    AbstractPOI poi = iterator.next();
-                    retPoiList.add(new SimplePOIFormatter().format(poi));
+                    poi = iterator.next();
+                    ret = (ObjectNode) new SimplePOIFormatter().format(poi);
+                    if (poiType.equals(PoiAPI.POIType.RESTAURANT) || poiType.equals(PoiAPI.POIType.SHOPPING) ||
+                            poiType.equals(PoiAPI.POIType.HOTEL)) {
+                        commentsEntities = PoiAPI.getPOIComment(poi.getId().toString(), commentPage, commentPageSize);
+                        int commCnt = (int) PoiAPI.getPOICommentCount(poi.getId().toString());
+                        List<JsonNode> comments = new ArrayList<>();
+                        for (Comment cmt : commentsEntities) {
+                            comments.add(new CommentFormatter().format(cmt));
+                        }
+                        ret.put("comments", Json.toJson(comments));
+                        ret.put("commentCnt", commCnt);
+                    }
+                    retPoiList.add(ret);
                 }
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
@@ -335,7 +359,7 @@ public class POICtrl extends Controller {
      * @param traffic
      * @return
      */
-    public static Result getViewSpotDetail(String id, Boolean desc, Boolean traffic) {
+    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
         try {
             ObjectNode results = Json.newObject();
             ObjectId oid = new ObjectId(id);
@@ -382,10 +406,10 @@ public class POICtrl extends Controller {
             ObjectId oid = new ObjectId(locId);
             for (PoiAPI.DestinationType type : destKeyList) {
 
-                Destination destination = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
+                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
                 String kind = poiMap.get(type);
                 //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
+                results.put(kind, new LocalityGuideFormatter().format(locality, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
@@ -404,8 +428,9 @@ public class POICtrl extends Controller {
      * @param culture
      * @return
      */
-    public static Result getTravelGuide(String locId, Boolean remoteTraffic, Boolean localTraffic,
-                                        Boolean activity, Boolean tips, Boolean culture, int page, int pageSize) {
+    public static Result getTravelGuide(String locId, boolean remoteTraffic, boolean localTraffic,
+                                        boolean activity, boolean tips, boolean culture, boolean desc,
+                                        int page, int pageSize) {
         try {
             ObjectNode results = Json.newObject();
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
@@ -434,11 +459,15 @@ public class POICtrl extends Controller {
                 destKeyList.add(PoiAPI.DestinationType.CULTURE);
                 poiMap.put(PoiAPI.DestinationType.CULTURE,Destination.fnCulture);
             }*/
+            if (desc){
+                destKeyList.add(PoiAPI.DestinationType.DESC);
+                poiMap.put(PoiAPI.DestinationType.DESC,"desc");
+            }
             for (PoiAPI.DestinationType type : destKeyList) {
-                Destination destination = PoiAPI.getTravelGuideApi(new ObjectId(locId), type, page, pageSize);
+                Locality locality = PoiAPI.getTravelGuideApi(new ObjectId(locId), type, page, pageSize);
                 String kind = poiMap.get(type);
                 //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new DestinationGuideFormatter().format(destination, kind));
+                results.put(kind, new LocalityGuideFormatter().format(locality, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException | NullPointerException | NumberFormatException e) {

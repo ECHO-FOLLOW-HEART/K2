@@ -67,7 +67,7 @@ public class UserAPI {
      *
      * @throws exception.AizouException
      */
-    public static UserInfo getUserInfo(Integer id) throws AizouException {
+    public static UserInfo getUserInfo(Long id) throws AizouException {
         return getUserInfo(id, null);
     }
 
@@ -76,7 +76,7 @@ public class UserAPI {
      *
      * @throws exception.AizouException
      */
-    public static UserInfo getUserInfo(Integer id, Collection<String> fieldList) throws AizouException {
+    public static UserInfo getUserInfo(Long id, Collection<String> fieldList) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(id);
         if (fieldList != null && !fieldList.isEmpty())
@@ -505,7 +505,7 @@ public class UserAPI {
         return userInfo;
     }
 
-    public static Integer populateUserId() throws AizouException {
+    public static Long populateUserId() throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Sequence> query = ds.createQuery(Sequence.class);
         query.field("column").equal(Sequence.USERID);
@@ -601,7 +601,7 @@ public class UserAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static Credential getCredentialByUserId(Integer userId) throws AizouException {
+    public static Credential getCredentialByUserId(Long userId) throws AizouException {
         return getCredentialByUserId(userId, null);
     }
 
@@ -613,7 +613,7 @@ public class UserAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static Credential getCredentialByUserId(Integer userId, List<String> fieldList) throws AizouException {
+    public static Credential getCredentialByUserId(Long userId, List<String> fieldList) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> query = ds.createQuery(Credential.class).field("userId").equal(userId);
         if (fieldList != null && !fieldList.isEmpty()) {
@@ -859,7 +859,7 @@ public class UserAPI {
      * @param userIdA
      * @param userIdB
      */
-    public static void modEaseMobContacts(Integer userIdA, Integer userIdB, boolean actionAdd) throws AizouException {
+    public static void modEaseMobContacts(Long userIdA, Long userIdB, boolean actionAdd) throws AizouException {
         List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
@@ -900,7 +900,7 @@ public class UserAPI {
     /**
      * 在环信用户系统中添加用户的黑名单关系
      */
-    public static void addEaseMobBlocks(Integer userIdA, List<Integer> blockIds) throws AizouException {
+    public static void addEaseMobBlocks(Long userIdA, List<Long> blockIds) throws AizouException {
         List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA;
         if (blockIds == null || blockIds.isEmpty())
@@ -912,7 +912,7 @@ public class UserAPI {
             if (userA == null)
                 throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
 
-            for (Integer i : blockIds) {
+            for (Long i : blockIds) {
                 String easemobName = UserAPI.getUserInfo(i, fieldList).getEasemobUser();
                 if (easemobName == null)
                     throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
@@ -962,7 +962,7 @@ public class UserAPI {
      * @param userIdA
      * @param userIdB
      */
-    public static void delEaseMobBlocks(Integer userIdA, Integer userIdB) throws AizouException {
+    public static void delEaseMobBlocks(Long userIdA, Long userIdB) throws AizouException {
         List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
@@ -1005,7 +1005,7 @@ public class UserAPI {
      * @param otherid
      * @param reason
      */
-    public static void sendFriendReq(Integer selfId, Integer otherid, String reason) throws AizouException {
+    public static void sendFriendReq(Long selfId, Long otherid, String reason) throws AizouException {
         UserInfo userInfo = getUserInfo(selfId);
 
     }
@@ -1017,7 +1017,7 @@ public class UserAPI {
      * @param targetId
      * @throws exception.AizouException
      */
-    public static void addContact(Integer selfId, Integer targetId) throws AizouException {
+    public static void addContact(Long selfId, Long targetId) throws AizouException {
         if (selfId.equals(targetId))
             return;
 
@@ -1064,7 +1064,7 @@ public class UserAPI {
                     ops.set(UserInfo.fnContacts, Arrays.asList(tinfo));
                     ds.updateFirst(query, ops);
                 } else {
-                    Set<Integer> userIdSet = new HashSet<>();
+                    Set<Long> userIdSet = new HashSet<>();
                     for (UserInfo u : sc)
                         userIdSet.add(u.getUserId());
                     if (!userIdSet.contains(tinfo.getUserId())) {
@@ -1096,7 +1096,7 @@ public class UserAPI {
      * @param selfId
      * @param targetId
      */
-    public static void delContact(Integer selfId, Integer targetId) throws AizouException {
+    public static void delContact(Long selfId, Long targetId) throws AizouException {
         if (selfId.equals(targetId))
             return;
 
@@ -1228,7 +1228,7 @@ public class UserAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<UserInfo> getContactList(Integer selfId) throws AizouException {
+    public static List<UserInfo> getContactList(Long selfId) throws AizouException {
         List<String> fieldList = Arrays.asList(UserInfo.fnContacts);
         UserInfo userInfo = getUserInfo(selfId, fieldList);
         if (userInfo == null)

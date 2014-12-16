@@ -14,10 +14,33 @@ import java.util.List;
 @Embedded
 public class Activities extends AizouBaseItem {
 
-    public String zhName;
-    public String enName;
-    public String desc;
-    public List<ImageItem> images;
+    private String desc;
 
+    private String title;
 
+    private List<ImageItem> images;
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public List<ImageItem> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ImageItem> images) {
+        this.images = images;
+    }
 }

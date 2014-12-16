@@ -78,34 +78,41 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
      */
     @JsonProperty("signature")
     private String signature;
+
     /**
      * 手机号
      */
     @JsonProperty("tel")
     private String tel;
+
     /**
      * 国家编码
      */
     @JsonProperty("dialCode")
     private Integer dialCode;
+
     /**
      * 用户ID
      */
     @JsonProperty("userId")
-    private Integer userId;
+    private Long userId;
+
     /**
      * 好友列表:用户ID-用户简要信息
      */
     private List<UserInfo> friends;
+
     /**
      * 备注信息。这个字段比较特殊：每个用户的备注信息，是由其它用户决定的，而不会跟随自身这个UserInfo存放在数据库中。
      */
     @Transient
     private String memo;
+
     /**
      * 邮箱
      */
     private String email;
+
     /**
      * 第三方OAuth登录信息
      */
@@ -132,7 +139,7 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
     public UserInfo() {
     }
 
-    public static UserInfo newInstance(Integer userId) {
+    public static UserInfo newInstance(Long userId) {
         UserInfo user = new UserInfo();
         user.setId(new ObjectId());
         user.userId = userId;
@@ -202,11 +209,11 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
         this.dialCode = dialCode;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

@@ -250,6 +250,8 @@ public class GuideAPI {
         if (itinerary != null && itinerary.size() > 0) {
             for (ItinerItem temp : itinerary) {
                 type = temp.type;
+                if(type == null)
+                    continue;
                 switch (type) {
                     case "vs":
                         poiType = PoiAPI.POIType.VIEW_SPOT;

@@ -40,8 +40,6 @@ public class ViewSpot extends AbstractPOI {
     @Transient
     public static String FD_DESC_FLAGS = "descriptionFlag";
 
-
-
     public Integer spotId;
 
     public String trafficInfo;
@@ -101,6 +99,14 @@ public class ViewSpot extends AbstractPOI {
         return fieldList;
     }
 
+    public Double getTimeCost() {
+        return timeCost;
+    }
+
+    public void setTimeCost(Double timeCost) {
+        this.timeCost = timeCost;
+    }
+
     public String getTravelMonth() {
         return travelMonth;
     }
@@ -140,6 +146,7 @@ public class ViewSpot extends AbstractPOI {
     public String getTelephone() {
         return telephone;
     }
+
 
     @Override
     public JsonNode toJson(int level) {

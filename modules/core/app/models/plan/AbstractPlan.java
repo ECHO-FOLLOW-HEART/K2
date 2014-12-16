@@ -347,9 +347,16 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
 
 
-        builder.add("imageList", images != null ?
-                Arrays.asList(images.get(new Random().nextInt(images.size())).getFullUrl()) :
-                new ArrayList<>());
+        if (images == null) {
+            builder.add("imageList", new ArrayList<>());
+        } else {
+            ImageItem theImg = images.get(new Random().nextInt(images.size()));
+            String imgUrl = theImg.getFullUrl();
+            if (imgUrl == null)
+                imgUrl = theImg.getUrl();
+            builder.add("imageList", Arrays.asList(imgUrl));
+        }
+
 
         Integer tempStayBudget = stayBudget == null ? 0 : stayBudget;
         Integer tempTrafficBudget = trafficBudget == null ? 0 : trafficBudget;

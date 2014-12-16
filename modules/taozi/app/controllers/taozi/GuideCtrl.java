@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.JsonFormatter;
+import formatter.taozi.guide.*;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.DestGuideInfo;
@@ -18,8 +20,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-import formatter.JsonFormatter;
-import formatter.taozi.guide.*;
 
 import java.util.*;
 
@@ -120,9 +120,18 @@ public class GuideCtrl extends Controller {
      * @param node  攻略JSON内容
      */
     private static void addGuideInfoToNode(Guide guide, ObjectNode node) {
+        // 添加攻略天数
+        node.put("dayCnt", guide.itineraryDays);
+
+        // 添加攻略摘要
         List<Locality> dests = guide.localities;
+        if (dests == null) {
+            node.put("summary", "");
+            return;
+        }
         StringBuilder sb = new StringBuilder();
         List<ImageItem> images = new ArrayList();
+
         for (Locality des : dests) {
             sb.append(des.getZhName());
             sb.append("、");
@@ -131,7 +140,7 @@ public class GuideCtrl extends Controller {
         }
         String summary = sb.toString();
         node.put("summary", summary.substring(0, summary.length() - 1));
-        node.put("dayCnt", guide.itineraryDays);
+
     }
 
     /**
@@ -174,7 +183,7 @@ public class GuideCtrl extends Controller {
             Guide guide = GuideAPI.getGuideById(guideId, fields);
             // TODO 数据完备后开启
             // 填充攻略信息
-            //GuideAPI.fillGuideInfo(guide);
+            GuideAPI.fillGuideInfo(guide);
             ObjectNode node = (ObjectNode) jsonFormatter.format(guide);
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {
@@ -264,7 +273,7 @@ public class GuideCtrl extends Controller {
     public static Result getDestinationGuideInfo(String id, String guidePart) {
         try {
             DestGuideInfo destGuideInfo = GuideAPI.getDestinationGuideInfo(new ObjectId(id));
-            ObjectNode node = (ObjectNode) new DestGuideFormatter().format(destGuideInfo, guidePart);
+            ObjectNode node = (ObjectNode) new DestGuideFormatter(guidePart).format(destGuideInfo);
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());

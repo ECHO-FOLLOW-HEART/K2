@@ -23,6 +23,6 @@ public class Contact extends AizouBaseEntity {
 
     public Boolean isContact;
 
-    public Integer userId;
+    public Long userId;
 
 }

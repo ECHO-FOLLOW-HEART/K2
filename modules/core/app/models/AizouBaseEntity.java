@@ -21,12 +21,31 @@ public abstract class AizouBaseEntity extends AizouBaseItem {
     @Transient
     public static final String FD_ID = "id";
 
+    @Transient
+    public static final String FD_IS_FAVORITE = "isFavorite";
+
     @Id
     private ObjectId id;
 
     private boolean enabled;
 
     private Map<String, Object> misc;
+
+    /**
+     * 是否收藏
+     */
+    private Boolean isFavorite;
+
+    public Boolean getIsFavorite() {
+        if (isFavorite == null)
+            return false;
+        else
+            return isFavorite;
+    }
+
+    public void setIsFavorite(Boolean isFavorite){
+        this.isFavorite = isFavorite;
+    }
 
     public ObjectId getId() {
         return id;
