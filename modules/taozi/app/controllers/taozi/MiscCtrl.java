@@ -150,6 +150,49 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(retNodeList));
     }
 
+    public static JsonNode recommendedImpl(int page, int pageSize) {
+        List<ObjectNode> retNodeList = new ArrayList();
+        Datastore ds;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            Query<Recom> query = ds.createQuery(Recom.class);
+
+            query.field("enabled").equal(Boolean.TRUE);
+            query.order("weight").offset(page * pageSize).limit(pageSize);
+            Recom recom;
+            Map<String, List<Recom>> map = new HashMap<>();
+            List<Recom> tempList;
+            for (Iterator<Recom> it = query.iterator(); it.hasNext(); ) {
+                recom = it.next();
+                tempList = map.get(recom.title);
+                if (tempList == null)
+                    tempList = new ArrayList<>();
+                tempList.add(recom);
+                map.put(recom.title, tempList);
+            }
+            String key;
+            ObjectNode tempNode;
+            List<Recom> recList;
+            List<ObjectNode> recNodeList;
+            for (Map.Entry<String, List<Recom>> entry : map.entrySet()) {
+                key = entry.getKey();
+                recList = entry.getValue();
+                recNodeList = new ArrayList();
+                for (Recom tem : recList) {
+                    recNodeList.add((ObjectNode) new RecomFormatter().format(tem));
+                }
+                tempNode = Json.newObject();
+                tempNode.put("title", key == null ? "" : key);
+                tempNode.put("contents", Json.toJson(recNodeList));
+                retNodeList.add(tempNode);
+            }
+
+        } catch (AizouException e) {
+            return null;
+        }
+        return Json.toJson(retNodeList);
+    }
+
     /**
      * 添加收藏
      *
