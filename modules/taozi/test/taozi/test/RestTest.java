@@ -33,19 +33,27 @@ public class RestTest extends AizouTest{
 //        assertThat(node.get("width").equals(640)).isTrue();
 //        assertThat(node.get("height").equals(1136)).isTrue();
 //    }
+
     @Test
     public void testSearch() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("searchImpl",
+        Method method = MiscCtrl.class.getDeclaredMethod("search",
                 String.class, String.class, boolean.class, boolean.class, boolean.class, boolean.class, boolean.class, int.class, int.class);
         method.setAccessible(true);
-        JsonNode node = (JsonNode) method.invoke(MiscCtrl.class,
+        Result res = (Result) method.invoke(MiscCtrl.class,
                 "北", "5473ccd7b8ce043a64108c46", true, false, true, true, true, 0, 3);
-        assertThat(node.get("loc")!=null).isTrue();
-        assertThat(node.get("loc").size()).isLessThanOrEqualTo(3);
-        assertThat(node.get("vs") == null).isTrue();
-        assertThat(node.get("hotel")!=null).isTrue();
-        assertThat(node.get("restaurant")!=null).isTrue();
-        assertThat(node.get("shopping")!=null).isTrue();
+        JSONObject result = new JSONObject(contentAsString(res));
+
+        // The return code of result should be 0
+        assertThat(result.getInt("code")).isEqualTo(0);
+
+        // The searchResult should have loc, shopping, hotel and restaurant information
+        //      should not have vs information
+        JSONObject searchResult = result.getJSONObject("result");
+        assertThat(searchResult.has("loc")).isTrue();
+        assertThat(searchResult.has("shopping")).isTrue();
+        assertThat(searchResult.has("hotel")).isTrue();
+        assertThat(searchResult.has("restaurant")).isTrue();
+        assertThat(searchResult.has("vs")).isFalse();
     }
 
     @Test
