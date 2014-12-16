@@ -104,7 +104,7 @@ public class WebPlanAPI {
             addTelomere(false, plan, backLoc, trafficFlag);
         }
 
-        if (!hotelFlag.equals(HOTEL_FLAG_NULL) && !restaurantFlag.equals(REST_FLAG_NULL))
+        if (!hotelFlag.equals(HOTEL_FLAG_NULL) || !restaurantFlag.equals(REST_FLAG_NULL))
             // 加入酒店
             addHotelsAndRestaurants(plan.getDetails(), hotelFlag, restaurantFlag);
 
