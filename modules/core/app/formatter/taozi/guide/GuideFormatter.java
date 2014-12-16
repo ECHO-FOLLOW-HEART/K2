@@ -87,8 +87,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE,
-                AbstractPOI.FD_RATING);
+                AbstractPOI.FD_TELEPHONE);
 
         localityStringFields = new HashSet<String>() {
         };
