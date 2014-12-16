@@ -1,22 +1,17 @@
 package taozi.test;
 
-import aizou.core.PoiAPI;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import  play.mvc.Result;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.taozi.MiscCtrl;
-import controllers.taozi.POICtrl;
-import controllers.taozi.UserCtrl;
-import models.poi.AbstractPOI;
-import models.poi.Hotel;
-import models.poi.ViewSpot;
 import org.junit.Test;
-import org.specs2.json.Json;
 
-import javax.xml.transform.Result;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static play.test.Helpers.contentAsString;
 
 /**
  * Created by Heaven on 2014/12/13.
@@ -55,36 +50,48 @@ public class RestTest extends AizouTest{
 
     @Test
     public void testRecommended() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("recommendedImpl", int.class, int.class);
+        Method method = MiscCtrl.class.getDeclaredMethod("recommend", int.class, int.class);
         method.setAccessible(true);
         int page = 0;
         int pageSize = 3;
-        JsonNode node = (JsonNode) method.invoke(MiscCtrl.class, page, pageSize);
+        Result res = (Result) method.invoke(MiscCtrl.class, page, pageSize);
+        JSONObject result =new JSONObject(contentAsString(res));
 
-        // The size of node should be less or equal than pageSize
+        JSONArray resultList = result.getJSONArray("result");
+
+        // The return code of result should be 0
+        assertThat(result.getInt("code")).isEqualTo(0);
+
+        // The size of result should be less or equal than pageSize
         int sizeCount = 0;
-        for (JsonNode subnode : node) {
-            assertThat(subnode.get("contents").size()).isGreaterThan(0);
-            sizeCount += subnode.get("contents").size();
+        for (int i = 0; i < resultList.length(); i++) {
+            JSONArray contentList = resultList.getJSONObject(i).getJSONArray("contents");
+            assertThat(contentList.length()).isGreaterThan(0);
+            sizeCount += contentList.length();
         }
         assertThat(sizeCount).isLessThanOrEqualTo(pageSize);
 
-        // The content of each subnode should be valid
-        for (JsonNode subnode : node) {
-            for (JsonNode city : subnode.get("contents")) {
-                assertText(city, new String[]{"cover", "desc", "zhName", "enName"}, false);
+        // Each information of each city should be valid
+        for (int i = 0; i < resultList.length(); i++) {
+            assertThat(resultList.getJSONObject(i).getString("title")).isNotNull();
+            JSONArray contents = resultList.getJSONObject(i).getJSONArray("contents");
+            for (int j = 0; j < contents.length(); j++) {
+                JSONObject city = contents.getJSONObject(j);
+                assertThat(city.getString("enName")).isNotNull();
+                assertThat(city.getString("zhName")).isNotNull();
+                assertThat(city.getString("cover")).isNotNull();
+                assertThat(city.getString("desc")).isNotNull();
 
-                // linkUrl should be NULL for linkType==1, not NULL for linkType==2
-                int cityLinkType = city.get("linkType").asInt();
-                if (cityLinkType == 1) {
-                    assertText(city, "linkUrl", true);
-                } else if (cityLinkType == 2) {
-                    assertText(city, "linkUrl", false);
+                // check linkType and linkUrl
+                int linkType = city.getInt("linkType");
+                if (linkType == 1) {
+                    assertThat(city.getString("linkUrl")).isEqualTo("");
+                } else if (linkType == 2){
+                    assertThat(city.getString("linkUrl")).isNotEqualTo("");
                 } else {
                     assertThat(false).isTrue();
                 }
             }
         }
     }
-
 }
