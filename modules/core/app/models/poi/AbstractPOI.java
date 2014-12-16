@@ -286,6 +286,22 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
             return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getTelephone() {
+        return telephone;
+    }
+
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
+    }
+
     public String getEnName() {
         return enName;
     }

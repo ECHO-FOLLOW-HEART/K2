@@ -24,11 +24,11 @@ import java.util.*;
 /**
  * @author Zephyre
  */
-public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
+public class BriefPOIFormatter extends TravelPiBaseFormatter {
 
-    private static BriefViewSpotFormatter instance;
+    private static BriefPOIFormatter instance;
 
-    private BriefViewSpotFormatter() {
+    private BriefPOIFormatter() {
         stringFields = new HashSet<>();
         stringFields.addAll(Arrays.asList(AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC, ViewSpot.FD_TIME_COST_DESC));
 
@@ -36,11 +36,11 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
         listFields.addAll(Arrays.asList(AbstractPOI.FD_IMAGES, AbstractPOI.FD_TAGS));
     }
 
-    public synchronized static BriefViewSpotFormatter getInstance() {
+    public synchronized static BriefPOIFormatter getInstance() {
         if (instance != null)
             return instance;
         else {
-            instance = new BriefViewSpotFormatter();
+            instance = new BriefPOIFormatter();
             return instance;
         }
     }
@@ -49,7 +49,7 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
     public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
-        ViewSpot vsItem = (ViewSpot) item;
+        AbstractPOI vsItem = (AbstractPOI) item;
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
         mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
@@ -128,6 +128,40 @@ public class BriefViewSpotFormatter extends TravelPiBaseFormatter {
             r = (new Random().nextDouble()) * 0.2 + 0.5;
         ratings.put("ranking", r);
         result.put("ratings", Json.toJson(ratings));
+
+        if (vsItem instanceof ViewSpot) {
+            Double t = ((ViewSpot) vsItem).getTimeCost();
+            if (t == null || t == 0)
+                t = (double) (new Random().nextInt(4) + 1);
+            result.put("timeCost", t);
+        }
+
+        String addrText = vsItem.getAddress();
+        if (addrText == null)
+            addrText = "";
+
+        String telText = vsItem.getTelephone();
+
+        if (result.get("addr") == null) {
+            Map<String, Object> addr = new HashMap<>();
+            addr.put("addr", addrText);
+            result.put("addr", Json.toJson(addr));
+        } else if (result.get("addr").get("addr") == null) {
+            ObjectNode tmp = (ObjectNode) result.get("addr");
+            tmp.put("addr", addrText);
+        }
+
+        if (result.get("contact") == null) {
+            Map<String, Object> addr = new HashMap<>();
+            addr.put("phoneList", new ArrayList<>());
+            result.put("contact", Json.toJson(addr));
+        } else if (result.get("contact").get("phoneList") == null) {
+            ObjectNode tmp = (ObjectNode) result.get("contact");
+            if (telText == null)
+                tmp.put("phoneList", Json.toJson(new ArrayList()));
+            else
+                tmp.put("phoneList", Json.toJson(Arrays.asList(telText)));
+        }
 
         return postProcess(result);
     }

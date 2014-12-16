@@ -3,9 +3,12 @@ package models.plan;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import models.ITravelPiFormatter;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
  * Created by topy on 2014/9/5.
@@ -18,7 +21,30 @@ public class SharePlan extends UgcPlan implements ITravelPiFormatter {
     }
 
     public SharePlan(UgcPlan plan) throws NoSuchFieldException, IllegalAccessException {
-        this.tranfToUgcPlan(plan);
+//        this.tranfToUgcPlan(plan);
+
+        this();
+        Class<?> cls = UgcPlan.class;
+        while (!cls.equals(Object.class)) {
+            for (Method method : cls.getDeclaredMethods()) {
+                if (!(Modifier.isPublic(method.getModifiers()) && isGetter(method)))
+                    continue;
+
+                String setterName = method.getName().replaceFirst("^get", "set");
+                try {
+                    Method setterMethod = this.getClass().getMethod(setterName, method.getReturnType());
+                    if (!isSetter(setterMethod))
+                        continue;
+                    setterMethod.invoke(this, method.invoke(plan));
+                } catch (ReflectiveOperationException ignored) {
+                }
+            }
+            cls = cls.getSuperclass();
+        }
+
+        //设置ID
+//        this.setId(new ObjectId());
+        this.setEnabled(true);
     }
 
     private void tranfToUgcPlan(UgcPlan plan) throws NoSuchFieldException, IllegalAccessException {
