@@ -2,8 +2,8 @@ package models.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import models.misc.CheckinRatings;
 import models.misc.Description;
 import models.misc.ImageItem;
@@ -26,7 +26,7 @@ import java.util.Random;
  * @author Zephyre
  */
 @Entity
-abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPiFormatter {
+abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiFormatter {
     @Transient
     public static final String FD_TARGETS = "targets";
 
@@ -347,9 +347,16 @@ abstract public class AbstractPlan extends TravelPiBaseItem implements ITravelPi
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
 
 
-        builder.add("imageList", images != null ?
-                Arrays.asList(images.get(new Random().nextInt(images.size())).getFullUrl()) :
-                new ArrayList<>());
+        if (images == null) {
+            builder.add("imageList", new ArrayList<>());
+        } else {
+            ImageItem theImg = images.get(new Random().nextInt(images.size()));
+            String imgUrl = theImg.getFullUrl();
+            if (imgUrl == null)
+                imgUrl = theImg.getUrl();
+            builder.add("imageList", Arrays.asList(imgUrl));
+        }
+
 
         Integer tempStayBudget = stayBudget == null ? 0 : stayBudget;
         Integer tempTrafficBudget = trafficBudget == null ? 0 : trafficBudget;

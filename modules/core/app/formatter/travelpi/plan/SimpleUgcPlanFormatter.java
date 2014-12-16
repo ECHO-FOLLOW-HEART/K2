@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import models.plan.AbstractPlan;
 import models.plan.UgcPlan;
@@ -45,7 +45,7 @@ public class SimpleUgcPlanFormatter extends TravelPiBaseFormatter {
     }
 
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
         UgcPlan destItem = (UgcPlan) item;
 

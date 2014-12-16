@@ -1,12 +1,9 @@
 package aizou.core;
 
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
-import models.traffic.AirRoute;
-import models.traffic.RouteIterator;
-import models.traffic.TrainEntry;
-import models.traffic.TrainRoute;
+import models.traffic.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -21,16 +18,28 @@ import java.util.*;
  */
 public class TrafficAPI {
 
+
+    public static final String TRAFFIC_TYPE_AIRPOT = "airport";
+
+    public static final String TRAFFIC_TYPE_TRAINSTATION = "trainstation";
+
+    /**
+     * 排序的字段。
+     */
+    public enum SortField {
+        PRICE, DEP_TIME, ARR_TIME, TIME_COST, CODE
+    }
+
     /**
      * 获得航班信息。
      *
      * @param flightCode 航班号。
      * @return 航班信息。如果没有找到，返回null。
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static AirRoute getAirRouteByCode(String flightCode, Calendar cal) throws TravelPiException {
+    public static AirRoute getAirRouteByCode(String flightCode, Calendar cal) throws AizouException {
         if (flightCode == null || flightCode.isEmpty())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
 
         flightCode = flightCode.toUpperCase();
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
@@ -67,7 +76,7 @@ public class TrafficAPI {
     public static RouteIterator searchAirRoutes(ObjectId depId, ObjectId arrId, Calendar baseCal, final List<Calendar> depTimeLimit,
 
                                                 final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits,
-                                                final SortField sortField, int sortType, int page, int pageSize) throws TravelPiException {
+                                                final SortField sortField, int sortType, int page, int pageSize) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<AirRoute> query = ds.createQuery(AirRoute.class);
@@ -152,11 +161,11 @@ public class TrafficAPI {
      *
      * @param trainCode 航班号。
      * @return 航班信息。如果没有找到，返回null。
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static TrainRoute getTrainRouteByCode(String trainCode, Calendar cal) throws TravelPiException {
+    public static TrainRoute getTrainRouteByCode(String trainCode, Calendar cal) throws AizouException {
         if (trainCode == null || trainCode.isEmpty())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid train code.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid train code.");
 
         trainCode = trainCode.toUpperCase();
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
@@ -193,7 +202,7 @@ public class TrafficAPI {
      */
     public static RouteIterator searchTrainRoutes(ObjectId depId, ObjectId arrId, String trainType, Calendar baseCal, final List<Calendar> depTimeLimit,
                                                   final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField,
-                                                  int sortType, int page, int pageSize) throws TravelPiException {
+                                                  int sortType, int page, int pageSize) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
         Query<TrainRoute> query = ds.createQuery(TrainRoute.class);
@@ -329,10 +338,17 @@ public class TrafficAPI {
         return RouteIterator.getInstance(pagingList.iterator(), (cal != null ? cal.getTime() : null));
     }
 
-    /**
-     * 排序的字段。
-     */
-    public enum SortField {
-        PRICE, DEP_TIME, ARR_TIME, TIME_COST, CODE
+    public static  AbstractTrafficHub getTrafficHubInfo(String trafficType, ObjectId id) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Query<? extends AbstractTrafficHub> query = null;
+        if (trafficType.equals(TRAFFIC_TYPE_AIRPOT)) {
+            query = ds.createQuery(Airport.class);
+            query.field("id").equal(id);
+        } else if (trafficType.equals(TRAFFIC_TYPE_TRAINSTATION)) {
+            query = ds.createQuery(TrainStation.class);
+            query.field("id").equal(id);
+        }
+        return query.get();
     }
+
 }

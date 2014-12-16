@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.SimpleRef;
@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class LocalityFormatter implements JsonFormatter {
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -45,8 +45,8 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Locality.fnLocation, Locality.fnDesc, Locality.fnEnName,
-                        "id", Locality.fnZhName, Locality.fnLocation, Locality.fnImages,
+                Collections.addAll(includedFields, Locality.fnLocation, Locality.fnDesc, Locality.FD_EN_NAME,
+                        "id", Locality.FD_ZH_NAME, Locality.fnLocation, Locality.fnImages,
                         Locality.fnTimeCost, Locality.fnTimeCostDesc, Locality.fnTravelMonth, Locality.fnImageCnt);
                 return (includedFields.contains(writer.getName()));
             }
@@ -75,7 +75,7 @@ public class LocalityFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(GeoJsonPoint.fnCoordinates);
+                includedFields.add(GeoJsonPoint.FD_COORDS);
                 includedFields.add(GeoJsonPoint.fnType);
                 return (includedFields.contains(writer.getName()));
             }

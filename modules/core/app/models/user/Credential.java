@@ -1,7 +1,8 @@
 package models.user;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 
@@ -11,7 +12,8 @@ import play.data.validation.Constraints;
  * @author Zephyre
  */
 @JsonFilter("credentialFilter")
-public class Credential extends TravelPiBaseItem {
+@Entity
+public class Credential extends AizouBaseEntity {
     @Transient
     public static String fnUserId = "userId";
 
@@ -31,31 +33,35 @@ public class Credential extends TravelPiBaseItem {
      * 用户ID
      */
     @Constraints.Required
-    private Integer userId;
+    private Long userId;
+
     /**
      * 密码加盐hash
      */
     private String pwdHash;
+
     /**
      * 该用户对应的盐值
      */
     @Constraints.Required
     private String salt;
+
     /**
      * 环信密码
      */
     private String easemobPwd;
+
     /**
      * 用户密钥，鉴权的时候使用
      */
     @Constraints.Required
     private String secKey;
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer val) {
+    public void setUserId(Long val) {
         userId = val;
     }
 

@@ -1,6 +1,5 @@
 package models;
 
-import com.fasterxml.jackson.annotation.JsonValue;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
@@ -14,12 +13,16 @@ import java.util.Map;
  * @author Zephyre
  */
 @Entity
-public abstract class TravelPiBaseItem {
+public abstract class AizouBaseEntity extends AizouBaseItem {
+
     @Transient
     public static final String FD_ENABLED = "enabled";
 
     @Transient
     public static final String FD_ID = "id";
+
+    @Transient
+    public static final String FD_IS_FAVORITE = "isFavorite";
 
     @Id
     private ObjectId id;
@@ -28,8 +31,28 @@ public abstract class TravelPiBaseItem {
 
     private Map<String, Object> misc;
 
+    /**
+     * 是否收藏
+     */
+    private Boolean isFavorite;
+
+    public Boolean getIsFavorite() {
+        if (isFavorite == null)
+            return false;
+        else
+            return isFavorite;
+    }
+
+    public void setIsFavorite(Boolean isFavorite){
+        this.isFavorite = isFavorite;
+    }
+
     public ObjectId getId() {
         return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
     }
 
     public Map<String, Object> getMisc() {
@@ -38,10 +61,6 @@ public abstract class TravelPiBaseItem {
 
     public void setMisc(Map<String, Object> misc) {
         this.misc = misc;
-    }
-
-    public void setId(ObjectId id) {
-        this.id = id;
     }
 
     public boolean isEnabled() {

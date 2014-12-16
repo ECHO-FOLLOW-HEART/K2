@@ -1,66 +1,46 @@
 package formatter.taozi.geo;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
-import models.geo.Locality;
-import formatter.JsonFormatter;
+import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.TaoziBaseFormatter;
+import models.AizouBaseEntity;
+import models.misc.ImageItem;
+import models.poi.AbstractPOI;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
 
 /**
  * Created by lxf on 14-11-12.
  */
-public class SimpleLocalityFormatter implements JsonFormatter {
+public class SimpleLocalityFormatter extends TaoziBaseFormatter {
+
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
-        ObjectMapper mapper = new ObjectMapper();
+    public JsonNode format(AizouBaseEntity item) {
+        ObjectMapper mapper = getObjectMapper();
 
-        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+        ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
+                .addFilter("localityFilter",
+                        SimpleBeanPropertyFilter.filterOutAllExcept(
+                                AizouBaseEntity.FD_ID,
+                                AbstractPOI.FD_EN_NAME,
+                                AbstractPOI.FD_ZH_NAME
 
-        PropertyFilter localityFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
+                        ));
 
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Locality.fnZhName,"id");
+        SimpleModule imageItemModule = new SimpleModule();
+        imageItemModule.addSerializer(ImageItem.class,
+                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+        mapper.registerModule(imageItemModule);
 
-                return (includedFields.contains(writer.getName()));
-            }
+        ObjectNode result = mapper.valueToTree(item);
 
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
+        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AizouBaseEntity.FD_ID));
 
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter",localityFilter);
-        mapper.setFilters(filters);
-
-        return mapper.valueToTree(item);
+        return postProcess(result);
     }
 }

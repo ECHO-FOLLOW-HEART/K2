@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
-import formatter.taozi.user.SideUserFormatter;
+import formatter.taozi.user.UserFormatter;
 import models.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.misc.Sequence;
@@ -49,39 +49,39 @@ public class UserAPI {
     public static int CMDTYPE_ADD_FRIEND = 2;
     public static int CMDTYPE_DEL_FRIEND = 3;
 
-    public static UserInfo getUserById(ObjectId id) throws TravelPiException {
+    public static UserInfo getUserById(ObjectId id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         return ds.createQuery(UserInfo.class).field("_id").equal(id).get();
     }
 
-    public static UserInfo getUserById(String id) throws TravelPiException {
+    public static UserInfo getUserById(String id) throws AizouException {
         try {
             return getUserById(new ObjectId(id));
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user ID: %s.", id));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user ID: %s.", id));
         }
     }
 
     /**
      * 获取用户信息
      *
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static UserInfo getUserInfo(Integer id) throws TravelPiException {
+    public static UserInfo getUserInfo(Long id) throws AizouException {
         return getUserInfo(id, null);
     }
 
     /**
      * 获取用户信息（添加fieldList限定）
      *
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static UserInfo getUserInfo(Integer id, List<String> fieldList) throws TravelPiException {
+    public static UserInfo getUserInfo(Long id, Collection<String> fieldList) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(id);
-        if (fieldList != null && !fieldList.isEmpty()) {
+        if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
-        }
+
         return query.get();
     }
 
@@ -194,7 +194,7 @@ public class UserAPI {
      * @param oauthId
      * @return
      */
-    public static UserInfo getUserByOAuth(String provider, String oauthId) throws TravelPiException {
+    public static UserInfo getUserByOAuth(String provider, String oauthId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("$elemMatch",
                 BasicDBObjectBuilder.start().add("provider", provider).add("oauthId", oauthId).get());
@@ -207,7 +207,7 @@ public class UserAPI {
      * @param udid
      * @return
      */
-    public static UserInfo getUserByUdid(String udid) throws TravelPiException {
+    public static UserInfo getUserByUdid(String udid) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         return ds.createQuery(UserInfo.class).field("udid").equal(udid).field("oauthList").notEqual(null).get();
     }
@@ -218,7 +218,7 @@ public class UserAPI {
      * @param udid
      * @return
      */
-    public static UserInfo regByUdid(String udid) throws TravelPiException {
+    public static UserInfo regByUdid(String udid) throws AizouException {
         UserInfo user = getUserByUdid(udid);
         if (user != null)
             return user;
@@ -240,9 +240,9 @@ public class UserAPI {
      * @param oauthId
      * @param extra
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static UserInfo regByOAuth(String provider, String oauthId, DBObject extra, String secToken) throws TravelPiException {
+    public static UserInfo regByOAuth(String provider, String oauthId, DBObject extra, String secToken) throws AizouException {
         UserInfo user = getUserByOAuth(provider, oauthId);
         if (user != null) {
             //更新签名
@@ -294,7 +294,7 @@ public class UserAPI {
         return user;
     }
 
-    public static void updateUserInfo(Http.Request req) throws TravelPiException {
+    public static void updateUserInfo(Http.Request req) throws AizouException {
         String seq = req.getQueryString("seq");
         String platform = req.getQueryString("platform");
         String appVersion = req.getQueryString("v");
@@ -331,24 +331,30 @@ public class UserAPI {
      * @param timestamp
      * @param sign
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static boolean authenticate(String uid, String timestamp, String sign) throws TravelPiException {
+    public static boolean authenticate(String uid, String timestamp, String sign) throws AizouException {
         return true;
     }
 
-    public static Iterator<UserInfo> searchUser(List<String> fieldDesc, Object value, List<String> fieldList, int page, int pageSize)
-            throws TravelPiException {
+    public static Iterator<UserInfo> searchUser(Collection<String> fieldDesc, Collection<?> valueList,
+                                                Collection<String> fieldList,
+                                                int page, int pageSize)
+            throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        Query<UserInfo> query = ds.createQuery(UserInfo.class);
 
         if (fieldDesc == null || fieldDesc.isEmpty())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
 
         List<CriteriaContainerImpl> criList = new ArrayList<>();
-        for (String fd : fieldDesc)
-            criList.add(query.criteria(fd).equal(value));
+        for (String fd : fieldDesc) {
+            if (valueList.size() == 1)
+                criList.add(ds.createQuery(UserInfo.class).criteria(fd).equal(valueList.iterator().next()));
+            else if (valueList.size() > 1)
+                criList.add(ds.createQuery(UserInfo.class).criteria(fd).hasAnyOf(valueList));
+        }
 
+        Query<UserInfo> query = ds.createQuery(UserInfo.class);
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
 
         if (fieldList != null && !fieldList.isEmpty())
@@ -365,13 +371,24 @@ public class UserAPI {
      * @param fieldDesc 哪些字段为查询目标？
      * @param fieldList 返回结果包含哪些字段？
      */
-    public static UserInfo getUserByField(List<String> fieldDesc, String value, List<String> fieldList)
-            throws TravelPiException {
-        Iterator<UserInfo> itr = searchUser(fieldDesc, value, fieldList, 0, 1);
+    public static UserInfo getUserByField(List<String> fieldDesc, Object value, List<String> fieldList)
+            throws AizouException {
+        Iterator<UserInfo> itr = searchUser(fieldDesc, Arrays.asList(value), fieldList, 0, 1);
         if (itr != null && itr.hasNext())
             return itr.next();
         else
             return null;
+    }
+
+
+    /**
+     * 根据字段获得用户信息。
+     *
+     * @param fieldDesc 哪些字段为查询目标？
+     */
+    public static UserInfo getUserByField(String fieldDesc, Object value, List<String> fieldList)
+            throws AizouException {
+        return getUserByField(Arrays.asList(fieldDesc), Arrays.asList(value), fieldList);
     }
 
     /**
@@ -379,34 +396,10 @@ public class UserAPI {
      *
      * @param fieldDesc 哪些字段为查询目标？
      */
-    public static UserInfo getUserByField(String fieldDesc, Integer value, List<String> fieldList)
-            throws TravelPiException {
-        Iterator<UserInfo> itr = searchUser(Arrays.asList(fieldDesc), value, fieldList, 0, 1);
-        if (itr != null && itr.hasNext())
-            return itr.next();
-        else
-            return null;
-    }
-    /**
-     * 根据字段获得用户信息。
-     *
-     * @param fieldDesc 哪些字段为查询目标？
-     */
-    public static UserInfo getUserByField(String fieldDesc, String value)
-            throws TravelPiException {
+    public static UserInfo getUserByField(String fieldDesc, Object value)
+            throws AizouException {
         return getUserByField(Arrays.asList(fieldDesc), value, null);
     }
-
-    /**
-     * 根据字段获得用户信息。
-     *
-     * @param fieldDesc 哪些字段为查询目标？
-     */
-    public static UserInfo getUserByField(String fieldDesc, String value, List<String> fieldFilter)
-            throws TravelPiException {
-        return getUserByField(Arrays.asList(fieldDesc), value, fieldFilter);
-    }
-
 
 
     /**
@@ -415,7 +408,7 @@ public class UserAPI {
      * @param
      * @return
      */
-    public static void saveUserInfo(UserInfo u) throws TravelPiException {
+    public static void saveUserInfo(UserInfo u) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         ds.save(u);
     }
@@ -426,7 +419,7 @@ public class UserAPI {
      * @param
      * @return
      */
-    public static UserInfo regByTel(String tel, Integer dialCode, String pwd) throws TravelPiException {
+    public static UserInfo regByTel(String tel, Integer dialCode, String pwd) throws AizouException {
         UserInfo user = UserInfo.newInstance(populateUserId());
         user.setTel(tel);
         user.setDialCode(dialCode);
@@ -449,7 +442,7 @@ public class UserAPI {
         try {
             cre.setSecKey(Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded()));
         } catch (NoSuchAlgorithmException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "", e);
         }
 
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
@@ -463,7 +456,7 @@ public class UserAPI {
      * @param
      * @return
      */
-    public static UserInfo regByWeiXin(UserInfo user) throws TravelPiException {
+    public static UserInfo regByWeiXin(UserInfo user) throws AizouException {
 
         // 注册环信
         String[] ret = regEasemob();
@@ -481,14 +474,14 @@ public class UserAPI {
         try {
             cre.setSecKey(Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded()));
         } catch (NoSuchAlgorithmException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "", e);
         }
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
 
         return user;
     }
 
-    public static UserInfo oauthToUserInfoForWX(JsonNode json) throws TravelPiException {
+    public static UserInfo oauthToUserInfoForWX(JsonNode json) throws AizouException {
         String nickname = json.get("nickname").asText();
         String headimgurl = json.get("headimgurl").asText();
         UserInfo userInfo = UserInfo.newInstance(populateUserId());
@@ -512,14 +505,14 @@ public class UserAPI {
         return userInfo;
     }
 
-    public static Integer populateUserId() throws TravelPiException {
+    public static Long populateUserId() throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Sequence> query = ds.createQuery(Sequence.class);
         query.field("column").equal(Sequence.USERID);
         UpdateOperations<Sequence> ops = ds.createUpdateOperations(Sequence.class).inc("count");
         Sequence ret = ds.findAndModify(query, ops);
         if (ret == null)
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Unable to generate UserId sequences.");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "Unable to generate UserId sequences.");
         return ret.count;
     }
 
@@ -545,12 +538,12 @@ public class UserAPI {
      *
      * @return 返回环信的用户名和密码
      */
-    public static String[] regEasemob() throws TravelPiException {
+    public static String[] regEasemob() throws AizouException {
         String easemobPwd;
         try {
             easemobPwd = Base64.encodeBase64String(KeyGenerator.getInstance("HmacSHA256").generateKey().getEncoded());
         } catch (NoSuchAlgorithmException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "", e);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "", e);
         }
 
         String easemobName = null;
@@ -569,8 +562,8 @@ public class UserAPI {
                 regEasemobReq(easemobName, easemobPwd);
                 flag = true;
                 break;
-            } catch (TravelPiException e) {
-                if (e.errCode != ErrorCode.USER_EXIST)
+            } catch (AizouException e) {
+                if (e.getErrCode() != ErrorCode.USER_EXIST)
                     throw e;
             }
         }
@@ -578,7 +571,7 @@ public class UserAPI {
         if (flag)
             return new String[]{easemobName, easemobPwd};
         else
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
     }
 
     /**
@@ -588,7 +581,7 @@ public class UserAPI {
      * @param
      * @return
      */
-    public static Credential getPwd(UserInfo u) throws TravelPiException {
+    public static Credential getPwd(UserInfo u) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
@@ -606,9 +599,9 @@ public class UserAPI {
      *
      * @param userId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Credential getCredentialByUserId(Integer userId) throws TravelPiException {
+    public static Credential getCredentialByUserId(Long userId) throws AizouException {
         return getCredentialByUserId(userId, null);
     }
 
@@ -618,9 +611,9 @@ public class UserAPI {
      * @param userId
      * @param fieldList
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static Credential getCredentialByUserId(Integer userId, List<String> fieldList) throws TravelPiException {
+    public static Credential getCredentialByUserId(Long userId, List<String> fieldList) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> query = ds.createQuery(Credential.class).field("userId").equal(userId);
         if (fieldList != null && !fieldList.isEmpty()) {
@@ -634,11 +627,11 @@ public class UserAPI {
      *
      * @param u
      * @param pwd
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void resetPwd(UserInfo u, String pwd) throws TravelPiException {
+    public static void resetPwd(UserInfo u, String pwd) throws AizouException {
         if (pwd == null || pwd.isEmpty() || u == null || u.getUserId() == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "");
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(u.getUserId()).get();
@@ -655,7 +648,7 @@ public class UserAPI {
      * @param pwd
      * @return
      */
-    public static boolean validCredential(UserInfo u, String pwd) throws TravelPiException {
+    public static boolean validCredential(UserInfo u, String pwd) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
         Credential ce = ceQuery.field("userId").equal(u.getUserId()).get();
@@ -672,13 +665,13 @@ public class UserAPI {
      * @param resendMs    多少毫秒以后可以重新发送验证短信
      */
     public static void sendValCode(int countryCode, String tel, int actionCode, Integer userId, long expireMs, long resendMs)
-            throws TravelPiException {
+            throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
 
         if (valCode != null && System.currentTimeMillis() < valCode.resendTime)
-            throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
+            throw new AizouException(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
 
         ValidationCode oldCode = valCode;
         valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
@@ -706,7 +699,7 @@ public class UserAPI {
      * @return 验证码是否有效
      */
     public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode, Integer userId)
-            throws TravelPiException {
+            throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
@@ -729,7 +722,7 @@ public class UserAPI {
     /**
      * 获取环信系统的token。如果已经过期，则重新申请一个。
      */
-    private static String getEaseMobToken() throws TravelPiException {
+    private static String getEaseMobToken() throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         MiscInfo info = ds.createQuery(MiscInfo.class).get();
 
@@ -771,14 +764,14 @@ public class UserAPI {
                 info.easemobTokenExpire = System.currentTimeMillis() + tokenData.get("expires_in").asLong() * 1000;
                 ds.save(info);
             } catch (java.io.IOException e) {
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in retrieving token.");
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in retrieving token.");
             }
         }
 
         return info.easemobToken;
     }
 
-    public static Token valCodetoToken(Integer countryCode, String tel, int actionCode, int userId, long expireMs) throws TravelPiException {
+    public static Token valCodetoToken(Integer countryCode, String tel, int actionCode, int userId, long expireMs) throws AizouException {
         ValidationCode valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Token token = Token.newInstance(valCode, expireMs);
@@ -786,13 +779,13 @@ public class UserAPI {
         Token uniq = ds.createQuery(Token.class).field("value")
                 .equal(token.value).field("userId").equal(token.userId).get();
         if (uniq != null) {
-            throw new TravelPiException(ErrorCode.SMS_QUOTA_ERROR, "Token out of quota.");
+            throw new AizouException(ErrorCode.SMS_QUOTA_ERROR, "Token out of quota.");
         }
         ds.save(token);
         return token;
     }
 
-    public static boolean checkToken(String token, int userId, int actionCode) throws TravelPiException {
+    public static boolean checkToken(String token, int userId, int actionCode) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Token uniq = ds.createQuery(Token.class).field("value").equal(token).field("used").notEqual(true).get();
         //设置已使用过
@@ -822,7 +815,7 @@ public class UserAPI {
      * @param userName
      * @param pwd
      */
-    private static void regEasemobReq(String userName, String pwd) throws TravelPiException {
+    private static void regEasemobReq(String userName, String pwd) throws AizouException {
         // 重新获取token
         Configuration config = Configuration.root().getConfig("easemob");
         String orgName = config.getString("org");
@@ -851,12 +844,12 @@ public class UserAPI {
             JsonNode tokenData = Json.parse(body);
             if (tokenData.has("error")) {
                 if (tokenData.get("error").asText().equals("duplicate_unique_property_exists"))
-                    throw new TravelPiException(ErrorCode.USER_EXIST, String.format("Easemob user %s exists.", userName));
+                    throw new AizouException(ErrorCode.USER_EXIST, String.format("Easemob user %s exists.", userName));
                 else
-                    throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+                    throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
             }
         } catch (java.io.IOException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
         }
     }
 
@@ -866,16 +859,16 @@ public class UserAPI {
      * @param userIdA
      * @param userIdB
      */
-    public static void modEaseMobContacts(Integer userIdA, Integer userIdB, boolean actionAdd) throws TravelPiException {
+    public static void modEaseMobContacts(Long userIdA, Long userIdB, boolean actionAdd) throws AizouException {
         List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
             userA = UserAPI.getUserInfo(userIdA, fieldList).getEasemobUser();
             userB = UserAPI.getUserInfo(userIdB, fieldList).getEasemobUser();
             if (userA == null || userB == null)
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         } catch (NullPointerException e) {
-            throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+            throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
         }
 
         // 重新获取token
@@ -898,35 +891,35 @@ public class UserAPI {
 
             JsonNode tokenData = Json.parse(body);
             if (tokenData.has("error"))
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
         } catch (java.io.IOException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
         }
     }
 
     /**
      * 在环信用户系统中添加用户的黑名单关系
      */
-    public static void addEaseMobBlocks(Integer userIdA, List<Integer> blockIds) throws TravelPiException {
+    public static void addEaseMobBlocks(Long userIdA, List<Long> blockIds) throws AizouException {
         List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA;
         if (blockIds == null || blockIds.isEmpty())
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "");
 
         List<String> blockNames = new ArrayList<>();
         try {
             userA = UserAPI.getUserInfo(userIdA, fieldList).getEasemobUser();
             if (userA == null)
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
 
-            for (Integer i : blockIds) {
+            for (Long i : blockIds) {
                 String easemobName = UserAPI.getUserInfo(i, fieldList).getEasemobUser();
                 if (easemobName == null)
-                    throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+                    throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
                 blockNames.add(easemobName);
             }
         } catch (NullPointerException e) {
-            throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+            throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
         }
 
         ObjectNode data = Json.newObject();
@@ -957,9 +950,9 @@ public class UserAPI {
 
             JsonNode tokenData = Json.parse(body);
             if (tokenData.has("error"))
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         } catch (java.io.IOException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         }
     }
 
@@ -969,14 +962,14 @@ public class UserAPI {
      * @param userIdA
      * @param userIdB
      */
-    public static void delEaseMobBlocks(Integer userIdA, Integer userIdB) throws TravelPiException {
+    public static void delEaseMobBlocks(Long userIdA, Long userIdB) throws AizouException {
         List<String> fieldList = Arrays.asList(UserInfo.fnEasemobUser);
         String userA, userB;
         try {
             userA = UserAPI.getUserInfo(userIdA, fieldList).getEasemobUser();
             userB = UserAPI.getUserInfo(userIdB, fieldList).getEasemobUser();
         } catch (NullPointerException e) {
-            throw new TravelPiException(ErrorCode.USER_NOT_EXIST, "");
+            throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
         }
 
         // 重新获取token
@@ -999,9 +992,9 @@ public class UserAPI {
 
             JsonNode tokenData = Json.parse(body);
             if (tokenData.has("error"))
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         } catch (java.io.IOException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         }
     }
 
@@ -1012,7 +1005,7 @@ public class UserAPI {
      * @param otherid
      * @param reason
      */
-    public static void sendFriendReq(Integer selfId, Integer otherid, String reason) throws TravelPiException {
+    public static void sendFriendReq(Long selfId, Long otherid, String reason) throws AizouException {
         UserInfo userInfo = getUserInfo(selfId);
 
     }
@@ -1022,9 +1015,9 @@ public class UserAPI {
      *
      * @param selfId
      * @param targetId
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void addContact(Integer selfId, Integer targetId) throws TravelPiException {
+    public static void addContact(Long selfId, Long targetId) throws AizouException {
         if (selfId.equals(targetId))
             return;
 
@@ -1035,7 +1028,7 @@ public class UserAPI {
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));
 
         if (selfInfo == null || targetInfo == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
         List<UserInfo> selfContacts = selfInfo.getFriends();
         if (selfContacts == null)
@@ -1071,7 +1064,7 @@ public class UserAPI {
                     ops.set(UserInfo.fnContacts, Arrays.asList(tinfo));
                     ds.updateFirst(query, ops);
                 } else {
-                    Set<Integer> userIdSet = new HashSet<>();
+                    Set<Long> userIdSet = new HashSet<>();
                     for (UserInfo u : sc)
                         userIdSet.add(u.getUserId());
                     if (!userIdSet.contains(tinfo.getUserId())) {
@@ -1103,7 +1096,7 @@ public class UserAPI {
      * @param selfId
      * @param targetId
      */
-    public static void delContact(Integer selfId, Integer targetId) throws TravelPiException {
+    public static void delContact(Long selfId, Long targetId) throws AizouException {
         if (selfId.equals(targetId))
             return;
 
@@ -1111,7 +1104,7 @@ public class UserAPI {
         UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
         UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
         if (selfInfo == null || targetInfo == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
         //向环信注册
         modEaseMobContacts(selfId, targetId, false);
@@ -1171,10 +1164,10 @@ public class UserAPI {
     /**
      * 服务器调用环信接口发送透传消息
      */
-    public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType) throws TravelPiException {
+    public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType) throws AizouException {
         if (selfInfo.getEasemobUser() == null)
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
-        ObjectNode info = (ObjectNode) new SideUserFormatter().format(selfInfo);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+        ObjectNode info = (ObjectNode) new UserFormatter(false).format(selfInfo);
 
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);
@@ -1222,9 +1215,9 @@ public class UserAPI {
 
             JsonNode tokenData = Json.parse(body);
             if (tokenData.has("error"))
-                throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         } catch (java.io.IOException e) {
-            throw new TravelPiException(ErrorCode.UNKOWN_ERROR, "");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         }
     }
 
@@ -1233,13 +1226,13 @@ public class UserAPI {
      *
      * @param selfId
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<UserInfo> getContactList(Integer selfId) throws TravelPiException {
+    public static List<UserInfo> getContactList(Long selfId) throws AizouException {
         List<String> fieldList = Arrays.asList(UserInfo.fnContacts);
         UserInfo userInfo = getUserInfo(selfId, fieldList);
         if (userInfo == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
         List<UserInfo> friends = userInfo.getFriends();
         if (friends == null)
             friends = new ArrayList<>();
@@ -1247,7 +1240,7 @@ public class UserAPI {
         return friends;
     }
 
-    public static List<UserInfo> getUserByEaseMob(List<String> users, List<String> fieldList) throws TravelPiException {
+    public static List<UserInfo> getUserByEaseMob(List<String> users, List<String> fieldList) throws AizouException {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
             Query<UserInfo> query = ds.createQuery(UserInfo.class);
@@ -1262,8 +1255,15 @@ public class UserAPI {
 
             return query.asList();
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Error easeMob users.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Error easeMob users.");
         }
+    }
+
+    public static void resetAvater(Integer userId, String avater) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
+        ops.set("avatar", avater);
+        dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("userId").equal(userId), ops);
     }
 
     /**

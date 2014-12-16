@@ -5,8 +5,8 @@ import aizou.core.PoiAPI;
 import aizou.core.TrafficAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.misc.Share;
 import models.misc.SimpleRef;
@@ -62,7 +62,7 @@ public class PlanCtrl extends Controller {
             if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);
                 if (plan == null)
-                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId.toString()));
+                    throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId.toString()));
                 return Utils.createResponse(ErrorCode.NORMAL, plan.toJson());
             }
             Calendar cal = Calendar.getInstance();
@@ -113,12 +113,12 @@ public class PlanCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC), req));
             else
                 return Utils.createResponse(ErrorCode.NORMAL, updatePlanByNode(planJson, uid).toJson());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
-    private static UgcPlan updatePlanByNode(JsonNode data, String uid) throws TravelPiException {
+    private static UgcPlan updatePlanByNode(JsonNode data, String uid) throws AizouException {
         String ugcPlanId = data.get("_id").asText();
         String templateId = data.get("templateId").asText();
         String title = data.get("title").asText();
@@ -129,7 +129,7 @@ public class PlanCtrl extends Controller {
 
         Plan plan = PlanAPI.getPlan(templateId, false);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
         UgcPlan ugcPlan = new UgcPlan(plan);
 
         PlanDayEntry planDayEntry = null;
@@ -156,7 +156,7 @@ public class PlanCtrl extends Controller {
             try {
                 planDayEntry.date = timeFmt.parse(date.asText());
             } catch (ParseException e) {
-                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+                throw new AizouException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
             }
             if (dayIndex == 0) {
                 startDate = planDayEntry.date;
@@ -221,7 +221,7 @@ public class PlanCtrl extends Controller {
 
                     planItemList.add(planItem);
                 } catch (ParseException e) {
-                    throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
+                    throw new AizouException(ErrorCode.INVALID_ARGUMENT, e.getMessage(), e);
                 }
             }
             planDayEntry.actv = planItemList;
@@ -286,7 +286,7 @@ public class PlanCtrl extends Controller {
                             double cost = price + surcharge + tax;
                             budget.set(0, (int) (cost + budget.get(0)));
                             budget.set(1, (int) (cost + budget.get(1)));
-                        } catch (TravelPiException ignored) {
+                        } catch (AizouException ignored) {
                         }
                     }
 
@@ -318,7 +318,7 @@ public class PlanCtrl extends Controller {
                                 budget.set(0, (int) (ret.price + budget.get(0)));
                                 budget.set(1, (int) (ret.price + budget.get(1)));
                             }
-                        } catch (TravelPiException ignored) {
+                        } catch (AizouException ignored) {
                         }
                     }
                 }
@@ -332,7 +332,7 @@ public class PlanCtrl extends Controller {
         return plan;
     }
 
-    private static void fullfill(JsonNode planJson) throws TravelPiException {
+    private static void fullfill(JsonNode planJson) throws AizouException {
         // 补全相应信息
         JsonNode details = planJson.get("details");
         if (details != null) {
@@ -431,7 +431,7 @@ public class PlanCtrl extends Controller {
                                 if (poiType != null)
                                     conItem.put("details", PoiAPI.getPOIInfo(conItem.get("itemId").asText(),
                                             poiType, true).toJson(2));
-                            } catch (TravelPiException ignored) {
+                            } catch (AizouException ignored) {
                             }
                         }
 
@@ -481,7 +481,7 @@ public class PlanCtrl extends Controller {
 //
 //            return Utils.createResponse(ErrorCode.NORMAL, Utils.bsonToJson(ret1));
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //
 ////        ObjectNode ret = Json.newObject();
@@ -629,8 +629,8 @@ public class PlanCtrl extends Controller {
         } catch (NullPointerException | IllegalAccessException | NoSuchFieldException | ParseException | InstantiationException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
 
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
@@ -639,13 +639,13 @@ public class PlanCtrl extends Controller {
     /**
      * @param data
      * @param saveToTable UGC路线表，分享路线表
-     * @throws TravelPiException
+     * @throws exception.AizouException
      * @throws ParseException
      * @throws IllegalAccessException
      * @throws NoSuchFieldException
      * @throws InstantiationException
      */
-    private static void updateUGCPlan(JsonNode data, String saveToTable) throws TravelPiException, ParseException, IllegalAccessException, NoSuchFieldException, InstantiationException {
+    private static void updateUGCPlan(JsonNode data, String saveToTable) throws AizouException, ParseException, IllegalAccessException, NoSuchFieldException, InstantiationException {
         String ugcPlanId = data.get("_id").asText();
         String templateId = data.get("templateId").asText();
         String title = data.get("title").asText();
@@ -670,7 +670,7 @@ public class PlanCtrl extends Controller {
         Plan plan = PlanAPI.getPlan(templateId, false);
         UgcPlan ugcPlan = new UgcPlan(plan);
         if (plan == null)
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
 
         //补全信息
         List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, false);
@@ -867,9 +867,17 @@ public class PlanCtrl extends Controller {
 
         // 处理fromLoc/backLoc的映射
         Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
-        Object tmp = mapConf.get(fromLoc);
-        if (tmp != null)
-            fromLoc = tmp.toString();
+        if (fromLoc!=null) {
+            Object tmp = mapConf.get(fromLoc);
+            if (tmp != null)
+                fromLoc = tmp.toString();
+        }
+
+        if (locId!=null) {
+            Object tmp = mapConf.get(locId);
+            if (tmp != null)
+                locId = tmp.toString();
+        }
 
         try {
             Double trafficBudget = 0.0;
@@ -923,8 +931,8 @@ public class PlanCtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.SMALL_PIC));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
     }
@@ -972,7 +980,7 @@ public class PlanCtrl extends Controller {
      * @param item
      * @return
      */
-    private static PlanItem poiMapper(JsonNode item) throws TravelPiException {
+    private static PlanItem poiMapper(JsonNode item) throws AizouException {
         String itemId = item.get("itemId").asText();
         String type = item.get("type").asText();
         String st = item.get("st").asText();
@@ -1032,7 +1040,7 @@ public class PlanCtrl extends Controller {
      * @param item
      * @return
      */
-    private static PlanItem trafficMapper(JsonNode item) throws TravelPiException {
+    private static PlanItem trafficMapper(JsonNode item) throws AizouException {
         String itemId = item.get("itemId").asText();
         String subType = item.get("subType").asText();
 
@@ -1045,7 +1053,7 @@ public class PlanCtrl extends Controller {
             case "airport":
                 Airport airport = ds.createQuery(Airport.class).field("_id").equal(new ObjectId(itemId)).get();
                 ref = new SimpleRef();
-                ref.id = airport.id;
+                ref.id = airport.getId();
                 ref.zhName = airport.zhName;
                 planItem = new PlanItem();
                 planItem.item = ref;
@@ -1174,7 +1182,7 @@ public class PlanCtrl extends Controller {
      * @return
      */
     private static List<PlanDayEntry> raw2plan(JsonNode rawDetails, JsonNode trafficInfo,
-                                               Calendar startCal, Calendar endCal, boolean needOptimize) throws TravelPiException {
+                                               Calendar startCal, Calendar endCal, boolean needOptimize) throws AizouException {
         // 获得两端大交通的信息
         List<PlanItem> awayTraffic = new ArrayList<>();
         List<PlanItem> backTraffic = new ArrayList<>();
@@ -1331,8 +1339,8 @@ public class PlanCtrl extends Controller {
         List<PlanDayEntry> dayEntryList;
         try {
             dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, true);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         PlanAPI.addHotels(dayEntryList);
@@ -1346,8 +1354,8 @@ public class PlanCtrl extends Controller {
         ret.put("details", Json.toJson(retDetails));
         try {
             fullfill(ret);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         Http.Request req = request();
@@ -1359,7 +1367,7 @@ public class PlanCtrl extends Controller {
             try {
                 updatePlanByNode(Json.toJson(planNode), uid);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success");
-            } catch (TravelPiException e) {
+            } catch (AizouException e) {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
             }
         } else
@@ -1397,8 +1405,8 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
         } catch (ClassCastException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -1421,8 +1429,8 @@ public class PlanCtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -1430,8 +1438,8 @@ public class PlanCtrl extends Controller {
         try {
             PlanAPI.deleteUGCPlan(ugcPlanId);
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -1468,7 +1476,7 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(share.toJson(), request(), Constants.SMALL_PIC));
         } catch (ClassCastException | NullPointerException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
-        } catch (TravelPiException | NoSuchFieldException | InstantiationException | ParseException | IllegalAccessException e) {
+        } catch (AizouException | NoSuchFieldException | InstantiationException | ParseException | IllegalAccessException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
@@ -1492,12 +1500,12 @@ public class PlanCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error:INVALID ARGUMENT ");
         } catch (ClassCastException ec) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, ec.getMessage());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
-    public static JsonNode getUgcPlanListByUser(String userId, int page, int pageSize) throws TravelPiException {
+    public static JsonNode getUgcPlanListByUser(String userId, int page, int pageSize) throws AizouException {
         List<JsonNode> results = new ArrayList<>();
         for (Iterator<UgcPlan> it = PlanAPI.getPlanByUser(userId, page, pageSize); it.hasNext(); ) {
             //取粗略信息
@@ -1506,7 +1514,7 @@ public class PlanCtrl extends Controller {
         return Json.toJson(results);
     }
 
-    public static JsonNode getUgcPlanByIdImpl(String ugcPlanId) throws TravelPiException {
+    public static JsonNode getUgcPlanByIdImpl(String ugcPlanId) throws AizouException {
         UgcPlan ugcPlan = PlanAPI.getPlanById(ugcPlanId);
 
         //取详细信息

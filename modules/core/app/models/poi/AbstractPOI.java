@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObject;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import models.geo.*;
 import models.misc.CheckinRatings;
 import models.misc.Contact;
@@ -17,6 +17,7 @@ import models.misc.ImageItem;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
+import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 import utils.Constants;
@@ -42,72 +43,52 @@ import java.util.*;
         @JsonSubTypes.Type(value = Restaurant.class, name = "restaurant"),
         @JsonSubTypes.Type(value = Shopping.class, name = "shopping")
 })
-public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiFormatter {
-
-    /**
-     * 标识POI的种类，jackson反序列还用
-     */
-    public String type;
-
-    @Transient
-    public static String simpID = "id";
+@Entity
+public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static final String FD_NAME = "name";
-
     @Transient
     public static final String FD_ZH_NAME = "zhName";
-
     @Transient
     public static final String FD_DESC = "desc";
-
     @Transient
     public static final String FD_IMAGES = "images";
-
+    @Transient
+    public static final String FD_ALIAS = "alias";
+    @Transient
+    public static final String FD_EN_NAME = "enName";
+    @Transient
+    public static final String FD_RATING = "rating";
+    @Transient
+    public static final String FD_LOCATION = "location";
+    @Transient
+    public static final String FD_TAGS = "tags";
+    @Transient
+    public static String simpID = "id";
     @Transient
     public static String detAddr = "addr";
-
     @Transient
     public static String FD_LOCALITY = "locality";
-
     @Transient
     public static String detDesc = "description";
-
     @Transient
     public static String FD_PRICE = "price";
-
     @Transient
     public static String FD_PRICE_DESC = "priceDesc";
-
     @Transient
     public static String detContact = "contact";
-
     @Transient
     public static String detOpenTime = "openTime";
-
-    @Transient
-    public static String fnAlias = "alias";
-
     @Transient
     public static String detAlias = "alias";
-
     @Transient
     public static String detTargets = "targets";
+    @Transient
+    public static String FD_ADDRESS = "address";
 
     @Transient
-    public static String simpEnName = "enName";
-
-    @Transient
-    public static String simpRating = "rating";
-
-    @Transient
-    public static String fnLocation = "location";
-
-    @Transient
-    public static String simpAddress = "address";
-
-    @Transient
-    public static String simpTelephone = "telephone";
+    public static String FD_TELEPHONE = "telephone";
 
     @Transient
     public static String fnHotness = "hotness";
@@ -120,13 +101,14 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
 
     @Transient
     public static String simplocList = "locList";
-
-    @Transient
-    public static final String FD_TAGS = "tags";
-
     @Transient
     public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
-
+    @Transient
+    public static String fnType = "type";
+    /**
+     * 标识POI的种类，jackson反序列还用
+     */
+    public String type;
     @Embedded
     public CheckinRatings ratings;
 
@@ -157,118 +139,95 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
     public String priceDesc;
 
     public String desc;
-
-    /**
-     * 坐标
-     */
-    private GeoJsonPoint location;
-
-    /**
-     * 所在目的地
-     */
-    private Locality locality;
-
     /**
      * 电话
      */
     public List<String> tel;
-
     /**
      * 网址
      */
     public String website;
-
     /**
      * 开放时间描述
      */
     public String openTime;
-
     public Integer openHour;
-
     public Integer closeHour;
-
     @Embedded
     public Description description;
-
     public String trafficInfo;
-
     public List<ImageItem> images;
-
     public String cover;
-
     public List<String> tags;
-
     public List<String> alias;
-
     /**
      * POI所在的行政区划。
      */
     public List<ObjectId> targets;
-
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p/>
+     * <p>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
-
     /**
      * 相关路线的统计数目。
      */
     public Integer relPlanCnt;
-
     /**
      * 其它信息
      */
     public Map<String, Object> extra;
-
-
     public Double rating;
-
+    /**
+     * 交通指南URL
+     */
+    public String trafficInfoUrl;
+    /**
+     * 旅行指南URL
+     */
+    public String guideUrl;
+    /**
+     * 防坑攻略URL
+     */
+    public String kengdieUrl;
+    /**
+     * 地址
+     */
+    public String address;
+    /**
+     * 电话
+     */
+    public String telephone;
+    /**
+     * 国家
+     */
+    public Country country;
+    /**
+     * 从属行政关系
+     */
+    public List<Locality> locList;
+    public Map<String, Object> miscInfo;
+    public String moreCommentsUrl;
+    /**
+     * 景点-建议游玩时间。
+     */
+    public String timeCostDesc;
+    /**
+     * 坐标
+     */
+    @Embedded
+    private GeoJsonPoint location;
+    /**
+     * 所在目的地
+     */
+    private Locality locality;
     /**
      * 热门程度
      */
     private Double hotness;
 
-    /**
-     * 交通指南URL
-     */
-    public String trafficInfoUrl;
-
-    /**
-     * 旅行指南URL
-     */
-    public String guideUrl;
-
-    /**
-     * 防坑攻略URL
-     */
-    public String kengdieUrl;
-
-    /**
-     * 地址
-     */
-    public String address;
-
-    /**
-     * 电话
-     */
-    public String telephone;
-
-    /**
-     * 国家
-     */
-    public Country country;
-
-    /**
-     * 从属行政关系
-     */
-    public List<Locality> locList;
-
-    public Map<String, Object> miscInfo;
-
-    public String moreCommentsUrl;
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
@@ -327,10 +286,33 @@ public abstract class AbstractPOI extends TravelPiBaseItem implements ITravelPiF
             return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
 
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getTelephone() {
+        return telephone;
+    }
+
+    public void setTelephone(String telephone) {
+        this.telephone = telephone;
+    }
+
     public String getEnName() {
         return enName;
     }
 
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
 
     public Contact getContact() {
         return contact;

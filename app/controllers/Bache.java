@@ -1,7 +1,7 @@
 package controllers;
 
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import org.bson.types.ObjectId;
@@ -120,13 +120,13 @@ public class Bache extends Controller {
      *
      * @return
      */
-    public static Double getTrafficBudget(String depId, String arrId) throws TravelPiException {
+    public static Double getTrafficBudget(String depId, String arrId) throws AizouException {
         ObjectId depOid, arrOid;
         try {
             depOid = new ObjectId(depId);
             arrOid = new ObjectId(arrId);
         } catch (IllegalArgumentException e) {
-            throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "Invalid locality ID.");
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid locality ID.");
         }
 
         //取得交通预算常量
@@ -211,7 +211,7 @@ public class Bache extends Controller {
 //                ds.save(locality);
 //            }
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //        return Utils.createResponse(ErrorCode.NORMAL, "Success");
 //    }
@@ -250,7 +250,7 @@ public class Bache extends Controller {
 //
 //
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //
 //        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
@@ -288,7 +288,7 @@ public class Bache extends Controller {
 //
 //
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //
 //        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
@@ -371,7 +371,7 @@ public class Bache extends Controller {
 //
 //
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //
 //        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
@@ -417,7 +417,7 @@ public class Bache extends Controller {
 //            }
 //
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //
 //        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
@@ -475,7 +475,7 @@ public class Bache extends Controller {
 //            info.count = 100000;
 //            ds.save(info);
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //
 //        return Utils.createResponse(ErrorCode.NORMAL, "Success");

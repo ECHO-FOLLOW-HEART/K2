@@ -1,18 +1,22 @@
 package aizou.core;
 
-import exception.TravelPiException;
+import com.fasterxml.jackson.databind.JsonNode;
+import exception.AizouException;
+import formatter.taozi.misc.CommentFormatter;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
-import models.geo.Locality;
-import models.misc.PageFirst;
-import models.misc.SimpleRef;
+import models.misc.Column;
+import models.misc.Images;
 import models.poi.Comment;
+import models.user.Favorite;
+import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
+import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * Created by lxf on 14-11-12.
@@ -23,28 +27,33 @@ public class MiscAPI {
      * 取得旅行专栏图片的url以及跳转链接的url
      *
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<PageFirst> getColumns() throws TravelPiException {
-         Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-         Query<PageFirst> query=ds.createQuery(PageFirst.class);
-         return query.asList();
+    public static List<Column> getColumns() throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Column> query = ds.createQuery(Column.class);
+        return query.asList();
 
     }
 
-    public static void saveColumns(PageFirst pageFirst) throws TravelPiException {
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+    public static void saveColumns(Column pageFirst) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ds.save(pageFirst);
     }
+
     /**
      * 储存评论信息
      *
      * @param comment
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void saveComment(Comment comment) throws TravelPiException {
+    public static JsonNode saveComment(Comment comment) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        comment.setId(new ObjectId());
         ds.save(comment);
+
+        CommentFormatter formatter = new CommentFormatter();
+        return formatter.format(comment);
     }
 
     /**
@@ -52,9 +61,9 @@ public class MiscAPI {
      *
      * @param poiId
      * @param commentDetails
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static void updateComment(String poiId, String commentDetails) throws TravelPiException {
+    public static void updateComment(String poiId, String commentDetails) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         UpdateOperations<Comment> uo = ds.createUpdateOperations(Comment.class);
         uo.set("commentDetails", commentDetails);
@@ -65,50 +74,55 @@ public class MiscAPI {
      * 通过poiId取得评论
      *
      * @param poiId
-     * @param page
+     * @param lastUpdate
      * @param pageSize
      * @return
-     * @throws TravelPiException
+     * @throws exception.AizouException
      */
-    public static List<Comment> displayCommentApi(String poiId, Double lower,Double upper, int page, int pageSize)
-            throws TravelPiException {
+    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower, Double upper, long lastUpdate, int pageSize)
+            throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        Query<Comment> query = ds.createQuery(Comment.class).field("poiId").equal(poiId);
-        query = query.order(Comment.fnCommentTime);
-        /*if (goodComment) {
-            query = query.filter("score >=", 0.7).filter("score <", 1.0);
-            return query.offset(page * pageSize).limit(pageSize).asList();
-        }
-        if (midComment) {
-            query = query.filter("score >=", 0.3).filter("score <", 0.7);
-            return query.offset(page * pageSize).limit(pageSize).asList();
-        }
-        if (midComment) {
-            query = query.filter("score <", 0.3);
-            return query.offset(page * pageSize).limit(pageSize).asList();
-        }*/
+        Query<Comment> query = ds.createQuery(Comment.class).field(Comment.FD_ITEM_ID).equal(poiId);
+        query = query.order("-" + Comment.FD_CTIME);
 
-        return query.filter(Comment.fnScore+" >=",lower).filter(Comment.fnScore+" <",upper).offset(page * pageSize).limit(page).asList();
+        if (lastUpdate != 0)
+            query.field(Comment.FD_CTIME).lessThan(lastUpdate);
+
+//        query.field(Comment.FD_RATING).greaterThanOrEq(lower).field(Comment.FD_RATING).lessThanOrEq(upper);
+
+        query.limit(pageSize);
+
+        return query.asList();
     }
 
     /**
-     * 通过关键词对城市进行搜索。
+     * 判断是否被收藏
      *
-     * @param keyword  搜索关键词。
-     * @param prefix   是否为前缀搜索？
-     * @param page     分页偏移量。
-     * @param pageSize 页面大小。
+     * @param item
+     * @param userId
+     * @throws AizouException
      */
-    public static List<Locality> searchLocalities(String keyword, boolean prefix, ObjectId countryId, int page, int pageSize)
-            throws TravelPiException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Query<Locality> query = ds.createQuery(Locality.class);
-        if (keyword != null && !keyword.isEmpty())
-            query.filter("zhName", Pattern.compile(prefix ? "^" + keyword : keyword));
-        if (countryId != null)
-            query.field(String.format("%s.%s", Locality.fnCountry, SimpleRef.simpID)).equal(countryId);
-        return query.order(String.format("-%s, %s", Locality.fnHotness, Locality.fnRating))
-                .offset(page * pageSize).limit(pageSize).asList();
+    public static void isFavorite(AizouBaseEntity item, Long userId) throws AizouException {
+        if(userId == null) {
+            item.setIsFavorite(false);
+            return;
+        }
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Favorite> query = ds.createQuery(Favorite.class);
+        query.field(UserInfo.fnUserId).equal(userId).field(Favorite.fnItemId).equal(item.getId());
+        Iterator<Favorite> it = query.iterator();
+        if (it.hasNext())
+            item.setIsFavorite(true);
     }
+
+    public static List<Images> getLocalityAlbum(ObjectId id, int page, int pageSize) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Query<Images> query = ds.createQuery(Images.class);
+
+        query.field(Images.FD_ITEMID).equal(id);
+        query.offset(page).limit(page*pageSize);
+        return query.asList();
+    }
+
 }

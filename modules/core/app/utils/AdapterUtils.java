@@ -1,7 +1,7 @@
 package utils;
 
 import aizou.core.TrafficAPI;
-import exception.TravelPiException;
+import exception.AizouException;
 import models.misc.SimpleRef;
 import models.plan.Plan;
 import models.plan.PlanDayEntry;
@@ -36,7 +36,7 @@ public class AdapterUtils {
         return false;
     }
 
-    public static Plan addTelomere_120(boolean epDep, Plan plan, ObjectId remoteLoc) throws TravelPiException {
+    public static Plan addTelomere_120(boolean epDep, Plan plan, ObjectId remoteLoc) throws AizouException {
         List<PlanDayEntry> details = plan.getDetails();
         if (details == null || details.isEmpty())
             return plan;

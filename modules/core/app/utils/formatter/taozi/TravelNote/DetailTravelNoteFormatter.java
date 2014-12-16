@@ -1,4 +1,4 @@
-package formatter.taozi.recom;
+package utils.formatter.taozi.TravelNote;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -11,21 +11,21 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
-import models.misc.RecomType;
-import formatter.JsonFormatter;
+import formatter.taozi.TaoziBaseFormatter;
+import models.AizouBaseEntity;
+import models.misc.TravelNote;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 返回推荐的类型
- * <p>
- * Created by zephyre on 10/28/14.
+ * Created by lxf on 14-11-1.
  */
-public class RecomTypeFormatter implements JsonFormatter {
-    @Override
-    public JsonNode format(TravelPiBaseItem item) {
+public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
+
+    public JsonNode format(AizouBaseEntity item) {
+
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -44,8 +44,10 @@ public class RecomTypeFormatter implements JsonFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                includedFields.add(RecomType.fnId);
-                includedFields.add(RecomType.fnName);
+                Collections.addAll(includedFields, AizouBaseEntity.FD_IS_FAVORITE,TravelNote.fnId, TravelNote.fnAuthorAvatar, TravelNote.fnAuthorName, TravelNote.fnCover,
+                        TravelNote.fnTitle, TravelNote.fnPublishDate, TravelNote.fnSource, TravelNote.fnContents, TravelNote.fnCostLower,
+                        TravelNote.fnCostUpper, TravelNote.fnSourceUrl, TravelNote.fnCommentCnt, TravelNote.fnViewCnt, TravelNote.fnFavorCnt);
+
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -60,7 +62,7 @@ public class RecomTypeFormatter implements JsonFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("recomTypeFilter", theFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("travelNoteFilter", theFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

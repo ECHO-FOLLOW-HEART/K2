@@ -1,6 +1,7 @@
 package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import models.AizouBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
@@ -14,7 +15,7 @@ import java.util.Map;
  */
 @JsonFilter("imageItemFilter")
 @Embedded
-public class ImageItem {
+public class ImageItem extends AizouBaseItem {
 
     @Transient
     public static final String FD_URL = "url";
@@ -30,10 +31,11 @@ public class ImageItem {
 
     private Map<String, Integer> cropHint;
 
-    @Constraints.Required
     private String key;
 
     private String bucket;
+
+    private String url;
 
     /**
      * 图像宽度
@@ -69,7 +71,10 @@ public class ImageItem {
      * 根据bucket和key，生成完整的图像链接
      */
     public String getFullUrl() {
-        return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
+        if (key != null)
+            return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
+        else
+            return null;
     }
 
     public String getKey() {
@@ -78,6 +83,14 @@ public class ImageItem {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getBucket() {

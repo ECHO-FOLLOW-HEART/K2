@@ -3,8 +3,8 @@ package models.traffic;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import models.geo.Address;
 import models.misc.Contact;
 import org.bson.types.ObjectId;
@@ -21,31 +21,12 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class Airport extends TravelPiBaseItem implements ITravelPiFormatter {
-
-    @Id
-    public ObjectId id;
-
-    @Embedded
-    public Address addr;
-
-    public String zhName;
-
-    public String enName;
-
-    public String url;
-
-    public String desc;
-
-    @Embedded
-    public Contact contact;
-
-    public List<String> alias;
+public class Airport extends AbstractTrafficHub {
 
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("_id", id.toString()).add("name", zhName).add("url", url).add("alias", alias);
+        builder.add("_id", getId().toString()).add("name", zhName).add("url", url).add("alias", alias);
         if (contact != null && contact.phoneList != null && !contact.phoneList.isEmpty()) {
             BasicDBList phoneList = new BasicDBList();
             for (String val : contact.phoneList)

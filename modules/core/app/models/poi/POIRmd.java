@@ -1,7 +1,7 @@
 package models.poi;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
@@ -15,7 +15,7 @@ import java.util.List;
  */
 @JsonFilter("poiRmdFilter")
 @Entity
-public class POIRmd extends TravelPiBaseItem {
+public class POIRmd extends AizouBaseEntity {
 
     @Transient
     public static String fnTitle = "title";

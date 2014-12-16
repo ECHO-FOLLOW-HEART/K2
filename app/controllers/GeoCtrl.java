@@ -4,8 +4,8 @@ import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import formatter.travelpi.geo.LocalityFormatter;
 import formatter.travelpi.geo.SimpleLocalityFormatter;
 import models.backup.geos.Locality;
@@ -115,8 +115,8 @@ public class GeoCtrl extends Controller {
                 results.add(SimpleLocalityFormatter.getInstance().format(it.next()));
         } catch (PatternSyntaxException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "KeyWord Pattern Error.");
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
@@ -151,8 +151,8 @@ public class GeoCtrl extends Controller {
 //                result.put("relVs", "");
                 result.put("relVs", Json.toJson(new ArrayList<JsonNode>()));
             return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -179,7 +179,7 @@ public class GeoCtrl extends Controller {
 //            else
 //                return Utils.createResponse(ErrorCode.NORMAL, loc.toJson(1));
 //        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.errCode, e.getMessage());
+//            return Utils.createResponse(e.getErrCode(), e.getMessage());
 //        }
 //
 //    }
@@ -194,8 +194,8 @@ public class GeoCtrl extends Controller {
         try {
             Country country = LocalityAPI.countryDetails(id);
             return Utils.createResponse(ErrorCode.NORMAL, country.toJson());
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -234,8 +234,8 @@ public class GeoCtrl extends Controller {
             for (Country c : countryList)
                 result.add(c.toJson());
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-        } catch (TravelPiException e) {
-            return Utils.createResponse(e.errCode, e.getMessage());
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 }

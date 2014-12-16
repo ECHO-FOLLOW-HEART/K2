@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
@@ -21,7 +21,7 @@ import java.util.List;
  */
 @Entity
 @JsonFilter("userInfoFilter")
-public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
+public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
     @Transient
     public static String fnContacts = "friends";
 
@@ -57,39 +57,22 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
 
     @Transient
     public static String fnOauthId = "oauthList.oauthId";
-
-    public UserInfo() {
-    }
-
-    public static UserInfo newInstance(Integer userId) {
-        UserInfo user = new UserInfo();
-        user.setId(new ObjectId());
-        user.userId = userId;
-        user.nickName = "桃子_" + user.userId;
-        user.setEnabled(true);
-
-        return user;
-    }
-
     /**
      * 昵称
      */
     @Constraints.Required
     @JsonProperty("nickName")
     private String nickName;
-
     /**
      * 头像
      */
     @JsonProperty("avatar")
     private String avatar;
-
     /**
      * 性别： F\M\Both\None
      */
     @JsonProperty("gender")
     private String gender;
-
     /**
      * 签名
      */
@@ -112,7 +95,7 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      * 用户ID
      */
     @JsonProperty("userId")
-    private Integer userId;
+    private Long userId;
 
     /**
      * 好友列表:用户ID-用户简要信息
@@ -125,16 +108,6 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     private String memo;
 
-//    /**
-//     * 好友备注:用户ID-备注信息
-//     */
-//    public Map<Integer, String> remark;
-//
-//    /**
-//     * 黑名单：用户ID-用户简要信息
-//     */
-//    public Map<Integer, UserInfo> blackList;
-
     /**
      * 邮箱
      */
@@ -145,17 +118,36 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
      */
     private List<OAuthInfo> oauthList;
 
+//    /**
+//     * 好友备注:用户ID-备注信息
+//     */
+//    public Map<Integer, String> remark;
+//
+//    /**
+//     * 黑名单：用户ID-用户简要信息
+//     */
+//    public Map<Integer, UserInfo> blackList;
     /**
      * 环信的账号
      */
-    // TODO easemob需要改成credential
-    @Transient
     private String easemobUser;
-
     /**
      * 注册来源
      */
     private String origin;
+
+    public UserInfo() {
+    }
+
+    public static UserInfo newInstance(Long userId) {
+        UserInfo user = new UserInfo();
+        user.setId(new ObjectId());
+        user.userId = userId;
+        user.nickName = "桃子_" + user.userId;
+        user.setEnabled(true);
+
+        return user;
+    }
 
 //    /**
 //     * 唯一设备号。
@@ -168,7 +160,6 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
 //     * @return
 //     */
 //    public String appVersion;
-
 
     public String getNickName() {
         return nickName;
@@ -218,11 +209,11 @@ public class UserInfo extends TravelPiBaseItem implements ITravelPiFormatter {
         this.dialCode = dialCode;
     }
 
-    public Integer getUserId() {
+    public Long getUserId() {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    public void setUserId(Long userId) {
         this.userId = userId;
     }
 

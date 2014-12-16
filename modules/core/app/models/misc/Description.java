@@ -3,6 +3,7 @@ package models.misc;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
@@ -15,7 +16,7 @@ import play.libs.Json;
  */
 @Embedded
 @JsonFilter("descriptionFilter")
-public class Description implements ITravelPiFormatter {
+public class Description extends AizouBaseItem implements ITravelPiFormatter {
 
 
     @Transient

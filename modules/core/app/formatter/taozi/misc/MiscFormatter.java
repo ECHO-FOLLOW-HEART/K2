@@ -11,8 +11,8 @@ import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.TravelPiBaseItem;
-import models.misc.PageFirst;
+import models.AizouBaseEntity;
+import models.misc.Column;
 import models.poi.Comment;
 import models.user.UserInfo;
 import formatter.JsonFormatter;
@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class MiscFormatter implements JsonFormatter{
     @Override
-    public JsonNode format(TravelPiBaseItem item) {
+    public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -45,7 +45,7 @@ public class MiscFormatter implements JsonFormatter{
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, PageFirst.fnCover, PageFirst.fnLink,PageFirst.fnTitle);
+                Collections.addAll(includedFields, Column.FD_COVER, Column.FD_LINK, Column.FD_TITLE);
 
                 return (includedFields.contains(writer.getName()));
             }
@@ -102,7 +102,7 @@ public class MiscFormatter implements JsonFormatter{
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Comment.fnNickName,Comment.fnScore,Comment.fnCommentDetails,Comment.fnCommentTime,Comment.fnAvatar);
+                Collections.addAll(includedFields, Comment.FD_USER_NAME,Comment.FD_RATING,Comment.FD_CONTENTS,Comment.FD_CTIME,Comment.FD_AVATAR);
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -117,7 +117,7 @@ public class MiscFormatter implements JsonFormatter{
             }
         };
         FilterProvider filters = new SimpleFilterProvider().addFilter("travelColumnsFilter", travelColumnsFilter)
-                .addFilter("commentsFilter",commentsFilter).addFilter("userInfoFilter",userInfoFilter);
+                .addFilter("commentFilter",commentsFilter).addFilter("userInfoFilter",userInfoFilter);
         mapper.setFilters(filters);
         return mapper.valueToTree(item);
     }

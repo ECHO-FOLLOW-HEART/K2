@@ -3,8 +3,8 @@ package models.traffic;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBList;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import models.geo.Address;
 import models.misc.Contact;
 import org.mongodb.morphia.annotations.Embedded;
@@ -20,23 +20,7 @@ import java.util.List;
  * @author Zephyre
  */
 @Entity
-public class TrainStation extends TravelPiBaseItem implements ITravelPiFormatter {
-
-    @Embedded
-    public Address addr;
-
-    public String zhName;
-
-    public String enName;
-
-    public String url;
-
-    public String desc;
-
-    @Embedded
-    public Contact contact;
-
-    public List<String> alias;
+public class TrainStation extends AbstractTrafficHub {
 
     /**
      * 拼音

@@ -3,8 +3,8 @@ package models.misc;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
-import models.TravelPiBaseItem;
 import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
@@ -22,7 +22,7 @@ import java.util.List;
  */
 @Entity
 @JsonFilter("travelNoteFilter")
-public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
+public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnId = "id";
@@ -54,6 +54,30 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
     @Transient
     public static String fnPublishDate = "publishDate";
 
+    @Transient
+    public static String fnStartDate = "startDate";
+
+    @Transient
+    public static String fnSummary = "summary";
+
+    @Transient
+    public static String fnContents = "contents";
+    @Transient
+    public static String fnNoteContents = "noteContents";
+    @Transient
+    public static String fnCostLower = "costLower";
+
+    @Transient
+    public static String fnCostUpper = "costUpper";
+
+    @Transient
+    public static String fnFavorCnt = "favorCnt";
+
+    @Transient
+    public static String fnCommentCnt = "commentCnt";
+
+    @Transient
+    public static String fnViewCnt = "viewCnt";
 
     /**
      * 名称(与Title名称一致)
@@ -77,8 +101,12 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
     /**
      * 发表时间
      */
-    public Date publishDate;
+    public Long publishDate;
 
+    /**
+     * 发表时间
+     */
+    public String startDate;
     /**
      * 收藏次数
      */
@@ -135,6 +163,10 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
     public List<String> contents;
 
     /**
+     * 游记正文
+     */
+    public String noteContents;
+    /**
      * 游记来源
      */
     public String source;
@@ -150,6 +182,7 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
     public Boolean elite;
 
     public String cover;
+
 
     public String getName() {
         if (title == null)
@@ -172,9 +205,18 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
             return StringUtils.abbreviate(summary, Constants.ABBREVIATE_LEN);
     }
 
+/*    public String getPublishDate() {
+        if (publishDate == null)
+            return "";
+        else
+            return new SimpleDateFormat("yyyy-MM-dd EE z").format(publishDate);
+
+    }*/
+
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("title", title).add("authorName", authorName);
+        builder.add("id", this.getId().toString()).add("title", title).add("authorName", authorName)
+                .add("cover", cover);
         for (String k : new String[]{"source", "sourceUrl", "summary", "authorName", "authorAvatar", "title"}) {
             try {
                 Object val = TravelNote.class.getField(k).get(this);
@@ -192,7 +234,7 @@ public class TravelNote extends TravelPiBaseItem implements ITravelPiFormatter {
             }
         }
 
-        builder.add("publishDate", publishDate == null ? "" : new SimpleDateFormat("yyyy-MM-dd").format(publishDate));
+        builder.add("publishDate", publishDate == null ? "" : publishDate);
 
         return Json.toJson(builder.get());
     }

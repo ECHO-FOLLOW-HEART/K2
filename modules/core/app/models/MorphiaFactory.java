@@ -2,8 +2,8 @@ package models;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientException;
+import exception.AizouException;
 import exception.ErrorCode;
-import exception.TravelPiException;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import org.mongodb.morphia.ValidationExtension;
@@ -37,7 +37,7 @@ public class MorphiaFactory {
 //        new ValidationExtension(morphia);
 //    }
 
-    private MorphiaFactory() throws TravelPiException {
+    private MorphiaFactory() throws AizouException {
         Configuration config = Play.application().configuration();
 
         Map mongo = (Map) config.getObject("mongodb");
@@ -54,7 +54,7 @@ public class MorphiaFactory {
         try {
             client = new MongoClient(host, port);
         } catch (UnknownHostException e) {
-            throw new TravelPiException(ErrorCode.DATABASE_ERROR, "Invalid database connection.");
+            throw new AizouException(ErrorCode.DATABASE_ERROR, "Invalid database connection.");
         }
 
         morphia = new Morphia();
@@ -71,7 +71,7 @@ public class MorphiaFactory {
 //        morphia.mapPackage("models.morphia", true);
     }
 
-    public synchronized static MorphiaFactory getInstance() throws TravelPiException {
+    public synchronized static MorphiaFactory getInstance() throws AizouException {
         if (ourInstance == null)
             ourInstance = new MorphiaFactory();
 
@@ -89,7 +89,7 @@ public class MorphiaFactory {
         return morphia;
     }
 
-    public synchronized Datastore getDatastore(DBType type) throws TravelPiException {
+    public synchronized Datastore getDatastore(DBType type) throws AizouException {
         // 初始化
         getInstance();
 
@@ -122,6 +122,9 @@ public class MorphiaFactory {
             case GUIDE:
                 ds = morphia.createDatastore(client, "guide");
                 break;
+            case IMAGESTORE:
+                ds = morphia.createDatastore(client, "imagestore");
+                break;
         }
         try {
             if (ds != null) {
@@ -130,7 +133,7 @@ public class MorphiaFactory {
                 dsMap.put(type, ds);
             }
         } catch (MongoClientException e) {
-            throw new TravelPiException(ErrorCode.DATABASE_ERROR, "Database error.", e);
+            throw new AizouException(ErrorCode.DATABASE_ERROR, "Database error.", e);
         }
 
         return ds;
@@ -144,6 +147,7 @@ public class MorphiaFactory {
         USER,
         MISC,
         TRAFFIC,
-        GUIDE
+        GUIDE,
+        IMAGESTORE
     }
 }

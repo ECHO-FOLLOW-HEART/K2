@@ -1,7 +1,7 @@
 package models.geo;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import models.TravelPiBaseItem;
+import models.AizouBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 
@@ -12,19 +12,15 @@ import org.mongodb.morphia.annotations.Transient;
  */
 @Embedded
 @JsonFilter("geoJsonPointFilter")
-public class GeoJsonPoint extends TravelPiBaseItem {
+public class GeoJsonPoint extends AizouBaseItem {
 
     @Transient
     public static String fnType = "type";
 
     @Transient
-    public static String fnCoordinates = "coordinates";
+    public static String FD_COORDS = "coordinates";
 
     public static String type = "Point";
-
-    public double[] getCoordinates() {
-        return coordinates;
-    }
 
     private double[] coordinates;
 
@@ -35,7 +31,11 @@ public class GeoJsonPoint extends TravelPiBaseItem {
         coordinates = new double[]{lng, lat};
     }
 
-    public static GeoJsonPoint newInstance(double lng, double lat) {
-        return new GeoJsonPoint(lng, lat);
+    public double[] getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(double[] coordinates) {
+        this.coordinates = coordinates;
     }
 }
