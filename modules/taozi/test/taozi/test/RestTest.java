@@ -34,6 +34,10 @@ public class RestTest extends AizouTest{
 //        assertThat(node.get("height").equals(1136)).isTrue();
 //    }
 
+    /**
+     * 测试联合搜索功能
+     * @throws Exception
+     */
     @Test
     public void testSearch() throws Exception {
         Method method = MiscCtrl.class.getDeclaredMethod("search",
@@ -56,6 +60,34 @@ public class RestTest extends AizouTest{
         assertThat(searchResult.has("vs")).isFalse();
     }
 
+    /**
+     * 测试搜索联想功能
+     */
+    @Test
+    public void testSuggestions() throws Exception {
+        Method method = MiscCtrl.class.getDeclaredMethod("getSuggestions",
+                String.class, boolean.class, boolean.class, boolean.class, boolean.class, int.class);
+        method.setAccessible(true);
+        int pageSize = 3;
+        Result res = (Result) method.invoke(MiscCtrl.class,
+                "北", true, false, false, false, pageSize);
+        JSONObject result = new JSONObject(contentAsString(res));
+
+        // The return code of result should be 0
+        assertThat(result.getInt("code")).isEqualTo(0);
+
+        // The size of result should be less or equal than pageSize
+        JSONObject resultList = result.getJSONObject("result");
+        JSONArray loc = resultList.getJSONArray("loc");
+        assertThat(loc.length()).isLessThanOrEqualTo(pageSize);
+        assertThat(loc.length()).isGreaterThan(0);
+
+    }
+
+    /**
+     * 测试首页推荐功能
+     * @throws Exception
+     */
     @Test
     public void testRecommended() throws Exception {
         Method method = MiscCtrl.class.getDeclaredMethod("recommend", int.class, int.class);
