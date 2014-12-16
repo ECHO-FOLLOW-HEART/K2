@@ -612,54 +612,6 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
-    public static JsonNode searchImpl(String keyWord, String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
-        ObjectNode results = Json.newObject();
-        try {
-            Iterator it;
-            if (loc) {
-                Locality locality;
-                List<JsonNode> retLocList = new ArrayList<>();
-                it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
-                while (it.hasNext()) {
-                    locality = (Locality) it.next();
-                    retLocList.add(new DetailedLocalityFormatter().format(locality));
-                }
-                results.put("loc", Json.toJson(retLocList));
-            }
-
-            List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
-            if (vs)
-                poiKeyList.add(PoiAPI.POIType.VIEW_SPOT);
-            if (hotel)
-                poiKeyList.add(PoiAPI.POIType.HOTEL);
-            if (restaurant)
-                poiKeyList.add(PoiAPI.POIType.RESTAURANT);
-            if (shopping)
-                poiKeyList.add(PoiAPI.POIType.SHOPPING);
-
-            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<PoiAPI.POIType, String>() {
-                {
-                    put(PoiAPI.POIType.VIEW_SPOT, "vs");
-                    put(PoiAPI.POIType.HOTEL, "hotel");
-                    put(PoiAPI.POIType.RESTAURANT, "restaurant");
-                    put(PoiAPI.POIType.SHOPPING, "shopping");
-                }
-            };
-            for (PoiAPI.POIType poiType : poiKeyList) {
-                ObjectId oid = locId.equals("") ? null : new ObjectId(locId);
-                // 发现POI
-                List<JsonNode> retPoiList = new ArrayList<>();
-                List<? extends AbstractPOI> itPoi = PoiAPI.poiSearchForTaozi(poiType, keyWord, oid, true, page, pageSize);
-                for (AbstractPOI poi : itPoi)
-                    retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
-                results.put(poiMap.get(poiType), Json.toJson(retPoiList));
-            }
-        } catch (AizouException | NullPointerException e) {
-            return null;
-        }
-        return Json.toJson(results);
-    }
-
     /**
      * 输入联想
      *
