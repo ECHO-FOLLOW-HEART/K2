@@ -94,7 +94,8 @@ public class GuideFormatter extends TaoziBaseFormatter {
         Collections.addAll(localityStringFields,
                 Locality.FD_EN_NAME);
 
-        listFields.add(AbstractPOI.FD_IMAGES);
+        Collections.addAll(listFields,
+                AbstractPOI.FD_IMAGES,Guide.fnItinerary,Guide.fnShopping,Guide.fnRestaurant);
 
         return postProcess(result);
     }

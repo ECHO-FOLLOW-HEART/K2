@@ -185,7 +185,10 @@ public class GuideAPI {
                 update.set(AbstractGuide.fnShopping, guide.shopping);
             if (guide.restaurant != null)
                 update.set(AbstractGuide.fnRestaurant, guide.restaurant);
+            if (guide.images != null)
+                update.set(AbstractGuide.fnImages, guide.images);
             update.set(Guide.fnUpdateTime, System.currentTimeMillis());
+
             ds.update(query, update);
         }
     }
@@ -252,7 +255,7 @@ public class GuideAPI {
         if (itinerary != null && itinerary.size() > 0) {
             for (ItinerItem temp : itinerary) {
                 type = temp.poi.type;
-                if(type == null)
+                if (type == null)
                     continue;
                 switch (type) {
                     case "vs":
@@ -280,21 +283,31 @@ public class GuideAPI {
                 }
             }
             guide.itinerary = newItinerary;
+        } else {
+            guide.itinerary = new ArrayList<>();
         }
+
+        guide.itineraryDays = guide.itinerary == null ? 0 : guide.itinerary.size();
+
         List<ObjectId> ids;
         if (shopping != null && shopping.size() > 0) {
             ids = new ArrayList();
             for (Shopping temp : shopping) {
                 ids.add(temp.getId());
             }
-            guide.shopping = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping",null,Constants.ZERO_COUNT , Constants.MAX_COUNT);
+            guide.shopping = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        } else {
+            guide.shopping = new ArrayList<>();
         }
+
         if (restaurant != null && restaurant.size() > 0) {
             ids = new ArrayList();
             for (Restaurant temp : restaurant) {
                 ids.add(temp.getId());
             }
-            guide.restaurant = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant",null,Constants.ZERO_COUNT , Constants.MAX_COUNT);
+            guide.restaurant = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        } else {
+            guide.restaurant = new ArrayList<>();
         }
         return guide;
     }

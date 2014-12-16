@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.JsonFormatter;
-import formatter.taozi.guide.*;
-import formatter.taozi.misc.ImageItemFormatter;
+import formatter.taozi.guide.GuideFormatter;
+import formatter.taozi.guide.LocalityGuideFormatter;
+import formatter.taozi.guide.SimpleGuideFormatter;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
@@ -44,7 +44,7 @@ public class GuideCtrl extends Controller {
             Integer selfId = Integer.parseInt(tmp);
             Iterator<JsonNode> iterator = data.get("locId").iterator();
             List<ObjectId> ids = new ArrayList<>();
-            for (; iterator.hasNext(); ) {
+            while (iterator.hasNext()) {
                 ids.add(new ObjectId(iterator.next().asText()));
             }
             Guide temp = GuideAPI.getGuideByDestination(ids, selfId);
@@ -154,26 +154,22 @@ public class GuideCtrl extends Controller {
      */
     public static Result getGuideInfo(String id, String part) {
         try {
-            JsonFormatter jsonFormatter;
+
             ObjectId guideId = new ObjectId(id);
             List<String> fields = new ArrayList<>();
             Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime);
             switch (part) {
                 case AbstractGuide.fnItinerary:
-                    jsonFormatter = new ItineraryFormatter();
                     fields.add(Guide.fnItinerary);
                     fields.add(Guide.fnItineraryDays);
                     break;
                 case AbstractGuide.fnShopping:
-                    jsonFormatter = new ShoppingFormatter();
                     fields.add(Guide.fnShopping);
                     break;
                 case AbstractGuide.fnRestaurant:
-                    jsonFormatter = new RestaurantFormatter();
                     fields.add(Guide.fnRestaurant);
                     break;
                 case "all":
-                    jsonFormatter = new GuideFormatter();
                     fields.add(Guide.fnItinerary);
                     fields.add(Guide.fnItineraryDays);
                     fields.add(Guide.fnShopping);
@@ -183,10 +179,9 @@ public class GuideCtrl extends Controller {
                     throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Error guide part."));
             }
             Guide guide = GuideAPI.getGuideById(guideId, fields);
-            // TODO 数据完备后开启
             // 填充攻略信息
             GuideAPI.fillGuideInfo(guide);
-            ObjectNode node = (ObjectNode) jsonFormatter.format(guide);
+            ObjectNode node = (ObjectNode) new GuideFormatter().format(guide);
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -279,12 +274,12 @@ public class GuideCtrl extends Controller {
             ObjectNode node = (ObjectNode) new LocalityGuideFormatter().format(localityGuideInfo);
             //重新设置Json-Key
             ObjectNode result = Json.newObject();
-            if(guidePart.equals("shopping")){
-                result.put("images",node.get(LocalityGuideInfo.fnShoppingImages));
-                result.put("desc",node.get(LocalityGuideInfo.fnShoppingDesc));
-            }else if(guidePart.equals("restaurant")){
-                result.put("images",node.get(LocalityGuideInfo.fnRestaurantImages));
-                result.put("desc",node.get(LocalityGuideInfo.fnRestaurantDesc));
+            if (guidePart.equals("shopping")) {
+                result.put("images", node.get(LocalityGuideInfo.fnShoppingImages));
+                result.put("desc", node.get(LocalityGuideInfo.fnShoppingDesc));
+            } else if (guidePart.equals("restaurant")) {
+                result.put("images", node.get(LocalityGuideInfo.fnRestaurantImages));
+                result.put("desc", node.get(LocalityGuideInfo.fnRestaurantDesc));
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, result);

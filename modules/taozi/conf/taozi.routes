@@ -100,6 +100,8 @@ POST          /create-guide                                      controllers.tao
 GET           /guides                                            controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
 #更新行程单
 POST          /guides                                            controllers.taozi.GuideCtrl.saveGuide()
+#查看完整攻略详情
+GET           /guides/:id                                        controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String="all")
 #查看攻略详情
 GET           /guides/:id/:part                                  controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
 #获得目的地的攻略信息
