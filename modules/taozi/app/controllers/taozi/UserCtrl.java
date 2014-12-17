@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -670,6 +670,28 @@ public class UserCtrl extends Controller {
     }
 
     /**
+     * 请求添加好友
+     *
+     * @return
+     */
+    public static Result requestAddContact() {
+        long userId, contactId;
+        try {
+            userId = Integer.parseInt(request().getHeader("UserId"));
+            contactId = Integer.parseInt(request().body().asJson().get("userId").asText());
+        } catch (NumberFormatException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+        }
+
+        try {
+            UserAPI.requestAddContact(userId, contactId);
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
+    }
+
+    /**
      * 添加好友
      *
      * @return
@@ -685,7 +707,7 @@ public class UserCtrl extends Controller {
 
         try {
             UserAPI.addContact(userId, contactId);
-            return Utils.createResponse(ErrorCode.NORMAL, "");
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
@@ -825,6 +847,8 @@ public class UserCtrl extends Controller {
         }
         return false;
     }
+
+
 //    /**
 //     * 添加用户的备注信息
 //     *

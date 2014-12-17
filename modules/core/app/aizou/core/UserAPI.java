@@ -46,6 +46,7 @@ import java.util.*;
  */
 public class UserAPI {
 
+    public static int CMDTYPE_REQUEST_FRIEND = 1;
     public static int CMDTYPE_ADD_FRIEND = 2;
     public static int CMDTYPE_DEL_FRIEND = 3;
 
@@ -1011,6 +1012,35 @@ public class UserAPI {
     }
 
     /**
+     * 请求添加好友
+     *
+     * @param selfId
+     * @param targetId
+     * @throws exception.AizouException
+     */
+    public static void requestAddContact(Long selfId, Long targetId) throws AizouException {
+        if (selfId.equals(targetId))
+            return;
+
+        //取得用户信息实体
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));  //取得用户实体
+        //取得好友信息实体
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));
+
+        if (selfInfo == null || targetInfo == null)
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
+
+        // 互相删除黑名单
+        delEaseMobBlocks(selfId, targetId);
+        delEaseMobBlocks(targetId, selfId);
+
+        // 向被加好友的客户端发消息
+        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_REQUEST_FRIEND);
+    }
+
+    /**
      * 添加好友
      *
      * @param selfId
@@ -1054,7 +1084,7 @@ public class UserAPI {
             public Object funcv(Object... val) {
                 UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
 
-                Integer sid = (Integer) val[0];
+                Integer sid = Integer.parseInt(val[0].toString());
                 @SuppressWarnings("unchecked")
                 List<UserInfo> sc = (List<UserInfo>) val[1];
                 UserInfo tinfo = (UserInfo) val[2];
