@@ -185,15 +185,9 @@ public class UserCtrl extends Controller {
      */
     public static Result modPassword() {
         JsonNode req = request().body().asJson();
-        String userId = req.get("userId").asText();
+        Integer userId = Integer.parseInt(req.get("userId").asText());
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
-        Integer countryCode;
-        if (req.has("dialCode")) {
-            countryCode = Integer.valueOf(req.get("dialCode").asText());
-        } else {
-            countryCode = 86;
-        }
 
         //验证用户是否存在-手机号
         try {
