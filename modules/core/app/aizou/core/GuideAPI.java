@@ -91,9 +91,11 @@ public class GuideAPI {
             if (temp.itinerary != null && temp.itinerary.size() > 0) {
                 for (ItinerItem it : temp.itinerary) {
                     it.dayIndex = it.dayIndex + index;
+                    if (itineraryDaysCnt < it.dayIndex)
+                        itineraryDaysCnt = it.dayIndex;
+
                 }
                 itineraries.addAll(temp.itinerary);
-                itineraryDaysCnt = itineraryDaysCnt + temp.itinerary.size();
             }
             if (temp.shopping != null && temp.shopping.size() > 0) {
                 shoppingList.addAll(temp.shopping);
@@ -104,12 +106,16 @@ public class GuideAPI {
             }
             index++;
         }
+
+        //补全Title名称
+        titlesBuffer.append("攻略");
+
         ugcGuide.localities = destinations;
         ugcGuide.title = titlesBuffer.toString();
         ugcGuide.itinerary = itineraries;
         ugcGuide.shopping = shoppingList;
         ugcGuide.restaurant = restaurants;
-        ugcGuide.itineraryDays = itineraryDaysCnt;
+        ugcGuide.itineraryDays = itineraryDaysCnt + 1;
         ugcGuide.updateTime = System.currentTimeMillis();
         //取第一个目的地的图片
         ugcGuide.images = guideTemplates.get(0).images;
@@ -286,8 +292,6 @@ public class GuideAPI {
         } else {
             guide.itinerary = new ArrayList<>();
         }
-
-        guide.itineraryDays = guide.itinerary == null ? 0 : guide.itinerary.size();
 
         List<ObjectId> ids;
         if (shopping != null && shopping.size() > 0) {
