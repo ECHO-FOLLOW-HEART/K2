@@ -67,6 +67,9 @@ public class PoiAPI {
             case RESTAURANT:
                 poiClass = Restaurant.class;
                 break;
+            case SHOPPING:
+                poiClass = Shopping.class;
+                break;
         }
         if (poiClass == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");

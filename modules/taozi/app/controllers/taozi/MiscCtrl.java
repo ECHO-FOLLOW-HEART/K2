@@ -6,14 +6,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
-import formatter.taozi.misc.CommentFormatter;
-import formatter.taozi.misc.ImageFormatter;
-import formatter.taozi.misc.MiscFormatter;
-import formatter.taozi.misc.WeatherFormatter;
+import formatter.taozi.misc.*;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
 import formatter.taozi.user.SelfFavoriteFormatter;
-import formatter.travelpi.geo.SimpleLocalityFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
@@ -216,7 +212,7 @@ public class MiscCtrl extends Controller {
             AbstractPOI poi;
             PoiAPI.POIType poiType;
             List locFields = new ArrayList();
-            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc","timeCostDesc");
+            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc", "timeCostDesc");
             List poiFields = new ArrayList();
             Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality");
             for (Favorite fa : faList) {
@@ -624,17 +620,17 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,boolean shopping,
                                         int pageSize) {
         try {
-            return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant,
+            return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant,shopping,
                     pageSize));
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
-    public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+    public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,boolean shopping,
                                               int pageSize) throws AizouException {
         ObjectNode ret = Json.newObject();
 
@@ -642,46 +638,46 @@ public class MiscCtrl extends Controller {
         if (loc) {
             for (Iterator<Locality> it = GeoAPI.searchLocalities(word, true, null, 0, pageSize); it.hasNext(); ) {
                 Locality item = it.next();
-                locList.add(SimpleLocalityFormatter.getInstance().format(item));
+                locList.add(new SuggestionFormatter().format(item));
             }
         }
-        if (!locList.isEmpty())
-            ret.put("loc", Json.toJson(locList));
-        else
-            ret.put("loc", Json.toJson(new ArrayList<>()));
+        ret.put("locality", Json.toJson(locList.isEmpty() ? new ArrayList<>() : locList));
+
 
         List<JsonNode> vsList = new ArrayList<>();
         if (vs) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, pageSize);
                  it.hasNext(); )
-                vsList.add(it.next().toJson(1));
+                vsList.add(new SuggestionFormatter().format(it.next()));
         }
-        if (!vsList.isEmpty())
-            ret.put("vs", Json.toJson(vsList));
-        else
-            ret.put("vs", Json.toJson(new ArrayList<>()));
+        ret.put("vs", Json.toJson(vsList.isEmpty() ? new ArrayList<>() : vsList));
 
         List<JsonNode> hotelList = new ArrayList<>();
         if (hotel) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, pageSize);
                  it.hasNext(); )
-                hotelList.add(it.next().toJson(1));
+                hotelList.add(new SuggestionFormatter().format(it.next()));
         }
-        if (!hotelList.isEmpty())
-            ret.put("hotel", Json.toJson(hotelList));
-        else
-            ret.put("hotel", Json.toJson(new ArrayList<>()));
 
-        List<JsonNode> dinningList = new ArrayList<>();
+        ret.put("hotel", Json.toJson(hotelList.isEmpty() ? new ArrayList<>() : hotelList));
+
+        List<JsonNode> restaurantList = new ArrayList<>();
         if (restaurant) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, pageSize);
                  it.hasNext(); )
-                dinningList.add(it.next().toJson(1));
+                restaurantList.add(new SuggestionFormatter().format(it.next()));
         }
-        if (!dinningList.isEmpty())
-            ret.put("restaurant", Json.toJson(dinningList));
-        else
-            ret.put("restaurant", Json.toJson(new ArrayList<>()));
+
+        ret.put("restaurant", Json.toJson(restaurantList.isEmpty() ? new ArrayList<>() : restaurantList));
+
+        List<JsonNode> shoppingList = new ArrayList<>();
+        if (shopping) {
+            for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.SHOPPING, word, pageSize);
+                 it.hasNext(); )
+                shoppingList.add(new SuggestionFormatter().format(it.next()));
+        }
+
+        ret.put("shopping", Json.toJson(shoppingList.isEmpty() ? new ArrayList<>() : shoppingList));
 
         return ret;
     }
