@@ -912,7 +912,7 @@ public class PoiAPI {
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         query = query.field(AbstractPOI.FD_LOCATION).near(lng, lat, maxDistance, true);
         query.retrievedFields(true, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.FD_IMAGES,
-                AbstractPOI.FD_IMAGES, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION);
+                AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }
