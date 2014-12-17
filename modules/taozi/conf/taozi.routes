@@ -52,17 +52,17 @@ DELETE        /misc/favorites/:id                                controllers.tao
 #获得封面故事
 GET           /misc/cover-stories                                controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #反馈
-POST          /misc/feedback                                     controllers.taozi.MiscCtrl.postFeedback()
-#推荐
-GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=6)
+#POST          /misc/feedback                                     controllers.taozi.MiscCtrl.postFeedback()
 #天气
-GET           /misc/weather/:id                                  controllers.taozi.MiscCtrl.getWeatherDetail(id :String)
+#GET           /misc/weather/:id                                  controllers.taozi.MiscCtrl.getWeatherDetail(id :String)
 #获得资源上传凭证
 GET           /misc/put-policy/:scenario                         controllers.taozi.MiscCtrl.putPolicy(scenario:String)
 #处理资源上传的回调
 POST          /misc/upload-callback                              controllers.taozi.MiscCtrl.getCallback()
 #游记
 GET           /misc/notes/search                                 controllers.taozi.TravelNoteCtrl.searchNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
+#推荐
+GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=6)
 #搜索
 GET           /search                                            controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #提示
@@ -132,10 +132,6 @@ GET           /geo/localities/:id                                controllers.tao
 GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=0)
 #展示目的地
 GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
-#获取国家的目的地
-#GET           /destinations/country/:id                 controllers.taozi.GeoCtrl.getDestinationsByCountry(id: String,page:Int?=0,pageSize:Int?=10)
-#发现城市、国家、poi详情
-#GET           /explore                                 controllers.taozi.GeoCtrl.explore(showDetails: Boolean?=        true,        loc:        Boolean        ?=        true,        vs:        Boolean        ?=        false,        hotel:        Boolean        ?=        true,        restaurant:        Boolean        ?=        true,        country:        Boolean        ?=        true,        page:        Int        ?=0,        pageSize:        Int        ?=10)
 #旅行专栏
 GET           /columns                                           controllers.taozi.MiscCtrl.getColumns()
 
