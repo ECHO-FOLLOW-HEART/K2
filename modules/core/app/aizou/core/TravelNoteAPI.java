@@ -85,13 +85,15 @@ public class TravelNoteAPI {
             for (String t : viewSpots)
                 sb.append(String.format(" contents:%s", t));
 
-            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("contents")
-                    .addField("publishDate").addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar");
+            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title")
+                    .addField("contents").addField("publishDate").addField("sourceUrl").addField("commentCnt")
+                    .addField("viewCnt").addField("authorAvatar").addField("id");
 
             docs = server.query(query).getResults();
             Date publishDate;
             for (SolrDocument doc : docs) {
                 TravelNote note = new TravelNote();
+                note.setId(new ObjectId(doc.get("id").toString()));
                 Object tmp;
                 note.authorName = (String) doc.get("authorName");
                 note.title = (String) doc.get("title");
