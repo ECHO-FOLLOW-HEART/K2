@@ -1151,7 +1151,7 @@ public class UserAPI {
             @Override
             public Object funcv(Object... val) {
                 UserInfo sinfo = (UserInfo) val[0];
-                Integer tid = (Integer) val[1];
+                Integer tid = Integer.parseInt(val[1].toString());
 
                 List<UserInfo> contactList = sinfo.getFriends();
                 if (contactList == null || contactList.isEmpty())
@@ -1186,6 +1186,9 @@ public class UserAPI {
             func.funcv((Object[]) obj);
         }
 
+        //需要互删除黑名单
+        delEaseMobBlocks(selfId, targetId);
+        delEaseMobBlocks(targetId, selfId);
         // 向删友请求发起的客户端发消息
         unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND);
     }
