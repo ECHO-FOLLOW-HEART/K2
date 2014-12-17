@@ -577,7 +577,7 @@ public class MiscCtrl extends Controller {
                     locality = (Locality) it.next();
                     retLocList.add(new DetailedLocalityFormatter().format(locality));
                 }
-                results.put("loc", Json.toJson(retLocList));
+                results.put("locality", Json.toJson(retLocList));
             }
 
             List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
