@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.DefaultSerializerProvider;
+import formatter.JsonFormatter;
 import formatter.taozi.ObjectIdSerializer;
 import org.bson.types.ObjectId;
 import play.libs.Json;
-import formatter.JsonFormatter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -78,20 +78,26 @@ public abstract class TravelPiBaseFormatter implements JsonFormatter {
 
         // 处理图像
         JsonNode images = result.get("images");
-        if (images!=null){
+        if (images != null) {
             result.remove("images");
             result.put("imageList", images);
         }
 
         // 处理id
         JsonNode oid = result.get("id");
-        int time = oid.get("timestamp").asInt();
-        int mach = oid.get("machine").asInt();
-        int inc = oid.get("inc").asInt();
+        if (oid != null) {
+            if (oid.isTextual())
+                result.put("_id", oid);
+            else {
+                int time = oid.get("timestamp").asInt();
+                int mach = oid.get("machine").asInt();
+                int inc = oid.get("inc").asInt();
 
-        String oidText = ObjectId.createFromLegacyFormat(time, mach, inc).toString();
-        result.put("_id", oidText);
-        result.put("id", oidText);
+                String oidText = ObjectId.createFromLegacyFormat(time, mach, inc).toString();
+                result.put("_id", oidText);
+                result.put("id", oidText);
+            }
+        }
 
         return result;
     }
