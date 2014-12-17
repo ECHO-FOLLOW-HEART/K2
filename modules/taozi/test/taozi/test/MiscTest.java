@@ -1,19 +1,31 @@
 package taozi.test;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import controllers.taozi.TravelNoteCtrl;
+import org.apache.solr.client.solrj.SolrRequest;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import  play.mvc.Result;
+import org.junit.runner.Request;
+import org.openqa.selenium.remote.Response;
+import play.libs.Json;
+import play.mvc.Http;
+import play.mvc.Result;
 
 import controllers.taozi.MiscCtrl;
-import org.junit.Test;
-import play.test.FakeRequest;
+import org.junit.*;
+import play.test.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static play.test.Helpers.callAction;
 import static play.test.Helpers.contentAsString;
+import static play.test.Helpers.GET;
 
 /**
  * Created by Heaven on 2014/12/13.
@@ -41,7 +53,7 @@ public class MiscTest extends AizouTest{
         assertThat(result.getInt("width")).isEqualTo(width);
         assertThat(result.getInt("height")).isEqualTo(height);
 
-        // The image and cover-stories url should not be null
+        // The image url should not be null
         assertThat(result.getString("image")).isNotNull();
     }
 
@@ -146,23 +158,23 @@ public class MiscTest extends AizouTest{
         }
     }
 
+    @Test
+    public void test() throws Exception {
+//        Method method = MiscCtrl.class.getDeclaredMethod("testForTest");
+//        method.setAccessible(true);
+//
+//        MockRequest req = new MockRequest();
+//        req.setHeader("UserId", "f123");
+//        Result response = (Result) req.apply(method, MiscCtrl.class);
+        MiscCtrl.testForTest();
+    }
+
     /**
      * 针对 获得资源上传凭证
      */
-//    @Test
-//    public void testPutPolicy() throws NoSuchMethodException {
-//        Method method = MiscCtrl.class.getDeclaredMethod("putPolicy", String.class);
-//        method.setAccessible(true);
-//        try{
-//            Result response = (Result) method.invoke(MiscCtrl.class, "portrait");
-//        } catch (InvocationTargetException e) {
-//            e.getTargetException().printStackTrace();
-//            int i = 0;
-//        } catch (IllegalAccessException e) {
-//            e.printStackTrace();
-//        }
-//        int kk = 0;
-//
-//    }
+    //@Test
+    public void testPutPolicy() throws Exception {
+
+    }
 
 }

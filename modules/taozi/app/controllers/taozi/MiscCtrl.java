@@ -29,7 +29,9 @@ import org.mongodb.morphia.query.Query;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
+import sun.misc.Request;
 import utils.Constants;
 import utils.LogUtils;
 import utils.Utils;
@@ -67,9 +69,10 @@ public class MiscCtrl extends Controller {
             // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
             String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
             //添加封面故事信息
-            for (Map.Entry<String, String> entry : info.coverStory.entrySet()) {
-                node.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
-            }
+            if (info.coverStory != null)
+                for (Map.Entry<String, String> entry : info.coverStory.entrySet()) {
+                    node.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
+                }
             node.put("image", url);
             node.put("width", width);
             node.put("height", height);
@@ -701,6 +704,12 @@ public class MiscCtrl extends Controller {
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
+    }
+
+    public static Result testForTest() {
+        Configuration config = Configuration.root().getConfig("solr");
+
+        return ok("ok");
     }
 
 //    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws AizouException {
