@@ -380,14 +380,14 @@ public class POICtrl extends Controller {
     /**
      * 特定地点美食、购物发现
      *
-     * @param locId
+     * @param id
      * @param dinning
      * @param shopping
      * @param page
      * @param pageSize
      * @return
      */
-    public static Result getDinShop(String locId, boolean dinning, boolean shopping,
+    public static Result getDinShop(String id, boolean dinning, boolean shopping,
                                     int page, int pageSize) {
         //TODO 缺少店铺推荐数据
         try {
@@ -403,7 +403,7 @@ public class POICtrl extends Controller {
                 destKeyList.add(PoiAPI.DestinationType.SHOPPING);
                 poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
             }
-            ObjectId oid = new ObjectId(locId);
+            ObjectId oid = new ObjectId(id);
             for (PoiAPI.DestinationType type : destKeyList) {
 
                 Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
@@ -412,7 +412,7 @@ public class POICtrl extends Controller {
                 results.put(kind, new LocalityGuideFormatter().format(locality, kind));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
