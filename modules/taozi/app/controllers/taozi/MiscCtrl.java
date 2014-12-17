@@ -620,17 +620,17 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,boolean shopping,
+    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping,
                                         int pageSize) {
         try {
-            return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant,shopping,
+            return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant, shopping,
                     pageSize));
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
-    public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,boolean shopping,
+    public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping,
                                               int pageSize) throws AizouException {
         ObjectNode ret = Json.newObject();
 
@@ -693,15 +693,21 @@ public class MiscCtrl extends Controller {
     public static Result getAlbums(String id, int page, int pageSize) {
 
         try {
-            List<ObjectNode> result = new ArrayList<>();
+
             ObjectId oid = new ObjectId(id);
             // 默认情况会取出全部图集
             if (pageSize == 0)
                 pageSize = Constants.MAX_COUNT;
             List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
+
+            List<ObjectNode> nodeList = new ArrayList<>();
             for (Images images : items)
-                result.add((ObjectNode) new ImageFormatter().format(images));
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+                nodeList.add((ObjectNode) new ImageFormatter().format(images));
+
+            ObjectNode result = Json.newObject();
+            result.put("album", Json.toJson(nodeList));
+            result.put("albumCnt", nodeList.size());
+            return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
