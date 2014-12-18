@@ -217,7 +217,7 @@ public class MiscCtrl extends Controller {
             List locFields = new ArrayList();
             Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc", "timeCostDesc");
             List poiFields = new ArrayList();
-            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality");
+            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality","address","price");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {

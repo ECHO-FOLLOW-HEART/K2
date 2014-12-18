@@ -678,15 +678,18 @@ public class UserCtrl extends Controller {
      */
     public static Result requestAddContact() {
         long userId, contactId;
+        String message;
         try {
+            JsonNode req = request().body().asJson();
             userId = Integer.parseInt(request().getHeader("UserId"));
-            contactId = Integer.parseInt(request().body().asJson().get("userId").asText());
+            message = req.get("message").asText();
+            contactId = Integer.parseInt(req.get("userId").asText());
         } catch (NumberFormatException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
 
         try {
-            UserAPI.requestAddContact(userId, contactId);
+            UserAPI.requestAddContact(userId, contactId, message);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
