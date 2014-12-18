@@ -216,9 +216,9 @@ public class MiscCtrl extends Controller {
             AbstractPOI poi;
             PoiAPI.POIType poiType;
             List locFields = new ArrayList();
-            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc");
+            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc","timeCostDesc");
             List poiFields = new ArrayList();
-            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc","type", "locality");
+            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {
@@ -229,6 +229,8 @@ public class MiscCtrl extends Controller {
                     fa.enName = loc.getEnName();
                     fa.images = loc.getImages();
                     fa.desc = loc.getDesc();
+                    // 城市显示建议游玩时间
+                    fa.timeCostDesc = loc.getTimeCostDesc();
                 } else if (type.equals("travelNote")) {
                     travelNoteIds.add(fa.itemId.toString());
                     noteFav.add(fa);
@@ -257,6 +259,9 @@ public class MiscCtrl extends Controller {
                     fa.images = poi.images;
                     fa.desc = poi.desc;
                     fa.locality = poi.getLocality();
+                    fa.timeCostDesc = poi.timeCostDesc;
+                    fa.priceDesc = poi.priceDesc;
+                    fa.rating = poi.rating;
                 }
                 faShowList.add(fa);
             }
@@ -288,7 +293,7 @@ public class MiscCtrl extends Controller {
             });
             List<ObjectNode> nodes = new ArrayList<>();
             for (Favorite fa : faShowList)
-                nodes.add((ObjectNode) new SelfFavoriteFormatter().format(fa));
+                nodes.add((ObjectNode) new SelfFavoriteFormatter(fa.type).format(fa));
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodes));
         } catch (NullPointerException | IllegalArgumentException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getLocalizedMessage());
@@ -694,9 +699,12 @@ public class MiscCtrl extends Controller {
         try {
             List<ObjectNode> result = new ArrayList<>();
             ObjectId oid = new ObjectId(id);
+            // 默认情况会取出全部图集
+            if (pageSize == 0)
+                pageSize = Constants.MAX_COUNT;
             List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
-            for(Images images :items)
-                result.add((ObjectNode)new ImageFormatter().format(images));
+            for (Images images : items)
+                result.add((ObjectNode) new ImageFormatter().format(images));
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());

@@ -39,6 +39,8 @@ public class GuideAPI {
             criList.add(query.criteria("locId").equal(id));
         }
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        List<GuideTemplate> guideTemplates = query.asList();
+
         Query<Locality> queryDes = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
                 .createQuery(Locality.class);
         List<String> fieldList = new ArrayList<>();
@@ -51,7 +53,7 @@ public class GuideAPI {
         queryDes.or(criListDes.toArray(new CriteriaContainerImpl[criListDes.size()]));
 
         List<Locality> destinations = queryDes.asList();
-        List<GuideTemplate> guideTemplates = query.asList();
+
 
         Guide result = constituteUgcGuide(guideTemplates, destinations, userId);
         //创建时即保存
@@ -183,7 +185,10 @@ public class GuideAPI {
                 update.set(AbstractGuide.fnShopping, guide.shopping);
             if (guide.restaurant != null)
                 update.set(AbstractGuide.fnRestaurant, guide.restaurant);
+            if (guide.images != null)
+                update.set(AbstractGuide.fnImages, guide.images);
             update.set(Guide.fnUpdateTime, System.currentTimeMillis());
+
             ds.update(query, update);
         }
     }
@@ -227,9 +232,9 @@ public class GuideAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static DestGuideInfo getDestinationGuideInfo(ObjectId id) throws AizouException {
+    public static LocalityGuideInfo getLocalityGuideInfo(ObjectId id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        Query<DestGuideInfo> query = ds.createQuery(DestGuideInfo.class);
+        Query<LocalityGuideInfo> query = ds.createQuery(LocalityGuideInfo.class);
         query.field("locId").equal(id);
         return query.get();
     }
@@ -249,8 +254,8 @@ public class GuideAPI {
         List<Restaurant> restaurant = guide.restaurant;
         if (itinerary != null && itinerary.size() > 0) {
             for (ItinerItem temp : itinerary) {
-                type = temp.type;
-                if(type == null)
+                type = temp.poi.type;
+                if (type == null)
                     continue;
                 switch (type) {
                     case "vs":
@@ -278,21 +283,31 @@ public class GuideAPI {
                 }
             }
             guide.itinerary = newItinerary;
+        } else {
+            guide.itinerary = new ArrayList<>();
         }
+
+        guide.itineraryDays = guide.itinerary == null ? 0 : guide.itinerary.size();
+
         List<ObjectId> ids;
         if (shopping != null && shopping.size() > 0) {
             ids = new ArrayList();
             for (Shopping temp : shopping) {
                 ids.add(temp.getId());
             }
-            guide.shopping = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping",null,Constants.ZERO_COUNT , Constants.MAX_COUNT);
+            guide.shopping = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        } else {
+            guide.shopping = new ArrayList<>();
         }
+
         if (restaurant != null && restaurant.size() > 0) {
             ids = new ArrayList();
             for (Restaurant temp : restaurant) {
                 ids.add(temp.getId());
             }
-            guide.restaurant = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant",null,Constants.ZERO_COUNT , Constants.MAX_COUNT);
+            guide.restaurant = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        } else {
+            guide.restaurant = new ArrayList<>();
         }
         return guide;
     }

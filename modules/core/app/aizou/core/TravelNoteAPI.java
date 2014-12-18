@@ -141,7 +141,7 @@ public class TravelNoteAPI {
         }
     }
 
-    public static List<TravelNote> searchNoteByLoc(List<String> lcoNames, List<String> vsNames, int page, int pageSize) throws AizouException {
+    public static List<TravelNote> searchNoteByLoc(List<String> locNames, List<String> vsNames, int page, int pageSize) throws AizouException {
 
         SolrDocumentList docs;
         try {
@@ -159,16 +159,17 @@ public class TravelNoteAPI {
             SolrServer server = new HttpSolrServer(url);
             SolrQuery query = new SolrQuery();
             StringBuilder sb = new StringBuilder();
-            if (lcoNames != null) {
-                for (String t : lcoNames)
+            if (locNames != null) {
+                for (String t : locNames)
                     sb.append(String.format(" title:%s toLoc:%s", t, t));
             }
             if (vsNames != null) {
                 for (String t : vsNames)
                     sb.append(String.format(" contents:%s", t));
             }
-            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("source").addField("publishDate")
-                    .addField("sourceUrl").addField("commentCnt").addField("viewCnt").addField("authorAvatar").addField("contents").addField("id");
+            query.setQuery(sb.toString().trim()).addField("authorName").addField("_to").addField("title").addField("source")
+                    .addField("publishDate").addField("sourceUrl").addField("commentCnt").addField("viewCnt")
+                    .addField("authorAvatar").addField("contents").addField("id").addField("summary");
             query.setStart(page);
             query.setRows(pageSize);
 
@@ -387,7 +388,7 @@ public class TravelNoteAPI {
             if (line.startsWith("img src")) {
                 continue; //不添加表情
             } else if (line.startsWith("http://")) {
-                sb.append("<img src=" + line + " >");
+                sb.append("<img src=" + line + " />");
             } else
                 sb.append("<p> " + line + "</p>");
         }

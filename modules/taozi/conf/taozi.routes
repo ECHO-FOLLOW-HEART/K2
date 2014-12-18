@@ -100,10 +100,12 @@ POST          /create-guide                                      controllers.tao
 GET           /guides                                            controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
 #更新行程单
 POST          /guides                                            controllers.taozi.GuideCtrl.saveGuide()
+#查看完整攻略详情
+GET           /guides/:id                                        controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String="all")
 #查看攻略详情
 GET           /guides/:id/:part                                  controllers.taozi.GuideCtrl.getGuideInfo(id: String, part: String)
 #获得目的地的攻略信息
-GET           /guides/destination/:id/:part                      controllers.taozi.GuideCtrl.getDestinationGuideInfo(id:String,part: String)
+GET           /guides/locality/:id/:part                         controllers.taozi.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
 #修改攻略标题
 PUT           /guides/info/:id                                   controllers.taozi.GuideCtrl.setGuideTitle(id:String)
 #删除攻略
@@ -127,7 +129,7 @@ POST          /im/chatgroups/detail/groupId                      controllers.tao
 #查看目的地详情
 GET           /geo/localities/:id                                controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
 #查看目的地详情图集
-GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=20)
+GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=0)
 #展示目的地
 GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
 #获取国家的目的地
@@ -148,7 +150,7 @@ GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments        controllers.tao
 GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.taozi.MiscCtrl.displayComment(id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0, pageSize: Int?=15)
 
 #特定地区的美食、购物发现
-GET           /poi/:locId/details                                controllers.taozi.POICtrl.getDinShop(locId:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
+GET           /poi/$id<[0-9a-f]{24}>/details                    controllers.taozi.POICtrl.getDinShop(id:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
 #更多精选游记
 GET           /travel-note/:id                                   controllers.taozi.TravelNoteCtrl.getNotes(id:String,pageSize:Int?=10)
 #返回单篇游记详情
