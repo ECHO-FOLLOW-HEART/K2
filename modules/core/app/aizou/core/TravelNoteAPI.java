@@ -142,8 +142,10 @@ public class TravelNoteAPI {
     public static List<TravelNote> searchNoteByLoc(List<String> lcoNames, List<String> vsNames, int page, int pageSize) throws AizouException {
 
         SolrDocumentList docs;
+        Configuration config = Configuration.root();
         try {
-            Configuration config = Configuration.root().getConfig("solr");
+            //Configuration config = Configuration.root();
+            config = config.getConfig("solr");
             String host = config.getString("host", "localhost");
             Integer port = config.getInt("port", 8983);
             String url = String.format("http://%s:%d/solr", host, port);

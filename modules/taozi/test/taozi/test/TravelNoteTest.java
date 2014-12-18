@@ -18,7 +18,7 @@ import static play.test.Helpers.*;
 /**
  * Created by Heaven on 2014/12/16.
  */
-public class TravelNoteTest {
+public class TravelNoteTest extends AizouTest {
     /**
      * 针对 游记搜索 的测试
      */
