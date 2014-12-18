@@ -54,7 +54,7 @@ DELETE        /misc/favorites/:id                                controllers.tao
 #获得封面故事
 GET           /misc/cover-stories                                controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #反馈
-#POST          /misc/feedback                                     controllers.taozi.MiscCtrl.postFeedback()
+POST          /misc/feedback                                     controllers.taozi.MiscCtrl.postFeedback()
 #天气
 #GET           /misc/weather/:id                                  controllers.taozi.MiscCtrl.getWeatherDetail(id :String)
 #获得资源上传凭证

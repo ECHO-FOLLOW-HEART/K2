@@ -353,7 +353,7 @@ public class UserCtrl extends Controller {
     }
 
     /**
-     * 手机号登录
+     * 手机号登录,只支持手机号登录
      *
      * @return
      */
@@ -363,7 +363,9 @@ public class UserCtrl extends Controller {
         try {
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
-
+            UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, loginName);
+            if (userInfo == null)
+                return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
             JsonNode result = signinImpl(loginName, pwd);
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException e) {
