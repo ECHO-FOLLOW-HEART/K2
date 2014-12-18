@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 /**
@@ -44,13 +45,6 @@ public class MockRequest {
         when(requestBody.asFormUrlEncoded()).thenReturn(map);
     }
 
-//    public void setRequestBody(String key, String[] values) {
-//        int kk = 0;
-//    }
-//
-//    public void setRequestBody(String key, String values) {
-//        setRequestBody(key, new String[]{values});
-//    }
 
     public Object apply(Method method, Object obj, Object...args) throws InvocationTargetException, IllegalAccessException {
         Http.Context.current.set(context);

@@ -205,27 +205,48 @@ public class MiscTest extends AizouTest{
     }
 
     /**
-     * 针对 添加收藏 的测试
+     * 针对 添加收藏 的测试 （返回失败）
      */
     @Test
-    public void testAddFavorite() throws  Exception{
+    public void testAddFavorite_Fail() throws  Exception{
         Method method = MiscCtrl.class.getDeclaredMethod("addFavorite");
         method.setAccessible(true);
 
         MockRequest req = new MockRequest();
-        req.setHeader("UserId", "123456");
-//        req.setRequestBody("itemId", "fakeItemId");
-//        req.setRequestBody("type", "hotel");
+        req.setHeader("UserId", "100084");
         HashMap<String, String> body = new HashMap<>();
         body.put("type", "hotel");
         body.put("itemId", "fake2342");
         req.setRequestJson(body);
+        Result res = (Result) req.apply(method, MiscCtrl.class);
+        JsonNode response = Json.parse(contentAsString(res));
 
-        Result response = (Result) req.apply(method, MiscCtrl.class);
-        JsonNode result = Json.parse(contentAsString(response));
-
-        int kk = 0;
+        // The response code should be 100 because invalid objectId
+        assertThat(response.get("code").asInt()).isEqualTo(100);
     }
+
+    /**
+     * 针对 添加收藏 的测试 （返回 Favorite item has existed）
+     */
+    @Test
+    public void testAddFavorite_Succ() throws Exception {
+        Method method = MiscCtrl.class.getDeclaredMethod("addFavorite");
+        method.setAccessible(true);
+
+        MockRequest req = new MockRequest();
+        req.setHeader("UserId", "100084");
+        HashMap<String, String> body = new HashMap<>();
+        body.put("type", "hotel");
+        body.put("itemId", "53b053c110114e050b1d24b6");
+        req.setRequestJson(body);
+        Result res = (Result) req.apply(method, MiscCtrl.class);
+        JsonNode response = Json.parse(contentAsString(res));
+
+        // The response code should be 402 because Favorite item has existed
+        assertThat(response.get("code").asInt()).isEqualTo(402);
+
+    }
+
     /**
      * 针对 删除收藏 的测试
      */
