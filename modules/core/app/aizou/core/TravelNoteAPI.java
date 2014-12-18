@@ -94,10 +94,9 @@ public class TravelNoteAPI {
             for (SolrDocument doc : docs) {
                 TravelNote note = new TravelNote();
                 note.setId(new ObjectId(doc.get("id").toString()));
-                Object tmp;
                 note.authorName = (String) doc.get("authorName");
                 note.title = (String) doc.get("title");
-                tmp = doc.get("authorAvatar");
+                Object tmp = doc.get("authorAvatar");
                 note.authorAvatar = (tmp != null ? (String) tmp : "");
                 if (!note.authorAvatar.startsWith("http://"))
                     note.authorAvatar = "http://" + note.authorAvatar;

@@ -43,7 +43,7 @@ GET            /itineraries/train-routes/:trainCode           controllers.web.Tr
 GET            /itineraries/airport/:id                       controllers.web.TrafficCtrl.getTrafficHubInfo(trafficType: String="airport",id :String)
 GET            /itineraries/trainstation/:id                  controllers.web.TrafficCtrl.getTrafficHubInfo(trafficType: String="trainstation",id :String)
 #联想：目的地，景点，酒店，餐馆
-GET            /suggestions                                   controllers.web.MiscCtrl.getSuggestions(word: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, pageSize: Int?=5)
+GET            /suggestions                                    controllers.web.MiscCtrl.getSuggestions(word: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, pageSize: Int?=5)
 
 #----------地理接口----------
 # 搜索城市

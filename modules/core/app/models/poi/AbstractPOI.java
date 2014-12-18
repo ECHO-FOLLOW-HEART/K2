@@ -237,7 +237,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
                 return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id", "desc", "images",
                         "tags", "location", "locList"));
             case 3:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact",
+                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating","name", "addr", "ratings", "desc", "images", "tags", "contact",
                         "url", "price", "priceDesc", "alias", "locality", "location"));
         }
         return new ArrayList<>();

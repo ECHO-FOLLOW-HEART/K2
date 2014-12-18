@@ -10,6 +10,7 @@ import models.plan.PlanItem;
 import models.plan.UgcPlan;
 import models.poi.AbstractPOI;
 import models.poi.Hotel;
+import models.poi.Restaurant;
 import models.traffic.AbstractRoute;
 import models.traffic.RouteIterator;
 import org.bson.types.ObjectId;
@@ -37,7 +38,12 @@ public class WebPlanAPI {
     public static final String HOTEL_FLAG_BUDGET = "budget";
     public static final String HOTEL_FLAG_YOUTH = "youth";
     public static final String HOTEL_FLAG_FOLK = "folk";
-    //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店
+    public static final String HOTEL_FLAG_YOUTH_AND_FOLK = "youthandfolk";
+    //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店 5-青年旅社和民俗酒店
+
+    public static final String REST_FLAG_NULL = "none";
+    public static final String REST_FLAG_REPUTATION = "reputation";
+    public static final String REST_FLAG_SPECIAL = "special";
 
     /**
      * 从模板中提取路线，进行初步规划。
@@ -98,9 +104,10 @@ public class WebPlanAPI {
             addTelomere(false, plan, backLoc, trafficFlag);
         }
 
-        if (!hotelFlag.equals(HOTEL_FLAG_NULL))
+        if (!hotelFlag.equals(HOTEL_FLAG_NULL) || !restaurantFlag.equals(REST_FLAG_NULL))
             // 加入酒店
-            addHotels(plan.getDetails(), HOTEL_FLAG_NULL);
+            addHotelsAndRestaurants(plan.getDetails(), hotelFlag, restaurantFlag);
+
 
         //模板路线生成ugc路线
         return new UgcPlan(plan);
@@ -241,7 +248,7 @@ public class WebPlanAPI {
      * @param entryList
      * @return
      */
-    public static void addHotels(List<PlanDayEntry> entryList, String hotelFlag) {
+    public static void addHotelsAndRestaurants(List<PlanDayEntry> entryList, String hotelFlag, String restaurantFlag) {
         if (entryList == null)
             return;
 
@@ -294,12 +301,29 @@ public class WebPlanAPI {
                 continue;
 
             // 需要添加酒店
-            Iterator<? extends AbstractPOI> itr = null;
+            Iterator<? extends AbstractPOI> itHotel = null;
+            Iterator<? extends AbstractPOI> itRest = null;
             try {
-                itr = WebPlanAPI.exploreHotelByType(lastLoc.id, hotelFlag, 0, 1);
+                itHotel = WebPlanAPI.exploreHotelByType(lastLoc.id, hotelFlag, 0, 1);
+                itRest = WebPlanAPI.exploreRestaurantByType(lastLoc.id, restaurantFlag, 0, 1);
 
-                if (itr.hasNext()) {
-                    Hotel hotel = (Hotel) itr.next();
+                if (itRest.hasNext()) {
+                    Restaurant rest = (Restaurant) itRest.next();
+                    PlanItem hotelItem = new PlanItem();
+                    SimpleRef ref = new SimpleRef();
+                    ref.id = rest.getId();
+                    ref.zhName = rest.name;
+                    hotelItem.item = ref;
+
+                    hotelItem.loc = rest.addr.loc;
+                    hotelItem.type = "hotel";
+                    hotelItem.ts = dayEntry.date;
+
+                    dayEntry.actv.add(hotelItem);
+                }
+
+                if (itHotel.hasNext()) {
+                    Hotel hotel = (Hotel) itHotel.next();
                     PlanItem hotelItem = new PlanItem();
                     SimpleRef ref = new SimpleRef();
                     ref.id = hotel.getId();
@@ -345,10 +369,37 @@ public class WebPlanAPI {
             case HOTEL_FLAG_FOLK:
                 hotelTypeValue = 4.0d;
                 break;
+            case HOTEL_FLAG_YOUTH_AND_FOLK:
+                query.or(query.criteria("type").equal(3.0), query.criteria("type").equal(4.0));
+                break;
         }
         if (hotelTypeValue != null)
             query.field("type").equal(hotelTypeValue);
         return query.offset(page * pageSize).limit(pageSize).order(String.format("-%s", AbstractPOI.fnHotness))
                 .iterator();
+    }
+
+    /**
+     * 发现POI。
+     *
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Iterator<? extends AbstractPOI> exploreRestaurantByType(ObjectId locId,
+                                                                          String restaurantType, int page, int pageSize) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<? extends AbstractPOI> query = ds.createQuery(Restaurant.class);
+        query.field("targets").equal(locId);
+        switch (restaurantType) {
+            case REST_FLAG_REPUTATION:
+                query.order(String.format("-%s", "ratings.score"));
+                break;
+            case REST_FLAG_SPECIAL:
+                query.order(String.format("-%s", "ratings.ranking"));
+                break;
+        }
+        query.offset(page * pageSize).limit(pageSize);
+        return query.iterator();
     }
 }
