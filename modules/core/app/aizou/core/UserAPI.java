@@ -1051,27 +1051,20 @@ public class UserAPI {
         if (selfId.equals(targetId))
             return;
         //取得自己的实体
-        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
-                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));  //取得用户实体
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser, UserInfo.fnSignature));  //取得用户实体
         //取得对方的实体
-        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
-                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser, UserInfo.fnSignature));
 
         if (selfInfo == null || targetInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
-
-        List<UserInfo> selfContacts = selfInfo.getFriends();
-        if (selfContacts == null)
-            selfContacts = new ArrayList<>();
-        List<UserInfo> targetContacts = targetInfo.getFriends();
-        if (targetContacts == null)
-            targetContacts = new ArrayList<>();
 
         //环信注册
         modEaseMobContacts(selfId, targetId, true);
 
         //保存
-        final Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        // final Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
 
 //        FPUtils.IFunc func = new FPUtils.IFunc() {
 //
@@ -1203,6 +1196,8 @@ public class UserAPI {
         if (selfInfo.getEasemobUser() == null)
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         ObjectNode info = (ObjectNode) new UserFormatter(false).format(selfInfo);
+        // 添加邀请信息
+        info.put("attachMsg", message);
 
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);
@@ -1211,16 +1206,14 @@ public class UserAPI {
         ObjectNode msg = Json.newObject();
         msg.put("type", "cmd");
         msg.put("action", "tzaction");
-        if (message != null)
-            msg.put("msg", message);
-        else
-            msg.put("msg", "");
-
+//        if (message != null)
+//            msg.put("msg", message);
+//        else
+//            msg.put("msg", "");
 
         ObjectNode requestBody = Json.newObject();
         List<String> users = new ArrayList<>();
         users.add(targetInfo.getEasemobUser());
-
 
         requestBody.put("target_type", "users");
         requestBody.put("target", Json.toJson(users));
