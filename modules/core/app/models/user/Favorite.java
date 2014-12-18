@@ -82,6 +82,13 @@ public class Favorite extends AizouBaseEntity {
     @Transient
     public static String fnPriceDesc = "priceDesc";
 
+    @Transient
+    public static String fnAddress = "address";
+
+
+    @Transient
+    public static String fnTelephone = "telephone";
+
     /**
      * 用户ID
      */
@@ -118,5 +125,13 @@ public class Favorite extends AizouBaseEntity {
      * 酒店、美食、购物显示评分
      */
     public Double rating;
+    /**
+     * 地址
+     */
+    public String address;
+    /**
+     * 电话
+     */
+    public String telephone;
 
 }

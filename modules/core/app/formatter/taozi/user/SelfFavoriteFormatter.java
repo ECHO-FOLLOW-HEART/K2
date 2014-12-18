@@ -40,7 +40,8 @@ public class SelfFavoriteFormatter extends TaoziBaseFormatter {
         if (type.equals("vs") || type.equals("locality")) {
             Collections.addAll(filteredFields, Favorite.fnTimeCostDesc);
         } else if (type.equals("restaurant") || type.equals("hotel")) {
-            Collections.addAll(filteredFields, Favorite.fnTimeCostDesc, Favorite.fnRating);
+            Collections.addAll(filteredFields, Favorite.fnTimeCostDesc, Favorite.fnRating,
+                    Favorite.fnAddress,Favorite.fnPriceDesc,Favorite.fnTelephone);
         } else if (type.equals("shopping")) {
             Collections.addAll(filteredFields, Favorite.fnRating);
         }
