@@ -12,14 +12,12 @@ import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
 import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.ViewSpot;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -118,7 +116,7 @@ public class TravelNoteCtrl extends Controller {
                 userId = Long.parseLong(request().getHeader("UserId"));
             else
                 userId = null;
-            List<TravelNote> travelNoteList = TravelNoteAPI.getTravelNoteDetailApi(noteId);
+            List<TravelNote> travelNoteList = TravelNoteAPI.searchNoteById(Arrays.asList(noteId), 1);
             List<JsonNode> nodeList = new ArrayList<>();
             for (TravelNote note : travelNoteList) {
                 //是否被收藏
@@ -127,7 +125,7 @@ public class TravelNoteCtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch (ParseException | SolrServerException | AizouException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }

@@ -152,4 +152,4 @@ GET           /poi/$id<[0-9a-f]{24}>/details                     controllers.tao
 #更多精选游记
 GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.getNotes(locId: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情
-GET           /travel-note/detail/:id                            controllers.taozi.TravelNoteCtrl.getTravelNoteDetail(id:String)
+GET           /travel-notes/$id<[0-9a-f]{24}>                    controllers.taozi.TravelNoteCtrl.getTravelNoteDetail(id:String)
