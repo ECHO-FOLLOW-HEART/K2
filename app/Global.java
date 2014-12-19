@@ -33,22 +33,27 @@ public class Global extends GlobalSettings {
 
     @Override
     public Action onRequest(final Http.Request request, Method actionMethod) {
+        Log logger = LogFactory.getLog("crypto.debug");
         try {
             if (request.getQueryString("v") != null) {
                 String[] verStr = request.getQueryString("v").split("\\.");
                 int ver = Integer.valueOf(verStr[0]) * 10000 + Integer.valueOf(verStr[1]) * 100 + Integer.valueOf(verStr[2]);
                 request.headers().put("verIndex", new String[]{String.valueOf(ver)});
             }
-//            JsonNode body = request.body().asJson();
-            String macKey = request.getHeader("macKey");
-            String macData = request.getHeader("macData");
-            Log logger = LogFactory.getLog("com.travelpi");
-            if (!macKey.isEmpty() && !macData.isEmpty()) {
-                logger.info("##hex:"+Crypto.HmacSHA256(macKey, macData));
-                System.out.println("##hex:"+Crypto.HmacSHA256(macKey, macData));
-            } else {
-                System.out.println("##empty!");
-                logger.info("##empty!");
+            if (true) {
+                logger.debug(request.host());
+                logger.debug(request.path());
+                logger.debug(request.method());
+                logger.debug(request.getHeader("timestamp"));
+                String rightSignature = Crypto.getSignature(request, "fake12345678");
+                String gettedSignature = request.getHeader("Authorization");
+                logger.debug("right Signature: "+rightSignature);
+                logger.debug("get   Signature: "+gettedSignature);
+                if (!rightSignature.equals(gettedSignature)) {
+                    logger.fatal("Signature is invalid");
+                } else {
+                    logger.info("Signature is valid");
+                }
             }
         } catch (Exception e) {
         }

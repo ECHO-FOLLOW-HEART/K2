@@ -1,5 +1,7 @@
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import play.mvc.Http;
 
 import javax.crypto.Mac;
@@ -17,7 +19,6 @@ import java.util.Map;
 /**
  * Created by Heaven on 2014/12/19.
  */
-// TODO 添加SHA256加密算法
 public class Crypto {
     private static final String UTF8 = "UTF-8";
     private static final String HAMC_SHA256 = "HmacSHA256";
@@ -26,6 +27,8 @@ public class Crypto {
     private static final String HEAD = "TAOZI-1-HMAC-SHA256";
     private static final String SHA256 = "SHA-256";
     private static final String TAOZI = "TAOZI";
+    private static final String IGNORANCE = "Authorization";
+    private static Log logger = LogFactory.getLog("crypto.inner.debug");
 
     /**
      * 使用 HAMC-SHA256 对key , Data进行加密
@@ -104,12 +107,19 @@ public class Crypto {
         String ret = null;
         try {
             String timeStamp = request.getHeader(TIMESTAMP);
+//            logger.info("timeStamp: "+timeStamp);
             String scope = getScope(request);
+//            logger.info("scope: "+scope);
             String httpMethod = getHttpMethod(request);
+//            logger.info("method: "+httpMethod);
             String canonicalURI = getCanonicalURI(request);
+//            logger.info("canonicalURI: "+canonicalURI);
             String canonicalQueryString = getCanonicalQueryString(request);
+//            logger.info("canonicalQueryString: "+canonicalQueryString);
             String canonicalHeader = getCanonicalHeader(request);
+//            logger.info("canonicalHeader: "+canonicalHeader);
             String hashedPayload = getHashedPayload(request);
+//            logger.info("hashedPayload: "+hashedPayload);
             
             String tmp = httpMethod + LINE_BREAK
                     + canonicalURI + LINE_BREAK
@@ -124,17 +134,36 @@ public class Crypto {
         return ret;
     }
 
-    public static String getSigningKey(Http.Request request, String secretAccessKey) {
+    /**
+     * 获得 Signing Key
+     * @param request HttpRequest
+     * @param secretAccessKey 用户token
+     * @return String
+     */
+    private static String getSigningKey(Http.Request request, String secretAccessKey) {
+        // TODO 未检查request header 是否有TIMESTAMP字段
         String timeStamp = request.getHeader(TIMESTAMP);
         return SHA256(TAOZI + timeStamp + secretAccessKey);
     }
 
+    /**
+     * get Signature
+     * @param request HttpRequest
+     * @param secretAccessKey String
+     * @return String
+     */
     public static String getSignature(Http.Request request, String secretAccessKey) {
         String stringToSign = getStringToSign(request);
         String signingKey = getSigningKey(request, secretAccessKey);
         return HmacSHA256(signingKey, stringToSign);
     }
 
+    /**
+     * get Scope
+     * 当前定义的scope不包括 时间地点信息,仅包含请求
+     * @param request HttpRequest
+     * @return path
+     */
     private static String getScope(Http.Request request) {
         //<scope> = <request>
         return request.path();
@@ -160,6 +189,9 @@ public class Crypto {
         ArrayList<Map.Entry<String, String[]>> headerList = getSortedList(headerMap);
         StringBuilder headerBuilder = new StringBuilder();
         for (Map.Entry<String, String[]> head : headerList) {
+            // 忽略"Authorization","postman-token"字段（for debug）
+            if (head.getKey().equals(IGNORANCE) || head.getKey().toLowerCase().equals("postman-token"))
+                continue;
             headerBuilder.append(head.getKey().toLowerCase());
             headerBuilder.append(":");
             //如果同一名称对应多个值，则只取第一个
