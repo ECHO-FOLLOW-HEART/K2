@@ -73,7 +73,7 @@ GET           /suggestions                                       controllers.tao
 # 景点详情
 GET           /poi/vs/$spotId<[0-9a-f]{24}>                      controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍
-GET           /poi/view-spots/$id<[0-9a-f]{24}>/details          controllers.taozi.POICtrl.getTravelGuide(id: String, remoteTraffic: Boolean?=false, localTraffic: Boolean?=false, activities: Boolean?=false, tips: Boolean?=false, specials:Boolean?=false, geoHistories:Boolean?=false, desc:Boolean?=false, page: Int?=0, pageSize: Int?=10)
+GET           /poi/view-spots/$id<[0-9a-f]{24}>/details          controllers.taozi.POICtrl.getTravelGuide(id: String, fields: String)
 # 酒店详情
 GET           /poi/hotel/:spotId                                 controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #美食详情

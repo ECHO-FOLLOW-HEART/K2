@@ -409,7 +409,7 @@ public class POICtrl extends Controller {
                 Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
                 String kind = poiMap.get(type);
                 //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new LocalityGuideFormatter().format(locality, kind));
+                results.put(kind, new LocalityGuideFormatter().format(locality));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException | NullPointerException e) {
@@ -432,57 +432,44 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-
-    public static Result getTravelGuide(String locId, boolean remoteTraffic, boolean localTraffic,
-                                        boolean activities, boolean tips,
-                                        boolean specials, boolean geoHistories, boolean desc,
-                                        int page, int pageSize) {
+    public static Result getTravelGuide(String locId, String fields) {
         try {
-            ObjectNode results = Json.newObject();
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
-            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
-            if (remoteTraffic) {
-                destKeyList.add(PoiAPI.DestinationType.REMOTE_TRAFFIC);
-                poiMap.put(PoiAPI.DestinationType.REMOTE_TRAFFIC, "remoteTraffic");
+
+            for (String f: fields.split("\\s*,\\s*")){
+                switch (f){
+                    case "remoteTraffic":
+                        destKeyList.add(PoiAPI.DestinationType.REMOTE_TRAFFIC);
+                        break;
+                    case "localTraffic":
+                        destKeyList.add(PoiAPI.DestinationType.LOCAL_TRAFFIC);
+                        break;
+                    case "activities":
+                        destKeyList.add(PoiAPI.DestinationType.ACTIVITY);
+                        break;
+                    case "tips":
+                        destKeyList.add(PoiAPI.DestinationType.TIPS);
+                        break;
+                    case "geoHistory":
+                        destKeyList.add(PoiAPI.DestinationType.GEOHISTORY);
+                        break;
+                    case "specials":
+                        destKeyList.add(PoiAPI.DestinationType.SPECIALS);
+                        break;
+                    case "desc":
+                        destKeyList.add(PoiAPI.DestinationType.DESC);
+                        break;
+                    case "dining":
+                        destKeyList.add(PoiAPI.DestinationType.DINNING);
+                        break;
+                    case "shopping":
+                        destKeyList.add(PoiAPI.DestinationType.SHOPPING);
+                        break;
+                }
             }
 
-            if (localTraffic) {
-                destKeyList.add(PoiAPI.DestinationType.LOCAL_TRAFFIC);
-                poiMap.put(PoiAPI.DestinationType.LOCAL_TRAFFIC, "localTraffic");
-            }
-
-            if (activities) {
-                destKeyList.add(PoiAPI.DestinationType.ACTIVITY);
-                poiMap.put(PoiAPI.DestinationType.ACTIVITY, "activities");
-            }
-
-            if (tips) {
-                destKeyList.add(PoiAPI.DestinationType.TIPS);
-                poiMap.put(PoiAPI.DestinationType.TIPS, "tips");
-            }
-
-            if (geoHistories) {
-                destKeyList.add(PoiAPI.DestinationType.GEOHistory);
-                poiMap.put(PoiAPI.DestinationType.GEOHistory, "geoHistories");
-            }
-
-            if (specials) {
-                destKeyList.add(PoiAPI.DestinationType.SPECIALS);
-                poiMap.put(PoiAPI.DestinationType.SPECIALS, "specials");
-            }
-
-            if (desc) {
-                destKeyList.add(PoiAPI.DestinationType.DESC);
-                poiMap.put(PoiAPI.DestinationType.DESC, "desc");
-            }
-            for (PoiAPI.DestinationType type : destKeyList) {
-                ObjectId oid=new ObjectId(locId);
-                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
-                String kind = poiMap.get(type);
-                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new LocalityGuideFormatter().format(locality, kind));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
+            Locality locality = PoiAPI.getTravelGuideApi(new ObjectId(locId), destKeyList);
+            return Utils.createResponse(ErrorCode.NORMAL, new LocalityGuideFormatter().format(locality));
         } catch (AizouException | NullPointerException | NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
