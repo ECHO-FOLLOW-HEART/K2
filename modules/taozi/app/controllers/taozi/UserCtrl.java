@@ -626,9 +626,9 @@ public class UserCtrl extends Controller {
             JsonNode req = request().body().asJson();
 
             String tmp = request().getHeader("UserId");
-            Integer selfId = null;
+            Long selfId = null;
             if (tmp != null)
-                selfId = Integer.parseInt(tmp);
+                selfId = Long.parseLong(tmp);
             if (!userId.equals(selfId))
                 return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
 
