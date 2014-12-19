@@ -237,7 +237,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
                 return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id", "desc", "images",
                         "tags", "location", "locList"));
             case 3:
-                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating","name", "addr", "ratings", "desc", "images", "tags", "contact",
+                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "name", "addr", "ratings", "desc", "images", "tags", "contact",
                         "url", "price", "priceDesc", "alias", "locality", "location"));
         }
         return new ArrayList<>();
@@ -345,6 +345,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
             ratings = new CheckinRatings();
         builder.add("ratings", ratings.toJson());
         builder.add("name", (name != null ? name : ""));
+        builder.add("zhName", (zhName != null ? zhName : ""));
 
         // level2
         // TODO 完善POI所使用的Formatter
