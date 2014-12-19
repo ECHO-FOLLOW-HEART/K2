@@ -421,15 +421,7 @@ public class POICtrl extends Controller {
      * 游玩攻略
      *
      * @param locId
-     * @param remoteTraffic
-     * @param localTraffic
-     * @param activities
-     * @param tips
-     * @param specials
-     * @param geoHistories
-     * @param desc
-     * @param page
-     * @param pageSize
+     * @param fields
      * @return
      */
     public static Result getTravelGuide(String locId, String fields) {
