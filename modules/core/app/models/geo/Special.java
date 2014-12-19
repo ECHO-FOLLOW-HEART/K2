@@ -1,0 +1,19 @@
+package models.geo;
+
+import models.AizouBaseItem;
+import models.misc.ImageItem;
+import org.mongodb.morphia.annotations.Embedded;
+
+import java.util.List;
+
+/**
+ * 亮点
+ * <p/>
+ * Created by topy on 2014/11/20.
+ */
+@Embedded
+public class Special extends AizouBaseItem {
+
+    public String title;
+    public String desc;
+}
