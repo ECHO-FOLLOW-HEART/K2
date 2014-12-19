@@ -58,16 +58,16 @@ public class TravelNoteCtrl extends Controller {
     /**
      * 特定目的地的游记
      *
-     * @param id
+     * @param locId
      * @param pageSize
      * @return
      */
-    public static Result getNotes(String id, int pageSize) {
+    public static Result getNotes(String locId, String keyword, int page, int pageSize) {
         try {
-            ObjectId objectId = new ObjectId(id);
+            ObjectId objectId = new ObjectId(locId);
             List<JsonNode> nodeList = new ArrayList<>();
-            Locality locality = LocalityAPI.getLocality(objectId, Arrays.asList(Locality.FD_ZH_NAME, Locality.fnTags, Locality.FD_ALIAS));
-            ViewSpot vs = PoiAPI.getVsDetail(objectId, Arrays.asList(ViewSpot.FD_ZH_NAME, ViewSpot.FD_TAGS, ViewSpot.FD_ALIAS));
+            Locality locality = LocalityAPI.getLocality(objectId, Arrays.asList(Locality.FD_ZH_NAME, Locality.FD_ALIAS));
+            ViewSpot vs = PoiAPI.getVsDetail(objectId, Arrays.asList(ViewSpot.FD_ZH_NAME, ViewSpot.FD_ALIAS));
             List<String> locNames = new ArrayList<>();
             List<String> vsNames = new ArrayList<>();
             if (locality == null && vs == null)
@@ -75,16 +75,12 @@ public class TravelNoteCtrl extends Controller {
             else if (vs == null) {
                 if (locality.getAlias() != null)
                     locNames.addAll(locality.getAlias());
-                if (locality.getTags() != null)
-                    locNames.addAll(locality.getTags());
                 if (locality.getZhName() != null)
                     locNames.add(locality.getZhName());
             } else if (locality == null) {
                 if (vs.alias != null)
                     vsNames.addAll(vs.alias);
-                if (vs.FD_TAGS != null)
-                    vsNames.addAll(vs.tags);
-                if (vs.FD_ZH_NAME != null)
+                if (vs.zhName != null)
                     vsNames.add(vs.zhName);
             } else {
                 if (locality.getAlias() != null)
@@ -95,13 +91,11 @@ public class TravelNoteCtrl extends Controller {
                     locNames.add(locality.getZhName());
                 if (vs.alias != null)
                     vsNames.addAll(vs.alias);
-                if (vs.FD_TAGS != null)
-                    vsNames.addAll(vs.tags);
-                if (vs.FD_ZH_NAME != null)
+                if (vs.zhName != null)
                     vsNames.add(vs.zhName);
             }
 
-            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(locNames, vsNames, 0, pageSize);
+            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(locNames, vsNames, page, pageSize);
             for (TravelNote note : noteList) {
                 nodeList.add(new SimpTravelNoteFormatter().format(note));
             }
