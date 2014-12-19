@@ -1003,18 +1003,6 @@ public class UserAPI {
      * 提出好友申请
      *
      * @param selfId
-     * @param otherid
-     * @param reason
-     */
-    public static void sendFriendReq(Long selfId, Long otherid, String reason) throws AizouException {
-        UserInfo userInfo = getUserInfo(selfId);
-
-    }
-
-    /**
-     * 请求添加好友
-     *
-     * @param selfId
      * @param targetId
      * @throws exception.AizouException
      */
@@ -1031,10 +1019,6 @@ public class UserAPI {
 
         if (selfInfo == null || targetInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
-
-        // 互相删除黑名单
-        delEaseMobBlocks(selfId, targetId);
-        delEaseMobBlocks(targetId, selfId);
 
         // 向被加好友的客户端发消息
         unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_REQUEST_FRIEND, message);
@@ -1063,51 +1047,13 @@ public class UserAPI {
         //环信注册
         modEaseMobContacts(selfId, targetId, true);
 
-        //保存
-        // final Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        // 互相删除环信黑名单
+        delEaseMobBlocks(selfId, targetId);
+        delEaseMobBlocks(targetId, selfId);
 
-//        FPUtils.IFunc func = new FPUtils.IFunc() {
-//
-//            @Override
-//            public Object func0() {
-//                return null;
-//            }
-//
-//            @Override
-//            public Object funcv(Object... val) {
-//                UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
-//
-//                Integer sid = Integer.parseInt(val[0].toString());
-//                @SuppressWarnings("unchecked")
-//                List<UserInfo> sc = (List<UserInfo>) val[1];
-//                UserInfo tinfo = (UserInfo) val[2];
-//
-//                Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(sid);
-//                if (sc == null || sc.isEmpty()) {
-//                    ops.set(UserInfo.fnContacts, Arrays.asList(tinfo));
-//                    ds.updateFirst(query, ops);
-//                } else {
-//                    Set<Long> userIdSet = new HashSet<>();
-//                    for (UserInfo u : sc)
-//                        userIdSet.add(u.getUserId());
-//                    if (!userIdSet.contains(tinfo.getUserId())) {
-//                        ops.add(UserInfo.fnContacts, tinfo);
-//                        ds.updateFirst(query, ops);
-//                    }
-//                }
-//
-//                return null;
-//            }
-//        };
-//
-//        // 需要互相加对方为好友
-//        for (Object obj : Arrays.asList(new Object[]{
-//                new Object[]{selfId, selfContacts, targetInfo},
-//                new Object[]{targetId, targetContacts, selfInfo}
-//        })) {
-//            func.funcv((Object[]) obj);
-//        }
+        //在关系表添加好友
         addFriends(selfId, targetId);
+
         // 向加友请求发起的客户端发消息
         unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND, null);
     }
@@ -1132,58 +1078,13 @@ public class UserAPI {
         //向环信注册
         modEaseMobContacts(selfId, targetId, false);
 
-        final Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        //需要互添加环信黑名单，防止继续发送消息
+        addEaseMobBlocks(selfId, Arrays.asList(targetId));
+        addEaseMobBlocks(targetId, Arrays.asList(selfId));
 
-//        FPUtils.IFunc func = new FPUtils.IFunc() {
-//
-//            @Override
-//            public Object func0() {
-//                return null;
-//            }
-//
-//            @Override
-//            public Object funcv(Object... val) {
-//                UserInfo sinfo = (UserInfo) val[0];
-//                Integer tid = Integer.parseInt(val[1].toString());
-//
-//                List<UserInfo> contactList = sinfo.getFriends();
-//                if (contactList == null || contactList.isEmpty())
-//                    return null;
-//
-//                int idx = -1;
-//                for (int i = 0; i < contactList.size(); i++) {
-//                    if (contactList.get(i).getUserId().equals(tid)) {
-//                        idx = i;
-//                        break;
-//                    }
-//                }
-//                if (idx != -1) {
-//                    // 更新数据库
-//                    contactList.remove(idx);
-//
-//                    Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(sinfo.getUserId());
-//                    UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
-//                    ops.set(UserInfo.fnContacts, contactList);
-//                    ds.updateFirst(query, ops);
-//                }
-//
-//                return null;
-//            }
-//        };
-//
-//        // 需要互相删除好友
-//        for (Object obj : Arrays.asList(new Object[]{
-//                new Object[]{selfInfo, targetId},
-//                new Object[]{targetInfo, selfId}
-//        })) {
-//            func.funcv((Object[]) obj);
-//        }
-
-        //需要互删除黑名单
-        delEaseMobBlocks(selfId, targetId);
-        // 删除好友
+        // 关系表删除好友
         delFriends(selfId, targetId);
-        delEaseMobBlocks(targetId, selfId);
+
         // 向删友请求发起的客户端发消息
         unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND, null);
     }
@@ -1261,12 +1162,11 @@ public class UserAPI {
      * @throws exception.AizouException
      */
     public static List<UserInfo> getContactList(Long selfId) throws AizouException {
-        List<String> fieldList = Arrays.asList(Relationship.FD_UserA, Relationship.FD_UserB);
         UserInfo userInfo = getUserInfo(selfId, null);
         if (userInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
-//        List<UserInfo> friends = userInfo.getFriends();
 
+        // 从关系表中取得好友关系列表
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         Query<Relationship> query = ds.createQuery(Relationship.class);
 
@@ -1275,6 +1175,7 @@ public class UserAPI {
         if (relations.isEmpty())
             return new ArrayList<>();
 
+        // 从好友关系列表中提取好友ID
         List<Long> friendsIdList = new ArrayList<>();
         for (Relationship relationship : relations) {
             if (!relationship.getUserA().equals(selfId))
@@ -1331,13 +1232,14 @@ public class UserAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
 
         Query<Relationship> query = ds.createQuery(Relationship.class);
-        // 较小的userId
+        // 较小的userId设为userA
         Long userA = selfId > targetId ? targetId : selfId;
-        // 较大的userId
+        // 较大的userId设为userB
         Long userB = selfId > targetId ? selfId : targetId;
 
-        // 如果不存在好友关系
         query.field("userA").equal(userA).field("userB").equal(userB);
+
+        // 如果不存在好友关系，则添加好友
         if (!query.iterator().hasNext()) {
             Relationship relationship = new Relationship();
             relationship.setId(new ObjectId());
@@ -1365,7 +1267,7 @@ public class UserAPI {
         Long userB = selfId > targetId ? selfId : targetId;
 
         query.field("userA").equal(userA).field("userB").equal(userB);
-        // 如果存在好友关系
+        // 如果存在好友关系，则删除好友关系
         if (query.iterator().hasNext())
             ds.delete(query);
     }
