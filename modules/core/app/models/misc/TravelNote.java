@@ -234,7 +234,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
             }
         }
 
-        builder.add("publishDate", publishDate == null ? "" : publishDate);
+        builder.add("publishDate", publishDate);
 
         return Json.toJson(builder.get());
     }

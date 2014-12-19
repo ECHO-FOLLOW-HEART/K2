@@ -6,14 +6,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
-import formatter.taozi.misc.CommentFormatter;
-import formatter.taozi.misc.ImageFormatter;
-import formatter.taozi.misc.MiscFormatter;
-import formatter.taozi.misc.WeatherFormatter;
+import formatter.taozi.misc.*;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
 import formatter.taozi.user.SelfFavoriteFormatter;
-import formatter.travelpi.geo.SimpleLocalityFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
@@ -67,9 +63,12 @@ public class MiscCtrl extends Controller {
             // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
             String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
             //添加封面故事信息
-            for (Map.Entry<String, String> entry : info.coverStory.entrySet()) {
-                node.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
+            if (info.coverStory != null) {
+                for (Map.Entry<String, String> entry : info.coverStory.entrySet()) {
+                    node.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
+                }
             }
+
             node.put("image", url);
             node.put("width", width);
             node.put("height", height);
@@ -216,9 +215,9 @@ public class MiscCtrl extends Controller {
             AbstractPOI poi;
             PoiAPI.POIType poiType;
             List locFields = new ArrayList();
-            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc","timeCostDesc");
+            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc", "timeCostDesc");
             List poiFields = new ArrayList();
-            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality");
+            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {
@@ -262,6 +261,8 @@ public class MiscCtrl extends Controller {
                     fa.timeCostDesc = poi.timeCostDesc;
                     fa.priceDesc = poi.priceDesc;
                     fa.rating = poi.rating;
+                    fa.address = poi.address;
+                    fa.telephone = poi.telephone;
                 }
                 faShowList.add(fa);
             }
@@ -581,7 +582,7 @@ public class MiscCtrl extends Controller {
                     locality = (Locality) it.next();
                     retLocList.add(new DetailedLocalityFormatter().format(locality));
                 }
-                results.put("loc", Json.toJson(retLocList));
+                results.put("locality", Json.toJson(retLocList));
             }
 
             List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
@@ -624,17 +625,17 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+    public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping,
                                         int pageSize) {
         try {
-            return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant,
+            return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant, shopping,
                     pageSize));
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
-    public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
+    public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping,
                                               int pageSize) throws AizouException {
         ObjectNode ret = Json.newObject();
 
@@ -642,46 +643,46 @@ public class MiscCtrl extends Controller {
         if (loc) {
             for (Iterator<Locality> it = GeoAPI.searchLocalities(word, true, null, 0, pageSize); it.hasNext(); ) {
                 Locality item = it.next();
-                locList.add(SimpleLocalityFormatter.getInstance().format(item));
+                locList.add(new SuggestionFormatter().format(item));
             }
         }
-        if (!locList.isEmpty())
-            ret.put("loc", Json.toJson(locList));
-        else
-            ret.put("loc", Json.toJson(new ArrayList<>()));
+        ret.put("locality", Json.toJson(locList.isEmpty() ? new ArrayList<>() : locList));
+
 
         List<JsonNode> vsList = new ArrayList<>();
         if (vs) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, pageSize);
                  it.hasNext(); )
-                vsList.add(it.next().toJson(1));
+                vsList.add(new SuggestionFormatter().format(it.next()));
         }
-        if (!vsList.isEmpty())
-            ret.put("vs", Json.toJson(vsList));
-        else
-            ret.put("vs", Json.toJson(new ArrayList<>()));
+        ret.put("vs", Json.toJson(vsList.isEmpty() ? new ArrayList<>() : vsList));
 
         List<JsonNode> hotelList = new ArrayList<>();
         if (hotel) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, pageSize);
                  it.hasNext(); )
-                hotelList.add(it.next().toJson(1));
+                hotelList.add(new SuggestionFormatter().format(it.next()));
         }
-        if (!hotelList.isEmpty())
-            ret.put("hotel", Json.toJson(hotelList));
-        else
-            ret.put("hotel", Json.toJson(new ArrayList<>()));
 
-        List<JsonNode> dinningList = new ArrayList<>();
+        ret.put("hotel", Json.toJson(hotelList.isEmpty() ? new ArrayList<>() : hotelList));
+
+        List<JsonNode> restaurantList = new ArrayList<>();
         if (restaurant) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, pageSize);
                  it.hasNext(); )
-                dinningList.add(it.next().toJson(1));
+                restaurantList.add(new SuggestionFormatter().format(it.next()));
         }
-        if (!dinningList.isEmpty())
-            ret.put("restaurant", Json.toJson(dinningList));
-        else
-            ret.put("restaurant", Json.toJson(new ArrayList<>()));
+
+        ret.put("restaurant", Json.toJson(restaurantList.isEmpty() ? new ArrayList<>() : restaurantList));
+
+        List<JsonNode> shoppingList = new ArrayList<>();
+        if (shopping) {
+            for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.SHOPPING, word, pageSize);
+                 it.hasNext(); )
+                shoppingList.add(new SuggestionFormatter().format(it.next()));
+        }
+
+        ret.put("shopping", Json.toJson(shoppingList.isEmpty() ? new ArrayList<>() : shoppingList));
 
         return ret;
     }
@@ -697,15 +698,21 @@ public class MiscCtrl extends Controller {
     public static Result getAlbums(String id, int page, int pageSize) {
 
         try {
-            List<ObjectNode> result = new ArrayList<>();
+
             ObjectId oid = new ObjectId(id);
             // 默认情况会取出全部图集
             if (pageSize == 0)
                 pageSize = Constants.MAX_COUNT;
             List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
+
+            List<ObjectNode> nodeList = new ArrayList<>();
             for (Images images : items)
-                result.add((ObjectNode) new ImageFormatter().format(images));
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+                nodeList.add((ObjectNode) new ImageFormatter().format(images));
+
+            ObjectNode result = Json.newObject();
+            result.put("album", Json.toJson(nodeList));
+            result.put("albumCnt", nodeList.size());
+            return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }

@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -185,15 +185,9 @@ public class UserCtrl extends Controller {
      */
     public static Result modPassword() {
         JsonNode req = request().body().asJson();
-        String userId = req.get("userId").asText();
+        Integer userId = Integer.parseInt(req.get("userId").asText());
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
-        Integer countryCode;
-        if (req.has("dialCode")) {
-            countryCode = Integer.valueOf(req.get("dialCode").asText());
-        } else {
-            countryCode = 86;
-        }
 
         //验证用户是否存在-手机号
         try {
@@ -359,7 +353,7 @@ public class UserCtrl extends Controller {
     }
 
     /**
-     * 手机号登录
+     * 手机号登录,只支持手机号登录
      *
      * @return
      */
@@ -369,7 +363,9 @@ public class UserCtrl extends Controller {
         try {
             String pwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
-
+            UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, loginName);
+            if (userInfo == null)
+                return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
             JsonNode result = signinImpl(loginName, pwd);
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException e) {
@@ -630,9 +626,9 @@ public class UserCtrl extends Controller {
             JsonNode req = request().body().asJson();
 
             String tmp = request().getHeader("UserId");
-            Integer selfId = null;
+            Long selfId = null;
             if (tmp != null)
-                selfId = Integer.parseInt(tmp);
+                selfId = Long.parseLong(tmp);
             if (!userId.equals(selfId))
                 return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
 
@@ -676,6 +672,31 @@ public class UserCtrl extends Controller {
     }
 
     /**
+     * 请求添加好友
+     *
+     * @return
+     */
+    public static Result requestAddContact() {
+        long userId, contactId;
+        String message;
+        try {
+            JsonNode req = request().body().asJson();
+            userId = Integer.parseInt(request().getHeader("UserId"));
+            message = req.get("message").asText();
+            contactId = Integer.parseInt(req.get("userId").asText());
+        } catch (NumberFormatException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+        }
+
+        try {
+            UserAPI.requestAddContact(userId, contactId, message);
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
+    }
+
+    /**
      * 添加好友
      *
      * @return
@@ -691,7 +712,7 @@ public class UserCtrl extends Controller {
 
         try {
             UserAPI.addContact(userId, contactId);
-            return Utils.createResponse(ErrorCode.NORMAL, "");
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
@@ -831,6 +852,8 @@ public class UserCtrl extends Controller {
         }
         return false;
     }
+
+
 //    /**
 //     * 添加用户的备注信息
 //     *

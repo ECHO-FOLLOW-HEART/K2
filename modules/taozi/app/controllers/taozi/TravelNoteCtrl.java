@@ -7,6 +7,8 @@ import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.taozi.TravelNote.DetailTravelNoteFormatter;
+import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
 import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.ViewSpot;
@@ -16,8 +18,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-import formatter.taozi.TravelNote.DetailTravelNoteFormatter;
-import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -37,6 +37,8 @@ public class TravelNoteCtrl extends Controller {
             if (!locId.isEmpty()) {
                 ObjectId oid = new ObjectId(locId);
                 Locality locality = LocalityAPI.getLocality(oid);
+                if (locality == null)
+                    return Utils.createResponse(ErrorCode.NORMAL, "Locality not exist. iD:" + locId);
                 noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, page, pageSize);
             } else if (!keyWord.isEmpty())
                 noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(keyWord), Arrays.asList(keyWord), page, pageSize);
@@ -76,7 +78,7 @@ public class TravelNoteCtrl extends Controller {
                 if (locality.getTags() != null)
                     locNames.addAll(locality.getTags());
                 if (locality.getZhName() != null)
-                locNames.add(locality.getZhName());
+                    locNames.add(locality.getZhName());
             } else if (locality == null) {
                 if (vs.alias != null)
                     vsNames.addAll(vs.alias);
@@ -92,7 +94,7 @@ public class TravelNoteCtrl extends Controller {
                 if (locality.getZhName() != null)
                     locNames.add(locality.getZhName());
                 if (vs.alias != null)
-                vsNames.addAll(vs.alias);
+                    vsNames.addAll(vs.alias);
                 if (vs.FD_TAGS != null)
                     vsNames.addAll(vs.tags);
                 if (vs.FD_ZH_NAME != null)
@@ -117,8 +119,8 @@ public class TravelNoteCtrl extends Controller {
      */
     public static Result getTravelNoteDetail(String noteId) {
         try {
-            Long userId ;
-            if(request().hasHeader("UserId"))
+            Long userId;
+            if (request().hasHeader("UserId"))
                 userId = Long.parseLong(request().getHeader("UserId"));
             else
                 userId = null;
@@ -131,7 +133,7 @@ public class TravelNoteCtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch (ParseException | SolrServerException |AizouException e) {
+        } catch (ParseException | SolrServerException | AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
