@@ -169,7 +169,7 @@ public class ViewSpot extends AbstractPOI {
                     val = ViewSpot.class.getField(k).get(this);
                     //PC_Chen , travelMonth is a list
                     if (k.equals("travelMonth")) {
-                        Collection monthList = (Collection) val;
+                        Collection monthList = Arrays.asList(val);
                         builder.add(k, (monthList != null && !monthList.isEmpty()) ? monthList : new ArrayList<>());
                     } else
                         builder.add(k, val != null ? val : "");
