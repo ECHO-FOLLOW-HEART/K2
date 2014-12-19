@@ -41,10 +41,11 @@ public class PoiAPI {
         LOCAL_TRAFFIC,
         ACTIVITY,
         TIPS,
-        CULTURE,
+        GEOHistory,
         DINNING,
         SHOPPING,
-        DESC
+        DESC,
+        SPECIALS
     }
 
     /**
@@ -1000,9 +1001,12 @@ public class PoiAPI {
             case TIPS:
                 locality = getLocalityByField(id, Arrays.asList(Locality.fnTips), page, pageSize);
                 break;
-            /*case CULTURE:
-                destination = getDestinationByField(id, Arrays.asList(Destination.fnCulture);
-                break;*/
+            case SPECIALS:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnSpecials), page, pageSize);
+                break;
+            case GEOHistory:
+                locality = getLocalityByField(id, Arrays.asList(Locality.fnGeoHistory), page, pageSize);
+                break;
             case DINNING:
                 locality = getLocalityByField(id, Arrays.asList(Locality.fnDinningIntro, Locality.fnCuisines), page, pageSize);
                 break;

@@ -28,13 +28,13 @@ public class LocalityGuideFormatter extends TaoziBaseFormatter {
 
         Map<String, PropertyFilter> filterMap = new HashMap<>();
         Set<String> set = new HashSet<>();
-        if (kind.equals("remote")) {
+        if (kind.equals("remoteTraffic")) {
             Collections.addAll(set, Locality.fnRemoteTraffic);
         }
-        if (kind.equals("local")) {
+        if (kind.equals("localTraffic")) {
             Collections.addAll(set, Locality.fnLocalTraffic);
         }
-        if (kind.equals("activity")) {
+        if (kind.equals("activities")) {
             Collections.addAll(set, Locality.fnActivityIntro, Locality.fnActivities);
         }
         if (kind.equals("tips")) {
@@ -48,6 +48,12 @@ public class LocalityGuideFormatter extends TaoziBaseFormatter {
         }
         if (kind.equals("desc")) {
             Collections.addAll(set, Locality.fnDesc);
+        }
+        if (kind.equals("geoHistories")) {
+            Collections.addAll(set, Locality.fnGeoHistory);
+        }
+        if (kind.equals("specials")) {
+            Collections.addAll(set, Locality.fnSpecials);
         }
         filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(set));
 

@@ -14,8 +14,7 @@ import java.util.List;
 @Embedded
 public class Commodities extends AizouBaseItem {
 
-    public String zhName;
-    public String enName;
+    public String title;
     public String desc;
     public List<ImageItem> images;
 
