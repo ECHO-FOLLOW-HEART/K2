@@ -7,12 +7,12 @@ import org.mongodb.morphia.annotations.Embedded;
 import java.util.List;
 
 /**
- * 特产
+ * 小贴士
  * <p/>
  * Created by topy on 2014/11/20.
  */
 @Embedded
-public class Commodities extends AizouBaseItem {
+public class GeoHistory extends AizouBaseItem {
 
     public String title;
     public String desc;

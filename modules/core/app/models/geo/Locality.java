@@ -97,6 +97,12 @@ public class Locality extends AizouBaseEntity {
 
     @Transient
     public static String fnCuisines = "cuisines";
+
+    @Transient
+    public static String fnSpecials="specials";
+
+    @Transient
+    public static String fnGeoHistory="geoHistory";
     /**
      * 外部交通信息。每个entry都是一个tip，为HTML格式
      */
@@ -133,6 +139,16 @@ public class Locality extends AizouBaseEntity {
      * 小贴士
      */
     public List<Tip> tips;
+
+    /**
+     * 历史文化
+     */
+    public List<GeoHistory> geoHistory;
+
+    /**
+     * 城市亮点
+     */
+    public List<Special> specials;
     /**
      * 是否为热门城市
      */

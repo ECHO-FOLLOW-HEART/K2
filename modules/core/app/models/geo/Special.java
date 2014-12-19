@@ -7,16 +7,13 @@ import org.mongodb.morphia.annotations.Embedded;
 import java.util.List;
 
 /**
- * 特产
+ * 亮点
  * <p/>
  * Created by topy on 2014/11/20.
  */
 @Embedded
-public class Commodities extends AizouBaseItem {
+public class Special extends AizouBaseItem {
 
     public String title;
     public String desc;
-    public List<ImageItem> images;
-
-
 }
