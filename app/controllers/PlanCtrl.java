@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.travelpi.plan.SimpleUgcPlanFormatter;
 import models.MorphiaFactory;
 import models.misc.Share;
 import models.misc.SimpleRef;
@@ -27,7 +28,6 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.*;
-import formatter.travelpi.plan.SimpleUgcPlanFormatter;
 
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -867,13 +867,13 @@ public class PlanCtrl extends Controller {
 
         // 处理fromLoc/backLoc的映射
         Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
-        if (fromLoc!=null) {
+        if (fromLoc != null) {
             Object tmp = mapConf.get(fromLoc);
             if (tmp != null)
                 fromLoc = tmp.toString();
         }
 
-        if (locId!=null) {
+        if (locId != null) {
             Object tmp = mapConf.get(locId);
             if (tmp != null)
                 locId = tmp.toString();
@@ -990,6 +990,7 @@ public class PlanCtrl extends Controller {
         PlanItem planItem = null;
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         SimpleRef ref, locRef;
+        String enName, zhName;
         switch (type) {
             case "vs":
                 ViewSpot vs = ds.createQuery(ViewSpot.class).field("_id").equal(new ObjectId(itemId)).get();
@@ -999,8 +1000,10 @@ public class PlanCtrl extends Controller {
                 planItem = new PlanItem();
                 planItem.item = ref;
                 locRef = new SimpleRef();
-                locRef.setEnName(vs.getLocality().getEnName());
-                locRef.setZhName(vs.getLocality().getZhName());
+                zhName = vs.getLocality().getZhName();
+                enName = vs.getLocality().getEnName();
+                locRef.setZhName(zhName != null ? zhName : "");
+                locRef.setEnName(enName != null ? enName : "");
                 locRef.setId(vs.getLocality().getId());
                 planItem.loc = locRef;
                 planItem.type = "vs";
@@ -1018,8 +1021,10 @@ public class PlanCtrl extends Controller {
                 planItem = new PlanItem();
                 planItem.item = ref;
                 locRef = new SimpleRef();
-                locRef.setEnName(hotel.getLocality().getEnName());
-                locRef.setZhName(hotel.getLocality().getZhName());
+                enName = hotel.getLocality().getEnName();
+                zhName = hotel.getLocality().getZhName();
+                locRef.setEnName(enName != null ? enName : "");
+                locRef.setZhName(zhName != null ? zhName : "");
                 locRef.setId(hotel.getLocality().getId());
                 planItem.loc = locRef;
                 planItem.type = "hotel";

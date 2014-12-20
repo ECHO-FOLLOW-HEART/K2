@@ -168,9 +168,9 @@ public class ViewSpot extends AbstractPOI {
                 try {
                     val = ViewSpot.class.getField(k).get(this);
                     //PC_Chen , travelMonth is a list
-                    if (k.equals("travelMonth")) {
+                    if (k.equals("travelMonth") && val instanceof Collection) {
                         Collection monthList = (Collection) val;
-                        builder.add(k, (monthList != null && !monthList.isEmpty()) ? monthList : new ArrayList<>());
+                        builder.add(k, monthList);
                     } else
                         builder.add(k, val != null ? val : "");
                 } catch (IllegalAccessException | NoSuchFieldException ignored) {
