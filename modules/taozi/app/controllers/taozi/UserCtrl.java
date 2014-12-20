@@ -651,16 +651,18 @@ public class UserCtrl extends Controller {
      * @return
      */
     public static Result editorUserInfo(Long userId) {
+        JsonNode req = request().body().asJson();
+        String tmp = request().getHeader("UserId");
+        Long selfId = null;
+        if (tmp != null)
+            selfId = Long.parseLong(tmp);
+        if (userId == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalide UserId");
+        if (!userId.equals(selfId))
+            return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
+
         try {
-            JsonNode req = request().body().asJson();
-
-            String tmp = request().getHeader("UserId");
-            Long selfId = null;
-            if (tmp != null)
-                selfId = Long.parseLong(tmp);
-            if (!userId.equals(selfId))
-                return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
-
+            // TODO 这里的做法是：将用户信息整体读出，修改，然后save。这种做法的效率较低。
             UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null) {
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %d.", userId));
@@ -669,7 +671,7 @@ public class UserCtrl extends Controller {
             if (req.has("nickName")) {
                 String nickName = req.get("nickName").asText();
                 // TODO 跟踪乱码问题
-                LogUtils.info(Plan.class, "NickName in POST:" + nickName);
+//                LogUtils.info(Plan.class, "NickName in POST:" + nickName);
                 //如果昵称不存在
                 if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
                     userInfor.setNickName(nickName);
@@ -692,10 +694,10 @@ public class UserCtrl extends Controller {
                 userInfor.setAvatar(req.get("avatar").asText());
             UserAPI.saveUserInfo(userInfor);
             // TODO 跟踪乱码问题
-            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
-            LogUtils.info(Plan.class, request());
+//            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
+//            LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (NullPointerException | AizouException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
         }
     }

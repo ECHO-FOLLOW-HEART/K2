@@ -3,9 +3,7 @@ package taozi.test;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import controllers.taozi.UserCtrl;
 import controllers.taozi.routes;
-import exception.AizouException;
 import exception.ErrorCode;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -17,11 +15,8 @@ import play.test.FakeApplication;
 import play.test.FakeRequest;
 
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.*;
@@ -46,7 +41,7 @@ public class UserTest extends AizouTest {
      * @throws ReflectiveOperationException
      */
     @Test
-    public void userProfileCheck() throws ReflectiveOperationException {
+    public void userProfileCheck() {
         running(app, new Runnable() {
             @Override
             public void run() {
@@ -81,7 +76,7 @@ public class UserTest extends AizouTest {
      * 测试自有账户登录功能
      */
     @Test
-    public void loginCheck() throws ReflectiveOperationException {
+    public void loginCheck() {
         running(app, new Runnable() {
             @Override
             public void run() {
@@ -111,26 +106,37 @@ public class UserTest extends AizouTest {
                 }
             }
         });
-
-
-        Method method = UserCtrl.class.getDeclaredMethod("signinImpl", String.class, String.class);
-        method.setAccessible(true);
-
-        try {
-            method.invoke(UserCtrl.class, "18600441776", "fake");
-            assertThat(false).isTrue();
-        } catch (InvocationTargetException e) {
-            AizouException causeErr = (AizouException) e.getCause();
-            assertThat(causeErr.getErrCode()).isEqualTo(407);
-        }
-
-        JsonNode ret = (JsonNode) method.invoke(UserCtrl.class, "18600441776", "james890526");
-
-        assertText(ret, new String[]{"id", "easemobUser", "easemobPwd", "nickName", "secKey"}, false);
-        assertText(ret, new String[]{"avatar", "gender", "signature", "tel"}, true);
-        assertThat(ret.get("dialCode") != null).isTrue();
-        assertThat(ret.get("userId").asInt()).isGreaterThan(0);
-        assertThat(ret.get("tel").asText()).isEqualTo("18600441776");
     }
 
+    /**
+     * 测试修改账户信息的功能
+     */
+    @Test
+    public void editCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String timeString = new SimpleDateFormat().format(new Date());
+                List<String> fields = Arrays.asList("nickName", "signature");
+
+                long targetId = 100076;
+                for (String f : fields) {
+                    for (long selfId : new long[]{0, targetId}) {
+                        FakeRequest req = fakeRequest(routes.UserCtrl.editorUserInfo(targetId));
+                        req.withJsonBody(Json.parse(String.format("{\"%s\": \"%s\"}", f, timeString)));
+                        req.withHeader("UserId", String.format("%d", selfId));
+
+                        HandlerRef<?> handler = routes.ref.UserCtrl.editorUserInfo(targetId);
+                        Result result = callAction(handler, req);
+                        JsonNode node = Json.parse(contentAsString(result));
+
+                        if (selfId == 0)
+                            assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
+                        else
+                            assertThat(node.get("code").asInt()).isEqualTo(0);
+                    }
+                }
+            }
+        });
+    }
 }
