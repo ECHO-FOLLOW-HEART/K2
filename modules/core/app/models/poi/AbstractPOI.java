@@ -167,7 +167,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p>
+     * <p/>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -346,6 +346,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         builder.add("ratings", ratings.toJson());
         builder.add("name", (name != null ? name : ""));
         builder.add("zhName", (zhName != null ? zhName : ""));
+        builder.add("name", (zhName != null ? zhName : ""));
 
         // level2
         // TODO 完善POI所使用的Formatter

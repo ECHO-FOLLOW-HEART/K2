@@ -9,6 +9,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.travelpi.plan.SimpleUgcPlanFormatter;
 import models.MorphiaFactory;
+import models.geo.Locality;
 import models.misc.Share;
 import models.misc.SimpleRef;
 import models.plan.*;
@@ -991,6 +992,7 @@ public class PlanCtrl extends Controller {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         SimpleRef ref, locRef;
         String enName, zhName;
+        Locality locality;
         switch (type) {
             case "vs":
                 ViewSpot vs = ds.createQuery(ViewSpot.class).field("_id").equal(new ObjectId(itemId)).get();
@@ -1000,12 +1002,16 @@ public class PlanCtrl extends Controller {
                 planItem = new PlanItem();
                 planItem.item = ref;
                 locRef = new SimpleRef();
-                zhName = vs.getLocality().getZhName();
-                enName = vs.getLocality().getEnName();
-                locRef.setZhName(zhName != null ? zhName : "");
-                locRef.setEnName(enName != null ? enName : "");
-                locRef.setId(vs.getLocality().getId());
-                planItem.loc = locRef;
+                locality = vs.getLocality();
+                if (locality != null) {
+                    zhName = locality.getZhName();
+                    enName = vs.getLocality().getEnName();
+                    locRef.setZhName(zhName != null ? zhName : "");
+                    locRef.setEnName(enName != null ? enName : "");
+                    locRef.setId(vs.getLocality().getId());
+                    planItem.loc = locRef;
+                } else
+                    planItem.loc = null;
                 planItem.type = "vs";
                 try {
                     planItem.ts = timeFmt.parse(st);
