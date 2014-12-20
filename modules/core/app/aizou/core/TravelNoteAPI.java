@@ -155,8 +155,6 @@ public class TravelNoteAPI {
         }
         Collection<String> targets = tMap.values();
 
-        List<TravelNote> results = new ArrayList<>();
-
         StringBuilder sb = new StringBuilder();
         for (String t : targets)
             sb.append(String.format(" title:%s toLoc:%s", t, t));
@@ -166,84 +164,6 @@ public class TravelNoteAPI {
 
         return solrRequest(sb.toString(), 0, 10);
 
-//        SolrDocumentList docs;
-//        try {
-//            Configuration config = Configuration.root().getConfig("solr");
-//            String host = config.getString("host", "localhost");
-//            Integer port = config.getInt("port", 8983);
-//            String url = String.format("http://%s:%d/solr", host, port);
-//            /*
-//            HttpSolrServer is thread-safe and if you are using the following constructor,
-//            you *MUST* re-use the same instance for all requests.  If instances are created on
-//            the fly, it can cause a connection leak. The recommended practice is to keep a
-//            static instance of HttpSolrServer per solr server url and share it for all requests.
-//            See https://issues.apache.org/jira/browse/SOLR-861 for more details
-//            */
-//            SolrServer server = new HttpSolrServer(url);
-//            SolrQuery query = new SolrQuery();
-//
-//            StringBuilder sb = new StringBuilder();
-//            for (String t : targets)
-//                sb.append(String.format(" title:%s toLoc:%s", t, t));
-//
-//            for (String t : viewSpots)
-//                sb.append(String.format(" contentsList:%s", t));
-//
-//            query.setQuery(sb.toString().trim()).addField("author").addField("_to").addField("title")
-//                    .addField("contentsList").addField("publishTime").addField("sourceUrl").addField("commentCnt")
-//                    .addField("viewCnt").addField("avatar").addField("id");
-//
-//            docs = server.query(query).getResults();
-//            Date publishDate;
-//            for (SolrDocument doc : docs) {
-//                TravelNote note = new TravelNote();
-//                note.setId(new ObjectId(doc.get("id").toString()));
-//                Object tmp;
-//                note.author = (String) doc.get("author");
-//                note.title = (String) doc.get("title");
-//                tmp = doc.get("avatar");
-//                note.avatar = (tmp != null ? (String) tmp : "");
-//                if (!note.avatar.startsWith("http://"))
-//                    note.avatar = "http://" + note.avatar;
-//                tmp = doc.get("favorCnt");
-//                note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-//                note.contentsList = (List) doc.get("contentsList");
-//                note.sourceUrl = (String) doc.get("url");
-//                note.source = "baidu";
-//                tmp = doc.get("commentCnt");
-//                note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-//                tmp = doc.get("viewCnt");
-//                note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-//                tmp = doc.get("sourceUrl");
-//                note.sourceUrl = (tmp != null ? (String) tmp : "");
-//                publishDate = ((Date) doc.get("publishTime"));
-//                note.publishTime = publishDate == null ? null : publishDate.getTime();
-//
-//                if (note.contentsList.size() > 1) {
-//                    sb = new StringBuilder();
-//                    for (int i = 1; i < note.contentsList.size(); i++) {
-//                        String c = note.contentsList.get(i);
-//                        if (Pattern.matches("^\\s*http.+", c))
-//                            continue;
-//                        sb.append(c);
-//                        sb.append('\n');
-//                        if (sb.length() > 200)
-//                            break;
-//                    }
-//                    String summary = sb.toString().trim();
-//                    if (summary.length() > 200)
-//                        summary = summary.substring(0, 200) + "……";
-//                    note.summary = summary;
-//                } else
-//                    note.summary = note.contentsList.get(0);
-//                results.add(note);
-//            }
-//
-//            return results;
-//
-//        } catch (SolrServerException e) {
-//            throw new AizouException(ErrorCode.UNKOWN_ERROR, e.getMessage());
-//        }
     }
 
     public static List<TravelNote> searchNoteByLoc(List<String> locNames, List<String> vsNames, int page, int pageSize) throws AizouException {

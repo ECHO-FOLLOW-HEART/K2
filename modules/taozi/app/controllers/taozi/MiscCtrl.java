@@ -3,6 +3,7 @@ package controllers.taozi;
 import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
@@ -23,9 +24,14 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import play.Configuration;
+import play.api.Play;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
+import sun.misc.Request;
+import sun.security.krb5.Config;
+import sun.security.krb5.KrbException;
 import utils.Constants;
 import utils.LogUtils;
 import utils.Utils;
@@ -63,12 +69,10 @@ public class MiscCtrl extends Controller {
             // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
             String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
             //添加封面故事信息
-            if (info.coverStory != null) {
+            if (info.coverStory != null)
                 for (Map.Entry<String, String> entry : info.coverStory.entrySet()) {
                     node.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
                 }
-            }
-
             node.put("image", url);
             node.put("width", width);
             node.put("height", height);
@@ -155,7 +159,6 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result addFavorite() {
-
         JsonNode collection = request().body().asJson();
         try {
             Integer userId = Integer.parseInt(request().getHeader("UserId"));
@@ -266,26 +269,27 @@ public class MiscCtrl extends Controller {
                 }
                 faShowList.add(fa);
             }
-            List<TravelNote> travelNotes = TravelNoteAPI.searchNoteById(travelNoteIds, Constants.MAX_COUNT);
-            Map<String, TravelNote> travelNoteMap = new HashMap<>();
-            for (TravelNote temp : travelNotes)
-                travelNoteMap.put(temp.getId().toString(), temp);
-            TravelNote tnFromFavorate;
-            if (travelNotes != null && travelNotes.size() > 0) {
-                for (Favorite fa : noteFav) {
-                    tnFromFavorate = travelNoteMap.get(fa.itemId.toString());
-                    if (tnFromFavorate == null)
-                        continue;
-                    fa.zhName = tnFromFavorate.getName();
-                    fa.enName = tnFromFavorate.getName();
-                    ImageItem tmg = new ImageItem();
-                    // TODO 如何设置URL
+            // TODO 如果type不等于travelNote,则一下语句会抛出NullPointerException异常
+//            List<TravelNote> travelNotes = TravelNoteAPI.searchNoteById(travelNoteIds, Constants.MAX_COUNT);
+//            Map<String, TravelNote> travelNoteMap = new HashMap<>();
+//            for (TravelNote temp : travelNotes)
+//                travelNoteMap.put(temp.getId().toString(), temp);
+//            TravelNote tnFromFavorate;
+//            if (travelNotes != null && travelNotes.size() > 0) {
+//                for (Favorite fa : noteFav) {
+//                    tnFromFavorate = travelNoteMap.get(fa.itemId.toString());
+//                    if (tnFromFavorate == null)
+//                        continue;
+//                    fa.zhName = tnFromFavorate.getName();
+//                    fa.enName = tnFromFavorate.getName();
+//                    ImageItem tmg = new ImageItem();
+//                    TODO 如何设置URL
                     //tmg.setKey(tnFromFavorate.getCover());
-                    fa.images = Arrays.asList(tmg);
-                    fa.desc = tnFromFavorate.getDesc();
-                    faShowList.add(fa);
-                }
-            }
+//                    fa.images = Arrays.asList(tmg);
+//                    fa.desc = tnFromFavorate.getDesc();
+//                    faShowList.add(fa);
+//                }
+//            }
             // 按照创建时间排序
             Collections.sort(faShowList, new Comparator<Favorite>() {
                 public int compare(Favorite arg0, Favorite arg1) {
@@ -717,6 +721,12 @@ public class MiscCtrl extends Controller {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
+
+//    public static Result testForTest() throws KrbException {
+//        Configuration config = Configuration.root();
+//        Configuration c = config.getConfig("solr");
+//        return ok("ok");
+//    }
 
 //    public static Result explore(int details, int loc, int vs, int hotel, int restaurant, boolean abroad, int page, int pageSize) throws AizouException {
 //        boolean detailsFlag = (details != 0);

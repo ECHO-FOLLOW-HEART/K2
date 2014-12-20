@@ -1,22 +1,40 @@
 package taozi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.taozi.UserCtrl;
-import exception.AizouException;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import controllers.taozi.routes;
+import exception.ErrorCode;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import play.Configuration;
+import play.api.mvc.HandlerRef;
+import play.libs.Json;
+import play.mvc.Result;
+import play.test.FakeApplication;
+import play.test.FakeRequest;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static play.test.Helpers.*;
 
 /**
  * Created by zephyre on 12/5/14.
  */
 public class UserTest extends AizouTest {
+
+    private static FakeApplication app;
+
+    @BeforeClass
+    public static void setup() {
+        Config c = ConfigFactory.parseFile(new File("../conf/application.conf"));
+        Configuration config = new Configuration(c);
+        app = fakeApplication(config.asMap());
+    }
 
     /**
      * 测试获得用户详情的功能
@@ -24,49 +42,153 @@ public class UserTest extends AizouTest {
      * @throws ReflectiveOperationException
      */
     @Test
-    public void sideUserCheck() throws ReflectiveOperationException {
-        Method method = UserCtrl.class.getDeclaredMethod("getUserProfileByIdImpl", Long.class, Long.class);
-        method.setAccessible(true);
+    public void userProfileCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                Long targetId = 100076L;
+                for (Long selfId : new Long[]{null, targetId}) {
+                    FakeRequest req = fakeRequest(routes.UserCtrl.getUserProfileById(targetId));
+                    if (selfId != null)
+                        req.withHeader("UserId", selfId.toString());
 
-        Long targetId = 100076L;
-        for (Long selfId : new Long[]{null, targetId}) {
-            JsonNode ret = (JsonNode) method.invoke(UserCtrl.class, targetId, selfId);
-            Set<String> txtKeyList = new HashSet<>();
-            if (selfId != null)
-                txtKeyList.add("tel");
-            else
-                txtKeyList.add("memo");
-            txtKeyList.addAll(Arrays.asList("gender", "signature", "avatar"));
-            assertText(ret, txtKeyList.toArray(new String[txtKeyList.size()]), true);
-            assertText(ret, new String[]{"easemobUser", "nickName"}, false);
+                    HandlerRef<?> handler = routes.ref.UserCtrl.getUserProfileById(targetId);
+                    Result result = callAction(handler, req);
+                    JsonNode node = Json.parse(contentAsString(result));
+                    assertThat(node.get("code").asInt()).isEqualTo(0);
+                    node = node.get("result");
 
-            assertThat(ret.get("userId").asInt()).isGreaterThan(0);
-        }
+                    Set<String> txtKeyList = new HashSet<>();
+                    if (selfId != null) {
+                        txtKeyList.add("tel");
+                        assertThat(node.get("dialCode").asInt()).isNotEqualTo(0);
+                    } else
+                        txtKeyList.add("memo");
+                    txtKeyList.addAll(Arrays.asList("gender", "signature", "avatar"));
+                    assertText(node, txtKeyList.toArray(new String[txtKeyList.size()]), true);
+                    assertText(node, new String[]{"id", "easemobUser", "nickName"}, false);
+                    assertThat(node.get("userId").asLong()).isEqualTo(targetId);
+                }
+            }
+        });
     }
 
     /**
      * 测试自有账户登录功能
      */
     @Test
-    public void loginCheck() throws ReflectiveOperationException {
-        Method method = UserCtrl.class.getDeclaredMethod("signinImpl", String.class, String.class);
-        method.setAccessible(true);
+    public void loginCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                for (String passwd : new String[]{"fake", "james890526"}) {
+                    FakeRequest req = fakeRequest(routes.UserCtrl.signin());
+                    req.withJsonBody(Json.parse(String.format("{\"loginName\": \"18600441776\", \"pwd\": \"%s\"}",
+                            passwd)));
 
-        try {
-            method.invoke(UserCtrl.class, "18600441776", "fake");
-            assertThat(false).isTrue();
-        } catch (InvocationTargetException e) {
-            AizouException causeErr = (AizouException) e.getCause();
-            assertThat(causeErr.getErrCode()).isEqualTo(407);
-        }
+                    HandlerRef<?> handler = routes.ref.UserCtrl.signin();
+                    Result result = callAction(handler, req);
+                    JsonNode node = Json.parse(contentAsString(result));
 
-        JsonNode ret = (JsonNode) method.invoke(UserCtrl.class, "18600441776", "james890526");
+                    if (passwd.equals("fake")) {
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
+                        assertThat(node.get("result")).isEqualTo(null);
+                    } else {
+                        assertThat(node.get("code").asInt()).isEqualTo(0);
+                        node = node.get("result");
 
-        assertText(ret, new String[]{"id", "easemobUser", "easemobPwd", "nickName", "secKey"}, false);
-        assertText(ret, new String[]{"avatar", "gender", "signature", "tel"}, true);
-        assertThat(ret.get("dialCode") != null).isTrue();
-        assertThat(ret.get("userId").asInt()).isGreaterThan(0);
-        assertThat(ret.get("tel").asText()).isEqualTo("18600441776");
+                        Set<String> txtKeyList = new HashSet<>();
+                        txtKeyList.add("tel");
+                        assertThat(node.get("dialCode").asInt()).isNotEqualTo(0);
+                        txtKeyList.addAll(Arrays.asList("gender", "signature", "avatar"));
+                        assertText(node, txtKeyList.toArray(new String[txtKeyList.size()]), true);
+                        assertText(node, new String[]{"id", "easemobUser", "nickName"}, false);
+                    }
+                }
+            }
+        });
     }
 
+    /**
+     * 测试手机号注册功能
+     */
+    @Test
+    public void signupCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String timeString = String.format("138%d", System.currentTimeMillis() / 100000);
+                String magicVal = "85438734";
+                String magicTel = "15313380121";
+                String magicPasswd = "12345678";
+                String[][] postData = new String[][]{
+                        new String[]{magicTel, magicVal, magicPasswd},
+                        new String[]{timeString, "123456", magicPasswd},
+                        new String[]{timeString, magicVal, magicPasswd}
+                };
+
+                for (String[] d : postData) {
+                    FakeRequest req = fakeRequest(routes.UserCtrl.signup());
+                    ObjectNode postNode = Json.newObject();
+                    postNode.put("tel", d[0]);
+                    postNode.put("captcha", d[1]);
+                    postNode.put("pwd", d[2]);
+                    req.withJsonBody(postNode);
+
+                    HandlerRef<?> handler = routes.ref.UserCtrl.signup();
+                    Result result = callAction(handler, req);
+                    JsonNode node = Json.parse(contentAsString(result));
+
+                    if (d[0].equals(magicTel))
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.USER_EXIST);
+                    else if (!d[1].equals(magicVal))
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.CAPTCHA_ERROR);
+                    else {
+                        assertThat(node.get("code").asInt()).isEqualTo(0);
+                        node = node.get("result");
+
+                        Set<String> txtKeyList = new HashSet<>();
+                        txtKeyList.add("tel");
+                        assertThat(node.get("dialCode").asInt()).isNotEqualTo(0);
+                        txtKeyList.addAll(Arrays.asList("gender", "signature", "avatar"));
+                        assertText(node, txtKeyList.toArray(new String[txtKeyList.size()]), true);
+                        assertText(node, new String[]{"id", "easemobUser", "nickName"}, false);
+                    }
+                }
+            }
+        });
+    }
+
+
+    /**
+     * 测试修改账户信息的功能
+     */
+    @Test
+    public void editCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String timeString = new SimpleDateFormat().format(new Date());
+                List<String> fields = Arrays.asList("nickName", "signature");
+
+                long targetId = 100076;
+                for (String f : fields) {
+                    for (long selfId : new long[]{0, targetId}) {
+                        FakeRequest req = fakeRequest(routes.UserCtrl.editorUserInfo(targetId));
+                        req.withJsonBody(Json.parse(String.format("{\"%s\": \"%s\"}", f, timeString)));
+                        req.withHeader("UserId", String.format("%d", selfId));
+
+                        HandlerRef<?> handler = routes.ref.UserCtrl.editorUserInfo(targetId);
+                        Result result = callAction(handler, req);
+                        JsonNode node = Json.parse(contentAsString(result));
+
+                        if (selfId == 0)
+                            assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
+                        else
+                            assertThat(node.get("code").asInt()).isEqualTo(0);
+                    }
+                }
+            }
+        });
+    }
 }
