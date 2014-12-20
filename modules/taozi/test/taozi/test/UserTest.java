@@ -103,6 +103,47 @@ public class UserTest extends AizouTest {
     }
 
     /**
+     * 根据环信用户名进行搜索
+     */
+    @Test
+    public void easemobSearchCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.UserCtrl.getUsersByEasemob();
+                FakeRequest req = fakeRequest(routes.UserCtrl.getUsersByEasemob());
+                ObjectNode postData = Json.newObject();
+                postData.put("easemob", Json.toJson(Arrays.asList("vrebxwbvp4vrn4ciowz2xm3zni3kqlz4",
+                        "o5qbk6sqpl9jhpf6jq8tjwdlcr6s3flj")));
+                req.withJsonBody(postData);
+
+                Result result = callAction(handler, req);
+                JsonNode node = Json.parse(contentAsString(result));
+                assertThat(node.get("code").asInt()).isEqualTo(0);
+                node = node.get("result");
+                assertThat(node.isArray()).isTrue();
+                assertThat(node.size()).isEqualTo(2);
+
+                Map<Long, String> valMap = new HashMap<>();
+                valMap.put(100132L, "vrebxwbvp4vrn4ciowz2xm3zni3kqlz4");
+                valMap.put(100133L, "o5qbk6sqpl9jhpf6jq8tjwdlcr6s3flj");
+                for (int i = 0; i < 2; i++) {
+                    JsonNode userNode = node.get(i);
+
+                    Long userId = userNode.get("userId").asLong();
+                    assertThat(valMap.get(userId)).isEqualTo(userNode.get("easemobUser").asText());
+
+                    Set<String> txtKeyList = new HashSet<>();
+                    txtKeyList.add("memo");
+                    txtKeyList.addAll(Arrays.asList("gender", "signature", "avatar"));
+                    assertText(userNode, txtKeyList.toArray(new String[txtKeyList.size()]), true);
+                    assertText(userNode, new String[]{"id", "easemobUser", "nickName"}, false);
+                }
+            }
+        });
+    }
+
+    /**
      * 测试自有账户登录功能
      */
     @Test
