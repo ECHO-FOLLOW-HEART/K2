@@ -1,6 +1,7 @@
 package taozi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
@@ -107,6 +108,57 @@ public class UserTest extends AizouTest {
             }
         });
     }
+
+    /**
+     * 测试手机号注册功能
+     */
+    @Test
+    public void signupCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String timeString = String.format("138%d", System.currentTimeMillis() / 100000);
+                String magicVal = "85438734";
+                String magicTel = "15313380121";
+                String magicPasswd = "12345678";
+                String[][] postData = new String[][]{
+                        new String[]{magicTel, magicVal, magicPasswd},
+                        new String[]{timeString, "123456", magicPasswd},
+                        new String[]{timeString, magicVal, magicPasswd}
+                };
+
+                for (String[] d : postData) {
+                    FakeRequest req = fakeRequest(routes.UserCtrl.signup());
+                    ObjectNode postNode = Json.newObject();
+                    postNode.put("tel", d[0]);
+                    postNode.put("captcha", d[1]);
+                    postNode.put("pwd", d[2]);
+                    req.withJsonBody(postNode);
+
+                    HandlerRef<?> handler = routes.ref.UserCtrl.signup();
+                    Result result = callAction(handler, req);
+                    JsonNode node = Json.parse(contentAsString(result));
+
+                    if (d[0].equals(magicTel))
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.USER_EXIST);
+                    else if (!d[1].equals(magicVal))
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.CAPTCHA_ERROR);
+                    else {
+                        assertThat(node.get("code").asInt()).isEqualTo(0);
+                        node = node.get("result");
+
+                        Set<String> txtKeyList = new HashSet<>();
+                        txtKeyList.add("tel");
+                        assertThat(node.get("dialCode").asInt()).isNotEqualTo(0);
+                        txtKeyList.addAll(Arrays.asList("gender", "signature", "avatar"));
+                        assertText(node, txtKeyList.toArray(new String[txtKeyList.size()]), true);
+                        assertText(node, new String[]{"id", "easemobUser", "nickName"}, false);
+                    }
+                }
+            }
+        });
+    }
+
 
     /**
      * 测试修改账户信息的功能

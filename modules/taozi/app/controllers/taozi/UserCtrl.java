@@ -11,7 +11,6 @@ import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatter;
 import models.MorphiaFactory;
 import models.misc.Token;
-import models.plan.Plan;
 import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
@@ -22,7 +21,6 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
 import utils.formatter.taozi.user.ContactFormatter;
@@ -64,7 +62,7 @@ public class UserCtrl extends Controller {
             //验证用户是否存在
             if (UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber(),
                     Arrays.asList(UserInfo.fnUserId)) != null) {
-                return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
+                return Utils.createResponse(ErrorCode.USER_EXIST);
             }
 
             UserInfo userInfo;
@@ -74,30 +72,23 @@ public class UserCtrl extends Controller {
                 // 生成用户
                 userInfo = UserAPI.regByTel(telEntry.getPhoneNumber(), telEntry.getDialCode(), pwd);
             } else
-                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
+                return Utils.createResponse(ErrorCode.CAPTCHA_ERROR);
 
-            if (userInfo != null) {
-                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
 
-                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-                if (cre == null)
-                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
+                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
 
-                // 机密数据
-                JsonNode creNode = new CredentialFormatter().format(cre);
-                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                    Map.Entry<String, JsonNode> entry = it.next();
-                    info.put(entry.getKey(), entry.getValue());
-                }
-
-                return Utils.createResponse(ErrorCode.NORMAL, info);
+            // 机密数据
+            JsonNode creNode = new CredentialFormatter().format(cre);
+            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                Map.Entry<String, JsonNode> entry = it.next();
+                info.put(entry.getKey(), entry.getValue());
             }
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
+
+            return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }
 

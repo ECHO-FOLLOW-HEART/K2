@@ -389,7 +389,7 @@ public class UserAPI {
      */
     public static UserInfo getUserByField(String fieldDesc, Object value, List<String> fieldList)
             throws AizouException {
-        return getUserByField(Arrays.asList(fieldDesc), Arrays.asList(value), fieldList);
+        return getUserByField(Arrays.asList(fieldDesc), value, fieldList);
     }
 
     /**
