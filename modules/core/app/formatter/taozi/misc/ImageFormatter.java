@@ -27,9 +27,9 @@ public class ImageFormatter extends TaoziBaseFormatter {
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
                 .addFilter("imagesFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
-                                Images.FD_ID,
-                                Images.FD_WIDTH,
-                                Images.FD_HEIGHT,
+//                                Images.FD_ID,
+//                                Images.FD_WIDTH,
+//                                Images.FD_HEIGHT,
                                 Images.FD_URL
                         ));
 

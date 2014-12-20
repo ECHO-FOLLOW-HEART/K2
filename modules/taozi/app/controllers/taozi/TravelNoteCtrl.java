@@ -7,19 +7,17 @@ import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.taozi.TravelNote.DetailTravelNoteFormatter;
+import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
 import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.ViewSpot;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
-import formatter.taozi.TravelNote.DetailTravelNoteFormatter;
-import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +35,8 @@ public class TravelNoteCtrl extends Controller {
             if (!locId.isEmpty()) {
                 ObjectId oid = new ObjectId(locId);
                 Locality locality = LocalityAPI.getLocality(oid);
+                if (locality == null)
+                    return Utils.createResponse(ErrorCode.NORMAL, "Locality not exist. iD:" + locId);
                 noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, page, pageSize);
             } else if (!keyWord.isEmpty())
                 noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(keyWord), Arrays.asList(keyWord), page, pageSize);
@@ -56,16 +56,16 @@ public class TravelNoteCtrl extends Controller {
     /**
      * 特定目的地的游记
      *
-     * @param id
+     * @param locId
      * @param pageSize
      * @return
      */
-    public static Result getNotes(String id, int pageSize) {
+    public static Result getNotes(String locId, String keyword, int page, int pageSize) {
         try {
-            ObjectId objectId = new ObjectId(id);
+            ObjectId objectId = new ObjectId(locId);
             List<JsonNode> nodeList = new ArrayList<>();
-            Locality locality = LocalityAPI.getLocality(objectId, Arrays.asList(Locality.FD_ZH_NAME, Locality.fnTags, Locality.FD_ALIAS));
-            ViewSpot vs = PoiAPI.getVsDetail(objectId, Arrays.asList(ViewSpot.FD_ZH_NAME, ViewSpot.FD_TAGS, ViewSpot.FD_ALIAS));
+            Locality locality = LocalityAPI.getLocality(objectId, Arrays.asList(Locality.FD_ZH_NAME, Locality.FD_ALIAS));
+            ViewSpot vs = PoiAPI.getVsDetail(objectId, Arrays.asList(ViewSpot.FD_ZH_NAME, ViewSpot.FD_ALIAS));
             List<String> locNames = new ArrayList<>();
             List<String> vsNames = new ArrayList<>();
             if (locality == null && vs == null)
@@ -73,16 +73,12 @@ public class TravelNoteCtrl extends Controller {
             else if (vs == null) {
                 if (locality.getAlias() != null)
                     locNames.addAll(locality.getAlias());
-                if (locality.getTags() != null)
-                    locNames.addAll(locality.getTags());
                 if (locality.getZhName() != null)
-                locNames.add(locality.getZhName());
+                    locNames.add(locality.getZhName());
             } else if (locality == null) {
                 if (vs.alias != null)
                     vsNames.addAll(vs.alias);
-                if (vs.FD_TAGS != null)
-                    vsNames.addAll(vs.tags);
-                if (vs.FD_ZH_NAME != null)
+                if (vs.zhName != null)
                     vsNames.add(vs.zhName);
             } else {
                 if (locality.getAlias() != null)
@@ -92,14 +88,12 @@ public class TravelNoteCtrl extends Controller {
                 if (locality.getZhName() != null)
                     locNames.add(locality.getZhName());
                 if (vs.alias != null)
-                vsNames.addAll(vs.alias);
-                if (vs.FD_TAGS != null)
-                    vsNames.addAll(vs.tags);
-                if (vs.FD_ZH_NAME != null)
+                    vsNames.addAll(vs.alias);
+                if (vs.zhName != null)
                     vsNames.add(vs.zhName);
             }
 
-            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(locNames, vsNames, 0, pageSize);
+            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(locNames, vsNames, page, pageSize);
             for (TravelNote note : noteList) {
                 nodeList.add(new SimpTravelNoteFormatter().format(note));
             }
@@ -117,12 +111,12 @@ public class TravelNoteCtrl extends Controller {
      */
     public static Result getTravelNoteDetail(String noteId) {
         try {
-            Long userId ;
-            if(request().hasHeader("UserId"))
+            Long userId;
+            if (request().hasHeader("UserId"))
                 userId = Long.parseLong(request().getHeader("UserId"));
             else
                 userId = null;
-            List<TravelNote> travelNoteList = TravelNoteAPI.getTravelNoteDetailApi(noteId);
+            List<TravelNote> travelNoteList = TravelNoteAPI.searchNoteById(Arrays.asList(noteId), 1);
             List<JsonNode> nodeList = new ArrayList<>();
             for (TravelNote note : travelNoteList) {
                 //是否被收藏
@@ -131,7 +125,7 @@ public class TravelNoteCtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch (ParseException | SolrServerException |AizouException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }

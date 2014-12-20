@@ -38,7 +38,6 @@ public class SimpleGuideFormatter extends TaoziBaseFormatter {
                 AbstractGuide.fdId,
                 AbstractGuide.fnTitle,
                 Guide.fnUpdateTime,
-                AbstractGuide.fnImages,
                 AbstractPOI.FD_IMAGES,
                 AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RATING

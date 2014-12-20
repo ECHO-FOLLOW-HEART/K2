@@ -46,7 +46,8 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE
+                AbstractPOI.FD_TELEPHONE,
+                AbstractPOI.detTargets
         );
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
         filterMap.put("itinerItemFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
@@ -87,15 +88,15 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE,
-                AbstractPOI.FD_RATING);
+                AbstractPOI.FD_TELEPHONE);
 
         localityStringFields = new HashSet<String>() {
         };
         Collections.addAll(localityStringFields,
                 Locality.FD_EN_NAME);
 
-        listFields.add(AbstractPOI.FD_IMAGES);
+        Collections.addAll(listFields,
+                AbstractPOI.FD_IMAGES,Guide.fnItinerary,Guide.fnShopping,Guide.fnRestaurant);
 
         return postProcess(result);
     }

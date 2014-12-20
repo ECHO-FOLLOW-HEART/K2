@@ -13,8 +13,8 @@ import java.util.List;
  * <p/>
  * Created by topy on 2014/11/28.
  */
-@JsonFilter("destGuideInfoFilter")
-public class DestGuideInfo extends AizouBaseEntity {
+@JsonFilter("localityGuideInfoFilter")
+public class LocalityGuideInfo extends AizouBaseEntity {
 
     @Transient
     public static final String fnShoppingImages = "shoppingImages";

@@ -73,6 +73,22 @@ public class Favorite extends AizouBaseEntity {
     @Transient
     public static String fnDesc = "desc";
 
+    @Transient
+    public static String fnTimeCostDesc = "timeCostDesc";
+
+    @Transient
+    public static String fnRating= "rating";
+
+    @Transient
+    public static String fnPriceDesc = "priceDesc";
+
+    @Transient
+    public static String fnAddress = "address";
+
+
+    @Transient
+    public static String fnTelephone = "telephone";
+
     /**
      * 用户ID
      */
@@ -92,9 +108,30 @@ public class Favorite extends AizouBaseEntity {
     public List<ImageItem> images;
 
     public Date createTime;
+
     /**
      * 所在目的地
      */
     public Locality locality;
+    /**
+     * 目的地和景点显示建议游玩时间
+     */
+    public String timeCostDesc;
+    /**
+     * 酒店和美食显示价格
+     */
+    public String priceDesc;
+    /**
+     * 酒店、美食、购物显示评分
+     */
+    public Double rating;
+    /**
+     * 地址
+     */
+    public String address;
+    /**
+     * 电话
+     */
+    public String telephone;
 
 }

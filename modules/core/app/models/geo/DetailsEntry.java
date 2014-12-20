@@ -1,32 +1,29 @@
 package models.geo;
 
-import models.AizouBaseItem;
 import models.misc.ImageItem;
 import org.mongodb.morphia.annotations.Embedded;
 
 import java.util.List;
 
 /**
- * 活动
- * <p/>
- * Created by topy on 2014/11/20.
+ * Created by zephyre on 12/19/14.
  */
 @Embedded
-public class Activities extends AizouBaseItem {
-
-    private String desc;
-
+public class DetailsEntry {
+    /**
+     * 标题
+     */
     private String title;
 
+    /**
+     * 描述
+     */
+    private String desc;
+
+    /**
+     * 图集
+     */
     private List<ImageItem> images;
-
-    public String getDesc() {
-        return desc;
-    }
-
-    public void setDesc(String desc) {
-        this.desc = desc;
-    }
 
     public String getTitle() {
         return title;
@@ -34,6 +31,14 @@ public class Activities extends AizouBaseItem {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 
     public List<ImageItem> getImages() {

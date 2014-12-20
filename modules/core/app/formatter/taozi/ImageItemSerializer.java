@@ -44,7 +44,6 @@ public class ImageItemSerializer extends JsonSerializer<ImageItem> {
 
         String fullUrl = imageItem.getFullUrl();
         Map<String, Integer> cropHint = imageItem.getCropHint();
-
         String imgUrl;
         int width = imageItem.getW();
         int height = imageItem.getH();

@@ -652,7 +652,8 @@ public class MiscCtrl extends Controller {
                     JsonNode locNode = SimpleLocalityFormatter.getInstance().format(loc);
                     locNodeList.add(locNode);
                 }
-                results.put(entry.getKey(), Json.toJson(locNodeList));
+                if (locNodeList.size() > 0)
+                    results.put(entry.getKey(), Json.toJson(locNodeList));
             }
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
