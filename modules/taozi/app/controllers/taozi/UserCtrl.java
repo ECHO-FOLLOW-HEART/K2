@@ -37,7 +37,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -361,13 +361,47 @@ public class UserCtrl extends Controller {
 
         JsonNode req = request().body().asJson();
         try {
-            String pwd = req.get("pwd").asText();
+            String passwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
-            UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, loginName);
-            if (userInfo == null)
-                return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
-            JsonNode result = signinImpl(loginName, pwd);
-            return Utils.createResponse(ErrorCode.NORMAL, result);
+
+            PhoneEntity telEntry = null;
+            try {
+                telEntry = PhoneParserFactory.newInstance().parse(loginName);
+            } catch (IllegalArgumentException ignore) {
+            }
+
+            ArrayList<Object> valueList = new ArrayList<>();
+            valueList.add(loginName);
+            if (telEntry != null && telEntry.getPhoneNumber() != null)
+                valueList.add(telEntry.getPhoneNumber());
+
+            UserFormatter userFormatter = new UserFormatter(true);
+
+            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
+                    userFormatter.getFilteredFields(), 0, 1);
+            if (!itr.hasNext())
+                throw new AizouException(ErrorCode.AUTH_ERROR);
+            UserInfo userInfo = itr.next();
+
+            //验证密码
+            if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
+            } else
+                throw new AizouException(ErrorCode.AUTH_ERROR);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
@@ -544,15 +578,6 @@ public class UserCtrl extends Controller {
         return info_url.toString();
     }
 
-    private static JsonNode getUserProfileByIdImpl(Long userId, Long selfId) throws AizouException {
-        UserFormatter formatter = new UserFormatter(selfId != null && userId.equals(selfId));
-        UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
-        if (result == null)
-            return null;
-
-        return formatter.format(result);
-    }
-
     /**
      * 通过id获得用户详细信息。
      *
@@ -566,10 +591,14 @@ public class UserCtrl extends Controller {
             selfId = Long.parseLong(tmp);
 
         try {
-            JsonNode result = getUserProfileByIdImpl(userId, selfId);
+            UserFormatter formatter = new UserFormatter(selfId != null && ((Long) userId).equals(selfId));
+            UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
+            if (result == null)
+                return null;
+            JsonNode node = formatter.format(result);
 
-            if (result != null)
-                return Utils.createResponse(ErrorCode.NORMAL, result);
+            if (node != null)
+                return Utils.createResponse(ErrorCode.NORMAL, node);
             else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         } catch (AizouException e) {
