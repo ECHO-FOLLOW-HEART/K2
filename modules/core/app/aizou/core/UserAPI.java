@@ -15,6 +15,7 @@ import models.misc.Token;
 import models.misc.ValidationCode;
 import models.user.Credential;
 import models.user.OAuthInfo;
+import models.user.Relationship;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -27,7 +28,6 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http;
 import utils.Constants;
-import utils.FPUtils;
 import utils.Utils;
 
 import javax.crypto.KeyGenerator;
@@ -46,6 +46,7 @@ import java.util.*;
  */
 public class UserAPI {
 
+    public static int CMDTYPE_REQUEST_FRIEND = 1;
     public static int CMDTYPE_ADD_FRIEND = 2;
     public static int CMDTYPE_DEL_FRIEND = 3;
 
@@ -388,7 +389,7 @@ public class UserAPI {
      */
     public static UserInfo getUserByField(String fieldDesc, Object value, List<String> fieldList)
             throws AizouException {
-        return getUserByField(Arrays.asList(fieldDesc), Arrays.asList(value), fieldList);
+        return getUserByField(Arrays.asList(fieldDesc), value, fieldList);
     }
 
     /**
@@ -1002,12 +1003,25 @@ public class UserAPI {
      * 提出好友申请
      *
      * @param selfId
-     * @param otherid
-     * @param reason
+     * @param targetId
+     * @throws exception.AizouException
      */
-    public static void sendFriendReq(Long selfId, Long otherid, String reason) throws AizouException {
-        UserInfo userInfo = getUserInfo(selfId);
+    public static void requestAddContact(Long selfId, Long targetId, String message) throws AizouException {
+        if (selfId.equals(targetId))
+            return;
 
+        //取得用户信息实体
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));  //取得用户实体
+        //取得好友信息实体
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));
+
+        if (selfInfo == null || targetInfo == null)
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
+
+        // 向被加好友的客户端发消息
+        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_REQUEST_FRIEND, message);
     }
 
     /**
@@ -1020,73 +1034,28 @@ public class UserAPI {
     public static void addContact(Long selfId, Long targetId) throws AizouException {
         if (selfId.equals(targetId))
             return;
-
-        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
-                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));  //取得用户实体
-        //取得好友的实体
-        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnNickName,
-                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser));
+        //取得自己的实体
+        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser, UserInfo.fnSignature));  //取得用户实体
+        //取得对方的实体
+        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser, UserInfo.fnSignature));
 
         if (selfInfo == null || targetInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
-        List<UserInfo> selfContacts = selfInfo.getFriends();
-        if (selfContacts == null)
-            selfContacts = new ArrayList<>();
-        List<UserInfo> targetContacts = targetInfo.getFriends();
-        if (targetContacts == null)
-            targetContacts = new ArrayList<>();
-
         //环信注册
         modEaseMobContacts(selfId, targetId, true);
 
-        //保存
-        final Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        // 互相删除环信黑名单
+        delEaseMobBlocks(selfId, targetId);
+        delEaseMobBlocks(targetId, selfId);
 
-        FPUtils.IFunc func = new FPUtils.IFunc() {
-
-            @Override
-            public Object func0() {
-                return null;
-            }
-
-            @Override
-            public Object funcv(Object... val) {
-                UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
-
-                Integer sid = (Integer) val[0];
-                @SuppressWarnings("unchecked")
-                List<UserInfo> sc = (List<UserInfo>) val[1];
-                UserInfo tinfo = (UserInfo) val[2];
-
-                Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(sid);
-                if (sc == null || sc.isEmpty()) {
-                    ops.set(UserInfo.fnContacts, Arrays.asList(tinfo));
-                    ds.updateFirst(query, ops);
-                } else {
-                    Set<Long> userIdSet = new HashSet<>();
-                    for (UserInfo u : sc)
-                        userIdSet.add(u.getUserId());
-                    if (!userIdSet.contains(tinfo.getUserId())) {
-                        ops.add(UserInfo.fnContacts, tinfo);
-                        ds.updateFirst(query, ops);
-                    }
-                }
-
-                return null;
-            }
-        };
-
-        // 需要互相加对方为好友
-        for (Object obj : Arrays.asList(new Object[]{
-                new Object[]{selfId, selfContacts, targetInfo},
-                new Object[]{targetId, targetContacts, selfInfo}
-        })) {
-            func.funcv((Object[]) obj);
-        }
+        //在关系表添加好友
+        addFriends(selfId, targetId);
 
         // 向加友请求发起的客户端发消息
-        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND);
+        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND, null);
     }
 
 
@@ -1109,65 +1078,27 @@ public class UserAPI {
         //向环信注册
         modEaseMobContacts(selfId, targetId, false);
 
-        final Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        //需要互添加环信黑名单，防止继续发送消息
+        addEaseMobBlocks(selfId, Arrays.asList(targetId));
+        addEaseMobBlocks(targetId, Arrays.asList(selfId));
 
-        FPUtils.IFunc func = new FPUtils.IFunc() {
-
-            @Override
-            public Object func0() {
-                return null;
-            }
-
-            @Override
-            public Object funcv(Object... val) {
-                UserInfo sinfo = (UserInfo) val[0];
-                Integer tid = (Integer) val[1];
-
-                List<UserInfo> contactList = sinfo.getFriends();
-                if (contactList == null || contactList.isEmpty())
-                    return null;
-
-                int idx = -1;
-                for (int i = 0; i < contactList.size(); i++) {
-                    if (contactList.get(i).getUserId().equals(tid)) {
-                        idx = i;
-                        break;
-                    }
-                }
-                if (idx != -1) {
-                    // 更新数据库
-                    contactList.remove(idx);
-
-                    Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(sinfo.getUserId());
-                    UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
-                    ops.set(UserInfo.fnContacts, contactList);
-                    ds.updateFirst(query, ops);
-                }
-
-                return null;
-            }
-        };
-
-        // 需要互相删除好友
-        for (Object obj : Arrays.asList(new Object[]{
-                new Object[]{selfInfo, targetId},
-                new Object[]{targetInfo, selfId}
-        })) {
-            func.funcv((Object[]) obj);
-        }
+        // 关系表删除好友
+        delFriends(selfId, targetId);
 
         // 向删友请求发起的客户端发消息
-        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND);
+        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND, null);
     }
 
 
     /**
      * 服务器调用环信接口发送透传消息
      */
-    public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType) throws AizouException {
+    public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType, String message) throws AizouException {
         if (selfInfo.getEasemobUser() == null)
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         ObjectNode info = (ObjectNode) new UserFormatter(false).format(selfInfo);
+        // 添加邀请信息
+        info.put("attachMsg", message);
 
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);
@@ -1175,13 +1106,15 @@ public class UserAPI {
 
         ObjectNode msg = Json.newObject();
         msg.put("type", "cmd");
-        msg.put("msg", "agree to be friends");
         msg.put("action", "tzaction");
+//        if (message != null)
+//            msg.put("msg", message);
+//        else
+//            msg.put("msg", "");
 
         ObjectNode requestBody = Json.newObject();
         List<String> users = new ArrayList<>();
         users.add(targetInfo.getEasemobUser());
-
 
         requestBody.put("target_type", "users");
         requestBody.put("target", Json.toJson(users));
@@ -1229,15 +1162,37 @@ public class UserAPI {
      * @throws exception.AizouException
      */
     public static List<UserInfo> getContactList(Long selfId) throws AizouException {
-        List<String> fieldList = Arrays.asList(UserInfo.fnContacts);
-        UserInfo userInfo = getUserInfo(selfId, fieldList);
+        UserInfo userInfo = getUserInfo(selfId, null);
         if (userInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
-        List<UserInfo> friends = userInfo.getFriends();
-        if (friends == null)
-            friends = new ArrayList<>();
 
-        return friends;
+        // 从关系表中取得好友关系列表
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Relationship> query = ds.createQuery(Relationship.class);
+
+        query.or(query.criteria("userA").equal(selfId), query.criteria("userB").equal(selfId));
+        List<Relationship> relations = query.asList();
+        if (relations.isEmpty())
+            return new ArrayList<>();
+
+        // 从好友关系列表中提取好友ID
+        List<Long> friendsIdList = new ArrayList<>();
+        for (Relationship relationship : relations) {
+            if (!relationship.getUserA().equals(selfId))
+                friendsIdList.add(relationship.getUserA());
+            else
+                friendsIdList.add(relationship.getUserB());
+        }
+
+        // 取得好友信息
+        Query<UserInfo> queryFriends = ds.createQuery(UserInfo.class);
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (Long tempId : friendsIdList) {
+            criList.add(queryFriends.criteria("userId").equal(tempId));
+        }
+        queryFriends.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        return queryFriends.asList();
     }
 
     public static List<UserInfo> getUserByEaseMob(List<String> users, List<String> fieldList) throws AizouException {
@@ -1267,9 +1222,55 @@ public class UserAPI {
     }
 
     /**
-     * 排序的字段。
+     * 关系表添加好友
+     *
+     * @param selfId
+     * @param targetId
+     * @throws AizouException
      */
-    public enum UserInfoField {
-        TEL, NICKNAME, OPENID, USERID, EASEMOB
+    public static void addFriends(Long selfId, Long targetId) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+
+        Query<Relationship> query = ds.createQuery(Relationship.class);
+        // 较小的userId设为userA
+        Long userA = selfId > targetId ? targetId : selfId;
+        // 较大的userId设为userB
+        Long userB = selfId > targetId ? selfId : targetId;
+
+        query.field("userA").equal(userA).field("userB").equal(userB);
+
+        // 如果不存在好友关系，则添加好友
+        if (!query.iterator().hasNext()) {
+            Relationship relationship = new Relationship();
+            relationship.setId(new ObjectId());
+            relationship.setUserA(userA);
+            relationship.setUserB(userB);
+            ds.save(relationship);
+        }
+
     }
+
+    /**
+     * 关系表删除好友
+     *
+     * @param selfId
+     * @param targetId
+     * @throws AizouException
+     */
+    public static void delFriends(Long selfId, Long targetId) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+
+        Query<Relationship> query = ds.createQuery(Relationship.class);
+        // 较小的userId
+        Long userA = selfId > targetId ? targetId : selfId;
+        // 较大的userId
+        Long userB = selfId > targetId ? selfId : targetId;
+
+        query.field("userA").equal(userA).field("userB").equal(userB);
+        // 如果存在好友关系，则删除好友关系
+        if (query.iterator().hasNext())
+            ds.delete(query);
+    }
+
+
 }

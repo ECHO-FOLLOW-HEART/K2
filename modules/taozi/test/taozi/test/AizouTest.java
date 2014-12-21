@@ -8,7 +8,7 @@ import static org.fest.assertions.Assertions.assertThat;
 /**
  * Created by zephyre on 12/9/14.
  */
-public abstract class AizouTest extends WithApplication {
+public abstract class AizouTest {
 
     protected void assertText(JsonNode node, String field, boolean allowEmpty) {
         assertText(node, new String[]{field}, allowEmpty);

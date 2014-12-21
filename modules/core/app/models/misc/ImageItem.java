@@ -162,4 +162,5 @@ public class ImageItem extends AizouBaseItem {
     public void setCropHint(Map<String, Integer> cropHint) {
         this.cropHint = cropHint;
     }
+
 }

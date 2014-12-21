@@ -128,16 +128,16 @@ public class GeoCtrl extends Controller {
                 Map destnations = (Map) config.getObject("destinations");
                 String countrysStr = destnations.get("country").toString();
                 List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
-                List<Country> countryList = GeoAPI.searchCountryByName(countryNames, page, pageSize);
+                List<Country> countryList = GeoAPI.searchCountryByName(countryNames, Constants.ZERO_COUNT, Constants.MAX_COUNT);
                 for (Country c : countryList) {
                     ObjectNode node = (ObjectNode) new SimpleCountryFormatter().format(c);
-                    dests = getDestinationsNodeByCountry(c.getId(), page, pageSize);
+                    dests = getDestinationsNodeByCountry(c.getId(), page, 30);
                     node.put("destinations", Json.toJson(dests));
                     objs.add(node);
                 }
             } else {
-                // TODO 全部取出，不要分页，暂时取100个
-                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 100);
+                // TODO 全部取出，不要分页，暂时取300个
+                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 300);
                 for (Locality des : destinations) {
                     objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
                 }
