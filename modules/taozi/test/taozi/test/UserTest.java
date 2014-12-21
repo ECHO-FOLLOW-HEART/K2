@@ -33,9 +33,9 @@ public class UserTest extends AizouTest {
 
     @BeforeClass
     public static void setup() {
-        Config c = ConfigFactory.parseFile(new File("./conf/application.conf"));
-        Configuration config = new Configuration(c);
-        app = fakeApplication(config.asMap(), new GlobalSettings());
+//        Config c = ConfigFactory.parseFile(new File("./conf/application.conf"));
+//        Configuration config = new Configuration(c);
+        app = fakeApplication(new GlobalSettings());
     }
 
     /**
