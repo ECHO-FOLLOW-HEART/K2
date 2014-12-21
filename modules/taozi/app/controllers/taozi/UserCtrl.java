@@ -299,50 +299,6 @@ public class UserCtrl extends Controller {
         }
     }
 
-    private static JsonNode signinImpl(String loginName, String passwd) throws AizouException {
-
-        PhoneEntity telEntry = null;
-        try {
-            telEntry = PhoneParserFactory.newInstance().parse(loginName);
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        ArrayList<Object> valueList = new ArrayList<>();
-        valueList.add(loginName);
-        if (telEntry != null && telEntry.getPhoneNumber() != null)
-            valueList.add(telEntry.getPhoneNumber());
-
-        UserFormatter userFormatter = new UserFormatter(true);
-
-        Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
-                userFormatter.getFilteredFields(), 0, 1);
-        UserInfo userInfo = itr.hasNext() ? itr.next() : null;
-
-
-        if (userInfo == null)
-            throw new AizouException(ErrorCode.AUTH_ERROR);
-
-        //验证密码
-        if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
-            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
-
-            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-            if (cre == null)
-                throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
-
-            // 机密数据
-            JsonNode creNode = new CredentialFormatter().format(cre);
-            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                info.put(entry.getKey(), entry.getValue());
-            }
-
-            return info;
-        } else
-            throw new AizouException(ErrorCode.AUTH_ERROR);
-    }
-
     /**
      * 手机号登录,只支持手机号登录
      *
@@ -802,9 +758,8 @@ public class UserCtrl extends Controller {
     public static Result getUsersByEasemob() {
         JsonNode req = request().body().asJson();
         JsonNode emList;
-        List<String> emNameList = new ArrayList();
+        List<String> emNameList = new ArrayList<>();
         try {
-
             emList = req.get("easemob");
             if (null != emList && emList.isArray() && emList.findValues("easemob") != null) {
                 for (JsonNode node : emList) {
@@ -814,13 +769,13 @@ public class UserCtrl extends Controller {
             List<String> fieldList = Arrays.asList(UserInfo.fnUserId, UserInfo.fnNickName, UserInfo.fnAvatar,
                     UserInfo.fnGender, UserInfo.fnEasemobUser, UserInfo.fnSignature);
             List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
-            List<JsonNode> nodelist = new ArrayList<>();
+            List<JsonNode> nodeList = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new UserFormatter(false).format(userInfo));
+                nodeList.add(new UserFormatter(false).format(userInfo));
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodelist));
-        } catch (NumberFormatException | NullPointerException | AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
