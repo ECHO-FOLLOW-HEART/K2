@@ -247,20 +247,4 @@ public class ApplicationTest extends WithApplication {
 
         r.run();
     }
-
-    @Test
-    public void homeImageCheck() throws ReflectiveOperationException {
-        Method method = MiscCtrl.class.getDeclaredMethod("appHomeImageImpl", int.class, int.class, int.class,
-                String.class, int.class);
-        method.setAccessible(true);
-        JsonNode ret = (JsonNode) method.invoke(MiscCtrl.class, 1024, 480, 85, "jpg", 1);
-        JsonNode imageNode = ret.get("image");
-        if (imageNode == null)
-            assertThat(true).isFalse();
-        else {
-            assertThat(imageNode.isNull()).isFalse();
-            assertThat(imageNode.isTextual()).isTrue();
-            assertThat(imageNode.asText().trim().isEmpty()).isFalse();
-        }
-    }
 }
