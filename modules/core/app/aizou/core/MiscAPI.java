@@ -104,7 +104,7 @@ public class MiscAPI {
      * @throws AizouException
      */
     public static void isFavorite(AizouBaseEntity item, Long userId) throws AizouException {
-        if(userId == null) {
+        if (userId == null) {
             item.setIsFavorite(false);
             return;
         }
@@ -121,7 +121,7 @@ public class MiscAPI {
         Query<Images> query = ds.createQuery(Images.class);
 
         query.field(Images.FD_ITEMID).equal(id);
-        query.offset(page).limit(page*pageSize);
+        query.offset(page * pageSize).limit(pageSize);
         return query.asList();
     }
 

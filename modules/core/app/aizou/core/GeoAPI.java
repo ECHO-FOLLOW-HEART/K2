@@ -137,7 +137,7 @@ public class GeoAPI {
         Query<Locality> query = ds.createQuery(Locality.class);
         query.field("abroad").equal(abroad).field("enabled").equal(true);
         query.offset(page * pageSize).limit(pageSize);
-
+        query.order("-hotness");
         return query.asList();
     }
 

@@ -86,6 +86,10 @@ public class Utils {
         return obj;
     }
 
+    public static Result createResponse(int errCode) {
+        return createResponse(errCode, "");
+    }
+
     public static Result createResponse(int errCode, String msg) {
         ObjectNode jsonObj = Json.newObject();
         jsonObj.put("debug", msg);
@@ -281,6 +285,7 @@ public class Utils {
 
     /**
      * URL安全的Base64编码，手动加“=”
+     *
      * @param str
      * @return
      */

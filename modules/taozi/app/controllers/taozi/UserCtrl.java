@@ -11,7 +11,6 @@ import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatter;
 import models.MorphiaFactory;
 import models.misc.Token;
-import models.plan.Plan;
 import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
@@ -22,7 +21,6 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
 import utils.formatter.taozi.user.ContactFormatter;
@@ -64,7 +62,7 @@ public class UserCtrl extends Controller {
             //验证用户是否存在
             if (UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber(),
                     Arrays.asList(UserInfo.fnUserId)) != null) {
-                return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
+                return Utils.createResponse(ErrorCode.USER_EXIST);
             }
 
             UserInfo userInfo;
@@ -74,30 +72,23 @@ public class UserCtrl extends Controller {
                 // 生成用户
                 userInfo = UserAPI.regByTel(telEntry.getPhoneNumber(), telEntry.getDialCode(), pwd);
             } else
-                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
+                return Utils.createResponse(ErrorCode.CAPTCHA_ERROR);
 
-            if (userInfo != null) {
-                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
 
-                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-                if (cre == null)
-                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
+                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
 
-                // 机密数据
-                JsonNode creNode = new CredentialFormatter().format(cre);
-                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                    Map.Entry<String, JsonNode> entry = it.next();
-                    info.put(entry.getKey(), entry.getValue());
-                }
-
-                return Utils.createResponse(ErrorCode.NORMAL, info);
+            // 机密数据
+            JsonNode creNode = new CredentialFormatter().format(cre);
+            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                Map.Entry<String, JsonNode> entry = it.next();
+                info.put(entry.getKey(), entry.getValue());
             }
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Error");
+
+            return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
-        } catch (IllegalArgumentException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }
 
@@ -185,15 +176,9 @@ public class UserCtrl extends Controller {
      */
     public static Result modPassword() {
         JsonNode req = request().body().asJson();
-        String userId = req.get("userId").asText();
+        Integer userId = Integer.parseInt(req.get("userId").asText());
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
-        Integer countryCode;
-        if (req.has("dialCode")) {
-            countryCode = Integer.valueOf(req.get("dialCode").asText());
-        } else {
-            countryCode = 86;
-        }
 
         //验证用户是否存在-手机号
         try {
@@ -314,52 +299,8 @@ public class UserCtrl extends Controller {
         }
     }
 
-    private static JsonNode signinImpl(String loginName, String passwd) throws AizouException {
-
-        PhoneEntity telEntry = null;
-        try {
-            telEntry = PhoneParserFactory.newInstance().parse(loginName);
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        ArrayList<Object> valueList = new ArrayList<>();
-        valueList.add(loginName);
-        if (telEntry != null && telEntry.getPhoneNumber() != null)
-            valueList.add(telEntry.getPhoneNumber());
-
-        UserFormatter userFormatter = new UserFormatter(true);
-
-        Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
-                userFormatter.getFilteredFields(), 0, 1);
-        UserInfo userInfo = itr.hasNext() ? itr.next() : null;
-
-
-        if (userInfo == null)
-            throw new AizouException(ErrorCode.AUTH_ERROR);
-
-        //验证密码
-        if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
-            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
-
-            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-            if (cre == null)
-                throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
-
-            // 机密数据
-            JsonNode creNode = new CredentialFormatter().format(cre);
-            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                info.put(entry.getKey(), entry.getValue());
-            }
-
-            return info;
-        } else
-            throw new AizouException(ErrorCode.AUTH_ERROR);
-    }
-
     /**
-     * 手机号登录
+     * 手机号登录,只支持手机号登录
      *
      * @return
      */
@@ -367,11 +308,47 @@ public class UserCtrl extends Controller {
 
         JsonNode req = request().body().asJson();
         try {
-            String pwd = req.get("pwd").asText();
+            String passwd = req.get("pwd").asText();
             String loginName = req.get("loginName").asText();
 
-            JsonNode result = signinImpl(loginName, pwd);
-            return Utils.createResponse(ErrorCode.NORMAL, result);
+            PhoneEntity telEntry = null;
+            try {
+                telEntry = PhoneParserFactory.newInstance().parse(loginName);
+            } catch (IllegalArgumentException ignore) {
+            }
+
+            ArrayList<Object> valueList = new ArrayList<>();
+            valueList.add(loginName);
+            if (telEntry != null && telEntry.getPhoneNumber() != null)
+                valueList.add(telEntry.getPhoneNumber());
+
+            UserFormatter userFormatter = new UserFormatter(true);
+
+            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
+                    userFormatter.getFilteredFields(), 0, 1);
+            if (!itr.hasNext())
+                throw new AizouException(ErrorCode.AUTH_ERROR);
+            UserInfo userInfo = itr.next();
+
+            //验证密码
+            if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
+                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+
+                Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
+                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
+                if (cre == null)
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+
+                // 机密数据
+                JsonNode creNode = new CredentialFormatter().format(cre);
+                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = it.next();
+                    info.put(entry.getKey(), entry.getValue());
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, info);
+            } else
+                throw new AizouException(ErrorCode.AUTH_ERROR);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
@@ -548,15 +525,6 @@ public class UserCtrl extends Controller {
         return info_url.toString();
     }
 
-    private static JsonNode getUserProfileByIdImpl(Long userId, Long selfId) throws AizouException {
-        UserFormatter formatter = new UserFormatter(selfId != null && userId.equals(selfId));
-        UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
-        if (result == null)
-            return null;
-
-        return formatter.format(result);
-    }
-
     /**
      * 通过id获得用户详细信息。
      *
@@ -570,10 +538,14 @@ public class UserCtrl extends Controller {
             selfId = Long.parseLong(tmp);
 
         try {
-            JsonNode result = getUserProfileByIdImpl(userId, selfId);
+            UserFormatter formatter = new UserFormatter(selfId != null && ((Long) userId).equals(selfId));
+            UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
+            if (result == null)
+                return null;
+            JsonNode node = formatter.format(result);
 
-            if (result != null)
-                return Utils.createResponse(ErrorCode.NORMAL, result);
+            if (node != null)
+                return Utils.createResponse(ErrorCode.NORMAL, node);
             else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         } catch (AizouException e) {
@@ -626,16 +598,18 @@ public class UserCtrl extends Controller {
      * @return
      */
     public static Result editorUserInfo(Long userId) {
+        JsonNode req = request().body().asJson();
+        String tmp = request().getHeader("UserId");
+        Long selfId = null;
+        if (tmp != null)
+            selfId = Long.parseLong(tmp);
+        if (userId == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalide UserId");
+        if (!userId.equals(selfId))
+            return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
+
         try {
-            JsonNode req = request().body().asJson();
-
-            String tmp = request().getHeader("UserId");
-            Integer selfId = null;
-            if (tmp != null)
-                selfId = Integer.parseInt(tmp);
-            if (!userId.equals(selfId))
-                return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
-
+            // TODO 这里的做法是：将用户信息整体读出，修改，然后save。这种做法的效率较低。
             UserInfo userInfor = UserAPI.getUserInfo(userId);
             if (userInfor == null) {
                 return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %d.", userId));
@@ -644,7 +618,7 @@ public class UserCtrl extends Controller {
             if (req.has("nickName")) {
                 String nickName = req.get("nickName").asText();
                 // TODO 跟踪乱码问题
-                LogUtils.info(Plan.class, "NickName in POST:" + nickName);
+//                LogUtils.info(Plan.class, "NickName in POST:" + nickName);
                 //如果昵称不存在
                 if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
                     userInfor.setNickName(nickName);
@@ -667,11 +641,36 @@ public class UserCtrl extends Controller {
                 userInfor.setAvatar(req.get("avatar").asText());
             UserAPI.saveUserInfo(userInfor);
             // TODO 跟踪乱码问题
-            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
-            LogUtils.info(Plan.class, request());
+//            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
+//            LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
-        } catch (NullPointerException | AizouException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
+        }
+    }
+
+    /**
+     * 请求添加好友
+     *
+     * @return
+     */
+    public static Result requestAddContact() {
+        long userId, contactId;
+        String message;
+        try {
+            JsonNode req = request().body().asJson();
+            userId = Integer.parseInt(request().getHeader("UserId"));
+            message = req.get("message").asText();
+            contactId = Integer.parseInt(req.get("userId").asText());
+        } catch (NumberFormatException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+        }
+
+        try {
+            UserAPI.requestAddContact(userId, contactId, message);
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -691,7 +690,7 @@ public class UserCtrl extends Controller {
 
         try {
             UserAPI.addContact(userId, contactId);
-            return Utils.createResponse(ErrorCode.NORMAL, "");
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
@@ -759,9 +758,8 @@ public class UserCtrl extends Controller {
     public static Result getUsersByEasemob() {
         JsonNode req = request().body().asJson();
         JsonNode emList;
-        List<String> emNameList = new ArrayList();
+        List<String> emNameList = new ArrayList<>();
         try {
-
             emList = req.get("easemob");
             if (null != emList && emList.isArray() && emList.findValues("easemob") != null) {
                 for (JsonNode node : emList) {
@@ -771,13 +769,13 @@ public class UserCtrl extends Controller {
             List<String> fieldList = Arrays.asList(UserInfo.fnUserId, UserInfo.fnNickName, UserInfo.fnAvatar,
                     UserInfo.fnGender, UserInfo.fnEasemobUser, UserInfo.fnSignature);
             List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
-            List<JsonNode> nodelist = new ArrayList<>();
+            List<JsonNode> nodeList = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new UserFormatter(false).format(userInfo));
+                nodeList.add(new UserFormatter(false).format(userInfo));
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodelist));
-        } catch (NumberFormatException | NullPointerException | AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
@@ -831,6 +829,8 @@ public class UserCtrl extends Controller {
         }
         return false;
     }
+
+
 //    /**
 //     * 添加用户的备注信息
 //     *

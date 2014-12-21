@@ -11,7 +11,6 @@ import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.misc.ImageItem;
-import models.poi.AbstractPOI;
 import models.user.Favorite;
 
 import java.util.*;
@@ -23,7 +22,7 @@ import java.util.*;
  */
 public class SelfFavoriteFormatter extends TaoziBaseFormatter {
 
-    public SelfFavoriteFormatter() {
+    public SelfFavoriteFormatter(String type) {
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
                 Favorite.fnZhName,
@@ -37,6 +36,16 @@ public class SelfFavoriteFormatter extends TaoziBaseFormatter {
                 Favorite.fnDesc,
                 Favorite.fnLocality
         );
+
+        if (type.equals("vs") || type.equals("locality")) {
+            Collections.addAll(filteredFields, Favorite.fnTimeCostDesc);
+        } else if (type.equals("restaurant") || type.equals("hotel")) {
+            Collections.addAll(filteredFields, Favorite.fnTimeCostDesc, Favorite.fnRating,
+                    Favorite.fnAddress,Favorite.fnPriceDesc,Favorite.fnTelephone);
+        } else if (type.equals("shopping")) {
+            Collections.addAll(filteredFields, Favorite.fnRating);
+        }
+
     }
 
     @Override
