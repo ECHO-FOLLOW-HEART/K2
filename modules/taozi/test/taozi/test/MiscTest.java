@@ -1,14 +1,24 @@
 package taozi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import controllers.taozi.MiscCtrl;
+import controllers.taozi.routes;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.BeforeClass;
+import org.junit.Test;
+import play.Configuration;
+import play.GlobalSettings;
+import play.api.mvc.HandlerRef;
 import play.libs.Json;
 import play.mvc.Result;
+import play.test.FakeApplication;
+import play.test.FakeRequest;
 
-import controllers.taozi.MiscCtrl;
-import org.junit.*;
-
+import java.io.File;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 
@@ -65,7 +75,7 @@ public class MiscTest extends AizouTest{
         // The searchResult should have loc, shopping, hotel and restaurant information
         //      should not have vs information
         JSONObject searchResult = result.getJSONObject("result");
-        assertThat(searchResult.has("loc")).isTrue();
+        assertThat(searchResult.has("locality")).isTrue();
         assertThat(searchResult.has("shopping")).isTrue();
         assertThat(searchResult.has("hotel")).isTrue();
         assertThat(searchResult.has("restaurant")).isTrue();
@@ -78,11 +88,11 @@ public class MiscTest extends AizouTest{
     @Test
     public void testSuggestions() throws Exception {
         Method method = MiscCtrl.class.getDeclaredMethod("getSuggestions",
-                String.class, boolean.class, boolean.class, boolean.class, boolean.class, int.class);
+                String.class, boolean.class, boolean.class, boolean.class, boolean.class, boolean.class, int.class);
         method.setAccessible(true);
         int pageSize = 3;
         Result res = (Result) method.invoke(MiscCtrl.class,
-                "北", true, false, false, false, pageSize);
+                "北", true, false,  false, false, false, pageSize);
         JSONObject result = new JSONObject(contentAsString(res));
 
         // The return code of result should be 0
@@ -90,7 +100,7 @@ public class MiscTest extends AizouTest{
 
         // The size of result should be less or equal than pageSize
         JSONObject resultList = result.getJSONObject("result");
-        JSONArray loc = resultList.getJSONArray("loc");
+        JSONArray loc = resultList.getJSONArray("locality");
         assertThat(loc.length()).isLessThanOrEqualTo(pageSize);
         assertThat(loc.length()).isGreaterThan(0);
 
@@ -162,21 +172,24 @@ public class MiscTest extends AizouTest{
      */
     @Test
     public void testPutPolicy() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("putPolicy", String.class);
-        method.setAccessible(true);
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.MiscCtrl.putPolicy("portrait");
+                FakeRequest req = fakeRequest(routes.MiscCtrl.putPolicy("portrait"));
+                req.withHeader("UserId", "123456");
+                Result res = callAction(handler, req);
+                JsonNode response = Json.parse(contentAsString(res));
 
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", "123456");
-        Result res = (Result) req.apply(method, MiscCtrl.class, "portrait");
-        JsonNode response = Json.parse(contentAsString(res));
+                // The response code should be zero
+                assertThat(response.get("code").asInt()).isEqualTo(0);
 
-        // The response code should be zero
-        assertThat(response.get("code").asInt()).isEqualTo(0);
-
-        // The uploadToken and key should not be empty
-        JsonNode result = response.get("result");
-        assertThat(result.get("uploadToken").asText()).isNotEmpty();
-        assertThat(result.get("key").asText()).isNotEmpty();
+                // The uploadToken and key should not be empty
+                JsonNode result = response.get("result");
+                assertThat(result.get("uploadToken").asText()).isNotEmpty();
+                assertThat(result.get("key").asText()).isNotEmpty();
+            }
+        });
     }
 
     /**
@@ -184,24 +197,26 @@ public class MiscTest extends AizouTest{
      */
     @Test
     public void testGetCallBack() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("getCallback");
-        method.setAccessible(true);
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.MiscCtrl.getCallback();
+                FakeRequest req = fakeRequest(routes.MiscCtrl.getCallback());
+                HashMap<String, String> postData = new HashMap<String, String>();
+                postData.put("userId", "123456");
+                postData.put("url", "test.lvxingpai.cn");
+                req.withFormUrlEncodedBody(postData);
+                Result response = callAction(handler, req);
+                JsonNode result = Json.parse(contentAsString(response));
 
-        MockRequest req = new MockRequest();
-        HashMap<String, String[]> body = new HashMap<>();
-        body.put("userId", new String[]{"123456"});
-        body.put("url", new String[]{"test.lvxingpai.cn"});
-        req.setRequestMap(body);
+                // The field 'success' of result should be 'true'
+                assertThat(result.get("success").asBoolean()).isTrue();
 
-        Result response = (Result)req.apply(method, MiscCtrl.class);
-        JsonNode result = Json.parse(contentAsString(response));
-
-        // The field 'success' of result should be 'true'
-        assertThat(result.get("success").asBoolean()).isTrue();
-
-        // The field 'userId' and 'url' should keep unchanged
-        assertThat(result.get("userId").asText()).isEqualTo("123456");
-        assertThat(result.get("url").asText()).isEqualTo("test.lvxingpai.cn");
+                // The field 'userId' and 'url' should keep unchanged
+                assertThat(result.get("userId").asText()).isEqualTo("123456");
+                assertThat(result.get("url").asText()).isEqualTo("test.lvxingpai.cn");
+            }
+        });
     }
 
     /**
@@ -209,16 +224,14 @@ public class MiscTest extends AizouTest{
      */
     @Test
     public void testAddFavorite_Fail() throws  Exception{
-        Method method = MiscCtrl.class.getDeclaredMethod("addFavorite");
-        method.setAccessible(true);
-
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", "100084");
-        HashMap<String, String> body = new HashMap<>();
-        body.put("type", "hotel");
-        body.put("itemId", "fake2342");
-        req.setRequestJson(body);
-        Result res = (Result) req.apply(method, MiscCtrl.class);
+        HandlerRef<?> handler = routes.ref.MiscCtrl.addFavorite();
+        FakeRequest req = fakeRequest(routes.MiscCtrl.addFavorite());
+        req.withHeader("UserId", "100084");
+        ObjectNode postData = Json.newObject();
+        postData.put("type", "hotel");
+        postData.put("itemId", "fakse2342");
+        req.withJsonBody(postData);
+        Result res = callAction(handler, req);
         JsonNode response = Json.parse(contentAsString(res));
 
         // The response code should be 100 because invalid objectId
@@ -230,21 +243,23 @@ public class MiscTest extends AizouTest{
      */
     @Test
     public void testAddFavorite_Succ() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("addFavorite");
-        method.setAccessible(true);
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.MiscCtrl.addFavorite();
+                FakeRequest req = fakeRequest(routes.MiscCtrl.addFavorite());
+                req.withHeader("UserId", "100084");
+                ObjectNode postData = Json.newObject();
+                postData.put("type", "hotel");
+                postData.put("itemId", "53b053c110114e050b1d24b6");
+                req.withJsonBody(postData);
+                Result res = callAction(handler, req);
+                JsonNode response = Json.parse(contentAsString(res));
 
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", "100084");
-        HashMap<String, String> body = new HashMap<>();
-        body.put("type", "hotel");
-        body.put("itemId", "53b053c110114e050b1d24b6");
-        req.setRequestJson(body);
-        Result res = (Result) req.apply(method, MiscCtrl.class);
-        JsonNode response = Json.parse(contentAsString(res));
-
-        // The response code should be 402 because Favorite item has existed
-        assertThat(response.get("code").asInt()).isEqualTo(402);
-
+                // The response code should be 402 because Favorite item has existed
+                assertThat(response.get("code").asInt()).isEqualTo(402);
+            }
+        });
     }
 
     /**
@@ -252,18 +267,19 @@ public class MiscTest extends AizouTest{
      */
     @Test
     public void testDelFavorite() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("delFavorite", String.class);
-        method.setAccessible(true);
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handlerRef = routes.ref.MiscCtrl.delFavorite("112233");
+                FakeRequest req = fakeRequest(routes.MiscCtrl.delFavorite("112233"));
+                req.withHeader("UserId", "100032");
+                Result response = callAction(handlerRef, req);
+                JsonNode result = Json.parse(contentAsString(response));
 
-        String userId = "100032";
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", userId);
-
-        Result response = (Result) req.apply(method, MiscCtrl.class, "112233");
-        JsonNode result = Json.parse(contentAsString(response));
-
-        // The result code should be 100 because invalid ObjectId
-        assertThat(result.get("code").asInt()).isEqualTo(100);
+                // The result code should be 100 because invalid ObjectId
+                assertThat(result.get("code").asInt()).isEqualTo(100);
+            }
+        });
     }
 
     /**
@@ -271,17 +287,13 @@ public class MiscTest extends AizouTest{
      */
     @Test
     public void testGetFavorite() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("getFavorite",
-                String.class, int.class, int.class);
-        method.setAccessible(true);
-
         String userId = "100032";
         int page = 0;
         int pageSize = 5;
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", userId);
-
-        Result response = (Result) req.apply(method, MiscCtrl.class, "hotel", page, pageSize);
+        HandlerRef<?> handlerRef = routes.ref.MiscCtrl.getFavorite("hotel", page, pageSize);
+        FakeRequest req = fakeRequest(routes.MiscCtrl.getFavorite("hotel", page, pageSize));
+        req.withHeader("UserId", userId);
+        Result response = callAction(handlerRef, req);
         JsonNode result = Json.parse(contentAsString(response));
 
         // The response code should be zero

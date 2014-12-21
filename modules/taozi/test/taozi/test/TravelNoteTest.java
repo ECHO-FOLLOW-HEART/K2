@@ -1,18 +1,13 @@
 package taozi.test;
 
-import controllers.taozi.TravelNoteCtrl;
-import models.misc.TravelNote;
-import org.json.JSONArray;
-import org.json.JSONObject;
-import  play.mvc.Result;
-
-import controllers.taozi.MiscCtrl;
+import com.fasterxml.jackson.databind.JsonNode;
+import controllers.taozi.routes;
 import org.junit.Test;
-
-import java.lang.reflect.Method;
+import play.libs.Json;
+import play.mvc.HandlerRef;
+import play.mvc.Result;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.mvc.Http.Status.METHOD_NOT_ALLOWED;
 import static play.test.Helpers.*;
 
 /**
@@ -24,16 +19,19 @@ public class TravelNoteTest extends AizouTest {
      */
     @Test
     public void testSearchNotes() throws Exception {
-        Method method = TravelNoteCtrl.class.getDeclaredMethod("searchNotes",
-                String.class, String.class, int.class, int.class);
-        method.setAccessible(true);
-        int page = 0;
-        int pageSize = 3;
-        Result res = (Result) method.invoke(TravelNoteCtrl.class,
-                "北京", "", page, pageSize);
-        JSONObject response = new JSONObject(contentAsString(res));
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                int page = 0;
+                int pageSize = 3;
+                HandlerRef handlerRef = routes.ref.TravelNoteCtrl.searchNotes("北京", "", page, pageSize);
+                Result res = callAction(handlerRef);
+                JsonNode response = Json.parse(contentAsString(res));
 
-        // The response code should be zero
-        assertThat(response.getInt("code")).isEqualTo(0);
+                // The response code should be zero
+                assertThat(response.get("code").asInt()).isEqualTo(0);
+            }
+        });
+
     }
 }

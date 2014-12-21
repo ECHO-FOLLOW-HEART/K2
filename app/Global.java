@@ -1,21 +1,14 @@
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import play.Application;
 import play.GlobalSettings;
-import play.api.libs.concurrent.Promise;
 import play.api.mvc.EssentialFilter;
 import play.filters.gzip.GzipFilter;
-import play.libs.F;
 import play.mvc.Action;
 import play.mvc.Http;
-import play.mvc.Result;
 
 import java.lang.reflect.Method;
 import java.util.TimeZone;
-
-import static play.mvc.Results.ok;
 
 public class Global extends GlobalSettings {
     @SuppressWarnings("unchecked")
@@ -40,20 +33,19 @@ public class Global extends GlobalSettings {
                 int ver = Integer.valueOf(verStr[0]) * 10000 + Integer.valueOf(verStr[1]) * 100 + Integer.valueOf(verStr[2]);
                 request.headers().put("verIndex", new String[]{String.valueOf(ver)});
             }
-            if (true) {
-                logger.debug(request.host());
-                logger.debug(request.path());
-                logger.debug(request.method());
-                logger.debug(request.getHeader("timestamp"));
+            String userId = request.getHeader("UserId");
+            if (userId != null && !userId.isEmpty()) {
                 String rightSignature = Crypto.getSignature(request, "fake12345678");
                 String gettedSignature = request.getHeader("Authorization");
-                logger.debug("right Signature: "+rightSignature);
-                logger.debug("get   Signature: "+gettedSignature);
+                logger.info("right Signature: "+rightSignature);
+                logger.info("get   Signature: "+gettedSignature);
                 if (!rightSignature.equals(gettedSignature)) {
-                    logger.fatal("Signature is invalid");
+                    logger.fatal("Signature is invalid - rejected");
                 } else {
-                    logger.info("Signature is valid");
+                    logger.info("Signature is valid - accepted");
                 }
+            } else {
+                logger.debug("Normal request - accepted");
             }
         } catch (Exception e) {
         }

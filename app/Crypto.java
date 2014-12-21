@@ -23,11 +23,11 @@ public class Crypto {
     private static final String UTF8 = "UTF-8";
     private static final String HAMC_SHA256 = "HmacSHA256";
     private static final String LINE_BREAK = "\n";
-    private static final String TIMESTAMP = "timestamp";
-    private static final String HEAD = "TAOZI-1-HMAC-SHA256";
     private static final String SHA256 = "SHA-256";
     private static final String TAOZI = "TAOZI";
     private static final String IGNORANCE = "Authorization";
+    private static final String TIMESTAMP = "timestamp";
+    private static final String HEAD = "TAOZI-1-HMAC-SHA256";
     private static Log logger = LogFactory.getLog("crypto.inner.debug");
 
     /**
@@ -103,23 +103,23 @@ public class Crypto {
      * @param request HttpRequest
      * @return String
      */
-    public static String getStringToSign(Http.Request request) {
+    private static String getStringToSign(Http.Request request) {
         String ret = null;
         try {
             String timeStamp = request.getHeader(TIMESTAMP);
-//            logger.info("timeStamp: "+timeStamp);
+            logger.debug("timeStamp: "+timeStamp);
             String scope = getScope(request);
-//            logger.info("scope: "+scope);
+            logger.debug("scope: "+scope);
             String httpMethod = getHttpMethod(request);
-//            logger.info("method: "+httpMethod);
+            logger.debug("method: "+httpMethod);
             String canonicalURI = getCanonicalURI(request);
-//            logger.info("canonicalURI: "+canonicalURI);
+            logger.debug("canonicalURI: "+canonicalURI);
             String canonicalQueryString = getCanonicalQueryString(request);
-//            logger.info("canonicalQueryString: "+canonicalQueryString);
+            logger.debug("canonicalQueryString: "+canonicalQueryString);
             String canonicalHeader = getCanonicalHeader(request);
-//            logger.info("canonicalHeader: "+canonicalHeader);
+            logger.debug("canonicalHeader: "+canonicalHeader);
             String hashedPayload = getHashedPayload(request);
-//            logger.info("hashedPayload: "+hashedPayload);
+            logger.debug("hashedPayload: "+hashedPayload);
             
             String tmp = httpMethod + LINE_BREAK
                     + canonicalURI + LINE_BREAK
