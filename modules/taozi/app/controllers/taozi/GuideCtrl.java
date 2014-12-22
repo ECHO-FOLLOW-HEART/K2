@@ -272,7 +272,10 @@ public class GuideCtrl extends Controller {
 
             GuideAPI.saveGuideByUser(guide, selfId);
 
-            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+            ObjectNode result = Json.newObject();
+
+            result.put("id", guide.getId().toString());
+            return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
