@@ -56,6 +56,20 @@ public class PlanCtrl extends Controller {
     public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, String uid,
                                               String trafficFlag, String hotelFlag, String restaurantFlag) {
         try {
+            // 取得交通预算的基准值
+            Configuration config = Configuration.root();
+            Map budget = (Map) config.getObject("budget");
+            Double trafficBudgetDefault = 0d;
+            int stayBudgetDefault = 0;
+            try {
+                if (budget != null) {
+                    trafficBudgetDefault = Double.valueOf(budget.get("trafficBudgetDefault").toString());
+                    stayBudgetDefault = Integer.valueOf(budget.get("stayBudgetDefault").toString());
+                }
+            } catch (ClassCastException e) {
+                trafficBudgetDefault = 0d;
+            }
+
             Http.Request req = request();
             if (fromLocId.equals("")) {
                 Plan plan = PlanAPI.getPlan(planId, false);
@@ -76,19 +90,6 @@ public class PlanCtrl extends Controller {
                 backLocId = tmp.toString();
 
             UgcPlan plan = WebPlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req, trafficFlag, hotelFlag, restaurantFlag);
-
-            Configuration config = Configuration.root();
-            Map budget = (Map) config.getObject("budget");
-            Double trafficBudgetDefault = 0d;
-            int stayBudgetDefault = 0;
-            try {
-                if (budget != null) {
-                    trafficBudgetDefault = Double.valueOf(budget.get("trafficBudgetDefault").toString());
-                    stayBudgetDefault = Integer.valueOf(budget.get("stayBudgetDefault").toString());
-                }
-            } catch (ClassCastException e) {
-                trafficBudgetDefault = 0d;
-            }
 
             Double trafficBudgetT;
             List<SimpleRef> targets = plan.getTargets();
@@ -501,7 +502,6 @@ public class PlanCtrl extends Controller {
         String updateField = null;
         String ugcPlanId = null;
 
-        String abc = request().getQueryString("uid1");
         String uid = request().getQueryString("uid");
         if (!data.has("uid") && uid != null)
             data.put("uid", uid);
@@ -604,7 +604,7 @@ public class PlanCtrl extends Controller {
             JsonNode date = tempDay.get("date");
             //设置Date
             planDayEntry.date = timeFmt.parse(date.asText());
-            planItemList = new ArrayList<PlanItem>();
+            planItemList = new ArrayList<>();
 
             for (JsonNode item : actv) {
                 //新建PlanItem
@@ -750,17 +750,17 @@ public class PlanCtrl extends Controller {
 //                }
 //            });
 
-            Collections.sort(planList, new Comparator<Plan>() {
-                @Override
-                public int compare(Plan o1, Plan o2) {
-                    if (o1.getForkedCnt() == null)
-                        o1.setForkedCnt(0);
-                    if (o2.getForkedCnt() == null)
-                        o2.setForkedCnt(0);
-                    // 按照ForkedCnt的逆序排序
-                    return o1.getForkedCnt() - o2.getForkedCnt() > 0 ? -1 : 1;
-                }
-            });
+//            Collections.sort(planList, new Comparator<Plan>() {
+//                @Override
+//                public int compare(Plan o1, Plan o2) {
+//                    if (o1.getForkedCnt() == null)
+//                        o1.setForkedCnt(0);
+//                    if (o2.getForkedCnt() == null)
+//                        o2.setForkedCnt(0);
+//                    // 按照ForkedCnt的逆序排序
+//                    return o1.getForkedCnt() - o2.getForkedCnt() > 0 ? -1 : 1;
+//                }
+//            });
 
             for (Plan plan : planList) {
                 //加入交通预算,住宿预算

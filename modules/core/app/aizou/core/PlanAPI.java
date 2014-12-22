@@ -30,7 +30,7 @@ import java.util.*;
  */
 public class PlanAPI {
 
-    private static List<Plan> planExploreHelper(ObjectId targetId, boolean isLoc, String tag, int minDays, int maxDays,
+    private static List<Plan> planExploreHelper(ObjectId targetId, boolean isLoc, String tag, String sortField, String sort, int minDays, int maxDays,
                                                 int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<Plan> query = ds.createQuery(Plan.class);
@@ -48,7 +48,7 @@ public class PlanAPI {
                 query.criteria(AbstractPlan.FD_DAYS).lessThanOrEq(maxDays));
 
         query.field(AizouBaseEntity.FD_ENABLED).equal(Boolean.TRUE);
-        query.order("-forkedCnt," + AbstractPlan.FD_MANUAL_PRIORITY).offset(page * pageSize).limit(pageSize);
+        query.order(String.format("%s%s", sort.equals("asc") ? "" : "-", sortField)).offset(page * pageSize).limit(pageSize);
 
         return query.asList();
     }
@@ -68,9 +68,9 @@ public class PlanAPI {
     public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, int minDays, int maxDays, int page, int pageSize, String sortField) throws AizouException {
         List<Plan> planList = null;
         if (locId != null)
-            planList = planExploreHelper(locId, true, tag, minDays, maxDays, page, pageSize);
+            planList = planExploreHelper(locId, true, tag, sortField, sort, minDays, maxDays, page, pageSize);
         else if (poiId != null)
-            planList = planExploreHelper(poiId, false, tag, minDays, maxDays, page, pageSize);
+            planList = planExploreHelper(poiId, false, tag, sortField, sort, minDays, maxDays, page, pageSize);
 
         if (planList != null && !planList.isEmpty())
             return planList.iterator();
@@ -78,7 +78,7 @@ public class PlanAPI {
         // 无法找到路线，准备模糊匹配
         if (poiId != null) {
             AbstractPOI vs = PoiAPI.getPOIInfo(poiId, PoiAPI.POIType.VIEW_SPOT, Arrays.asList(AbstractPOI.FD_LOCALITY));
-            if (vs!=null)
+            if (vs != null)
                 locId = vs.getLocality().getId();
         }
 
@@ -90,7 +90,7 @@ public class PlanAPI {
                 if (locList != null && !locList.isEmpty()) {
                     for (int idx = locList.size() - 1; idx >= 0; idx--) {
                         ObjectId itrLocId = locList.get(idx).getId();
-                        planList = planExploreHelper(itrLocId, true, tag, minDays, maxDays, page, pageSize);
+                        planList = planExploreHelper(itrLocId, true, tag, sortField, sort, minDays, maxDays, page, pageSize);
                         if (!planList.isEmpty())
                             break;
                     }

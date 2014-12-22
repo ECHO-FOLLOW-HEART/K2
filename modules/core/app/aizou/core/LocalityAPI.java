@@ -5,6 +5,7 @@ import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
+import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -108,7 +109,7 @@ public class LocalityAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field(Locality.FD_ALIAS)
                 .hasThisOne(Pattern.compile("^" + searchWord));
-//        query.field("relPlanCnt").greaterThan(0);
+        query.order(String.format("-%s, -%s", AbstractPOI.fnHotness, AbstractPOI.fnRating));
         return query.retrievedFields(true, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnAbroad, Locality.fnSuperAdm)
                 .limit(pageSize).iterator();
     }

@@ -10,7 +10,6 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
-import utils.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -66,6 +65,9 @@ public class PoiAPI {
                 break;
             case RESTAURANT:
                 poiClass = Restaurant.class;
+                break;
+            case SHOPPING:
+                poiClass = Shopping.class;
                 break;
         }
         if (poiClass == null)
@@ -822,7 +824,7 @@ public class PoiAPI {
                 new ObjectId("5434d71010114e684bb1b4fe"),   // 埃及
                 new ObjectId("5434d71310114e684bb1b513"),   // 美国
                 new ObjectId("5434d71210114e684bb1b512")    // 加拿大
-                );
+        );
 
         Map<String, List<Locality>> results = new HashMap<>();
         for (ObjectId oid : countryList) {
