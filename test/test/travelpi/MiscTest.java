@@ -77,7 +77,7 @@ public class MiscTest extends TravelPiTest {
                 node = node.get("result");
 
                 JsonNode locListNode = node.get("loc");
-                assertThat(locListNode.isArray());
+                assertThat(locListNode.isArray()).isTrue();
                 assertThat(locListNode.size()).isGreaterThanOrEqualTo(1);
                 for (JsonNode locNode : locListNode) {
                     checkEntry(locNode);
@@ -86,6 +86,8 @@ public class MiscTest extends TravelPiTest {
                 }
 
                 JsonNode vsListNode = node.get("vs");
+                assertThat(vsListNode.isArray()).isTrue();
+                assertThat(vsListNode.size()).isGreaterThanOrEqualTo(0);
                 for (JsonNode vsNode : vsListNode) {
                     assertText(vsNode, new String[]{"_id", "name", "zhName"}, false);
                     assertText(vsNode, "timeCost", true);
@@ -99,6 +101,21 @@ public class MiscTest extends TravelPiTest {
                     for (String key : new String[]{"desc", "traffic", "details", "tips"})
                         assertThat(flags.get(key).asDouble()).isGreaterThanOrEqualTo(0);
                 }
+            }
+        });
+    }
+
+    /**
+     * 用户注册
+     */
+    @Test
+    public void registerCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.MiscCtrl.updateUserInfo();
+                JsonNode results = Json.parse(contentAsString(callAction(handler)));
+                assertThat(results.get("code").asInt()).isEqualTo(0);
             }
         });
     }
