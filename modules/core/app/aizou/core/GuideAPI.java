@@ -5,9 +5,7 @@ import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.guide.*;
-import models.poi.AbstractPOI;
-import models.poi.Restaurant;
-import models.poi.Shopping;
+import models.poi.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -184,6 +182,7 @@ public class GuideAPI {
         if (query.iterator().hasNext()) {
             UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
             if (guide.itinerary != null) {
+                fillPOIType(guide.itinerary);
                 update.set(AbstractGuide.fnItinerary, guide.itinerary);
                 update.set(Guide.fnItineraryDays, guide.itinerary == null ? 0 : guide.itinerary.size());
             }
@@ -196,6 +195,28 @@ public class GuideAPI {
             update.set(Guide.fnUpdateTime, System.currentTimeMillis());
 
             ds.update(query, update);
+        } else
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("User %s has no guide which id is %s.", userId, guideId));
+
+    }
+
+    /**
+     * 判断并添加poi类型
+     *
+     * @param itinerary
+     */
+    private static void fillPOIType(List<ItinerItem> itinerary) {
+        AbstractPOI poi;
+        for (ItinerItem item : itinerary) {
+            poi = item.poi;
+            if (poi instanceof ViewSpot)
+                item.poi.type = "vs";
+            else if (poi instanceof Restaurant)
+                item.poi.type = "restaurant";
+            else if (poi instanceof Shopping)
+                item.poi.type = "shopping";
+            else if (poi instanceof Hotel)
+                item.poi.type = "hotel";
         }
     }
 
@@ -229,6 +250,19 @@ public class GuideAPI {
         uo.set(Guide.fnTitle, title);
         uo.set(Guide.fnUpdateTime, System.currentTimeMillis());
         ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
+    }
+
+    /**
+     * 保存攻略
+     *
+     * @throws exception.AizouException
+     */
+    public static void saveGuideByUser(Guide guide, Integer userId) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        guide.setId(new ObjectId());
+        guide.userId = userId;
+        guide.updateTime = System.currentTimeMillis();
+        ds.save(guide);
     }
 
     /**
