@@ -24,6 +24,18 @@ public class TravelPiTest {
         assertText(node, new String[]{field}, allowEmpty);
     }
 
+    /**
+     * 断言某个节点是字符串列表
+     */
+    protected void assertText(JsonNode node, boolean allowEmpty) {
+        assertThat(node.isArray()).isTrue();
+        for (JsonNode theNode : node) {
+            assertThat(theNode.isTextual()).isTrue();
+            if (!allowEmpty)
+                assertThat(theNode.asText().trim().isEmpty()).isFalse();
+        }
+    }
+
     protected void assertText(JsonNode node, String[] fields, boolean allowEmpty) {
         for (String key : fields) {
             JsonNode txtNode = node.get(key);
