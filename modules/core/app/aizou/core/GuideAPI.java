@@ -184,8 +184,9 @@ public class GuideAPI {
             if (guide.itinerary != null) {
                 fillPOIType(guide.itinerary);
                 update.set(AbstractGuide.fnItinerary, guide.itinerary);
-                update.set(Guide.fnItineraryDays, guide.itinerary == null ? 0 : guide.itinerary.size());
             }
+            if (guide.itineraryDays != null)
+                update.set(Guide.fnItineraryDays, guide.itineraryDays);
             if (guide.shopping != null)
                 update.set(AbstractGuide.fnShopping, guide.shopping);
             if (guide.restaurant != null)
