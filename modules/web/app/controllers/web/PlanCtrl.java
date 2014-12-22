@@ -6,8 +6,8 @@ import aizou.core.TrafficAPI;
 import aizou.core.WebPlanAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import exception.ErrorCode;
 import exception.AizouException;
+import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.SimpleRef;
@@ -75,7 +75,7 @@ public class PlanCtrl extends Controller {
             if (tmp != null)
                 backLocId = tmp.toString();
 
-            UgcPlan plan = WebPlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req,trafficFlag,hotelFlag,restaurantFlag);
+            UgcPlan plan = WebPlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req, trafficFlag, hotelFlag, restaurantFlag);
 
             Configuration config = Configuration.root();
             Map budget = (Map) config.getObject("budget");
@@ -730,23 +730,35 @@ public class PlanCtrl extends Controller {
                 planList.add(it.next());
 
             // 有tag的排在前面
+//            Collections.sort(planList, new Comparator<Plan>() {
+//                @Override
+//                public int compare(Plan o1, Plan o2) {
+//                    if (o1.getManualPriority() == null)
+//                        o1.setManualPriority(0);
+//                    if (o2.getManualPriority() == null)
+//                        o2.setManualPriority(0);
+//
+//                    if (o1.getManualPriority() > o2.getManualPriority())
+//                        return 1;
+//                    else if (o1.getManualPriority() < o2.getManualPriority())
+//                        return -1;
+//                    else {
+//                        int tag1 = o1.getLxpTag() != null ? o1.getLxpTag().size() : 0;
+//                        int tag2 = o2.getLxpTag() != null ? o2.getLxpTag().size() : 0;
+//                        return tag2 - tag1;
+//                    }
+//                }
+//            });
+
             Collections.sort(planList, new Comparator<Plan>() {
                 @Override
                 public int compare(Plan o1, Plan o2) {
-                    if (o1.getManualPriority() == null)
-                        o1.setManualPriority(0);
-                    if (o2.getManualPriority() == null)
-                        o2.setManualPriority(0);
-
-                    if (o1.getManualPriority() > o2.getManualPriority())
-                        return 1;
-                    else if (o1.getManualPriority() < o2.getManualPriority())
-                        return -1;
-                    else {
-                        int tag1 = o1.getLxpTag() != null ? o1.getLxpTag().size() : 0;
-                        int tag2 = o2.getLxpTag() != null ? o2.getLxpTag().size() : 0;
-                        return tag2 - tag1;
-                    }
+                    if (o1.getForkedCnt() == null)
+                        o1.setForkedCnt(0);
+                    if (o2.getForkedCnt() == null)
+                        o2.setForkedCnt(0);
+                    // 按照ForkedCnt的逆序排序
+                    return o1.getForkedCnt() - o2.getForkedCnt() > 0 ? -1 : 1;
                 }
             });
 
