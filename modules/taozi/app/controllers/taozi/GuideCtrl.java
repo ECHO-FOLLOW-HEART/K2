@@ -14,8 +14,6 @@ import models.guide.AbstractGuide;
 import models.guide.Guide;
 import models.guide.LocalityGuideInfo;
 import models.misc.ImageItem;
-import models.poi.Dinning;
-import models.poi.Shopping;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -223,41 +221,9 @@ public class GuideCtrl extends Controller {
             JsonNode req = request().body().asJson();
             String title = req.get("title").asText();
             GuideAPI.saveGuideTitle(new ObjectId(id), title);
-            return Utils.createResponse(ErrorCode.NORMAL, "success");
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
-        }
-
-    }
-
-    /**
-     * @param node
-     * @param typeInfo
-     * @return
-     * @throws NullPointerException
-     * @throws exception.AizouException
-     */
-    public static Object getShoppingFromNode(JsonNode node, String typeInfo) throws NullPointerException, AizouException {
-        // TODO ObjectId可能不合法
-        switch (typeInfo) {
-            case "shopping":
-                Shopping shopping = new Shopping();
-                shopping.setId(new ObjectId(node.get("_id").asText()));
-                shopping.name = node.get("zhName").asText();
-                shopping.enName = node.get("enName").asText();
-                shopping.price = node.get("price").asDouble();
-                shopping.rating = node.get("rating").asDouble();
-                return shopping;
-            case "dinning":
-                Dinning dinning = new Dinning();
-                dinning.setId(new ObjectId(node.get("_id").asText()));
-                dinning.name = node.get("zhName").asText();
-                dinning.enName = node.get("enName").asText();
-                dinning.price = node.get("price").asDouble();
-                dinning.rating = node.get("rating").asDouble();
-                return dinning;
-            default:
-                throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
 
     }
@@ -290,4 +256,25 @@ public class GuideCtrl extends Controller {
 
     }
 
+    /**
+     * 复制攻略
+     *
+     * @param guideId
+     * @return
+     */
+    public static Result copyGuide(String guideId) {
+        try {
+            Integer selfId = Integer.parseInt(request().getHeader("UserId"));
+
+            ObjectId oGuideId = new ObjectId(guideId);
+
+            Guide guide = GuideAPI.getGuideById(oGuideId, null);
+
+            GuideAPI.saveGuideByUser(guide, selfId);
+
+            return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+        } catch (AizouException | NullPointerException | IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        }
+    }
 }

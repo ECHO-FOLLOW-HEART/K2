@@ -98,6 +98,8 @@ GET           /poi/nearby                                        controllers.tao
 #----------攻略接口----------
 #根据目的地获得攻略
 POST          /create-guide                                      controllers.taozi.GuideCtrl.createGuide()
+#复制攻略
+GET           /copy-guide/:id                                    controllers.taozi.GuideCtrl.copyGuide(id: String)
 #获得攻略列表
 GET           /guides                                            controllers.taozi.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
 #更新行程单
