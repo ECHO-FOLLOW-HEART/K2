@@ -341,9 +341,9 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
         builder.add("title", (title != null && !title.isEmpty()) ? title : "");
         if (days != null)
             builder.add("days", days);
-        if (null != description && null != description.desc) {
-            builder.add("desc", description.desc);
-        }
+
+        builder.add("desc", desc == null ? "" : desc);
+
         builder.add("ratings", ratings != null ? ratings.toJson() : Json.newObject());
 
 
