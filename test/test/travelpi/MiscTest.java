@@ -6,6 +6,7 @@ import org.junit.Test;
 import play.api.mvc.HandlerRef;
 import play.libs.Json;
 import play.mvc.Result;
+import play.test.FakeRequest;
 
 import java.util.regex.Pattern;
 
@@ -33,6 +34,24 @@ public class MiscTest extends TravelPiTest {
                 assertThat(node.get("code").asInt()).isEqualTo(0);
                 String imageUrl = node.get("result").get("image").asText();
                 assertThat(Pattern.compile("http://lxp-assets\\.qiniudn\\.com/app/").matcher(imageUrl).find()).isTrue();
+            }
+        });
+    }
+
+    /**
+     * 用户反馈
+     */
+    @Test
+    public void feedbackCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String uid = "53e0a2a80cf2ed3b7eb71057";
+                FakeRequest req = fakeRequest(routes.MiscCtrl.postFeedback());
+                req.withJsonBody(Json.parse(String.format("{\"uid\":\"%s\", \"body\":\"Test\"}", uid)));
+                HandlerRef<?> handler = routes.ref.MiscCtrl.postFeedback();
+                JsonNode results = Json.parse(contentAsString(callAction(handler, req)));
+                assertThat(results.get("code").asInt()).isEqualTo(0);
             }
         });
     }
