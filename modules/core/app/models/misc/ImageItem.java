@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * 表示一张图像。
- * <p/>
+ * <p>
  * Created by zephyre on 8/14/14.
  */
 @JsonFilter("imageItemFilter")
@@ -66,6 +66,12 @@ public class ImageItem extends AizouBaseItem {
      * 图像文件的大小
      */
     private Integer size;
+
+    public ImageItem() {
+        if (key == null && url != null) {
+            key = url.substring(39, url.length() - 1);
+        }
+    }
 
     /**
      * 根据bucket和key，生成完整的图像链接
