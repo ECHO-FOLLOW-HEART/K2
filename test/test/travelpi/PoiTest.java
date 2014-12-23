@@ -55,4 +55,46 @@ public class PoiTest extends TravelPiTest {
             }
         });
     }
+
+    /**
+     * 查询景点详情
+     */
+    @Test
+    public void vsInfoCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.POICtrl.viewSpotInfo("vs", "547bfe05b8ce043eb2d86759",
+                        true, false, 10);
+                JsonNode results = Json.parse(contentAsString(callAction(handler)));
+                assertThat(results.get("code").asInt()).isEqualTo(0);
+                results = results.get("result");
+                assertText(results, new String[]{"_id", "name", "zhName", "desc"}, false);
+                assertText(results, new String[]{"priceDesc", "timeCost", "openTime", "trafficInfo", "guide",
+                        "kengdie"}, true);
+                assertText(results.get("tags"), true);
+                assertText(results.get("imageList"), false);
+
+                JsonNode addr = results.get("addr");
+                assertText(addr, new String[]{"locId", "locName", "addr"}, true);
+                double lat = addr.get("lat").asDouble();
+                double lng = addr.get("lng").asDouble();
+                assertThat(Math.abs(lat)).isLessThan(90);
+                assertThat(Math.abs(lng)).isLessThan(180);
+
+                assertThat(results.get("travelMonth").isArray()).isTrue();
+
+                JsonNode desc = results.get("descriptionFlag");
+                for (String key : new String[]{"desc", "traffic", "details", "tips"})
+                    assertThat(desc.get(key).asInt()).isIn(0, 1);
+
+                JsonNode ratings = results.get("ratings");
+                for (String key : new String[]{"viewCnt", "favorCnt", "checkinCnt"})
+                    assertThat(ratings.get(key).asInt()).isPositive();
+                double ranking = ratings.get("ranking").asDouble();
+                assertThat(ranking).isGreaterThanOrEqualTo(0);
+                assertThat(ranking).isLessThanOrEqualTo(1);
+            }
+        });
+    }
 }
