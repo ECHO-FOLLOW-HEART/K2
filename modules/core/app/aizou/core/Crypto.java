@@ -97,16 +97,37 @@ public class Crypto {
         List<String> field = new ArrayList<>();
         field.add("secKey");
         boolean result = false;
+        if (!checkHeader(request))
+            return false;
         try {
             Credential credential = UserAPI.getCredentialByUserId(uid, field);
             String secKey = credential.getSecKey();
             String gottenSignature = request.getHeader("Authorization");
             String rightSignature = getSignature(request, secKey);
+            logger.info("right  :" + rightSignature);
+            logger.info("gotten :" + gottenSignature);
             result = rightSignature.equals(gottenSignature);
         } catch (AizouException e) {
             e.printStackTrace();
         }
         return result;
+    }
+
+    /**
+     * 检查Http.Request 是否包含相关字段
+     * @param request Http.Request
+     * @return true when request is valid, else return false.
+     */
+    private static boolean checkHeader(Http.Request request) {
+        String signature = request.getHeader(AUTHORIZATION);
+        if (signature == null || signature.isEmpty())
+            return false;
+        for (String key : HEADER_LIST) {
+            String value = request.getHeader(key);
+            if (value == null || value.isEmpty())
+                return false;
+        }
+        return true;
     }
 
     /**
@@ -154,7 +175,6 @@ public class Crypto {
      * @return String
      */
     private static String getSigningKey(Http.Request request, String secretAccessKey) {
-        // TODO 未检查request header 是否有TIMESTAMP字段
         String timeStamp = request.getHeader(TIMESTAMP);
         return SHA256(TAOZI + timeStamp + secretAccessKey);
     }
@@ -203,7 +223,6 @@ public class Crypto {
     private static String getCanonicalHeader(Http.Request request) {
         Map<String, String[]> headerMap = request.headers();
         StringBuilder headerBuilder = new StringBuilder();
-        //TODO 未验证相关header字段是否存在
         for (String key : HEADER_LIST) {
             //如果同一名称对应多个值，则只取第一个
             headerBuilder.append(key);
