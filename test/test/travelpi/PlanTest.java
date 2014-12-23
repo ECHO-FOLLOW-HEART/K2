@@ -132,6 +132,29 @@ public class PlanTest extends TravelPiTest {
         });
     }
 
+    /**
+     * 获得UGC路线详情
+     */
+    @Test
+    public void ugcPlanDetailsCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.PlanCtrl.getUGCPlans1("", "549943fc0cf28465d161a75f", 0, 20);
+                JsonNode results = Json.parse(contentAsString(callAction(handler)));
+                assertThat(results.get("code").asInt()).isEqualTo(0);
+                results = results.get("result");
+
+                planBaseCheck(results);
+                planDetailsCheck(results.get("details"));
+
+                assertText(results, "moreDesc", true);
+                assertText(results, "templateId", false);
+                assertThat(results.get("updateTime").isIntegralNumber()).isTrue();
+            }
+        });
+    }
+
     private void planDetailsCheck(JsonNode details) {
         assertThat(details.isArray()).isTrue();
         assertThat(details.size()).isPositive();
