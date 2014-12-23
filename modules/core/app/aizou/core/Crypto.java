@@ -10,6 +10,7 @@ import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -26,10 +27,10 @@ public class Crypto {
     private static final String HAMC_SHA256 = "HmacSHA256";
     private static final String LINE_BREAK = "\n";
     private static final String SHA256 = "SHA-256";
-    private static final String TAOZI = "TAOZI";
-    private static final String IGNORANCE = "Authorization";
-    private static final String TIMESTAMP = "timestamp";
-    private static final String HEAD = "TAOZI-1-HMAC-SHA256";
+    public static final String TAOZI = "TAOZI";
+    public static final String IGNORANCE = "Authorization";
+    public static final String TIMESTAMP = "Timestamp";
+    public static final String HEAD = "TAOZI-1-HMAC-SHA256";
     private static Log logger = LogFactory.getLog("crypto.inner.debug");
 
     /**
@@ -78,29 +79,17 @@ public class Crypto {
     /**
      * 字符串转码
      *
-     * @param input       需要转换的字符串
-     * @param encodeSlash 是否转换符号'/'
+     * @param input 需要转换的字符串
      * @return 转换后的编码
-     * @throws EncoderException
-     * @throws UnsupportedEncodingException
      */
-    public static String uriEncode(String input, Boolean encodeSlash) throws EncoderException, UnsupportedEncodingException {
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            char ch = input.charAt(i);
-            if (('A' <= ch && ch <= 'Z') ||
-                    ('a' <= ch && ch <= 'z') ||
-                    ('0' <= ch && ch <= '9') ||
-                    ch == '_' || ch == '-' || ch == '~' || ch == '.') {
-                builder.append(ch);
-            } else if (ch == '/') {
-                builder.append(encodeSlash ? "%2F" : ch);
-            } else {
-                byte[] hexB = new Hex().encode(("" + ch).getBytes(UTF8));
-                builder.append(new String(hexB));
-            }
+    public static String uriEncode(String input) {
+        String ret = null;
+        try {
+            ret = URLEncoder.encode(input, UTF8);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
-        return builder.toString();
+        return ret;
     }
 
     /**
@@ -185,7 +174,7 @@ public class Crypto {
      * @return empty string
      */
     private static String getHashedPayload(Http.Request request) {
-        return SHA256(request.body().toString());
+        return SHA256(uriEncode(request.body().toString()));
     }
 
     /**
@@ -230,10 +219,10 @@ public class Crypto {
             } else {
                 first = false;
             }
-            queryBuilder.append(uriEncode(que.getKey(), true));
+            queryBuilder.append(uriEncode(que.getKey()));
             queryBuilder.append("=");
             // 如果同一名称对应多个参数，则只取第一个
-            queryBuilder.append(uriEncode(que.getValue()[0], true));
+            queryBuilder.append(uriEncode(que.getValue()[0]));
         }
         return queryBuilder.toString();
     }
@@ -257,7 +246,7 @@ public class Crypto {
      * @throws EncoderException
      */
     private static String getCanonicalURI(Http.Request request) throws UnsupportedEncodingException, EncoderException {
-        return uriEncode(request.path(), false);
+        return uriEncode(request.path());
     }
 
     /**
