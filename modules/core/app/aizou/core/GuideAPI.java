@@ -69,23 +69,44 @@ public class GuideAPI {
      * @return
      */
     private static Guide constituteUgcGuide(List<GuideTemplate> guideTemplates, List<Locality> destinations, Integer userId) {
-        if (guideTemplates == null || guideTemplates.size() == 0)
-            return new Guide();
         Guide ugcGuide = new Guide();
         ugcGuide.setId(new ObjectId());
         ugcGuide.userId = userId;
+        ugcGuide.localities = destinations;
+        ugcGuide.updateTime = System.currentTimeMillis();
+
+        // 生成攻略标题
+        StringBuffer titlesBuffer = new StringBuffer();
+        for (Locality locality : destinations)
+            titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_NEWTON);
+        String titleStr = titlesBuffer.toString();
+        titleStr = titleStr.substring(0, titleStr.length() - 1);
+        titleStr = titleStr + "攻略";
+
+        ugcGuide.title = titleStr;
+
+        //如果模板为空，组成空攻略
+        if (guideTemplates == null || guideTemplates.size() == 0) {
+            ugcGuide.itinerary = new ArrayList<>();
+            ugcGuide.shopping = new ArrayList<>();
+            ugcGuide.restaurant = new ArrayList<>();
+            ugcGuide.itineraryDays = 0;
+            ugcGuide.images = destinations.get(0).getImages();
+            return ugcGuide;
+        }
         int index = 0;
         List<ObjectId> locIds = new ArrayList<>();
-        StringBuffer titlesBuffer = new StringBuffer();
+
         List<ItinerItem> itineraries = new ArrayList<>();
         List<Shopping> shoppingList = new ArrayList<>();
         List<Restaurant> restaurants = new ArrayList<>();
         Integer itineraryDaysCnt = 0;
+        titlesBuffer.setLength(Constants.ZERO_COUNT);
         for (GuideTemplate temp : guideTemplates) {
             if (temp == null)
                 continue;
             locIds.add(temp.getId());
-            titlesBuffer.append(temp.title);
+            //titlesBuffer.append(temp.title);
             if (temp.itinerary != null && temp.itinerary.size() > 0) {
                 for (ItinerItem it : temp.itinerary) {
                     it.dayIndex = it.dayIndex + index;
@@ -106,15 +127,13 @@ public class GuideAPI {
         }
 
         //补全Title名称
-        titlesBuffer.append("攻略");
+        //titlesBuffer.append("攻略");
 
-        ugcGuide.localities = destinations;
-        ugcGuide.title = titlesBuffer.toString();
+
         ugcGuide.itinerary = itineraries;
         ugcGuide.shopping = shoppingList;
         ugcGuide.restaurant = restaurants;
         ugcGuide.itineraryDays = itineraryDaysCnt + 1;
-        ugcGuide.updateTime = System.currentTimeMillis();
         //取第一个目的地的图片
         ugcGuide.images = guideTemplates.get(0).images;
         return ugcGuide;
@@ -193,6 +212,8 @@ public class GuideAPI {
                 update.set(AbstractGuide.fnRestaurant, guide.restaurant);
             if (guide.images != null)
                 update.set(AbstractGuide.fnImages, guide.images);
+            if (guide.title != null)
+                update.set(Guide.fnTitle, guide.title);
             update.set(Guide.fnUpdateTime, System.currentTimeMillis());
 
             ds.update(query, update);
