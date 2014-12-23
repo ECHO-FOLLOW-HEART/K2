@@ -1,3 +1,5 @@
+package aizou.core;
+
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.logging.Log;
@@ -32,7 +34,8 @@ public class Crypto {
 
     /**
      * 使用 HAMC-SHA256 对key , Data进行加密
-     * @param macKey 加密的key
+     *
+     * @param macKey  加密的key
      * @param macData 加密的数据
      * @return 加密后的十六进制编码
      */
@@ -55,6 +58,7 @@ public class Crypto {
 
     /**
      * SHA-256加密
+     *
      * @param data String
      * @return hex String
      */
@@ -73,7 +77,8 @@ public class Crypto {
 
     /**
      * 字符串转码
-     * @param input 需要转换的字符串
+     *
+     * @param input       需要转换的字符串
      * @param encodeSlash 是否转换符号'/'
      * @return 转换后的编码
      * @throws EncoderException
@@ -83,15 +88,15 @@ public class Crypto {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < input.length(); i++) {
             char ch = input.charAt(i);
-            if (('A'<=ch && ch<='Z') ||
-                    ('a'<=ch && ch<='z') ||
-                    ('0'<=ch && ch<='9') ||
-                    ch=='_' || ch=='-' || ch=='~' || ch=='.') {
+            if (('A' <= ch && ch <= 'Z') ||
+                    ('a' <= ch && ch <= 'z') ||
+                    ('0' <= ch && ch <= '9') ||
+                    ch == '_' || ch == '-' || ch == '~' || ch == '.') {
                 builder.append(ch);
-            } else if (ch=='/') {
-                builder.append(encodeSlash?"%2F":ch);
+            } else if (ch == '/') {
+                builder.append(encodeSlash ? "%2F" : ch);
             } else {
-                byte[] hexB = new Hex().encode((""+ch).getBytes(UTF8));
+                byte[] hexB = new Hex().encode(("" + ch).getBytes(UTF8));
                 builder.append(new String(hexB));
             }
         }
@@ -100,6 +105,7 @@ public class Crypto {
 
     /**
      * 根据Request获取StringToSign
+     *
      * @param request HttpRequest
      * @return String
      */
@@ -107,26 +113,26 @@ public class Crypto {
         String ret = null;
         try {
             String timeStamp = request.getHeader(TIMESTAMP);
-            logger.debug("timeStamp: "+timeStamp);
+            logger.debug("timeStamp: " + timeStamp);
             String scope = getScope(request);
-            logger.debug("scope: "+scope);
+            logger.debug("scope: " + scope);
             String httpMethod = getHttpMethod(request);
-            logger.debug("method: "+httpMethod);
+            logger.debug("method: " + httpMethod);
             String canonicalURI = getCanonicalURI(request);
-            logger.debug("canonicalURI: "+canonicalURI);
+            logger.debug("canonicalURI: " + canonicalURI);
             String canonicalQueryString = getCanonicalQueryString(request);
-            logger.debug("canonicalQueryString: "+canonicalQueryString);
+            logger.debug("canonicalQueryString: " + canonicalQueryString);
             String canonicalHeader = getCanonicalHeader(request);
-            logger.debug("canonicalHeader: "+canonicalHeader);
+            logger.debug("canonicalHeader: " + canonicalHeader);
             String hashedPayload = getHashedPayload(request);
-            logger.debug("hashedPayload: "+hashedPayload);
-            
+            logger.debug("hashedPayload: " + hashedPayload);
+
             String tmp = httpMethod + LINE_BREAK
                     + canonicalURI + LINE_BREAK
                     + canonicalQueryString + LINE_BREAK
                     + canonicalHeader + LINE_BREAK
                     + hashedPayload;
-            
+
             ret = HEAD + timeStamp + scope + SHA256(tmp);
         } catch (EncoderException | UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -136,7 +142,8 @@ public class Crypto {
 
     /**
      * 获得 Signing Key
-     * @param request HttpRequest
+     *
+     * @param request         HttpRequest
      * @param secretAccessKey 用户token
      * @return String
      */
@@ -148,7 +155,8 @@ public class Crypto {
 
     /**
      * get Signature
-     * @param request HttpRequest
+     *
+     * @param request         HttpRequest
      * @param secretAccessKey String
      * @return String
      */
@@ -161,6 +169,7 @@ public class Crypto {
     /**
      * get Scope
      * 当前定义的scope不包括 时间地点信息,仅包含请求
+     *
      * @param request HttpRequest
      * @return path
      */
@@ -171,16 +180,17 @@ public class Crypto {
 
     /**
      * 获得payLoad 的哈希结果
+     *
      * @param request HttpRequest
      * @return empty string
      */
     private static String getHashedPayload(Http.Request request) {
-        //当前暂时不考虑payLoad的问题
-        return "";
+        return SHA256(request.body().toString());
     }
 
     /**
      * 获得CanonicalHeader 的 uriEncode 结果
+     *
      * @param request HttpRequest
      * @return String
      */
@@ -203,6 +213,7 @@ public class Crypto {
 
     /**
      * 获得 Canonical Query String 的 uri encode 结果
+     *
      * @param request HttpRequest
      * @return String
      * @throws UnsupportedEncodingException
@@ -229,6 +240,7 @@ public class Crypto {
 
     /**
      * 获得Http Method 的大写结果
+     *
      * @param request HttpRequest
      * @return "GET"|"POST"|"PUT"...
      */
@@ -238,6 +250,7 @@ public class Crypto {
 
     /**
      * 获得 canonical uri
+     *
      * @param request HttpRequest
      * @return String
      * @throws UnsupportedEncodingException
@@ -249,6 +262,7 @@ public class Crypto {
 
     /**
      * 将Map根据Key字段进行排序
+     *
      * @param map request的header或者queryString
      * @return sorted ArrayList
      */

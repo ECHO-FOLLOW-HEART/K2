@@ -1,3 +1,4 @@
+import aizou.core.Crypto;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import play.Application;
@@ -27,28 +28,28 @@ public class Global extends GlobalSettings {
     @Override
     public Action onRequest(final Http.Request request, Method actionMethod) {
         Log logger = LogFactory.getLog("crypto.debug");
-        try {
-            if (request.getQueryString("v") != null) {
-                String[] verStr = request.getQueryString("v").split("\\.");
-                int ver = Integer.valueOf(verStr[0]) * 10000 + Integer.valueOf(verStr[1]) * 100 + Integer.valueOf(verStr[2]);
-                request.headers().put("verIndex", new String[]{String.valueOf(ver)});
-            }
-            String userId = request.getHeader("UserId");
-            if (userId != null && !userId.isEmpty()) {
-                String rightSignature = Crypto.getSignature(request, "fake12345678");
-                String gettedSignature = request.getHeader("Authorization");
-                logger.info("right Signature: "+rightSignature);
-                logger.info("get   Signature: "+gettedSignature);
-                if (!rightSignature.equals(gettedSignature)) {
-                    logger.fatal("Signature is invalid - rejected");
-                } else {
-                    logger.info("Signature is valid - accepted");
-                }
-            } else {
-                logger.debug("Normal request - accepted");
-            }
-        } catch (Exception e) {
+        if (request.getQueryString("v") != null) {
+            String[] verStr = request.getQueryString("v").split("\\.");
+            int ver = Integer.valueOf(verStr[0]) * 10000 + Integer.valueOf(verStr[1]) * 100 + Integer.valueOf(verStr[2]);
+            request.headers().put("verIndex", new String[]{String.valueOf(ver)});
         }
+        // TODO 暂时不要合并
+        String userId = request.getHeader("UserId");
+        if (userId != null && !userId.isEmpty()) {
+            // TODO 从user.Credential库获取用户的secKey
+            String rightSignature = Crypto.getSignature(request, "fake12345678");
+            String gottenSignature = request.getHeader("Authorization");
+            logger.info("right Signature: " + rightSignature);
+            logger.info("get   Signature: " + gottenSignature);
+            if (!rightSignature.equals(gottenSignature)) {
+                logger.fatal("Signature is invalid - rejected");
+            } else {
+                logger.info("Signature is valid - accepted");
+            }
+        } else {
+            logger.debug("Normal request - accepted");
+        }
+
         return super.onRequest(request, actionMethod);
     }
 
