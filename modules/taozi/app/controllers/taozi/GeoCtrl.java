@@ -139,24 +139,25 @@ public class GeoCtrl extends Controller {
                 Map<String, Object> mapConf = Configuration.root().getConfig("domestic").asMap();
                 Map<String, Object> pinyinConf = Configuration.root().getConfig("pinyin").asMap();
                 String k;
-                Object v,pinyinObj;
+                Object v, pinyinObj;
                 ObjectNode node;
                 String zhName = null;
                 String pinyin = null;
                 for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
                     k = entry.getKey();
                     v = entry.getValue();
-                    if(v!= null)
-                    zhName = v.toString();
+                    if (v != null)
+                        zhName = v.toString();
 
                     pinyinObj = pinyinConf.get(k);
-                    if(pinyinObj != null)
+                    if (pinyinObj != null)
                         pinyin = pinyinObj.toString();
 
                     node = Json.newObject();
-                    node.put("id",k);
-                    node.put("zhName",zhName);
-                    node.put("pinyin",pinyin);
+                    node.put("id", k);
+                    node.put("zhName", zhName);
+                    node.put("enName", "");
+                    node.put("pinyin", pinyin);
                     objs.add(node);
                 }
 

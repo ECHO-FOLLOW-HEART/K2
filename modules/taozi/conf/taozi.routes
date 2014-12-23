@@ -130,12 +130,15 @@ DELETE        /im/chatgroups/groupId/members                     controllers.tao
 POST          /im/chatgroups/detail/groupId                      controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
 #----------地理信息接口----------
 # 搜索城市
+#展示国内目的地
+GET           /geo/localities/domestic                           controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
+#展示国外目的地
+GET           /geo/localities/abroad                             controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
 #查看目的地详情
 GET           /geo/localities/:id                                controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
 #查看目的地详情图集
 GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=50)
-#展示目的地
-GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
+
 #旅行专栏
 GET           /columns                                           controllers.taozi.MiscCtrl.getColumns()
 
