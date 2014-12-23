@@ -26,4 +26,11 @@ public abstract class AizouTest {
             }
         }
     }
+
+    public void assertCoords(double lng, double lat) {
+        assertThat(Math.abs(lng)).isGreaterThan(0);
+        assertThat(Math.abs(lng)).isLessThan(180);
+        assertThat(Math.abs(lat)).isGreaterThan(0);
+        assertThat(Math.abs(lat)).isLessThan(90);
+    }
 }

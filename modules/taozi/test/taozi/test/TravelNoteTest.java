@@ -1,9 +1,7 @@
 package taozi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.taozi.TravelNoteCtrl;
 import controllers.taozi.routes;
-import org.json.JSONObject;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import play.GlobalSettings;
@@ -11,8 +9,6 @@ import play.api.mvc.HandlerRef;
 import play.libs.Json;
 import play.mvc.Result;
 import play.test.FakeApplication;
-
-import java.lang.reflect.Method;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.*;
@@ -33,7 +29,7 @@ public class TravelNoteTest extends AizouTest {
 
     /**
      * 针对 游记搜索 的测试
-     */
+     *//*
     @Test
     public void testSearchNotes() throws Exception {
         Method method = TravelNoteCtrl.class.getDeclaredMethod("searchNotes",
@@ -47,7 +43,7 @@ public class TravelNoteTest extends AizouTest {
 
         // The response code should be zero
         assertThat(response.getInt("code")).isEqualTo(0);
-    }
+    }*/
 
     /**
      * 测试单篇游记详情
@@ -62,8 +58,9 @@ public class TravelNoteTest extends AizouTest {
                         Result result = callAction(handler);
                         JsonNode node = Json.parse(contentAsString(result));
                         assertThat(node.get("code").asInt()).isEqualTo(0);
-                        node = node.get("result");
-                        assertText(node.get(0), new String[]{"title", "author", "contents"}, false);
+                        JsonNode response = node.get("result");
+                        assertText(response.get(0), new String[]{"title", "author", "contents"}, false);
+                        assertThat(response.get(0).get("publishTime").asLong()).isNotNull();
                     }
                 }
         );
@@ -85,8 +82,9 @@ public class TravelNoteTest extends AizouTest {
                 Result result = callAction(handler);
                 JsonNode node = Json.parse(contentAsString(result));
                 assertThat(node.get("code").asInt()).isEqualTo(0);
-                node = node.get("result").get(0);
-                assertText(node, new String[]{"id", "title", "summary"}, false);
+                JsonNode response = node.get("result");
+                for (JsonNode tmp : response)
+                    assertText(tmp, new String[]{"id", "title", "summary", "avatar"}, false);
             }
         });
     }
@@ -99,16 +97,19 @@ public class TravelNoteTest extends AizouTest {
         running(app, new Runnable() {
             @Override
             public void run() {
-                String locId = "5473ccd7b8ce043a64108c4d";
-                String fields = "tips,localTraffic,remoteTraffic,geoHistory,activities,specials";
+                String locId = "5473ccd7b8ce043a64108c46";
+                String fields = "desc,tips,localTraffic,remoteTraffic,geoHistory,activities,specials";
                 HandlerRef<?> handler = routes.ref.POICtrl.getTravelGuide(locId, fields);
                 Result result = callAction(handler);
                 JsonNode node = Json.parse(contentAsString(result));
                 assertThat(node.get("code").asInt()).isEqualTo(0);
-                node = node.get("result");
-                String fieldArray[] = fields.split("\\,");
-                for (String field : fieldArray) {
-                    assertThat(node.get(field).isArray()).isTrue();
+                JsonNode response = node.get("result");
+                assertThat(response.get("desc").asText()).isNotEmpty();
+                for (String field : new String[]{"tips", "localTraffic", "remoteTraffic", "geoHistory", "activities", "specials"}) {
+                    assertThat(response.get(field).isArray()).isTrue();
+                    for (JsonNode tmp : response.get(field)) {
+                        assertText(tmp, new String[]{"desc", "title"}, false);
+                    }
                 }
             }
         });
@@ -118,7 +119,6 @@ public class TravelNoteTest extends AizouTest {
      * 测试评论
      */
     @Test
-    //TODO 未通过
     public void displayComment() {
         running(app, new Runnable() {
             @Override
@@ -132,8 +132,11 @@ public class TravelNoteTest extends AizouTest {
                 Result result = callAction(handler);
                 JsonNode node = Json.parse(contentAsString(result));
                 assertThat(node.get("code").asInt()).isEqualTo(0);
-                node = node.get("result").get(0);
-                assertText(node, new String[]{"userName", "contents", "rating"}, false);
+                JsonNode response = node.get("result");
+                for (JsonNode tmp : response) {
+                    assertText(tmp, new String[]{"userName", "contents"}, false);
+                    assertThat(tmp.get("rating").asDouble()).isGreaterThan(0);
+                }
             }
         });
     }
@@ -149,8 +152,8 @@ public class TravelNoteTest extends AizouTest {
                 HandlerRef<?> handlerRef = routes.ref.MiscCtrl.getColumns();
                 Result result = callAction(handlerRef);
                 JsonNode node = Json.parse(contentAsString(result));
-                node = node.get("result");
-                for (JsonNode tmp:node)
+                JsonNode response = node.get("result");
+                for (JsonNode tmp : response)
                     assertText(tmp, new String[]{"title", "cover", "link"}, false);
             }
         });

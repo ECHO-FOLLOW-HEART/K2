@@ -43,15 +43,18 @@ public class GeoTest extends AizouTest {
                     Result result = callAction(handler);
                     JsonNode node = Json.parse(contentAsString(result));
                     assertThat(node.get("code").asInt()).isEqualTo(0);
-                    node = node.get("result");
+                    JsonNode response = node.get("result");
                     if (abroad.equals(false)) {
-                        for (JsonNode tmp : node) {
+                        for (JsonNode tmp : response) {
                             assertText(tmp, new String[]{"id", "zhName"}, false);
                         }
                     } else {
-                        for (JsonNode tmp : node) {
+                        for (JsonNode tmp : response) {
                             assertText(tmp, new String[]{"id", "zhName"}, false);
-                            assertThat(tmp.get("destinations").isArray()).isTrue();
+                            JsonNode dest = tmp.get("destinations");
+                            for (JsonNode tmpNode : dest) {
+                                assertText(tmpNode, new String[]{"id", "zhName"}, false);
+                            }
                         }
                     }
                 }
@@ -74,13 +77,15 @@ public class GeoTest extends AizouTest {
                 Result result = callAction(handler);
                 JsonNode node = Json.parse(contentAsString(result));
                 assertThat(node.get("code").asInt()).isEqualTo(0);
-                node = node.get("result");
-                for (Integer i : new Integer[]{0, 1})
-                    assertThat(node.get("location").get("coordinates").get(i).asDouble()).isNotNull();
-                assertText(node, new String[]{"zhName", "desc", "id"}, false);
-                assertText(node, new String[]{"travelMonth", "timeCostDesc"}, true);
-                for (JsonNode tmp : node.get("images"))
-                    assertThat(tmp.get("url")).isNotEmpty();
+                JsonNode response = node.get("result");
+                JsonNode coords = response.get("location").get("coordinates");
+                double lng = coords.get(0).asDouble();
+                double lat = coords.get(1).asDouble();
+                assertCoords(lng, lat);
+                assertText(response, new String[]{"zhName", "desc", "id"}, false);
+                assertText(response, new String[]{"travelMonth", "timeCostDesc"}, true);
+                for (JsonNode tmp : response.get("images"))
+                    assertThat(tmp.get("url").asText()).isNotEmpty();
             }
         });
     }
@@ -95,9 +100,14 @@ public class GeoTest extends AizouTest {
             public void run() {
                 String locId = "547aebffb8ce043deccfed0b";
                 int page = 0;
-                int pageSize = 10;
+                int pageSize = 50;
                 HandlerRef<?> handler = routes.ref.MiscCtrl.getAlbums(locId, page, pageSize);
                 Result result = callAction(handler);
+                JsonNode node = Json.parse(contentAsString(result));
+                assertThat(node.get("code").asInt()).isEqualTo(0);
+                JsonNode response = node.get("result");
+                for (JsonNode tmp : response.get("album"))
+                    assertThat(tmp.get("url").asText()).isNotEmpty();
             }
         });
     }
