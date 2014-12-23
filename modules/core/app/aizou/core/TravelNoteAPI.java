@@ -39,7 +39,7 @@ public class TravelNoteAPI {
      * @param queryString
      * @param fields
      * @param page
-     *@param pageSize @return
+     * @param pageSize    @return
      */
     public static List<TravelNote> solrRequest(String queryString, List<String> fields, int page, int pageSize) throws AizouException {
         List<TravelNote> results = new ArrayList<>();
@@ -58,7 +58,7 @@ public class TravelNoteAPI {
             SolrServer server = new HttpSolrServer(url);
             SolrQuery query = new SolrQuery();
 
-            query.setQuery(queryString).setStart(page*pageSize).setRows(pageSize);
+            query.setQuery(queryString).setStart(page * pageSize).setRows(pageSize);
 
             for (String f : fields)
                 query.addField(f);

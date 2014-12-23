@@ -18,7 +18,7 @@ import java.util.Set;
 
 /**
  * 旅行派的formatter基类
- * <p/>
+ * <p>
  * Created by zephyre on 11/24/14.
  */
 public abstract class TravelPiBaseFormatter implements JsonFormatter {

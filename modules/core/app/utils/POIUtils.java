@@ -8,6 +8,8 @@ package utils;
 public class POIUtils {
 
     public static String ViewSpotClassifierForTime(String vsName) {
+        if(vsName == null)
+            return "2";
         if (vsName.endsWith("馆") || vsName.endsWith("大学") || vsName.endsWith("寺") || vsName.endsWith("祠")
                 || vsName.endsWith("楼") || vsName.endsWith("溪") || vsName.endsWith("庙") || vsName.endsWith("故居")
                 || vsName.endsWith("雕像") || vsName.endsWith("碑")) {

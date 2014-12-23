@@ -7,10 +7,12 @@ import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.ITravelPiFormatter;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
+import utils.Constants;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -216,6 +218,7 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             builder.add("updateTime", updateTime);
             builder.add("startDate", startDate != null ? fmt.format(startDate) : "");
             builder.add("endDate", endDate != null ? fmt.format(endDate) : "");
+            builder.add("desc", StringUtils.abbreviate(getDesc(), Constants.ABBREVIATE_LEN));
 
             return Json.toJson(builder.get());
         }

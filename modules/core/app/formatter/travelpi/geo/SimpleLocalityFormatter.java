@@ -8,11 +8,11 @@ import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import models.AizouBaseEntity;
-import models.AizouObjectId;
-import models.geo.Locality;
 import formatter.AizouBeanPropertyFilter;
 import formatter.travelpi.TravelPiBaseFormatter;
+import models.AizouBaseEntity;
+import models.geo.Locality;
+import play.libs.Json;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -75,13 +75,11 @@ public class SimpleLocalityFormatter extends TravelPiBaseFormatter {
         // 加入父行政区信息
         if (includeParents) {
             Locality parent = locItem.getSuperAdm();
-            if (parent == null) {
-                parent = new Locality();
-                parent.setZhName("");
-                parent.setEnName("");
-                parent.setId(new AizouObjectId());
-            }
-            ObjectNode parentNode = (ObjectNode) format(parent, false);
+            ObjectNode parentNode;
+            if (parent == null)
+                parentNode = Json.newObject();
+            else
+                parentNode = (ObjectNode) format(parent, false);
             result.put("parent", parentNode);
         }
 
