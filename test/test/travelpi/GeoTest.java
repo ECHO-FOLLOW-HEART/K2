@@ -2,9 +2,13 @@ package test.travelpi;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.routes;
+import org.junit.Ignore;
 import org.junit.Test;
 import play.api.mvc.HandlerRef;
 import play.libs.Json;
+
+import java.util.Iterator;
+import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.*;
@@ -56,4 +60,37 @@ public class GeoTest extends TravelPiTest {
         });
     }
 
+    /**
+     * 境外目的地推荐
+     */
+    @Test
+    @Ignore
+    public void locRecommendCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.MiscCtrl.destRecommend();
+                JsonNode results = Json.parse(contentAsString(callAction(handler)));
+                assertThat(results.get("code").asInt()).isEqualTo(0);
+                results = results.get("result");
+
+                for (Iterator<Map.Entry<String, JsonNode>> itr = results.fields(); itr.hasNext(); ) {
+                    Map.Entry<String, JsonNode> entry = itr.next();
+                    JsonNode countryNode = entry.getValue();
+                    assertThat(countryNode.isArray()).isTrue();
+                    assertThat(countryNode.size()).isPositive();
+                    for (JsonNode loc : countryNode) {
+                        assertText(loc, new String[]{"id", "_id", "zhName", "name", "fullName"}, false);
+                        assertText(loc, "enName", true);
+
+                        JsonNode parent = loc.get("parent");
+                        if (parent.size() > 0) {
+                            System.out.println(parent);
+                            assertText(parent, new String[]{"id", "_id", "zhName", "name", "fullName"}, false);
+                        }
+                    }
+                }
+            }
+        });
+    }
 }
