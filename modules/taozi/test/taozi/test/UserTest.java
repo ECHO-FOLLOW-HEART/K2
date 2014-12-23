@@ -2,14 +2,11 @@ package taozi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
 import exception.ErrorCode;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import play.Configuration;
 import play.GlobalSettings;
 import play.api.mvc.HandlerRef;
 import play.libs.Json;
@@ -17,7 +14,6 @@ import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.FakeRequest;
 
-import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
