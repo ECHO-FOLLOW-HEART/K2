@@ -33,10 +33,10 @@ public class POICtrl extends Controller {
                                            int rmdPage, int rmdPageSize) throws AizouException {
         DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
-        //是否被收藏
-        MiscAPI.isFavorite(poiInfo, userId);
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
+        //是否被收藏
+        MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.format(poiInfo);
 
         //取得推荐
