@@ -28,9 +28,10 @@ public class Crypto {
     private static final String LINE_BREAK = "\n";
     private static final String SHA256 = "SHA-256";
     public static final String TAOZI = "TAOZI";
-    public static final String IGNORANCE = "Authorization";
+    public static final String AUTHORIZATION = "Authorization";
     public static final String TIMESTAMP = "Timestamp";
     public static final String HEAD = "TAOZI-1-HMAC-SHA256";
+    public static final String[] HEADER_LIST = new String[]{"Platform", "Timestamp", "UserId", "Version"};
     private static Log logger = LogFactory.getLog("crypto.inner.debug");
 
     /**
@@ -179,22 +180,19 @@ public class Crypto {
 
     /**
      * 获得CanonicalHeader 的 uriEncode 结果
-     *
+     * 只检查以下字段: Platform, Version, UserId, Timestamp
      * @param request HttpRequest
      * @return String
      */
     private static String getCanonicalHeader(Http.Request request) {
         Map<String, String[]> headerMap = request.headers();
-        ArrayList<Map.Entry<String, String[]>> headerList = getSortedList(headerMap);
         StringBuilder headerBuilder = new StringBuilder();
-        for (Map.Entry<String, String[]> head : headerList) {
-            // 忽略"Authorization","postman-token"字段（for debug）
-            if (head.getKey().equals(IGNORANCE) || head.getKey().toLowerCase().equals("postman-token"))
-                continue;
-            headerBuilder.append(head.getKey().toLowerCase());
-            headerBuilder.append(":");
+        //TODO 未验证相关header字段是否存在
+        for (String key : HEADER_LIST) {
             //如果同一名称对应多个值，则只取第一个
-            headerBuilder.append(head.getValue()[0].trim());
+            headerBuilder.append(key);
+            headerBuilder.append(":");
+            headerBuilder.append(headerMap.get(key)[0].toLowerCase());
             headerBuilder.append(LINE_BREAK);
         }
         return headerBuilder.toString();
