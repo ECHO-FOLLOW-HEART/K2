@@ -5,6 +5,7 @@ import controllers.routes;
 import org.junit.Test;
 import play.api.mvc.HandlerRef;
 import play.libs.Json;
+import play.test.FakeRequest;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -47,11 +48,10 @@ public class PlanTest extends TravelPiTest {
      * 获得路线详情
      */
     @Test
-    public void planDetailsCheck() {
+    public void planInfoCheck() {
         running(app, new Runnable() {
             @Override
             public void run() {
-//                http://api.lvxingpai.com/plans/templates/547bfee9b8ce043fbeaf7391?fromLoc=5473ccd7b8ce043a64108c46&platform=iOS%208.1.2&seq=e560883d7a80cf7825d94d8d503dbc09ae40f6e5&sign=0451a360290c6ac0e896f3de86baa4043a890580&timestamp=1419330555&traffic=1&uid=547c6228e4b0c9f0d576a619&v=1.3.0
                 String planId = "547bfee9b8ce043fbeaf7391";
                 String fromLoc = "5473ccd7b8ce043a64108c46";
                 HandlerRef<?> handler = routes.ref.PlanCtrl.getPlanFromTemplates(planId, fromLoc, "", 0, "");
@@ -65,35 +65,68 @@ public class PlanTest extends TravelPiTest {
                 assertText(results, "templateId", false);
                 assertThat(results.get("updateTime").isIntegralNumber()).isTrue();
 
-                JsonNode details = results.get("details");
-                assertThat(details.isArray()).isTrue();
-                assertThat(details.size()).isPositive();
-                SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
-                for (JsonNode dayEntry : details) {
-                    String dateString = dayEntry.get("date").asText();
-                    try {
-                        dateFmt.parse(dateString);
-                    } catch (ParseException e) {
-                        assertThat(false).isTrue();
-                        break;
-                    }
-
-                    JsonNode actv = dayEntry.get("actv");
-                    assertThat(actv.isArray()).isTrue();
-                    assertThat(actv.size()).isGreaterThanOrEqualTo(0);
-
-                    for (JsonNode actvEntry : actv) {
-                        assertText(actvEntry, new String[]{"itemId", "itemName", "locId", "locName", "type"}, false);
-                        assertText(actvEntry, new String[]{"subType", "ts"}, true);
-                        assertText(actvEntry, "type", false);
-                        JsonNode itemDetails = actvEntry.get("details");
-                        assertThat(itemDetails != null).isTrue();
-                        if (itemDetails != null)
-                            assertThat(itemDetails.isNull()).isFalse();
-                    }
-                }
+                planDetailsCheck(results.get("details"));
             }
         });
+    }
+
+    /**
+     * 优化路线
+     */
+    @Test
+    public void optimizerCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String postDataStr = "{ \"endDate\": \"2014-12-26 00:00:00+0800\", \"templateId\": " +
+                        "\"547bfee9b8ce043fbeaf7391\", " +
+                        "\"title\": \"优雅的旅程\", \"viewBudget\": 0, \"trafficBudget\": 6574, \"details\": [ { \"st\": " +
+                        "\"2014-12-26 00:00:00+0800\", \"type\": \"vs\", \"itemId\": \"547bfe08b8ce043eb2d869fd\" } ], " +
+                        "\"_id\": \"549943fc0cf28465d161a75f\", \"optLevel\": 1, \"stayBudget\": 900, \"startDate\": " +
+                        "\"2014-12-26 00:00:00+0800\", \"budget\": [ 7500, 18700 ]}";
+
+                JsonNode postData = Json.parse(postDataStr);
+                FakeRequest req = fakeRequest("POST", "/plans/optimizers?platform=iOS8.1.2");
+                req.withJsonBody(postData);
+                HandlerRef<?> handler = routes.ref.PlanCtrl.optimizePlan();
+                JsonNode results = Json.parse(contentAsString(callAction(handler, req)));
+                assertThat(results.get("code").asInt()).isEqualTo(0);
+                results = results.get("result");
+
+                planDetailsCheck(results.get("details"));
+            }
+        });
+
+    }
+
+    private void planDetailsCheck(JsonNode details) {
+//        System.out.println(details);
+        assertThat(details.isArray()).isTrue();
+        assertThat(details.size()).isPositive();
+        SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+        for (JsonNode dayEntry : details) {
+            String dateString = dayEntry.get("date").asText();
+            try {
+                dateFmt.parse(dateString);
+            } catch (ParseException e) {
+                assertThat(false).isTrue();
+                break;
+            }
+
+            JsonNode actv = dayEntry.get("actv");
+            assertThat(actv.isArray()).isTrue();
+            assertThat(actv.size()).isGreaterThanOrEqualTo(0);
+
+            for (JsonNode actvEntry : actv) {
+                assertText(actvEntry, new String[]{"itemId", "itemName", "locId", "locName", "type"}, false);
+                assertText(actvEntry, new String[]{"subType", "ts"}, true);
+                assertText(actvEntry, "type", false);
+                JsonNode itemDetails = actvEntry.get("details");
+                assertThat(itemDetails != null).isTrue();
+                if (itemDetails != null)
+                    assertThat(itemDetails.isNull()).isFalse();
+            }
+        }
     }
 
     private void planBaseCheck(JsonNode plan) {
