@@ -37,9 +37,9 @@ public class Global extends GlobalSettings {
         String userId = request.getHeader("UserId");
         if (userId != null && !userId.isEmpty()) {
             if (Crypto.checkAuthorization(request, userId)) {
-                logger.info("Signature is invalid - rejected");
-            } else {
                 logger.info("Signature is valid - accepted");
+            } else {
+                logger.info("Signature is invalid - rejected");
             }
         } else {
             logger.debug("Normal request - accepted");

@@ -120,12 +120,16 @@ public class Crypto {
      */
     private static boolean checkHeader(Http.Request request) {
         String signature = request.getHeader(AUTHORIZATION);
-        if (signature == null || signature.isEmpty())
+        if (signature == null || signature.isEmpty()){
+            logger.info("Can not find header: "+AUTHORIZATION);
             return false;
+        }
         for (String key : HEADER_LIST) {
             String value = request.getHeader(key);
-            if (value == null || value.isEmpty())
+            if (value == null || value.isEmpty()) {
+                logger.info("Can not find header: "+key);
                 return false;
+            }
         }
         return true;
     }
@@ -182,7 +186,7 @@ public class Crypto {
     /**
      * get Signature
      *
-     * @param request         HttpRequest
+     * @param request HttpRequest
      * @param secretAccessKey String
      * @return String
      */
