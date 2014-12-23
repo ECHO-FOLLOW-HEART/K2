@@ -3,6 +3,7 @@ package controllers.taozi;
 import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
@@ -23,9 +24,14 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import play.Configuration;
+import play.api.Play;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
+import sun.misc.Request;
+import sun.security.krb5.Config;
+import sun.security.krb5.KrbException;
 import utils.Constants;
 import utils.LogUtils;
 import utils.Utils;
@@ -81,7 +87,7 @@ public class MiscCtrl extends Controller {
     public static Result postFeedback() throws UnknownHostException, AizouException {
         JsonNode feedback = request().body().asJson();
         try {
-            Integer uid = Integer.parseInt(request().getHeader("UserId"));
+            Integer uid = feedback.has("userId") ? feedback.get("userId").asInt() : null;
             String body = feedback.has("body") ? feedback.get("body").asText().trim() : null;
             if (body == null || body.equals("") || uid == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid feedback content.");
@@ -279,7 +285,7 @@ public class MiscCtrl extends Controller {
 //                    fa.enName = tnFromFavorate.getName();
 //                    ImageItem tmg = new ImageItem();
 //                    TODO 如何设置URL
-            //tmg.setKey(tnFromFavorate.getCover());
+                    //tmg.setKey(tnFromFavorate.getCover());
 //                    fa.images = Arrays.asList(tmg);
 //                    fa.desc = tnFromFavorate.getDesc();
 //                    faShowList.add(fa);
