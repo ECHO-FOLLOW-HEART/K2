@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -345,10 +345,9 @@ public class UserCtrl extends Controller {
                     Map.Entry<String, JsonNode> entry = it.next();
                     info.put(entry.getKey(), entry.getValue());
                 }
-
                 return Utils.createResponse(ErrorCode.NORMAL, info);
             } else
-                throw new AizouException(ErrorCode.AUTH_ERROR);
+                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
