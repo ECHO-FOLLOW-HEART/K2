@@ -1,12 +1,7 @@
 package taozi.test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.taozi.MiscCtrl;
-import controllers.taozi.POICtrl;
 import controllers.taozi.routes;
-import models.poi.AbstractPOI;
-import models.poi.Hotel;
-import models.poi.ViewSpot;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import play.GlobalSettings;
@@ -15,7 +10,6 @@ import play.libs.Json;
 import play.mvc.Result;
 import play.test.FakeApplication;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
