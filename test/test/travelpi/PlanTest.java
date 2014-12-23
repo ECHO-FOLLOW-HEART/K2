@@ -96,11 +96,43 @@ public class PlanTest extends TravelPiTest {
                 planDetailsCheck(results.get("details"));
             }
         });
+    }
 
+    /**
+     * 获得UGC路线列表
+     */
+    @Test
+    public void ugcPlanListCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.PlanCtrl.getUGCPlans1("547c6228e4b0c9f0d576a619", "", 0, 20);
+                JsonNode results = Json.parse(contentAsString(callAction(handler)));
+                assertThat(results.get("code").asInt()).isEqualTo(0);
+                results = results.get("result");
+
+                assertThat(results.isArray()).isTrue();
+                assertThat(results.size()).isPositive();
+
+                SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+                for (JsonNode plan : results) {
+                    assertText(plan, new String[]{"_id", "id", "title"}, false);
+                    for (String key : new String[]{"startDate", "endDate"}) {
+                        try {
+                            dateFmt.parse(plan.get(key).asText());
+                        } catch (ParseException e) {
+                            assertThat(false).isTrue();
+                            break;
+                        }
+                    }
+                    assertThat(plan.get("updateTime").asInt()).isPositive();
+                    assertText(plan.get("imageList"), false);
+                }
+            }
+        });
     }
 
     private void planDetailsCheck(JsonNode details) {
-//        System.out.println(details);
         assertThat(details.isArray()).isTrue();
         assertThat(details.size()).isPositive();
         SimpleDateFormat dateFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
