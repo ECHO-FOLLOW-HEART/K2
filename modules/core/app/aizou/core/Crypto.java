@@ -1,5 +1,7 @@
 package aizou.core;
 
+import exception.AizouException;
+import models.user.Credential;
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.logging.Log;
@@ -14,10 +16,7 @@ import java.net.URLEncoder;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by Heaven on 2014/12/19.
@@ -91,6 +90,23 @@ public class Crypto {
             e.printStackTrace();
         }
         return ret;
+    }
+
+    public static boolean checkAuthorization(Http.Request request, String userId) {
+        Long uid = Long.parseLong(userId);
+        List<String> field = new ArrayList<>();
+        field.add("secKey");
+        boolean result = false;
+        try {
+            Credential credential = UserAPI.getCredentialByUserId(uid, field);
+            String secKey = credential.getSecKey();
+            String gottenSignature = request.getHeader("Authorization");
+            String rightSignature = getSignature(request, secKey);
+            result = rightSignature.equals(gottenSignature);
+        } catch (AizouException e) {
+            e.printStackTrace();
+        }
+        return result;
     }
 
     /**

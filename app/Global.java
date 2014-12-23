@@ -36,20 +36,14 @@ public class Global extends GlobalSettings {
         // TODO 暂时不要合并
         String userId = request.getHeader("UserId");
         if (userId != null && !userId.isEmpty()) {
-            // TODO 从user.Credential库获取用户的secKey
-            String rightSignature = Crypto.getSignature(request, "fake12345678");
-            String gottenSignature = request.getHeader("Authorization");
-            logger.info("right Signature: " + rightSignature);
-            logger.info("get   Signature: " + gottenSignature);
-            if (!rightSignature.equals(gottenSignature)) {
-                logger.fatal("Signature is invalid - rejected");
+            if (Crypto.checkAuthorization(request, userId)) {
+                logger.info("Signature is invalid - rejected");
             } else {
                 logger.info("Signature is valid - accepted");
             }
         } else {
             logger.debug("Normal request - accepted");
         }
-
         return super.onRequest(request, actionMethod);
     }
 
