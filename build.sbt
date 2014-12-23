@@ -22,8 +22,7 @@ libraryDependencies ++= Seq(
   cache,
   javaWs,
   filters,
-  "org.mongodb" % "mongo-java-driver" % "2.12.4",
-  "commons-codec" % "commons-codec" % "20041127.091804"
+  "org.mongodb" % "mongo-java-driver" % "2.12.4"
 )
 
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
