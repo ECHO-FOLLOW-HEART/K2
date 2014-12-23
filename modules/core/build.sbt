@@ -11,6 +11,6 @@ libraryDependencies ++= Seq(
   "org.apache.solr" % "solr-solrj" % "4.10.0",
   "dom4j" % "dom4j" % "1.6.1",
   "jaxen" % "jaxen" % "1.1.6",
-  "commons-codec" % "commons-codec" % "20041127.091804"
+  "commons-codec" % "commons-codec" % "1.10"
   //  "commons-logging" % "commons-logging" % "1.2"
 )
