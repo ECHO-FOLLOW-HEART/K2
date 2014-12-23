@@ -136,11 +136,34 @@ public class GeoCtrl extends Controller {
                     objs.add(node);
                 }
             } else {
-                // TODO 全部取出，不要分页，暂时取300个
-                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 300);
-                for (Locality des : destinations) {
-                    objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
+                Map<String, Object> mapConf = Configuration.root().getConfig("domestic").asMap();
+                Map<String, Object> pinyinConf = Configuration.root().getConfig("pinyin").asMap();
+                String k;
+                Object v,pinyinObj;
+                ObjectNode node;
+                String zhName = null;
+                String pinyin = null;
+                for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
+                    k = entry.getKey();
+                    v = entry.getValue();
+                    if(v!= null)
+                    zhName = v.toString();
+
+                    pinyinObj = pinyinConf.get(k);
+                    if(pinyinObj != null)
+                        pinyin = pinyinObj.toString();
+
+                    node = Json.newObject();
+                    node.put("id",k);
+                    node.put("zhName",zhName);
+                    node.put("pinyin",pinyin);
+                    objs.add(node);
                 }
+
+//                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 300);
+//                for (Locality des : destinations) {
+//                    objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
+//                }
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
         } catch (AizouException e) {
