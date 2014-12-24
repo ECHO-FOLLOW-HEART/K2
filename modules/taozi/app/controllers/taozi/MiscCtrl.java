@@ -170,7 +170,7 @@ public class MiscCtrl extends Controller {
             Query<Favorite> query = ds.createQuery(Favorite.class);
             query.field("userId").equal(userId).field("type").equal(type).field("itemId").equal(oid);
             if (query.iterator().hasNext())
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Favorite item has existed");
+                return Utils.createResponse(ErrorCode.DATA_EXIST, "Favorite item has existed");
             Favorite fa = new Favorite();
             fa.setId(new ObjectId());
             fa.itemId = oid;
