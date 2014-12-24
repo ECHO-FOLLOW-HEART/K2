@@ -146,7 +146,7 @@ public class UserCtrl extends Controller {
             if (UserAPI.checkToken(token, Integer.valueOf(userId), CAPTCHA_ACTION_BANDTEL)) {
                 //如果手机已存在，则绑定无效
                 if (UserAPI.getUserByField(UserInfo.fnTel, tel) != null) {
-                    return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
+                    return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
                 }
                 userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId, null);
                 userInfo.setTel(tel);
@@ -184,7 +184,7 @@ public class UserCtrl extends Controller {
         try {
             UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
             if (userInfo == null)
-                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
+                return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
 
             //验证密码
             if (UserAPI.validCredential(userInfo, oldPwd)) {
