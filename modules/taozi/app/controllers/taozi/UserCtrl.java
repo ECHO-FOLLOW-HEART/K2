@@ -117,9 +117,12 @@ public class UserCtrl extends Controller {
                 Token token = UserAPI.valCodetoToken(countryCode, tel, actionCode, userId, 600 * 1000);
                 result.put("token", token.value);
                 result.put("isValid", true);
-            } else
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+            } else{
                 result.put("isValid", false);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(result));
+            }
+
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
