@@ -21,6 +21,7 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
 import utils.formatter.taozi.user.ContactFormatter;
@@ -103,6 +104,7 @@ public class UserCtrl extends Controller {
         String captcha = req.get("captcha").asText();
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
         Integer userId = 0;
+        // 注册和忘记密码时，无userId；绑定手机号时有userId
         if (req.has("userId"))
             userId = Integer.valueOf(req.get("userId").asText());
         int countryCode = 86;
@@ -617,7 +619,7 @@ public class UserCtrl extends Controller {
             if (req.has("nickName")) {
                 String nickName = req.get("nickName").asText();
                 // TODO 跟踪乱码问题
-//                LogUtils.info(Plan.class, "NickName in POST:" + nickName);
+                LogUtils.info(UserCtrl.class, "NickName in POST:" + nickName);
                 //如果昵称不存在
                 if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
                     userInfor.setNickName(nickName);

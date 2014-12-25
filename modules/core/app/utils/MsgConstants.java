@@ -38,7 +38,7 @@ public class MsgConstants {
     /**
      * 注册时验证码错误
      */
-    public static String PWD_ERROR_MSG = "您输入的旧密码不正确";
+    public static String PWD_ERROR_MSG = "您输入的密码不正确";
     /**
      * 昵称已存在
      */
