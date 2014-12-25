@@ -14,9 +14,7 @@ import org.mongodb.morphia.query.UpdateOperations;
 import utils.Constants;
 import utils.LogUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by topy on 2014/11/5.
@@ -52,12 +50,33 @@ public class GuideAPI {
 
         List<Locality> destinations = queryDes.asList();
 
-
+        // 根据选择的目的地顺序排序
+        guideTemplates = sortGuideTemplates(guideTemplates, ids);
         Guide result = constituteUgcGuide(guideTemplates, destinations, userId);
         //创建时即保存
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE).save(result);
         return result;
 
+    }
+
+    /**
+     * 根据选择的目的地顺序排序
+     *
+     * @param guideTemplates
+     * @param ids
+     * @return
+     */
+    private static List<GuideTemplate> sortGuideTemplates(List<GuideTemplate> guideTemplates, List<ObjectId> ids) {
+
+        List<GuideTemplate> result = new ArrayList<>();
+        Map<ObjectId, GuideTemplate> map = new HashMap<>();
+        for (GuideTemplate guideTemplate : guideTemplates) {
+            map.put(guideTemplate.locId, guideTemplate);
+        }
+        for (ObjectId id : ids) {
+            result.add(map.get(id));
+        }
+        return result;
     }
 
     /**
@@ -94,22 +113,26 @@ public class GuideAPI {
             ugcGuide.images = destinations.get(0).getImages();
             return ugcGuide;
         }
-        int index = 0;
+        boolean isMultipleDestination = false;
+        int acrossLocalityDay = 0;
+        int itineraryDaysCnt = 0;
         List<ObjectId> locIds = new ArrayList<>();
 
         List<ItinerItem> itineraries = new ArrayList<>();
         List<Shopping> shoppingList = new ArrayList<>();
         List<Restaurant> restaurants = new ArrayList<>();
-        Integer itineraryDaysCnt = 0;
+
         titlesBuffer.setLength(Constants.ZERO_COUNT);
         for (GuideTemplate temp : guideTemplates) {
             if (temp == null)
                 continue;
             locIds.add(temp.getId());
-            //titlesBuffer.append(temp.title);
+            //行程单多目的地时，dayIndex要在前一个目的地的dayIndex基础上累加
+            acrossLocalityDay = itineraryDaysCnt;
             if (temp.itinerary != null && temp.itinerary.size() > 0) {
                 for (ItinerItem it : temp.itinerary) {
-                    it.dayIndex = it.dayIndex + index;
+                    //
+                    it.dayIndex = it.dayIndex + acrossLocalityDay + (isMultipleDestination ? 1 : 0);
                     if (itineraryDaysCnt < it.dayIndex)
                         itineraryDaysCnt = it.dayIndex;
 
@@ -123,12 +146,8 @@ public class GuideAPI {
             if (temp.restaurant != null && temp.restaurant.size() > 0) {
                 restaurants.addAll(temp.restaurant);
             }
-            index++;
+            isMultipleDestination = true;
         }
-
-        //补全Title名称
-        //titlesBuffer.append("攻略");
-
 
         ugcGuide.itinerary = itineraries;
         ugcGuide.shopping = shoppingList;
@@ -341,6 +360,9 @@ public class GuideAPI {
                     continue;
                 } else {
                     temp.poi = poi;
+                    if (poi.images != null && (!poi.images.isEmpty())) {
+                        temp.poi.images = Arrays.asList(poi.images.get(0));
+                    }
                     newItinerary.add(temp);
                 }
             }
