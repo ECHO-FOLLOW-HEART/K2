@@ -309,17 +309,17 @@ public class WebPlanAPI {
 
                 if (itRest.hasNext()) {
                     Restaurant rest = (Restaurant) itRest.next();
-                    PlanItem hotelItem = new PlanItem();
+                    PlanItem restItem = new PlanItem();
                     SimpleRef ref = new SimpleRef();
                     ref.id = rest.getId();
                     ref.zhName = rest.name;
-                    hotelItem.item = ref;
+                    restItem.item = ref;
+                    if (rest.addr != null)
+                        restItem.loc = rest.addr.loc;
+                    restItem.type = "hotel";
+                    restItem.ts = dayEntry.date;
 
-                    hotelItem.loc = rest.addr.loc;
-                    hotelItem.type = "hotel";
-                    hotelItem.ts = dayEntry.date;
-
-                    dayEntry.actv.add(hotelItem);
+                    dayEntry.actv.add(restItem);
                 }
 
                 if (itHotel.hasNext()) {
@@ -329,8 +329,8 @@ public class WebPlanAPI {
                     ref.id = hotel.getId();
                     ref.zhName = hotel.name;
                     hotelItem.item = ref;
-
-                    hotelItem.loc = hotel.addr.loc;
+                    if (hotel.addr != null)
+                        hotelItem.loc = hotel.addr.loc;
                     hotelItem.type = "hotel";
                     hotelItem.ts = dayEntry.date;
 

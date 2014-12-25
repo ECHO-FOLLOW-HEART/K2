@@ -478,9 +478,12 @@ public class PlanCtrl extends Controller {
                                         poiType = PoiAPI.POIType.RESTAURANT;
                                         break;
                                 }
-                                if (poiType != null)
-                                    conItem.put("details", PoiAPI.getPOIInfo(conItem.get("itemId").asText(),
-                                            poiType, true).toJson(2));
+                                AbstractPOI ik = PoiAPI.getPOIInfo(conItem.get("itemId").asText(),
+                                        poiType, true);
+                                if (ik != null)
+                                    conItem.put("details", ik.toJson(2));
+                                else
+                                    LogUtils.info(PlanCtrl.class, String.format("POI %s in this plan is null.Plan id is %s.", conItem.get("itemId"), planJson.get("templateId")));
                             } catch (AizouException ignored) {
                             }
                         }
