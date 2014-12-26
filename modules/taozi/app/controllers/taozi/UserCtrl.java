@@ -116,11 +116,9 @@ public class UserCtrl extends Controller {
             if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, actionCode, captcha, userId)) {
                 Token token = UserAPI.valCodetoToken(countryCode, tel, actionCode, userId, 600 * 1000);
                 result.put("token", token.value);
-                result.put("isValid", true);
                 return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
             } else{
-                result.put("isValid", false);
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(result));
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
             }
 
         } catch (AizouException e) {
