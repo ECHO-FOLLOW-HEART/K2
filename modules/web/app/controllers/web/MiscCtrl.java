@@ -11,6 +11,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.travelpi.geo.LocalityFormatter;
 import formatter.travelpi.geo.SimpleLocalityFormatter;
+import formatter.web.misc.RecommendationFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Recommendation;
@@ -22,7 +23,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.DataFilter;
 import utils.Utils;
 
 import java.util.ArrayList;
@@ -234,9 +234,9 @@ public class MiscCtrl extends Controller {
     }
 
     public static Result recommend(String type, int page, int pageSize) {
-        List<JsonNode> results = new ArrayList<JsonNode>();
+        List<JsonNode> results = new ArrayList<>();
 
-        Datastore ds = null;
+        Datastore ds;
         try {
             ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             Query<Recommendation> query = ds.createQuery(Recommendation.class);
@@ -245,13 +245,13 @@ public class MiscCtrl extends Controller {
             query.order(type).offset(page * pageSize).limit(pageSize);
 
             for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
-                results.add(it.next().toJson());
+                results.add(new RecommendationFormatter().format(it.next()));
             }
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
     public static Result checkValidation() {

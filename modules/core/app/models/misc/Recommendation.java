@@ -1,10 +1,12 @@
 package models.misc;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Entity;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 import java.text.DateFormat;
@@ -16,9 +18,15 @@ import java.util.List;
 /**
  * Created by topy on 2014/9/13.
  */
+@JsonFilter("recommendationFilter")
 @Entity
 public class Recommendation extends AizouBaseEntity implements ITravelPiFormatter {
 
+    @Transient
+    public static String FD_NAME = "name";
+
+    @Transient
+    public static String FD_IMAGES = "images";
     /**
      * 名称
      */
