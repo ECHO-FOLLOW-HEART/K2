@@ -8,6 +8,7 @@ import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import models.misc.SimpleRef;
 import models.poi.Hotel;
+import models.poi.Restaurant;
 import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
@@ -120,6 +121,15 @@ public class PlanItem extends AizouBaseItem implements ITravelPiFormatter {
                 Hotel ht = (Hotel) PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.HOTEL, true);
                 if (null != ht)
                     builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.HOTEL, true).toJson(3));
+            } catch (AizouException ignored) {
+            }
+        }
+        if (type != null && type.equals("restaurant")) {
+            // 将餐馆详情嵌入
+            try {
+                Restaurant ht = (Restaurant) PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.RESTAURANT, true);
+                if (null != ht)
+                    builder.add("details", PoiAPI.getPOIInfo(item.id, PoiAPI.POIType.RESTAURANT, true).toJson(3));
             } catch (AizouException ignored) {
             }
         }

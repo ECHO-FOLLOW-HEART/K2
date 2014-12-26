@@ -3,6 +3,9 @@ package aizou.core;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.MorphiaFactory;
+import models.geo.Address;
+import models.geo.Coords;
+import models.geo.GeoJsonPoint;
 import models.misc.SimpleRef;
 import models.plan.Plan;
 import models.plan.PlanDayEntry;
@@ -312,11 +315,23 @@ public class WebPlanAPI {
                     PlanItem restItem = new PlanItem();
                     SimpleRef ref = new SimpleRef();
                     ref.id = rest.getId();
-                    ref.zhName = rest.name;
+                    ref.zhName = rest.zhName;
                     restItem.item = ref;
-                    if (rest.addr != null)
-                        restItem.loc = rest.addr.loc;
-                    restItem.type = "hotel";
+                    // 生成address
+                    Address address = new Address();
+                    if (rest.address != null)
+                    address.address = rest.address;
+
+                    Coords coords = new Coords();
+                    GeoJsonPoint location = rest.getLocation();
+                    if (location != null) {
+                        double[] c = location.getCoordinates();
+                        coords.lng = c[0];
+                        coords.lat = c[1];
+                    }
+                    address.coords = rest.coords;
+                    address.loc = ref;
+                    restItem.type = "restaurant";
                     restItem.ts = dayEntry.date;
 
                     dayEntry.actv.add(restItem);
@@ -393,10 +408,10 @@ public class WebPlanAPI {
         query.field("targets").equal(locId);
         switch (restaurantType) {
             case REST_FLAG_REPUTATION:
-                query.order(String.format("-%s", "ratings.score"));
+                query.order(String.format("-%s", "hotness"));
                 break;
             case REST_FLAG_SPECIAL:
-                query.order(String.format("-%s", "ratings.ranking"));
+                query.order(String.format("-%s", "rating"));
                 break;
         }
         query.offset(page * pageSize).limit(pageSize);
