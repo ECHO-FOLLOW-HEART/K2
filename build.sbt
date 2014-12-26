@@ -22,9 +22,15 @@ libraryDependencies ++= Seq(
   cache,
   javaWs,
   filters,
-  "org.mongodb" % "mongo-java-driver" % "2.12.4"
+  "org.mongodb" % "mongo-java-driver" % "2.12.4",
+  play.PlayImport.cache,
+  "com.github.mumoshu" %% "play2-memcached" % "0.6.0"
 )
+
+
 
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
 
-unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )  
+unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
+
+resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.
