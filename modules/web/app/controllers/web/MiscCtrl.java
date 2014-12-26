@@ -244,8 +244,13 @@ public class MiscCtrl extends Controller {
             query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
             query.order(type).offset(page * pageSize).limit(pageSize);
 
+            JsonNode node;
             for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
-                results.add(new RecommendationFormatter().format(it.next()));
+                if (type.equals("hotvs") || type.equals("hotcity"))
+                    node = new RecommendationFormatter().format(it.next());
+                else
+                    node = it.next().toJson();
+                results.add(node);
             }
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());

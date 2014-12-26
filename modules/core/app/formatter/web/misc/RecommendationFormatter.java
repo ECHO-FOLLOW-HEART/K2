@@ -5,10 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.TaoziBaseFormatter;
+import formatter.web.WebImageItemSerializer;
 import models.AizouBaseEntity;
-import models.guide.DestGuideInfo;
 import models.misc.ImageItem;
 import models.misc.Recommendation;
 
@@ -24,11 +23,11 @@ public class RecommendationFormatter extends TaoziBaseFormatter {
 
     public RecommendationFormatter() {
 
-            filteredFields = new HashSet<>();
-            Collections.addAll(filteredFields,
-                    Recommendation.FD_ID,
-                    Recommendation.FD_NAME,
-                    Recommendation.FD_IMAGES);
+        filteredFields = new HashSet<>();
+        Collections.addAll(filteredFields,
+                Recommendation.FD_ID,
+                Recommendation.FD_NAME,
+                Recommendation.FD_IMAGES);
 
     }
 
@@ -40,7 +39,7 @@ public class RecommendationFormatter extends TaoziBaseFormatter {
         ObjectMapper mapper = getObjectMapper(filterMap, null);
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+                new WebImageItemSerializer());
         mapper.registerModule(imageItemModule);
 
         return mapper.valueToTree(item);

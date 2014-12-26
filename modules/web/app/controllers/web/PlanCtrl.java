@@ -582,7 +582,7 @@ public class PlanCtrl extends Controller {
         UgcPlan ugcPlan = new UgcPlan(plan);
 
         //补全信息
-        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, false);
+        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, true);
         List<JsonNode> retDetails = new ArrayList<>();
         for (PlanDayEntry dayEntry : dayEntryList)
             retDetails.add(dayEntry.toJson());

@@ -117,13 +117,13 @@ public class Recommendation extends AizouBaseEntity implements ITravelPiFormatte
             for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size()))) {
 
                 BasicDBObjectBuilder bld = BasicDBObjectBuilder.start()
-                        .add("url", img.getFullUrl())
+                        .add("url", img.getUrl())
                         .add("w", img.getW())
                         .add("h", img.getH());
 
                 tmpList.add(Json.toJson(bld.get()));
             }
-            builder.add("image", tmpList);
+            builder.add("images", tmpList);
 
         }
         return Json.toJson(builder.get());
