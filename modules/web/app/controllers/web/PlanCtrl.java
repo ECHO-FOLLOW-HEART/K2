@@ -54,7 +54,7 @@ public class PlanCtrl extends Controller {
      * @return
      */
     public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, String uid,
-                                              String trafficFlag, String hotelFlag, String restaurantFlag) {
+                                              String trafficFlag, String hotelFlag, String restaurantFlag,boolean isTemplate) {
         try {
             // 取得交通预算的基准值
             Configuration config = Configuration.root();
@@ -71,10 +71,13 @@ public class PlanCtrl extends Controller {
             }
 
             Http.Request req = request();
-            if (fromLocId.equals("")) {
+            if (isTemplate) {
                 Plan plan = PlanAPI.getPlan(planId, false);
                 if (plan == null)
                     throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", planId.toString()));
+
+                buildBudget(plan, trafficBudgetDefault, stayBudgetDefault, fromLocId);
+
                 return Utils.createResponse(ErrorCode.NORMAL, plan.toJson());
             }
             Calendar cal = Calendar.getInstance();
@@ -90,18 +93,7 @@ public class PlanCtrl extends Controller {
                 backLocId = tmp.toString();
 
             UgcPlan plan = WebPlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req, trafficFlag, hotelFlag, restaurantFlag);
-
-            Double trafficBudgetT;
-            List<SimpleRef> targets = plan.getTargets();
-            if (null != targets && targets.size() > 0) {
-                trafficBudgetT = getTrafficBudget(fromLocId, plan.getTargets().get(0).id.toString());
-            } else {
-                trafficBudgetT = trafficBudgetDefault;
-            }
-            plan.setTrafficBudget((int) trafficBudgetT.doubleValue());
-            plan.setStayBudget(plan.getDays() * stayBudgetDefault);
-
-            buildBudget(plan);
+            buildBudget(plan, trafficBudgetDefault, stayBudgetDefault, fromLocId);
 
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
@@ -310,7 +302,18 @@ public class PlanCtrl extends Controller {
      * @param plan
      * @return
      */
-    private static Plan buildBudget(Plan plan) {
+    private static Plan buildBudget(Plan plan, Double trafficBudgetDefault, int stayBudgetDefault, String fromLocId) throws AizouException {
+
+        Double trafficBudgetT;
+        List<SimpleRef> targets = plan.getTargets();
+        if (null != targets && targets.size() > 0) {
+            trafficBudgetT = getTrafficBudget(fromLocId, plan.getTargets().get(0).id.toString());
+        } else {
+            trafficBudgetT = trafficBudgetDefault;
+        }
+        plan.setTrafficBudget((int) trafficBudgetT.doubleValue());
+        plan.setStayBudget((plan.getDays() * stayBudgetDefault));
+
         List<Integer> budget = Arrays.asList(0, 0);
 //        if (budget == null || budget.isEmpty())
 
