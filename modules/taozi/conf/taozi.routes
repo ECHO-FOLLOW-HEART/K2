@@ -140,7 +140,7 @@ GET           /geo/localities/:id                                controllers.tao
 GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=50)
 
 #旅行专栏
-GET           /columns                                           controllers.taozi.MiscCtrl.getColumns()
+GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage")
 
 #----------用户评价接口----------
 #保存用户的评价

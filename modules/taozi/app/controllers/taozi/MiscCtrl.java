@@ -481,11 +481,11 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    public static Result getColumns() {
-        MiscFormatter formatter = new MiscFormatter();
+    public static Result getColumns(String type) {
+        ColumnFormatter formatter = new ColumnFormatter();
         try {
             List<JsonNode> columns = new ArrayList<>();
-            for (Column c : MiscAPI.getColumns()) {
+            for (Column c : MiscAPI.getColumns(type)) {
                 columns.add(formatter.format(c));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(columns));

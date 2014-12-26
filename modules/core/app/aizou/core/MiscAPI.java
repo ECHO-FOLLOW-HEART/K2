@@ -29,9 +29,10 @@ public class MiscAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<Column> getColumns() throws AizouException {
+    public static List<Column> getColumns(String type) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Column> query = ds.createQuery(Column.class);
+        query.field("type").equal(type);
         return query.asList();
 
     }
