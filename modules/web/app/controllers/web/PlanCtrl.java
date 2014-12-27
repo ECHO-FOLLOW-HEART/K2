@@ -706,7 +706,7 @@ public class PlanCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, int minDays, int maxDays, int page, int pageSize) {
+    public static Result explorePlans(String fromLoc, String locId, String poiId, String sortField, String sort, String tag, String company, int minDays, int maxDays, int page, int pageSize) {
         List<JsonNode> results = new ArrayList<>();
 
         // 处理fromLoc/backLoc的映射
@@ -731,7 +731,7 @@ public class PlanCtrl extends Controller {
 
 
             List<Plan> planList = new ArrayList<>();
-            for (Iterator<Plan> it = PlanAPI.explore(locId, poiId, sort, tag, minDays, maxDays, page,
+            for (Iterator<Plan> it = WebPlanAPI.explore(locId, poiId, sort, tag, company, minDays, maxDays, page,
                     pageSize, sortField); it.hasNext(); )
                 planList.add(it.next());
 

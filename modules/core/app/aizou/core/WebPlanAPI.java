@@ -2,15 +2,14 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Address;
 import models.geo.Coords;
 import models.geo.GeoJsonPoint;
+import models.geo.Locality;
 import models.misc.SimpleRef;
-import models.plan.Plan;
-import models.plan.PlanDayEntry;
-import models.plan.PlanItem;
-import models.plan.UgcPlan;
+import models.plan.*;
 import models.poi.AbstractPOI;
 import models.poi.Hotel;
 import models.poi.Restaurant;
@@ -24,9 +23,7 @@ import utils.DataFactory;
 import utils.DataFilter;
 import utils.PlanUtils;
 
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by topy on 2014/12/5.
@@ -320,7 +317,7 @@ public class WebPlanAPI {
                     // 生成address
                     Address address = new Address();
                     if (rest.address != null)
-                    address.address = rest.address;
+                        address.address = rest.address;
 
                     Coords coords = new Coords();
                     GeoJsonPoint location = rest.getLocation();
@@ -416,5 +413,105 @@ public class WebPlanAPI {
         }
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
+    }
+
+    /**
+     * 发现路线
+     *
+     * @param locId
+     * @param poiId
+     * @param sort
+     * @param tag
+     * @param page
+     * @param pageSize
+     * @param sortField @return
+     * @throws exception.AizouException
+     */
+    public static Iterator<Plan> explore(String locId, String poiId, String sort, String tag, String company, int minDays, int maxDays, int page, int pageSize, String sortField) throws AizouException {
+        try {
+            return explore(
+                    locId != null && !locId.isEmpty() ? new ObjectId(locId) : null,
+                    poiId != null && !poiId.isEmpty() ? new ObjectId(poiId) : null,
+                    sort, tag != null && !tag.isEmpty() ? tag : null, company, minDays, maxDays, page, pageSize, sortField);
+        } catch (IllegalArgumentException e) {
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
+        }
+    }
+
+    /**
+     * 发现路线
+     *
+     * @param locId
+     * @param poiId
+     * @param sort
+     * @param tag
+     * @param page
+     * @param pageSize
+     * @param sortField @return
+     * @throws exception.AizouException
+     */
+    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, String company, int minDays, int maxDays, int page, int pageSize, String sortField) throws AizouException {
+        List<Plan> planList = null;
+        if (locId != null)
+            planList = planExploreHelper(locId, true, tag, company, sortField, sort, minDays, maxDays, page, pageSize);
+        else if (poiId != null)
+            planList = planExploreHelper(poiId, false, tag, company, sortField, sort, minDays, maxDays, page, pageSize);
+
+        if (planList != null && !planList.isEmpty())
+            return planList.iterator();
+
+        // 无法找到路线，准备模糊匹配
+        if (poiId != null) {
+            AbstractPOI vs = PoiAPI.getPOIInfo(poiId, PoiAPI.POIType.VIEW_SPOT, Arrays.asList(AbstractPOI.FD_LOCALITY));
+            if (vs != null)
+                locId = vs.getLocality().getId();
+        }
+
+        // 退而求其次，从上级Locality找
+        if (locId != null) {
+            Locality loc = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST));
+            if (loc != null) {
+                List<Locality> locList = loc.getLocList();
+                if (locList != null && !locList.isEmpty()) {
+                    for (int idx = locList.size() - 1; idx >= 0; idx--) {
+                        ObjectId itrLocId = locList.get(idx).getId();
+                        planList = planExploreHelper(itrLocId, true, tag, company, sortField, sort, minDays, maxDays, page, pageSize);
+                        if (!planList.isEmpty())
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (planList != null && !planList.isEmpty())
+            return planList.iterator();
+        else
+            return new ArrayList<Plan>().iterator();
+    }
+
+
+    private static List<Plan> planExploreHelper(ObjectId targetId, boolean isLoc, String tag, String company, String sortField, String sort, int minDays, int maxDays,
+                                                int page, int pageSize) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Query<Plan> query = ds.createQuery(Plan.class);
+
+        if (isLoc)
+            query.field(String.format("%s.id", AbstractPlan.FD_TARGETS)).equal(targetId);
+        else
+            query.field(String.format("%s.%s.%s.id", AbstractPlan.FD_DETAILS, PlanDayEntry.FD_ACTV, PlanItem.FD_ITEM))
+                    .equal(targetId);
+
+        if (tag != null && !tag.isEmpty())
+            query.field(AbstractPlan.FD_TAGS).hasThisOne(tag);
+        if (company != null && !company.isEmpty())
+            query.field(AbstractPlan.FD_COMPANY).hasThisOne(company);
+
+        query.and(query.criteria(AbstractPlan.FD_DAYS).greaterThanOrEq(minDays),
+                query.criteria(AbstractPlan.FD_DAYS).lessThanOrEq(maxDays));
+
+        query.field(AizouBaseEntity.FD_ENABLED).equal(Boolean.TRUE);
+        query.order(String.format("%s%s", sort.equals("asc") ? "" : "-", sortField)).offset(page * pageSize).limit(pageSize);
+
+        return query.asList();
     }
 }

@@ -34,6 +34,9 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
     public static final String FD_TAGS = "tags";
 
     @Transient
+    public static final String FD_COMPANY = "company";
+
+    @Transient
     public static final String FD_DETAILS = "details";
 
     @Transient
@@ -132,6 +135,11 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
      * 更多的描述
      */
     private String moreDesc;
+
+    /**
+     * 标签
+     */
+    private List<String> company;
 
     public List<SimpleRef> getTargets() {
         return targets;
@@ -315,6 +323,14 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
 
     public void setMoreDesc(String moreDesc) {
         this.moreDesc = moreDesc;
+    }
+
+    public List<String> getCompany() {
+        return company;
+    }
+
+    public void setCompany(List<String> company) {
+        this.company = company;
     }
 
     @Override
