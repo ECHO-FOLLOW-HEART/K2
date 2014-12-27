@@ -32,9 +32,10 @@ public class MiscAPI {
     public static List<Column> getColumns(String type, String id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Column> query = ds.createQuery(Column.class);
-        query.field("type").equal(type);
-        if (id != null)
-            query.field("_id").equal(id);
+        if (id.equals(""))
+            query.field("type").equal(type);
+        if (!id.equals(""))
+            query.field("_id").equal(new ObjectId(id));
         return query.asList();
 
     }
