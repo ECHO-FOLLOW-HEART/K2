@@ -54,7 +54,7 @@ public class PlanCtrl extends Controller {
      * @return
      */
     public static Result getPlanFromTemplates(String planId, String fromLocId, String backLocId, String uid,
-                                              String trafficFlag, String hotelFlag, String restaurantFlag,boolean isTemplate) {
+                                              String trafficFlag, String hotelFlag, String restaurantFlag, boolean isTemplate) {
         try {
             // 取得交通预算的基准值
             Configuration config = Configuration.root();
@@ -582,7 +582,7 @@ public class PlanCtrl extends Controller {
         UgcPlan ugcPlan = new UgcPlan(plan);
 
         //补全信息
-        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, true);
+        List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, false);
         List<JsonNode> retDetails = new ArrayList<>();
         for (PlanDayEntry dayEntry : dayEntryList)
             retDetails.add(dayEntry.toJson());
@@ -1112,7 +1112,7 @@ public class PlanCtrl extends Controller {
             try {
                 Calendar cal = Calendar.getInstance();
                 cal.setTime(fmt.parse(item.get("st").asText()));
-                if (type.equals("vs") || type.equals("hotel"))
+                if (type.equals("vs") || type.equals("hotel") || type.equals("restaurant"))
                     entryList = appendPlanItem(entryList, poiMapper(item), cal);
             } catch (ParseException ignored) {
             }
