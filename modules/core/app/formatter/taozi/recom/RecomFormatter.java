@@ -26,8 +26,8 @@ public class RecomFormatter extends TaoziBaseFormatter {
                 .addFilter("recomFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
                                 Recom.fnId,
-                                Recom.fnZhName,
-                                Recom.fnEnName,
+                                Recom.fnTitle,
+                                Recom.fnItemType,
                                 Recom.fnLinkType,
                                 Recom.fnLinkUrl,
                                 Recom.fnDesc,

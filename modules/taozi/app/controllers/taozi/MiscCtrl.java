@@ -120,11 +120,11 @@ public class MiscCtrl extends Controller {
             List<Recom> tempList;
             for (Iterator<Recom> it = query.iterator(); it.hasNext(); ) {
                 recom = it.next();
-                tempList = map.get(recom.title);
+                tempList = map.get(recom.type);
                 if (tempList == null)
                     tempList = new ArrayList<>();
                 tempList.add(recom);
-                map.put(recom.title, tempList);
+                map.put(recom.type, tempList);
             }
             String key;
             ObjectNode tempNode;
