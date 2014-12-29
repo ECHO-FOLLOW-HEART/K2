@@ -1133,11 +1133,7 @@ public class PoiAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (keyword != null && !keyword.isEmpty()) {
-            query.or(
-                    query.criteria("zhName").equal(Pattern.compile(prefix ? "^" + keyword : keyword)),
-                    query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
-                    query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
-            );
+            query.field("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE));
         }
         if (locId != null)
             query.field("targets").equal(locId);

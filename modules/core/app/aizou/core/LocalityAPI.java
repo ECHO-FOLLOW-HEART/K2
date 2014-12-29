@@ -158,13 +158,14 @@ public class LocalityAPI {
 
     /**
      * 返回特定字段的locality
+     *
      * @param locId
      * @param fieldList
      * @return
      */
-    public static Locality getLocality(ObjectId locId,List<String> fieldList) throws AizouException {
+    public static Locality getLocality(ObjectId locId, List<String> fieldList) throws AizouException {
 
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
@@ -243,11 +244,7 @@ public class LocalityAPI {
      */
     public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws AizouException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
-        query.or(
-                query.criteria("zhName").equal(keyword),
-                query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
-                query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
-        );
+        query.field("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE));
         return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
     }
 
