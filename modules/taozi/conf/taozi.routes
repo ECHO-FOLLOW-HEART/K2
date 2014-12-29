@@ -64,7 +64,7 @@ POST          /misc/upload-callback                              controllers.tao
 #游记
 GET           /misc/notes/search                                 controllers.taozi.TravelNoteCtrl.searchNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
 #推荐
-GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=10)
+GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #搜索
 GET           /search                                            controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #提示

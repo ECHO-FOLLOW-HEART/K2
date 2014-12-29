@@ -117,7 +117,7 @@ public class MiscCtrl extends Controller {
             query.field("enabled").equal(Boolean.TRUE);
             query.order("weight").offset(page * pageSize).limit(pageSize);
             Recom recom;
-            Map<String, List<Recom>> map = new HashMap<>();
+            Map<String, List<Recom>> map = new LinkedHashMap<>();
             List<Recom> tempList;
             for (Iterator<Recom> it = query.iterator(); it.hasNext(); ) {
                 recom = it.next();
@@ -484,10 +484,27 @@ public class MiscCtrl extends Controller {
      */
     public static Result getColumns(String type, String id) {
         ColumnFormatter formatter = new ColumnFormatter();
+        String url = null;
+        try {
+            Configuration config = Configuration.root();
+            Map h5 = (Map) config.getObject("h5");
+            StringBuffer urlSb = new StringBuffer(10);
+            urlSb.append("http://");
+            urlSb.append(h5.get("host").toString());
+            urlSb.append(h5.get("column").toString());
+            urlSb.append(Constants.SYMBOL_QUESTION);
+            urlSb.append("id=");
+            url = urlSb.toString();
+        } catch (NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+
         try {
             List<JsonNode> columns = new ArrayList<>();
             List<Column> columnList = MiscAPI.getColumns(type, id);
+
             for (Column c : columnList) {
+                c.setLink(url + c.getId());
                 columns.add(formatter.format(c));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(columns));

@@ -10,7 +10,6 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
-import utils.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -826,7 +825,7 @@ public class PoiAPI {
                 new ObjectId("5434d71010114e684bb1b4fe"),   // 埃及
                 new ObjectId("5434d71310114e684bb1b513"),   // 美国
                 new ObjectId("5434d71210114e684bb1b512")    // 加拿大
-                );
+        );
 
         Map<String, List<Locality>> results = new HashMap<>();
         for (ObjectId oid : countryList) {
@@ -922,6 +921,9 @@ public class PoiAPI {
             case RESTAURANT:
                 poiClass = Restaurant.class;
                 break;
+            case SHOPPING:
+                poiClass = Shopping.class;
+                break;
             default:
                 throw new AizouException(ErrorCode.INVALID_ARGUMENT);
         }
@@ -930,7 +932,8 @@ public class PoiAPI {
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         query = query.field(AbstractPOI.FD_LOCATION).near(lng, lat, maxDistance, true);
         query.retrievedFields(true, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.FD_IMAGES,
-                AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION);
+                AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION, AbstractPOI.FD_PRICE_DESC,
+                AbstractPOI.FD_ADDRESS);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }
