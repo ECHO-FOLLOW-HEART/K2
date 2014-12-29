@@ -82,13 +82,14 @@ public class MiscCtrl extends Controller {
     public static Result postFeedback() throws UnknownHostException, AizouException {
         JsonNode feedback = request().body().asJson();
         try {
-            Integer uid = feedback.has("userId") ? feedback.get("userId").asInt() : null;
+            Integer uid = request().hasHeader("UserId") ? Integer.parseInt(request().getHeader("UserId")) : null;
             String body = feedback.has("body") ? feedback.get("body").asText().trim() : null;
-            if (body == null || body.equals("") || uid == null)
+            if (body == null || body.equals(""))
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid feedback content.");
             Feedback feedBack = new Feedback();
             Datastore dsSave = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            feedBack.uid = uid;
+            if (uid != null)
+                feedBack.uid = uid;
             feedBack.body = body;
             feedBack.time = new Date();
             feedBack.origin = Constants.APP_FLAG_TAOZI;
@@ -481,11 +482,11 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    public static Result getColumns(String type,String id) {
+    public static Result getColumns(String type, String id) {
         ColumnFormatter formatter = new ColumnFormatter();
         try {
             List<JsonNode> columns = new ArrayList<>();
-            List<Column> columnList = MiscAPI.getColumns(type,id);
+            List<Column> columnList = MiscAPI.getColumns(type, id);
             for (Column c : columnList) {
                 columns.add(formatter.format(c));
             }

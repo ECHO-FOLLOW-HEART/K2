@@ -9,11 +9,9 @@ import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.misc.Recom;
 
-import java.util.Arrays;
-
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p/>
+ * <p>
  * Created by zephyre on 10/28/14.
  */
 public class RecomFormatter extends TaoziBaseFormatter {
@@ -25,16 +23,17 @@ public class RecomFormatter extends TaoziBaseFormatter {
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
                 .addFilter("recomFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
-                                Recom.fnId,
+                                Recom.fnItemId,
                                 Recom.fnTitle,
                                 Recom.fnItemType,
                                 Recom.fnLinkType,
                                 Recom.fnLinkUrl,
                                 Recom.fnDesc,
-                                Recom.fnCover
-                        ));
+                                Recom.fnCover,
+
+                                ));
         ObjectNode result = mapper.valueToTree(item);
-        stringFields.addAll(Arrays.asList(Recom.fnId));
+        //  stringFields.addAll(Arrays.asList(Recom.fnId));
         return postProcess(result);
     }
 }

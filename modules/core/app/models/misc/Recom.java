@@ -26,6 +26,10 @@ public class Recom extends AizouBaseEntity {
     public static String fnLinkUrl = "linkUrl";
     @Transient
     public static String fnItemType = "itemType";
+    @Transient
+    public static String fnItemId = "itemId";
+
+
     /**
      * 推荐分类
      */
@@ -57,5 +61,7 @@ public class Recom extends AizouBaseEntity {
      */
     public String linkUrl;
     public Integer weight;
+
+    public String itemId;
 
 }
