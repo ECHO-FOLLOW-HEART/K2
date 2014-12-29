@@ -1,5 +1,6 @@
 package controllers.taozi;
 
+import aizou.core.GeoAPI;
 import aizou.core.GuideAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,12 +8,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.guide.GuideFormatter;
-import formatter.taozi.guide.LocalityGuideFormatter;
 import formatter.taozi.guide.SimpleGuideFormatter;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
-import models.guide.LocalityGuideInfo;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -236,24 +235,38 @@ public class GuideCtrl extends Controller {
      */
     public static Result getLocalityGuideInfo(String id, String guidePart) {
         try {
-
-            LocalityGuideInfo localityGuideInfo = GuideAPI.getLocalityGuideInfo(new ObjectId(id));
-            ObjectNode node = (ObjectNode) new LocalityGuideFormatter().format(localityGuideInfo);
-            //重新设置Json-Key
+            List<String> fields = new ArrayList<>();
+            Collections.addAll(fields, Locality.fnDinningIntro, Locality.fnShoppingIntro);
+            Locality locality = GeoAPI.locDetails(new ObjectId(id), fields);
+            String content = null;
             ObjectNode result = Json.newObject();
-            if (guidePart.equals("shopping")) {
-                result.put("images", node.get(LocalityGuideInfo.fnShoppingImages));
-                result.put("desc", node.get(LocalityGuideInfo.fnShoppingDesc));
-            } else if (guidePart.equals("restaurant")) {
-                result.put("images", node.get(LocalityGuideInfo.fnRestaurantImages));
-                result.put("desc", node.get(LocalityGuideInfo.fnRestaurantDesc));
-            }
+            if (guidePart.equals("shopping"))
+                content = locality.getShoppingIntro();
+            else if (guidePart.equals("restaurant"))
+                content = locality.getDiningIntro();
 
+            result.put("desc", content != null ? removeH5Label(content) : "");
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
 
+    }
+
+    private static String removeH5Label(String content) {
+//        String regEx = "(?<=<(p)>).*(?=</p>)";
+//        Pattern p = Pattern.compile(regEx);
+//        Matcher m = p.matcher(content);
+//        String result = "";
+//        while (m.find()) {
+//            result = result + m.group(0);
+//        }
+        List<String> regExList = Arrays.asList("<p>", "</p>", "<div>", "</div>");
+        for (String regEx : regExList) {
+            content = content.replace(regEx, "");
+        }
+
+        return content;
     }
 
     /**

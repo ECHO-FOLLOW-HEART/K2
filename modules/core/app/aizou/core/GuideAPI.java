@@ -313,10 +313,11 @@ public class GuideAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static LocalityGuideInfo getLocalityGuideInfo(ObjectId id) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        Query<LocalityGuideInfo> query = ds.createQuery(LocalityGuideInfo.class);
-        query.field("locId").equal(id);
+    public static Locality getLocalityGuideInfo(ObjectId id) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class);
+        query.field("id").equal(id);
+        query.retrievedFields(true, Locality.fnDinningIntro,Locality.fnShoppingIntro);
         return query.get();
     }
 
