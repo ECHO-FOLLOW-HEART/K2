@@ -789,7 +789,7 @@ public class UserCtrl extends Controller {
     public static Result matchAddressBook() {
         try {
             JsonNode req = request().body().asJson();
-            Iterator<JsonNode> it = req.get("contants").elements();
+            Iterator<JsonNode> it = req.get("contacts").elements();
             Long selfUserId = Long.parseLong(request().getHeader("UserId"));
             List<Contact> contacts = new ArrayList();
             ObjectMapper m = new ObjectMapper();

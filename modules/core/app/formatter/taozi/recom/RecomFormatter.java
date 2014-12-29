@@ -29,8 +29,7 @@ public class RecomFormatter extends TaoziBaseFormatter {
                                 Recom.fnLinkType,
                                 Recom.fnLinkUrl,
                                 Recom.fnDesc,
-                                Recom.fnCover,
-
+                                Recom.fnCover
                                 ));
         ObjectNode result = mapper.valueToTree(item);
         //  stringFields.addAll(Arrays.asList(Recom.fnId));
