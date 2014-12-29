@@ -74,7 +74,7 @@ public class GeoAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
-            query.field("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE));
+            query.field("alias").equal(Pattern.compile("^" + keyword));
         if (countryId != null)
             query.field(String.format("%s.id", Locality.fnCountry)).equal(countryId);
         return query.order(String.format("-%s", Locality.fnHotness))
@@ -91,7 +91,7 @@ public class GeoAPI {
     public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws AizouException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
         if (!keyword.equals("")) {
-            query.field("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE));
+            query.field("alias").equal(Pattern.compile("^" + keyword));
         }
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
@@ -108,7 +108,7 @@ public class GeoAPI {
         if (keywords != null) {
             List<CriteriaContainerImpl> criList = new ArrayList<>();
             for (String word : keywords)
-                criList.add(query.criteria("alias").equal(Pattern.compile("^" + word, Pattern.CASE_INSENSITIVE)));
+                criList.add(query.criteria("alias").equal(Pattern.compile("^" + word)));
             query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
         }
         query.offset(page * pageSize).limit(pageSize);
