@@ -422,6 +422,8 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
         List<String> summaryList = new ArrayList<>();
         int tempVsCount = 0;
         for (PlanDayEntry planDayEntry : details) {
+            if (planDayEntry.actv == null)
+                continue;
             List<String> components = new ArrayList<>();
 
             for (PlanItem planItem : planDayEntry.actv) {
@@ -431,7 +433,8 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
                     tempVsCount++;
                 components.add(planItem.item.zhName);
             }
-            summaryList.add(StringUtils.join(components, "-"));
+            if (!components.isEmpty())
+                summaryList.add(StringUtils.join(components, "-"));
         }
         summary = summaryList;
         vsCnt = tempVsCount;
