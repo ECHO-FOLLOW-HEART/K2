@@ -26,7 +26,9 @@ libraryDependencies ++= Seq(
   javaWs,
   filters,
   "org.mongodb" % "mongo-java-driver" % "2.12.4",
-  "org.springframework" % "spring-aspects" % "3.2.2.RELEASE"
+  "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",
+  "org.springframework" % "spring-aop" % "3.2.2.RELEASE",
+  "org.springframework" % "spring-tx" % "3.2.2.RELEASE"
 )
 
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
@@ -40,6 +42,18 @@ inputs in Aspectj <+= compiledClasses
 binaries in Aspectj <++= update map { report =>
   report.matching(
     moduleFilter(organization = "org.springframework", name = "spring-aspects")
+    )
+}
+
+binaries in Aspectj <++= update map { report =>
+  report.matching(
+    moduleFilter(organization = "org.springframework", name = "spring-aop")
+  )
+}
+
+binaries in Aspectj <++= update map { report =>
+  report.matching(
+    moduleFilter(organization = "org.springframework", name = "spring-tx")
   )
 }
 
