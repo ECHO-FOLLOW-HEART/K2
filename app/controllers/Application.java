@@ -1,16 +1,12 @@
 package controllers;
 
 import exception.AizouException;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import play.mvc.Controller;
 import play.mvc.Result;
 
 public class Application extends Controller {
 
     public static Result index() throws AizouException {
-        Log logger = LogFactory.getLog("app.Logger");
-        logger.info("action called");
         return ok("WELCOME");
     }
 

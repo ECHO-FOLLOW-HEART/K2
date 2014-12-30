@@ -11,15 +11,16 @@ import org.aspectj.lang.annotation.Pointcut;
  * Created by Heaven on 2014/12/30.
  */
 @Aspect
-public class testLogger {
-    @Pointcut("call(public play.mvc.Result *())")
+public class LoggerAsp {
+    Log logger = LogFactory.getLog("LoggerAsp");
+
+    @Pointcut("call(public play.mvc.Result controllers.Application.index())")
     void callIndex() {
     }
 
     @Before("callIndex()")
     public void runCall(JoinPoint thisJionPoint) {
-        Log logger = LogFactory.getLog("test.Logger");
-        logger.info("action called: " + thisJionPoint.getSignature());
+        logger.info("Action called:     " + thisJionPoint.getSignature());
     }
 
 }
