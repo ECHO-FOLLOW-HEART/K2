@@ -7,6 +7,7 @@ import models.ITravelPiFormatter;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 
 import java.util.Map;
@@ -18,6 +19,19 @@ import java.util.Map;
  */
 @Entity
 public class MiscInfo extends AizouBaseEntity implements ITravelPiFormatter {
+
+
+    @Transient
+    public static final String FD_ITEMID = "itemIds";
+
+    @Transient
+    public static final String FD_UPDATE_ANDROID_VERSION = "UPDATE_ANDROID_VERSION";
+
+    @Transient
+    public static final String FD_UPDATE_ANDROID_URL = "UPDATE_ANDROID_URL";
+
+    @Transient
+    public static final String FD_UPDATE_IOS_VERSION = "UPDATE_IOS_VERSION";
 
     @Id
     public ObjectId id;
@@ -51,6 +65,9 @@ public class MiscInfo extends AizouBaseEntity implements ITravelPiFormatter {
      */
     public String application;
 
+    public String key;
+
+    public String value;
 
     @Override
     public JsonNode toJson() {

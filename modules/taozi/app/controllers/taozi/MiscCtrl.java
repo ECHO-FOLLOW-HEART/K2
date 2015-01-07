@@ -742,6 +742,49 @@ public class MiscCtrl extends Controller {
         }
     }
 
+    /**
+     * 获得更新信息
+     *
+     * @return
+     */
+    public static Result getUpdates() {
+
+        String platform = request().getHeader("Platform");
+        String ver = request().getHeader("Version");
+        if (ver == null || ver.isEmpty() || platform == null || platform.isEmpty())
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID ARGUMENT");
+        platform = platform.toLowerCase();
+        ver = ver.toLowerCase();
+
+        double oldVerN = 0;
+        String[] oldVerP = ver.split("\\.");
+        for (int i = 0; i < oldVerP.length; i++)
+            oldVerN += Math.pow(10, -3 * i) * Double.parseDouble(oldVerP[i]);
+
+        List<String> keyList = new ArrayList<>();
+        Collections.addAll(keyList, MiscInfo.FD_UPDATE_ANDROID_VERSION, MiscInfo.FD_UPDATE_ANDROID_URL, MiscInfo.FD_UPDATE_ANDROID_URL);
+        Map<String, String> miscInfos;
+        try {
+            miscInfos = MiscAPI.getMiscInfos(keyList);
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
+
+        String newVerS = miscInfos.get(MiscInfo.FD_UPDATE_ANDROID_VERSION);
+        String[] newVerP = newVerS.split("\\.");
+        double newVerN = 0;
+        for (int i = 0; i < newVerP.length; i++)
+            newVerN += Math.pow(10, -3 * i) * Double.parseDouble(newVerP[i]);
+
+        ObjectNode result = Json.newObject();
+        if (newVerN > oldVerN) {
+            result.put("update", true);
+            result.put("version", newVerS);
+            result.put("downloadUrl", miscInfos.get(MiscInfo.FD_UPDATE_ANDROID_URL));
+        } else
+            result.put("update", false);
+        return Utils.createResponse(ErrorCode.NORMAL, result);
+    }
 //    public static Result testForTest() throws KrbException {
 //        Configuration config = Configuration.root();
 //        Configuration c = config.getConfig("solr");

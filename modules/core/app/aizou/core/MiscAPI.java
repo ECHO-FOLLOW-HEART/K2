@@ -2,21 +2,26 @@ package aizou.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
+import exception.ErrorCode;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.misc.Column;
 import models.misc.Images;
+import models.misc.MiscInfo;
 import models.poi.Comment;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
+import utils.Utils;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by lxf on 14-11-12.
@@ -129,6 +134,23 @@ public class MiscAPI {
         query.field(Images.FD_ITEMID).equal(id);
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
+    }
+
+    public static Map<String,String> getMiscInfos(List<String> keys) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<MiscInfo> query = ds.createQuery(MiscInfo.class);
+
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (String key :keys) {
+            criList.add(query.criteria("key").equal(key));
+        }
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        List<MiscInfo> miscInfos =  query.asList();
+        Map<String,String> result = new HashMap<>();
+        for(MiscInfo miscInfo : miscInfos){
+            result.put(miscInfo.key,miscInfo.value);
+        }
+        return result;
     }
 
 }

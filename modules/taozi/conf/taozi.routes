@@ -69,7 +69,8 @@ GET           /recommend                                         controllers.tao
 GET           /search                                            controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #提示
 GET           /suggestions                                       controllers.taozi.MiscCtrl.getSuggestions(keyWord: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, shopping: Boolean?=false,pageSize: Int?=5)
-
+#获得版本信息
+GET           /misc/updates                                      controllers.taozi.MiscCtrl.getUpdates()
 #----------POI接口----------
 #查看POI详情
 # 景点详情
