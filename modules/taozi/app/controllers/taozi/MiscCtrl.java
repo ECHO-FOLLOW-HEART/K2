@@ -57,17 +57,13 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            MiscInfo info = ds.createQuery(MiscInfo.class).field("application").equal(Constants.APP_FLAG_TAOZI).get();
+            MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
             if (info == null)
                 return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
             ObjectNode node = Json.newObject();
             // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
-            //添加封面故事信息
-            if (info.coverStory != null)
-                for (Map.Entry<String, String> entry : info.coverStory.entrySet()) {
-                    node.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
-                }
+            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value, width, height, quality, format, interlace);
+
             node.put("image", url);
             node.put("width", width);
             node.put("height", height);
@@ -762,7 +758,7 @@ public class MiscCtrl extends Controller {
             oldVerN += Math.pow(10, -3 * i) * Double.parseDouble(oldVerP[i]);
 
         List<String> keyList = new ArrayList<>();
-        Collections.addAll(keyList, MiscInfo.FD_UPDATE_ANDROID_VERSION, MiscInfo.FD_UPDATE_ANDROID_URL, MiscInfo.FD_UPDATE_ANDROID_URL);
+        Collections.addAll(keyList, MiscInfo.FD_UPDATE_ANDROID_VERSION, MiscInfo.FD_UPDATE_ANDROID_URL);
         Map<String, String> miscInfos;
         try {
             miscInfos = MiscAPI.getMiscInfos(keyList);
