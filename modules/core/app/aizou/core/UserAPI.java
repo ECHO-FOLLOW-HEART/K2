@@ -28,6 +28,7 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http;
 import utils.Constants;
+import utils.LogUtils;
 import utils.Utils;
 
 import javax.crypto.KeyGenerator;
@@ -751,7 +752,7 @@ public class UserAPI {
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.setRequestProperty("Content-Type", "application/json");
-                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
                 out.write(data.toString());
                 out.flush();
                 out.close();
@@ -834,7 +835,7 @@ public class UserAPI {
             conn.setDoInput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
             out.write(data.toString());
             out.flush();
             out.close();
@@ -941,7 +942,7 @@ public class UserAPI {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
 
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
             out.write(data.toString());
             out.flush();
             out.close();
@@ -1099,7 +1100,6 @@ public class UserAPI {
         ObjectNode info = (ObjectNode) new UserFormatter(false).format(selfInfo);
         // 添加邀请信息
         info.put("attachMsg", message);
-
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);
         ext.put("content", info);
@@ -1138,7 +1138,7 @@ public class UserAPI {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
 
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
             out.write(requestBody.toString());
             out.flush();
             out.close();
