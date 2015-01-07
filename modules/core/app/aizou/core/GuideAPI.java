@@ -4,7 +4,10 @@ import exception.AizouException;
 import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.guide.*;
+import models.guide.AbstractGuide;
+import models.guide.Guide;
+import models.guide.GuideTemplate;
+import models.guide.ItinerItem;
 import models.poi.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -73,8 +76,12 @@ public class GuideAPI {
         for (GuideTemplate guideTemplate : guideTemplates) {
             map.put(guideTemplate.locId, guideTemplate);
         }
+
+        GuideTemplate temp;
         for (ObjectId id : ids) {
-            result.add(map.get(id));
+            temp = map.get(id);
+            if (temp != null)
+                result.add(temp);
         }
         return result;
     }
@@ -317,7 +324,7 @@ public class GuideAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         query.field("id").equal(id);
-        query.retrievedFields(true, Locality.fnDinningIntro,Locality.fnShoppingIntro);
+        query.retrievedFields(true, Locality.fnDinningIntro, Locality.fnShoppingIntro);
         return query.get();
     }
 
