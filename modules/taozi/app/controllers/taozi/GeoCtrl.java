@@ -119,6 +119,10 @@ public class GeoCtrl extends Controller {
      * @return
      */
     public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
+        // ADDED for testing ExceptionHandler
+        if (false) {
+            throw new NullPointerException();
+        }
         try {
             List<ObjectNode> objs = new ArrayList<>();
             List<ObjectNode> dests;

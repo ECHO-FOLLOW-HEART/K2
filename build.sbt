@@ -1,5 +1,5 @@
+import com.typesafe.sbt.SbtAspectj.AspectjKeys.{binaries, inputs}
 import com.typesafe.sbt.SbtAspectj.{Aspectj, aspectjSettings, compiledClasses}
-import com.typesafe.sbt.SbtAspectj.AspectjKeys.{binaries, inputs, lintProperties}
 
 name := "k2"
 
@@ -28,7 +28,9 @@ libraryDependencies ++= Seq(
   "org.mongodb" % "mongo-java-driver" % "2.12.4",
   "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",
   "org.springframework" % "spring-aop" % "3.2.2.RELEASE",
-  "org.springframework" % "spring-tx" % "3.2.2.RELEASE"
+  "org.springframework" % "spring-tx" % "3.2.2.RELEASE",
+  "org.aspectj" % "aspectjrt" % "1.8.4",
+  "org.aspectj" % "aspectjweaver" % "1.8.4"
 )
 
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
@@ -42,7 +44,7 @@ inputs in Aspectj <+= compiledClasses
 binaries in Aspectj <++= update map { report =>
   report.matching(
     moduleFilter(organization = "org.springframework", name = "spring-aspects")
-    )
+  )
 }
 
 binaries in Aspectj <++= update map { report =>

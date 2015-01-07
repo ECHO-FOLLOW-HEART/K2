@@ -1,3 +1,5 @@
+
+
 name := "core"
 
 scalaVersion := "2.10.3"
@@ -13,3 +15,4 @@ libraryDependencies ++= Seq(
   "jaxen" % "jaxen" % "1.1.6"
   //  "commons-logging" % "commons-logging" % "1.2"
 )
+
