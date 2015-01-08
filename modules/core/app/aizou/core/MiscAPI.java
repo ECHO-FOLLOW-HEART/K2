@@ -2,7 +2,6 @@ package aizou.core;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
-import exception.ErrorCode;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
 import models.MorphiaFactory;
@@ -17,11 +16,8 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
-import utils.Utils;
 
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Created by lxf on 14-11-12.
@@ -136,19 +132,27 @@ public class MiscAPI {
         return query.asList();
     }
 
-    public static Map<String,String> getMiscInfos(List<String> keys) throws AizouException {
+    public static Long getLocalityAlbumCount(ObjectId id) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Query<Images> query = ds.createQuery(Images.class);
+
+        query.field(Images.FD_ITEMID).equal(id);
+        return query.countAll();
+    }
+
+    public static Map<String, String> getMiscInfos(List<String> keys) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<MiscInfo> query = ds.createQuery(MiscInfo.class);
 
         List<CriteriaContainerImpl> criList = new ArrayList<>();
-        for (String key :keys) {
+        for (String key : keys) {
             criList.add(query.criteria("key").equal(key));
         }
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
-        List<MiscInfo> miscInfos =  query.asList();
-        Map<String,String> result = new HashMap<>();
-        for(MiscInfo miscInfo : miscInfos){
-            result.put(miscInfo.key,miscInfo.value);
+        List<MiscInfo> miscInfos = query.asList();
+        Map<String, String> result = new HashMap<>();
+        for (MiscInfo miscInfo : miscInfos) {
+            result.put(miscInfo.key, miscInfo.value);
         }
         return result;
     }

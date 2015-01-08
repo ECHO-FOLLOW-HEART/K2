@@ -709,6 +709,7 @@ public class MiscCtrl extends Controller {
 
     /**
      * 取得图集
+     * 默认情况会取出全部图集
      *
      * @param id
      * @param page
@@ -720,10 +721,8 @@ public class MiscCtrl extends Controller {
         try {
 
             ObjectId oid = new ObjectId(id);
-            // 默认情况会取出全部图集
-            if (pageSize == 0)
-                pageSize = Constants.MAX_COUNT;
             List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
+            Long amount = MiscAPI.getLocalityAlbumCount(oid);
 
             List<ObjectNode> nodeList = new ArrayList<>();
             for (Images images : items)
@@ -731,7 +730,7 @@ public class MiscCtrl extends Controller {
 
             ObjectNode result = Json.newObject();
             result.put("album", Json.toJson(nodeList));
-            result.put("albumCnt", nodeList.size());
+            result.put("albumCnt", amount);
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
