@@ -36,6 +36,9 @@ public class MiscInfo extends AizouBaseEntity implements ITravelPiFormatter {
     @Transient
     public static final String FD_TAOZI_COVERSTORY_IMAGE = "TAOZI_COVERSTORY_IMAGE";
 
+    @Transient
+    public static final String FD_TAOZI_HUANXIN_INFO = "TAOZI_HUANXIN_INFO";
+
     @Id
     public ObjectId id;
 

@@ -55,8 +55,9 @@ public class GeoCtrl extends Controller {
             //for (TravelNote tra : tras) {
             //    objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
             //}
-            int imageCnt = locality.getImages() == null ? 0 : locality.getImages().size();
-            response.put("imageCnt", imageCnt);
+            //int imageCnt = locality.getImages() == null ? 0 : locality.getImages().size();
+            // 显示图集的数量
+            response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
