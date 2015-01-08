@@ -28,7 +28,6 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http;
 import utils.Constants;
-import utils.LogUtils;
 import utils.Utils;
 
 import javax.crypto.KeyGenerator;
@@ -465,6 +464,7 @@ public class UserAPI {
         String easemobPwd = ret[1];
 
         user.setEasemobUser(ret[0]);
+        user.setOrigin(Constants.APP_FLAG_TAOZI);
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
         // 注册机密信息
@@ -726,7 +726,7 @@ public class UserAPI {
      */
     private static String getEaseMobToken() throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        MiscInfo info = ds.createQuery(MiscInfo.class).get();
+        MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_HUANXIN_INFO).get();
 
         String token = info.easemobToken;
         Long tokenExp = info.easemobTokenExpire;
@@ -752,7 +752,7 @@ public class UserAPI {
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.setRequestProperty("Content-Type", "application/json");
-                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
+                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
                 out.write(data.toString());
                 out.flush();
                 out.close();
@@ -835,7 +835,7 @@ public class UserAPI {
             conn.setDoInput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(data.toString());
             out.flush();
             out.close();
@@ -942,7 +942,7 @@ public class UserAPI {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
 
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(data.toString());
             out.flush();
             out.close();
@@ -1138,7 +1138,7 @@ public class UserAPI {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
 
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(),"UTF-8");
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(requestBody.toString());
             out.flush();
             out.close();
