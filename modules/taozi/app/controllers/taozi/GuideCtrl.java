@@ -26,6 +26,8 @@ import java.util.*;
  */
 public class GuideCtrl extends Controller {
 
+    public static final String HAS_RECOMMENDATION = "recommend";
+
     /**
      * 更新攻略中相应信息
      *
@@ -34,19 +36,26 @@ public class GuideCtrl extends Controller {
     public static Result createGuide() {
         JsonNode data = request().body().asJson();
         ObjectNode node;
+        Guide result;
         try {
             String tmp = request().getHeader("UserId");
             if (tmp == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
             Integer selfId = Integer.parseInt(tmp);
+            String action = data.has("action") ? data.get("action").asText() : "";
             Iterator<JsonNode> iterator = data.get("locId").iterator();
             List<ObjectId> ids = new ArrayList<>();
             while (iterator.hasNext()) {
                 ids.add(new ObjectId(iterator.next().asText()));
             }
-            Guide temp = GuideAPI.getGuideByDestination(ids, selfId);
-            GuideAPI.fillGuideInfo(temp);
-            node = (ObjectNode) new GuideFormatter().format(temp);
+            // 如果用户需要推荐攻略，就根据目的地推荐攻略
+            if (action.equals(HAS_RECOMMENDATION)) {
+                result = GuideAPI.getGuideByDestination(ids, selfId);
+                GuideAPI.fillGuideInfo(result);
+            } else
+                result = GuideAPI.getEmptyGuide(ids, selfId);
+
+            node = (ObjectNode) new GuideFormatter().format(result);
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
         } catch (AizouException e) {
@@ -177,6 +186,8 @@ public class GuideCtrl extends Controller {
                     throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Error guide part."));
             }
             Guide guide = GuideAPI.getGuideById(guideId, fields);
+            if (guide == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Guide ID is invalid. ID:" + id);
             // 填充攻略信息
             GuideAPI.fillGuideInfo(guide);
             ObjectNode node = (ObjectNode) new GuideFormatter().format(guide);

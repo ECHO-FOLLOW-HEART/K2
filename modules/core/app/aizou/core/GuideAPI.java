@@ -63,6 +63,61 @@ public class GuideAPI {
     }
 
     /**
+     * 取得一个空的攻略
+     *
+     * @return
+     * @throws exception.AizouException
+     */
+    public static Guide getEmptyGuide(List<ObjectId> ids, Integer userId) throws AizouException {
+
+        Query<Locality> queryDes = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
+                .createQuery(Locality.class);
+        List<String> fieldList = new ArrayList<>();
+        Collections.addAll(fieldList, "_id", "zhName", "enName");
+        queryDes.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        List<CriteriaContainerImpl> criListDes = new ArrayList<>();
+        for (ObjectId id : ids) {
+            criListDes.add(queryDes.criteria("_id").equal(id));
+        }
+        queryDes.or(criListDes.toArray(new CriteriaContainerImpl[criListDes.size()]));
+
+        List<Locality> destinations = queryDes.asList();
+        Guide ugcGuide = new Guide();
+        ugcGuide.userId = userId;
+        ugcGuide.localities = destinations;
+        ugcGuide.updateTime = System.currentTimeMillis();
+        ugcGuide.itinerary = new ArrayList<>();
+        ugcGuide.shopping = new ArrayList<>();
+        ugcGuide.restaurant = new ArrayList<>();
+        ugcGuide.itineraryDays = 0;
+        if (destinations != null && destinations.get(0) != null)
+            ugcGuide.images = destinations.get(0).getImages();
+        ugcGuide.title = getUgcGuideTitle(destinations);
+
+
+        //创建时即保存
+        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE).save(ugcGuide);
+        return ugcGuide;
+
+    }
+
+    /**
+     * 取得用户攻略的标题
+     *
+     * @param destinations
+     * @return
+     */
+    private static String getUgcGuideTitle(List<Locality> destinations) {
+        StringBuffer titlesBuffer = new StringBuffer();
+        for (Locality locality : destinations)
+            titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_NEWTON);
+        String titleStr = titlesBuffer.toString();
+        titleStr = titleStr.substring(0, titleStr.length() - 1);
+        titleStr = titleStr + "攻略";
+        return titleStr;
+    }
+
+    /**
      * 根据选择的目的地顺序排序
      *
      * @param guideTemplates
@@ -102,14 +157,7 @@ public class GuideAPI {
         ugcGuide.updateTime = System.currentTimeMillis();
 
         // 生成攻略标题
-        StringBuffer titlesBuffer = new StringBuffer();
-        for (Locality locality : destinations)
-            titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_NEWTON);
-        String titleStr = titlesBuffer.toString();
-        titleStr = titleStr.substring(0, titleStr.length() - 1);
-        titleStr = titleStr + "攻略";
-
-        ugcGuide.title = titleStr;
+        ugcGuide.title = getUgcGuideTitle(destinations);
 
         //如果模板为空，组成空攻略
         if (guideTemplates == null || guideTemplates.size() == 0) {
@@ -129,7 +177,6 @@ public class GuideAPI {
         List<Shopping> shoppingList = new ArrayList<>();
         List<Restaurant> restaurants = new ArrayList<>();
 
-        titlesBuffer.setLength(Constants.ZERO_COUNT);
         for (GuideTemplate temp : guideTemplates) {
             if (temp == null)
                 continue;
@@ -161,7 +208,8 @@ public class GuideAPI {
         ugcGuide.restaurant = restaurants;
         ugcGuide.itineraryDays = itineraryDaysCnt + 1;
         //取第一个目的地的图片
-        ugcGuide.images = guideTemplates.get(0).images;
+        if (guideTemplates != null && guideTemplates.get(0) != null)
+            ugcGuide.images = guideTemplates.get(0).images;
         return ugcGuide;
 
     }
@@ -375,9 +423,8 @@ public class GuideAPI {
                 }
             }
             guide.itinerary = newItinerary;
-        } else {
+        } else
             guide.itinerary = new ArrayList<>();
-        }
 
         List<ObjectId> ids;
         if (shopping != null && shopping.size() > 0) {
@@ -386,9 +433,9 @@ public class GuideAPI {
                 ids.add(temp.getId());
             }
             guide.shopping = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-        } else {
+        } else
             guide.shopping = new ArrayList<>();
-        }
+
 
         if (restaurant != null && restaurant.size() > 0) {
             ids = new ArrayList();
@@ -396,9 +443,8 @@ public class GuideAPI {
                 ids.add(temp.getId());
             }
             guide.restaurant = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-        } else {
+        } else
             guide.restaurant = new ArrayList<>();
-        }
         return guide;
     }
 
