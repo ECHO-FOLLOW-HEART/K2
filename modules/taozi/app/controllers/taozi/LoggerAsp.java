@@ -12,17 +12,17 @@ import org.aspectj.lang.annotation.Pointcut;
  */
 @Aspect
 public class LoggerAsp {
-    public Log logger = LogFactory.getLog("LoggerInTaozi");
+    private Log logger = LogFactory.getLog("LoggerInTaozi");
 
-    @Pointcut("execution(play.mvc.Result *(..)) && !within(LoggerAsp)")
-    void callFunc() {
+    @Pointcut("execution(play.mvc.Result controllers.taozi..*(..)) && !within(LoggerAsp)")
+    void callAction() {
     }
 
 //    @Pointcut("cflow(execution(* index())) && !within(LoggerAsp)")
 //    void index(){
 //    }
 
-    @Before("callFunc()")
+    @Before("callAction()")
     public void runCall(JoinPoint thisJoinPoint) {
         logger.info("Action called:   " + thisJoinPoint.getSignature());
     }

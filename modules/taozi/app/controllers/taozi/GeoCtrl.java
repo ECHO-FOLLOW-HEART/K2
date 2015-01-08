@@ -120,7 +120,7 @@ public class GeoCtrl extends Controller {
      */
     public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
         // ADDED for testing ExceptionHandler
-        if (false) {
+        if (true) {
             throw new NullPointerException();
         }
         try {
