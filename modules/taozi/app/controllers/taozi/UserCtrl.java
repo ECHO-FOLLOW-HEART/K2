@@ -117,7 +117,7 @@ public class UserCtrl extends Controller {
                 Token token = UserAPI.valCodetoToken(countryCode, tel, actionCode, userId, 600 * 1000);
                 result.put("token", token.value);
                 return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-            } else{
+            } else {
                 return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
             }
 
@@ -230,7 +230,7 @@ public class UserCtrl extends Controller {
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "User not exist.");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -403,7 +403,7 @@ public class UserCtrl extends Controller {
             //请求access_token
             String acc_url = getAccessUrl(urlDomain, urlAccess, appid, secret, code);
             URL url = new URL(acc_url);
-            String json = IOUtils.toString(url);
+            String json = IOUtils.toString(url, "UTF-8");
             ObjectMapper m = new ObjectMapper();
             JsonNode rootNode = m.readTree(json);
             String access_token, openId, info_url;
@@ -419,7 +419,7 @@ public class UserCtrl extends Controller {
             //请求用户信息
             info_url = getInfoUrl(urlDomain, urlInfo, access_token, openId);
             url = new URL(info_url);
-            json = IOUtils.toString(url);
+            json = IOUtils.toString(url, "UTF-8");
             m = new ObjectMapper();
             infoNode = m.readTree(json);
 
