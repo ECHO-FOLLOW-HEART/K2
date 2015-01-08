@@ -1,4 +1,4 @@
-package controllers;
+package controllers.taozi;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -12,9 +12,9 @@ import org.aspectj.lang.annotation.Pointcut;
  */
 @Aspect
 public class LoggerAsp {
-    public Log logger = LogFactory.getLog("LoggerAsp");
+    public Log logger = LogFactory.getLog("LoggerAspinTaozi");
 
-    @Pointcut("execution(* controllers.Application.*(..)) && !within(LoggerAsp)")
+    @Pointcut("execution(* *(..)) && !within(LoggerAsp)")
     void callFunc() {
     }
 
