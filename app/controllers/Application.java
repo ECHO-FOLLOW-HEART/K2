@@ -7,9 +7,6 @@ import play.mvc.Result;
 public class Application extends Controller {
 
     public static Result index() throws AizouException {
-        if (false) {
-            throw new NullPointerException();
-        }
         return ok("WELCOME");
     }
 

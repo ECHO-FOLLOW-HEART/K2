@@ -12,9 +12,9 @@ import org.aspectj.lang.annotation.Pointcut;
  */
 @Aspect
 public class LoggerAsp {
-    public Log logger = LogFactory.getLog("LoggerAspinTaozi");
+    public Log logger = LogFactory.getLog("LoggerInTaozi");
 
-    @Pointcut("execution(* *(..)) && !within(LoggerAsp)")
+    @Pointcut("execution(play.mvc.Result *(..)) && !within(LoggerAsp)")
     void callFunc() {
     }
 
@@ -24,27 +24,7 @@ public class LoggerAsp {
 
     @Before("callFunc()")
     public void runCall(JoinPoint thisJoinPoint) {
-        logger.info(thisJoinPoint.getSignature());
+        logger.info("Action called:   " + thisJoinPoint.getSignature());
     }
 
-//    @Before("cflow(callFunc()) && !within(LoggerAsp)")
-//    public void testCall(JoinPoint joinPoint) {
-//        logger.info("test called:       " + joinPoint.getSignature());
-//    }
-//    @Before("index()")
-//    public void runIndex(JoinPoint thisJoinPoint) {
-//        logger.info("index:     " + thisJoinPoint.getSignature());
-//    }
-
-//    @Around("callFunc()")
-//    public Result instead(ProceedingJoinPoint pjp) {
-//        Result ret = Utils.createResponse(ErrorCode.UNKOWN_ERROR);
-//        try {
-//            ret = (Result) pjp.proceed();
-//        } catch (Throwable throwable) {
-//            throwable.printStackTrace();
-//        } finally {
-//            return ret;
-//        }
-//    }
 }
