@@ -330,7 +330,7 @@ public class UserCtrl extends Controller {
             Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
                     userFormatter.getFilteredFields(), 0, 1);
             if (!itr.hasNext())
-                throw new AizouException(ErrorCode.AUTH_ERROR);
+                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
             UserInfo userInfo = itr.next();
 
             //验证密码
