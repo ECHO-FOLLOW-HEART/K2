@@ -105,6 +105,8 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
     @Transient
     public static String fnType = "type";
+    @Transient
+    public static String FD_TIMECOSTDESC = "timeCostDesc";
     /**
      * 标识POI的种类，jackson反序列还用
      */
