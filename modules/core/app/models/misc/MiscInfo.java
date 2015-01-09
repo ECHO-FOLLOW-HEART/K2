@@ -25,13 +25,13 @@ public class MiscInfo extends AizouBaseEntity implements ITravelPiFormatter {
     public static final String FD_ITEMID = "itemIds";
 
     @Transient
-    public static final String FD_UPDATE_ANDROID_VERSION = "UPDATE_ANDROID_VERSION";
+    public static final String FD_UPDATE_ANDROID_VERSION = "TAOZI_UPDATE_ANDROID_VERSION";
 
     @Transient
-    public static final String FD_UPDATE_ANDROID_URL = "UPDATE_ANDROID_URL";
+    public static final String FD_UPDATE_ANDROID_URL = "TAOZI_UPDATE_ANDROID_URL";
 
     @Transient
-    public static final String FD_UPDATE_IOS_VERSION = "UPDATE_IOS_VERSION";
+    public static final String FD_UPDATE_IOS_VERSION = "TAOZI_UPDATE_IOS_VERSION";
 
     @Transient
     public static final String FD_TAOZI_COVERSTORY_IMAGE = "TAOZI_COVERSTORY_IMAGE";

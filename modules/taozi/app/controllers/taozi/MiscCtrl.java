@@ -524,8 +524,8 @@ public class MiscCtrl extends Controller {
             UserInfo user = UserAPI.getUserInfo(userIdLong,
                     Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar));
             if (user != null) {
-                comment.setUserName(user.getNickName());
-                comment.setUserAvatar(user.getAvatar());
+                comment.setAuthorName(user.getNickName());
+                comment.setAuthorAvatar(user.getAvatar());
                 comment.setUserId(userIdLong);
             } else {
                 throw new AizouException(ErrorCode.USER_NOT_EXIST);

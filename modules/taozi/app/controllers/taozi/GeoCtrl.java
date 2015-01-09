@@ -45,11 +45,11 @@ public class GeoCtrl extends Controller {
             else
                 userId = null;
             Locality locality = GeoAPI.locDetails(id);
-            //是否被收藏
-            MiscAPI.isFavorite(locality, userId);
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().format(locality);
+            //是否被收藏
+            MiscAPI.isFavorite(locality, userId);
             //List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, 0, noteCnt);
             //List<ObjectNode> objs = new ArrayList<>();
             //for (TravelNote tra : tras) {

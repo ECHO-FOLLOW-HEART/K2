@@ -27,7 +27,7 @@ public class CommentFormatter extends TaoziBaseFormatter {
         filterMap.put("commentFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept(
                         Comment.FD_AVATAR,
-                        Comment.FD_USER_NAME,
+                        Comment.FD_AUTHOR_NAME,
                         Comment.FD_USER_ID,
                         Comment.FD_RATING,
                         Comment.FD_CONTENTS,

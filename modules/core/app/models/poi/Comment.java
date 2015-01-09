@@ -18,13 +18,13 @@ import java.util.List;
 public class Comment extends AizouBaseEntity {
 
     @Transient
-    public static final String FD_AVATAR = "userAvatar";
+    public static final String FD_AVATAR = "authorAvatar";
 
     @Transient
     public static final String FD_ITEM_ID = "itemId";
 
     @Transient
-    public static final String FD_USER_NAME = "userName";
+    public static final String FD_AUTHOR_NAME = "authorName";
 
     @Transient
     public static final String FD_USER_ID = "userId";
@@ -52,12 +52,13 @@ public class Comment extends AizouBaseEntity {
     /**
      * 用户头像
      */
-    private String userAvatar;
+    private String authorAvatar;
+
 
     /**
      * 用户昵称
      */
-    private String userName;
+    private String authorName;
 
     /**
      * 评论的类型
@@ -100,22 +101,6 @@ public class Comment extends AizouBaseEntity {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public String getUserAvatar() {
-        return userAvatar;
-    }
-
-    public void setUserAvatar(String userAvatar) {
-        this.userAvatar = userAvatar;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
 
     public String getPoiType() {
@@ -172,5 +157,24 @@ public class Comment extends AizouBaseEntity {
 
     public void setImages(List<ImageItem> images) {
         this.images = images;
+    }
+
+    public String getAuthorAvatar() {
+        if (authorAvatar == null || authorAvatar.equals("")) {
+            return authorAvatar;
+        }
+        return String.format("http://images.taozilvxing.com/%s", authorAvatar);
+    }
+
+    public void setAuthorAvatar(String authorAvatar) {
+        this.authorAvatar = authorAvatar;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
     }
 }
