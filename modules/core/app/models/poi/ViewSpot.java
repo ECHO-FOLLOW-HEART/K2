@@ -163,16 +163,12 @@ public class ViewSpot extends AbstractPOI {
             node.put("openTime", DataFilter.openTimeFilter(openTime));
 
             BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-            for (String k : new String[]{"travelMonth", "trafficInfo", "guide", "kengdie"}) {
+            builder.add("travelMonth", new ArrayList<>());
+            for (String k : new String[]{"trafficInfo", "guide", "kengdie"}) {
                 Object val;
                 try {
                     val = ViewSpot.class.getField(k).get(this);
-                    //PC_Chen , travelMonth is a list
-                    if (k.equals("travelMonth")) {
-                        Collection monthList = (Collection) val;
-                        builder.add(k, (monthList != null && !monthList.isEmpty()) ? monthList : new ArrayList<>());
-                    } else
-                        builder.add(k, val != null ? val : "");
+                    builder.add(k, val != null ? val : "");
                 } catch (IllegalAccessException | NoSuchFieldException ignored) {
                 }
             }

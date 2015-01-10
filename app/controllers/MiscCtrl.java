@@ -635,29 +635,35 @@ public class MiscCtrl extends Controller {
         }
     }
 
+    private static JsonNode destRecommendCache = null;
+
     /**
      * 获得推荐的境外目的地
      *
      * @return
      */
     public static Result destRecommend() {
-        // 获得支持的国家列表
-        try {
-            Map<String, List<Locality>> ret = PoiAPI.destRecommend();
-            ObjectNode results = Json.newObject();
+        if (destRecommendCache==null) {
+            // 获得支持的国家列表
+            try {
+                Map<String, List<Locality>> ret = PoiAPI.destRecommend();
+                ObjectNode results = Json.newObject();
 
-            for (Map.Entry<String, List<Locality>> entry : ret.entrySet()) {
-                List<JsonNode> locNodeList = new ArrayList<>();
-                for (Locality loc : entry.getValue()) {
-                    JsonNode locNode = SimpleLocalityFormatter.getInstance().format(loc);
-                    locNodeList.add(locNode);
+                for (Map.Entry<String, List<Locality>> entry : ret.entrySet()) {
+                    List<JsonNode> locNodeList = new ArrayList<>();
+                    for (Locality loc : entry.getValue()) {
+                        JsonNode locNode = SimpleLocalityFormatter.getInstance().format(loc);
+                        locNodeList.add(locNode);
+                    }
+                    if (locNodeList.size() > 0)
+                        results.put(entry.getKey(), Json.toJson(locNodeList));
                 }
-                if (locNodeList.size() > 0)
-                    results.put(entry.getKey(), Json.toJson(locNodeList));
+                destRecommendCache = results;
+            } catch (AizouException e) {
+                return Utils.createResponse(e.getErrCode(), e.getMessage());
             }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
+
+        return Utils.createResponse(ErrorCode.NORMAL, destRecommendCache);
     }
 }

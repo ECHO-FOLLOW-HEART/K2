@@ -750,16 +750,16 @@ public class PoiAPI {
         List<ObjectId> countryList = Arrays.asList(
                 new ObjectId("5434d70d10114e684bb1b4e9"),   // 日本
                 new ObjectId("5434d70d10114e684bb1b4e5"),   // 韩国
-                new ObjectId("5434d70d10114e684bb1b4e7"),   // 马来西亚
-                new ObjectId("5434d70d10114e684bb1b4e8"),   // 尼泊尔
+//                new ObjectId("5434d70d10114e684bb1b4e7"),   // 马来西亚
+//                new ObjectId("5434d70d10114e684bb1b4e8"),   // 尼泊尔
                 new ObjectId("5434d70f10114e684bb1b4f3"),   // 法国
-                new ObjectId("5434d70e10114e684bb1b4f1"),   // 德国
-                new ObjectId("5434d70f10114e684bb1b4f7"),   // 瑞士
+//                new ObjectId("5434d70e10114e684bb1b4f1"),   // 德国
+//                new ObjectId("5434d70f10114e684bb1b4f7"),   // 瑞士
                 new ObjectId("5434d70f10114e684bb1b4f9"),   // 西班牙
                 new ObjectId("5434d71010114e684bb1b4fb"),   // 意大利
-                new ObjectId("5434d71110114e684bb1b502"),   // 肯尼亚
+//                new ObjectId("5434d71110114e684bb1b502"),   // 肯尼亚
                 new ObjectId("5434d71010114e684bb1b4fc"),   // 英国
-                new ObjectId("5434d71010114e684bb1b4fe"),   // 埃及
+//                new ObjectId("5434d71010114e684bb1b4fe"),   // 埃及
                 new ObjectId("5434d71310114e684bb1b513"),   // 美国
                 new ObjectId("5434d71210114e684bb1b512")    // 加拿大
         );
