@@ -91,10 +91,10 @@ public class MiscAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class).field(Comment.FD_ITEM_ID).equal(poiId);
-        query = query.order("-" + Comment.FD_CTIME);
+        query = query.order("-" + Comment.FD_PUBLISHTIME);
 
         if (lastUpdate != 0)
-            query.field(Comment.FD_CTIME).lessThan(lastUpdate);
+            query.field(Comment.FD_PUBLISHTIME).lessThan(lastUpdate);
 
 //        query.field(Comment.FD_RATING).greaterThanOrEq(lower).field(Comment.FD_RATING).lessThanOrEq(upper);
 

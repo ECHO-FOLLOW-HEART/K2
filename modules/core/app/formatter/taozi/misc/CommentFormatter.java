@@ -11,6 +11,7 @@ import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import models.poi.Comment;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,7 +32,7 @@ public class CommentFormatter extends TaoziBaseFormatter {
                         Comment.FD_USER_ID,
                         Comment.FD_RATING,
                         Comment.FD_CONTENTS,
-                        Comment.FD_CTIME,
+                        Comment.FD_PUBLISHTIME,
                         Comment.FD_IMAGES
                 ));
 

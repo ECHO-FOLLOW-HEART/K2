@@ -88,7 +88,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String FD_ADDRESS = "address";
 
     @Transient
-    public static String FD_TELEPHONE = "telephone";
+    public static String FD_TELEPHONE = "tel";
 
     @Transient
     public static String fnHotness = "hotness";

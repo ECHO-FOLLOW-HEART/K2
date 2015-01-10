@@ -538,7 +538,7 @@ public class MiscCtrl extends Controller {
             comment.setContents(contents);
             comment.setRating(rating);
             long commentTime = System.currentTimeMillis();
-            comment.setcTime(commentTime);
+            comment.setPublishTime(commentTime);
             comment.setmTime(commentTime);
 
             JsonNode result = MiscAPI.saveComment(comment);

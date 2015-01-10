@@ -40,7 +40,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
         stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC,
                 AbstractPOI.FD_ADDRESS, AbstractPOI.FD_PRICE_DESC, AbstractPOI.FD_TELEPHONE));
 
-        listFields.add(AbstractPOI.FD_IMAGES);
+        listFields.addAll(Arrays.asList(AbstractPOI.FD_IMAGES,AbstractPOI.FD_TELEPHONE));
 
         mapFields.add(AbstractPOI.FD_LOCATION);
 
@@ -55,8 +55,8 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
                 AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_ADDRESS,
-                AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE
+                AbstractPOI.FD_PRICE_DESC
+
         );
 
         if (DetailedPOIFormatter.this.getPoiClass() == ViewSpot.class) {

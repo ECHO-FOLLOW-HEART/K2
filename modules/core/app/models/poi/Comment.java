@@ -36,7 +36,7 @@ public class Comment extends AizouBaseEntity {
     public static final String FD_CONTENTS = "contents";
 
     @Transient
-    public static final String FD_CTIME = "cTime";
+    public static final String FD_PUBLISHTIME = "publishTime";
 
     @Transient
     public static final String FD_MTIME = "mTime";
@@ -78,7 +78,7 @@ public class Comment extends AizouBaseEntity {
     /**
      * 评论发表时间
      */
-    private long cTime;
+    private long publishTime;
 
     /**
      * 评论修改时间
@@ -127,14 +127,6 @@ public class Comment extends AizouBaseEntity {
         this.contents = contents;
     }
 
-    public long getcTime() {
-        return cTime;
-    }
-
-    public void setcTime(long cTime) {
-        this.cTime = cTime;
-    }
-
     public long getmTime() {
         return mTime;
     }
@@ -172,6 +164,14 @@ public class Comment extends AizouBaseEntity {
 
     public String getAuthorName() {
         return authorName;
+    }
+
+    public long getPublishTime() {
+        return publishTime;
+    }
+
+    public void setPublishTime(long publishTime) {
+        this.publishTime = publishTime;
     }
 
     public void setAuthorName(String authorName) {
