@@ -1,7 +1,6 @@
 package models;
 
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientException;
+import com.mongodb.*;
 import exception.AizouException;
 import exception.ErrorCode;
 import org.mongodb.morphia.Datastore;
@@ -11,8 +10,7 @@ import play.Configuration;
 import play.Play;
 
 import java.net.UnknownHostException;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Morphia生成工厂。
@@ -40,22 +38,26 @@ public class MorphiaFactory {
     private MorphiaFactory() throws AizouException {
         Configuration config = Play.application().configuration();
 
-        Map mongo = (Map) config.getObject("mongodb");
-        String host = null;
-        int port = 0;
-        if (mongo != null) {
-            host = mongo.get("host").toString();
-            port = Integer.parseInt(mongo.get("port").toString());
+        List<ServerAddress> servers = new ArrayList<>();
+        Object confEntry = ((Map) config.asMap().get("mongodb")).get("serverList");
+        if (confEntry == null) {
+            Map<String, Object> tmp = new HashMap<>();
+            tmp.put("host", "localhost");
+            tmp.put("port", 27017);
+            confEntry = Arrays.asList(tmp);
         }
-        if (host == null)
-            host = "localhost";
-        if (port == 0)
-            port = 27017;
-        try {
-            client = new MongoClient(host, port);
-        } catch (UnknownHostException e) {
-            throw new AizouException(ErrorCode.DATABASE_ERROR, "Invalid database connection.");
+        for (Object entry : (List) confEntry) {
+            Map s = (Map) entry;
+            try {
+                servers.add(new ServerAddress(s.get("host").toString(), Integer.parseInt(s.get("port").toString())));
+            } catch (UnknownHostException ignored) {
+            }
         }
+
+        if (servers.isEmpty())
+            throw new AizouException(ErrorCode.DATABASE_ERROR, "Invalid database connection settings.");
+
+        client = new MongoClient(servers);
 
         morphia = new Morphia();
         new ValidationExtension(morphia);
