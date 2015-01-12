@@ -17,6 +17,7 @@ import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
+import play.libs.Json;
 
 import java.util.*;
 
@@ -30,6 +31,8 @@ public class GuideFormatter extends TaoziBaseFormatter {
     private Set<String> poiStringFields;
 
     private Set<String> localityStringFields;
+
+    private Set<String> poiListFields;
 
     @Override
     public JsonNode format(AizouBaseEntity item) {
@@ -46,10 +49,10 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE,
                 AbstractPOI.detTargets,
                 AbstractPOI.FD_TIMECOSTDESC,
-                AbstractPOI.FD_LOCALITY
+                AbstractPOI.FD_LOCALITY,
+                AbstractPOI.FD_TELEPHONE
         );
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
         filterMap.put("itinerItemFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
@@ -89,9 +92,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
         Collections.addAll(poiStringFields,
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_EN_NAME,
-                AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TIMECOSTDESC,
-                AbstractPOI.FD_TELEPHONE);
+                AbstractPOI.FD_PRICE_DESC);
 
         localityStringFields = new HashSet<String>() {
         };
@@ -101,6 +102,10 @@ public class GuideFormatter extends TaoziBaseFormatter {
         Collections.addAll(listFields,
                 AbstractPOI.FD_IMAGES, Guide.fnItinerary, Guide.fnShopping, Guide.fnRestaurant);
 
+        poiListFields = new HashSet<String>() {
+        };
+        Collections.addAll(poiListFields,
+                AbstractPOI.FD_TELEPHONE);
         return postProcess(result);
     }
 
@@ -109,12 +114,16 @@ public class GuideFormatter extends TaoziBaseFormatter {
         // 处理字符串字段
         JsonNode oNode = result.get("itinerary");
         postProcessPoiInItinerary(oNode);
+        postProcessListInPoi(oNode, poiListFields);
         oNode = result.get("shopping");
         postProcessPoiInList(oNode, poiStringFields);
+        postProcessListInPoi(oNode, poiListFields);
         oNode = result.get("restaurant");
         postProcessPoiInList(oNode, poiStringFields);
+        postProcessListInPoi(oNode, poiListFields);
         oNode = result.get("localities");
         postProcessPoiInList(oNode, localityStringFields);
+
         return result;
     }
 
@@ -140,6 +149,19 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 for (String key : fields) {
                     if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
                         tempObjNode.put(key, "");
+                }
+            }
+        }
+    }
+
+    private void postProcessListInPoi(JsonNode oNode, Set<String> fields) {
+        ObjectNode tempObjNode;
+        if (oNode.findValues("poi") != null) {
+            for (JsonNode node : oNode.findValues("poi")) {
+                tempObjNode = (ObjectNode) node;
+                for (String key : fields) {
+                    if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
+                        tempObjNode.put(key, Json.toJson(new ArrayList<>()));
                 }
             }
         }

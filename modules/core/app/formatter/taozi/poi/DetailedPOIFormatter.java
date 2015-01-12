@@ -38,7 +38,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
         this.poiClass = poiClass;
 
         stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC,
-                AbstractPOI.FD_ADDRESS, AbstractPOI.FD_PRICE_DESC, AbstractPOI.FD_TELEPHONE));
+                AbstractPOI.FD_ADDRESS, AbstractPOI.FD_PRICE_DESC));
 
         listFields.addAll(Arrays.asList(AbstractPOI.FD_IMAGES,AbstractPOI.FD_TELEPHONE));
 
@@ -84,7 +84,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
 
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 
-        return postProcess((ObjectNode) mapper.valueToTree(item));
+        return postProcess((ObjectNode)mapper.valueToTree(item));
     }
 
 }
