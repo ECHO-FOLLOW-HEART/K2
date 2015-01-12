@@ -576,7 +576,7 @@ public class UserCtrl extends Controller {
 
             UserFormatter userFormatter = new UserFormatter(false);
 
-            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
+            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,UserInfo.fnUserId), valueList,
                     userFormatter.getFilteredFields(), 0, 20);
 
             List<JsonNode> result = new ArrayList<>();

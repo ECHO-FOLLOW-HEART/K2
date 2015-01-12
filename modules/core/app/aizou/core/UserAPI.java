@@ -346,15 +346,15 @@ public class UserAPI {
 
         if (fieldDesc == null || fieldDesc.isEmpty())
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
-
         List<CriteriaContainerImpl> criList = new ArrayList<>();
         for (String fd : fieldDesc) {
-            if (valueList.size() == 1)
+            if (fd.equals(UserInfo.fnUserId))
+                valueList = phraseUserIdType(valueList);
+            if (valueList.size() == 1) {
                 criList.add(ds.createQuery(UserInfo.class).criteria(fd).equal(valueList.iterator().next()));
-            else if (valueList.size() > 1)
+            } else if (valueList.size() > 1)
                 criList.add(ds.createQuery(UserInfo.class).criteria(fd).hasAnyOf(valueList));
         }
-
         Query<UserInfo> query = ds.createQuery(UserInfo.class);
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
 
@@ -365,6 +365,13 @@ public class UserAPI {
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
+    private static List<Long> phraseUserIdType(Collection<?> list) {
+        List<Long> result = new ArrayList<>();
+        for (Object temp : list) {
+            result.add(Long.valueOf(temp.toString()));
+        }
+        return result;
+    }
 
     /**
      * 根据字段获得用户信息。
