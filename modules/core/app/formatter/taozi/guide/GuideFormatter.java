@@ -92,7 +92,8 @@ public class GuideFormatter extends TaoziBaseFormatter {
         Collections.addAll(poiStringFields,
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_EN_NAME,
-                AbstractPOI.FD_PRICE_DESC);
+                AbstractPOI.FD_PRICE_DESC,
+                AbstractPOI.FD_TIMECOSTDESC);
 
         localityStringFields = new HashSet<String>() {
         };
@@ -114,13 +115,13 @@ public class GuideFormatter extends TaoziBaseFormatter {
         // 处理字符串字段
         JsonNode oNode = result.get("itinerary");
         postProcessPoiInItinerary(oNode);
-        postProcessListInPoi(oNode, poiListFields);
+        postProcessListInItinerary(oNode, poiListFields);
         oNode = result.get("shopping");
         postProcessPoiInList(oNode, poiStringFields);
-        postProcessListInPoi(oNode, poiListFields);
+        postProcessListInList(oNode,poiListFields);
         oNode = result.get("restaurant");
         postProcessPoiInList(oNode, poiStringFields);
-        postProcessListInPoi(oNode, poiListFields);
+        postProcessListInList(oNode,poiListFields);
         oNode = result.get("localities");
         postProcessPoiInList(oNode, localityStringFields);
 
@@ -154,10 +155,23 @@ public class GuideFormatter extends TaoziBaseFormatter {
         }
     }
 
-    private void postProcessListInPoi(JsonNode oNode, Set<String> fields) {
+    private void postProcessListInItinerary(JsonNode oNode, Set<String> fields) {
         ObjectNode tempObjNode;
         if (oNode.findValues("poi") != null) {
             for (JsonNode node : oNode.findValues("poi")) {
+                tempObjNode = (ObjectNode) node;
+                for (String key : fields) {
+                    if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
+                        tempObjNode.put(key, Json.toJson(new ArrayList<>()));
+                }
+            }
+        }
+    }
+
+    private void postProcessListInList(JsonNode oNode, Set<String> fields) {
+        ObjectNode tempObjNode;
+        if (oNode != null && oNode.isArray()) {
+            for (JsonNode node : oNode) {
                 tempObjNode = (ObjectNode) node;
                 for (String key : fields) {
                     if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())

@@ -432,7 +432,18 @@ public class GuideAPI {
             for (Shopping temp : shopping) {
                 ids.add(temp.getId());
             }
-            guide.shopping = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+            List<Shopping> shop = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+            Map<ObjectId, Shopping> shopMap = new HashMap<>();
+            for (Shopping temp : shop) {
+                shopMap.put(temp.getId(), temp);
+            }
+            List<Shopping> newShop = new ArrayList();
+            for (Shopping temp : guide.shopping) {
+                if (shopMap.get(temp.getId()) != null) {
+                    newShop.add(shopMap.get(temp.getId()));
+                }
+            }
+            guide.shopping = newShop;
         } else
             guide.shopping = new ArrayList<>();
 
@@ -442,7 +453,18 @@ public class GuideAPI {
             for (Restaurant temp : restaurant) {
                 ids.add(temp.getId());
             }
-            guide.restaurant = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+            List<Restaurant> res = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+            Map<ObjectId, Restaurant> resMap = new HashMap<>();
+            for (Restaurant temp : res) {
+                resMap.put(temp.getId(), temp);
+            }
+            List<Restaurant> newRes = new ArrayList();
+            for (Restaurant temp : guide.restaurant) {
+                if (resMap.get(temp.getId()) != null) {
+                    newRes.add(resMap.get(temp.getId()));
+                }
+            }
+            guide.restaurant = newRes;
         } else
             guide.restaurant = new ArrayList<>();
         return guide;
