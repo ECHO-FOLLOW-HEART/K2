@@ -108,4 +108,14 @@ public class MsgConstants {
      * 此用户没有收藏项目
      */
     public static String FAVORITE_NOT_EXIT_MSG = "该用户没有收藏项目";
+
+    /**
+     * 昵称不允许是纯数字
+     */
+    public static int NICKNAME_NOT_NUMERIC = 414;
+
+    /**
+     * 昵称不允许是纯数字
+     */
+    public static String NICKNAME_NOT_NUMERIC_MSG = "请不要用纯数字做昵称";
 }

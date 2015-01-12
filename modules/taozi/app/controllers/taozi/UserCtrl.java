@@ -21,7 +21,6 @@ import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.LogUtils;
 import utils.MsgConstants;
 import utils.Utils;
 import utils.formatter.taozi.user.ContactFormatter;
@@ -451,8 +450,12 @@ public class UserCtrl extends Controller {
 
             //JSON转化为userInfo
             us = UserAPI.oauthToUserInfoForWX(infoNode);
-            //如果第三方昵称已被其他用户使用，则添加后缀
             if (UserAPI.getUserByField(UserInfo.fnNickName, us.getNickName()) != null) {
+                //如果第三方昵称为纯数字，则添加后缀
+                if (Utils.isNumeric(us.getNickName())) {
+                    us.setNickName(us.getNickName() + "_桃子");
+                }
+                //如果第三方昵称已被其他用户使用，则添加后缀
                 nickDuplicateRemoval(us);
             }
 
@@ -576,7 +579,7 @@ public class UserCtrl extends Controller {
 
             UserFormatter userFormatter = new UserFormatter(false);
 
-            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,UserInfo.fnUserId), valueList,
+            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName, UserInfo.fnUserId), valueList,
                     userFormatter.getFilteredFields(), 0, 20);
 
             List<JsonNode> result = new ArrayList<>();
@@ -619,8 +622,9 @@ public class UserCtrl extends Controller {
             //修改昵称
             if (req.has("nickName")) {
                 String nickName = req.get("nickName").asText();
-                // TODO 跟踪乱码问题
-                LogUtils.info(UserCtrl.class, "NickName in POST:" + nickName);
+                if (Utils.isNumeric(nickName)) {
+                    return Utils.createResponse(MsgConstants.NICKNAME_NOT_NUMERIC, MsgConstants.NICKNAME_NOT_NUMERIC_MSG, true);
+                }
                 //如果昵称不存在
                 if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
                     userInfor.setNickName(nickName);
@@ -642,9 +646,6 @@ public class UserCtrl extends Controller {
             if (req.has("avatar"))
                 userInfor.setAvatar(req.get("avatar").asText());
             UserAPI.saveUserInfo(userInfor);
-            // TODO 跟踪乱码问题
-//            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
-//            LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
