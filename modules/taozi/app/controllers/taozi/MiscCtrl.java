@@ -29,6 +29,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.LogUtils;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.net.UnknownHostException;
@@ -218,7 +219,7 @@ public class MiscCtrl extends Controller {
             List locFields = new ArrayList();
             Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc", "timeCostDesc");
             List poiFields = new ArrayList();
-            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price");
+            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price", "timeCostDesc", "rating");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {
@@ -227,7 +228,7 @@ public class MiscCtrl extends Controller {
                         continue;
                     fa.zhName = loc.getZhName();
                     fa.enName = loc.getEnName();
-                    fa.images = loc.getImages();
+                    fa.images = TaoziDataFilter.getOneImage(loc.getImages());
                     fa.desc = loc.getDesc();
                     // 城市显示建议游玩时间
                     fa.timeCostDesc = loc.getTimeCostDesc();
@@ -256,11 +257,11 @@ public class MiscCtrl extends Controller {
                         continue;
                     fa.zhName = poi.zhName;
                     fa.enName = poi.enName;
-                    fa.images = poi.images;
+                    fa.images = TaoziDataFilter.getOneImage(poi.images);
                     fa.desc = poi.desc;
                     fa.locality = poi.getLocality();
                     fa.timeCostDesc = poi.timeCostDesc;
-                    fa.priceDesc = poi.priceDesc;
+                    fa.priceDesc = TaoziDataFilter.getPriceDesc(poi);
                     fa.rating = poi.rating;
                     fa.address = poi.address;
                     fa.telephone = poi.telephone;

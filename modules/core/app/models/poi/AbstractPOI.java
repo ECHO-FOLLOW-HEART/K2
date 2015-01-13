@@ -277,10 +277,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         return guideUrl;
     }
 
-    public String getKengdieUrl() {
-        return priceDesc;
-    }
-
     public String getDesc() {
         if (desc == null)
             return "";
