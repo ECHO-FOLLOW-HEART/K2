@@ -19,6 +19,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.util.*;
@@ -257,6 +258,8 @@ public class POICtrl extends Controller {
         try {
             it = PoiAPI.viewPoiList(type, new ObjectId(locId), sf, sort, page, pageSize);
             for (AbstractPOI temp : it) {
+                temp.images = TaoziDataFilter.getOneImage(temp.images);
+                temp.priceDesc = TaoziDataFilter.getPriceDesc(temp);
                 ObjectNode ret = (ObjectNode) new SimplePOIFormatter().format(temp);
                 if (poiType.equals("restaurant") || poiType.equals("shopping") ||
                         poiType.equals("hotel")) {
@@ -428,8 +431,8 @@ public class POICtrl extends Controller {
         try {
             List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
 
-            for (String f: fields.split("\\s*,\\s*")){
-                switch (f){
+            for (String f : fields.split("\\s*,\\s*")) {
+                switch (f) {
                     case "remoteTraffic":
                         destKeyList.add(PoiAPI.DestinationType.REMOTE_TRAFFIC);
                         break;
