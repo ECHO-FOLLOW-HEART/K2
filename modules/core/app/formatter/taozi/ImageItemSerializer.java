@@ -13,13 +13,19 @@ import java.util.Map;
  */
 public class ImageItemSerializer extends JsonSerializer<ImageItem> {
     private ImageSizeDesc sizeDesc;
+    private int width;
 
     public ImageItemSerializer() {
         this(ImageSizeDesc.MEDIUM);
     }
 
     public ImageItemSerializer(ImageSizeDesc sz) {
-        sizeDesc = sz;
+        this.sizeDesc = sz;
+        this.width = 0;
+    }
+
+    public ImageItemSerializer(int width) {
+        this.width = width;
     }
 
     public enum ImageSizeDesc {
@@ -34,6 +40,30 @@ public class ImageItemSerializer extends JsonSerializer<ImageItem> {
             throws IOException {
         jsonGenerator.writeStartObject();
 
+        int maxWidth;
+        String url;
+
+        if (width == 0) {
+            if (sizeDesc == null)
+                maxWidth = 960;
+            else {
+                switch (sizeDesc) {
+                    case SMALL:
+                        maxWidth = 400;
+                        break;
+                    case MEDIUM:
+                        maxWidth = 640;
+                        break;
+                    case LARGE:
+                    default:
+                        maxWidth = 960;
+                        break;
+                }
+            }
+        } else
+            maxWidth = width;
+
+        // 如果只给url，则是原链接，图片没上传，无法裁剪缩放
         if (imageItem.getKey() == null && imageItem.getUrl() != null) {
             jsonGenerator.writeStringField("url", imageItem.getUrl());
             jsonGenerator.writeNumberField("width", null);
@@ -52,20 +82,6 @@ public class ImageItemSerializer extends JsonSerializer<ImageItem> {
             if (sizeDesc == ImageSizeDesc.FULL)
                 imgUrl = fullUrl;
             else {
-                int maxWidth;
-                switch (sizeDesc) {
-                    case SMALL:
-                        maxWidth = 400;
-                        break;
-                    case MEDIUM:
-                        maxWidth = 640;
-                        break;
-                    case LARGE:
-                    default:
-                        maxWidth = 960;
-                        break;
-                }
-
                 if (cropHint == null) {
                     imgUrl = String.format("%s?imageView2/2/w/%d", fullUrl, maxWidth);
                     double r = (double) height / width;

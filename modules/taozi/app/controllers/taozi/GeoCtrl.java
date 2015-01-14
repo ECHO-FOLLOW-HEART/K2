@@ -39,6 +39,11 @@ public class GeoCtrl extends Controller {
      */
     public static Result getLocality(String id, int noteCnt) {
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if(imgWidthStr!= null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             Long userId;
             if (request().hasHeader("UserId"))
                 userId = Long.parseLong(request().getHeader("UserId"));
@@ -49,7 +54,7 @@ public class GeoCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
-            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().format(locality);
+            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
 
             //List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, 0, noteCnt);
             //List<ObjectNode> objs = new ArrayList<>();
@@ -122,17 +127,21 @@ public class GeoCtrl extends Controller {
      */
     public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if(imgWidthStr!= null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             List<ObjectNode> objs = new ArrayList<>();
             List<ObjectNode> dests;
             if (abroad) {
-                // TODO 桃子上线的国家暂时写到配置文件中
                 Configuration config = Configuration.root();
                 Map destnations = (Map) config.getObject("destinations");
                 String countrysStr = destnations.get("country").toString();
                 List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
                 List<Country> countryList = GeoAPI.searchCountryByName(countryNames, Constants.ZERO_COUNT, Constants.MAX_COUNT);
                 for (Country c : countryList) {
-                    ObjectNode node = (ObjectNode) new SimpleCountryFormatter().format(c);
+                    ObjectNode node = (ObjectNode) new SimpleCountryFormatter().setImageWidth(imgWidth).format(c);
                     dests = getDestinationsNodeByCountry(c.getId(), page, 30);
                     node.put("destinations", Json.toJson(dests));
                     objs.add(node);
@@ -163,10 +172,6 @@ public class GeoCtrl extends Controller {
                     objs.add(node);
                 }
 
-//                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 300);
-//                for (Locality des : destinations) {
-//                    objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
-//                }
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
         } catch (AizouException e) {
