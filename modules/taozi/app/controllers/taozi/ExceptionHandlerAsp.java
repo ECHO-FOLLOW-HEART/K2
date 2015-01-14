@@ -27,11 +27,11 @@ public class ExceptionHandlerAsp {
         try {
             return (Result) pjp.proceed();
         } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            logger.info("An unhandled Exception was catch by ExceptionHandler");
+//            throwable.printStackTrace();
+            logger.info("An unhandled Exception was caught by ExceptionHandler");
             logger.info("Action name:     " + joinPoint.getSignature());
             logger.info("CaughtException: " + throwable.toString());
-            return Utils.createResponse(ErrorCode.UNKOWN_ERROR);
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "Unknown Error");
         }
     }
 }

@@ -12,7 +12,8 @@ libraryDependencies ++= Seq(
   "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",
   "org.springframework" % "spring-aop" % "3.2.2.RELEASE",
   "org.springframework" % "spring-tx" % "3.2.2.RELEASE",
-  "javax.persistence" % "persistence-api" % "1.0.2"
+  "javax.persistence" % "persistence-api" % "1.0.2",
+  "com.typesafe.play" % "play-test_2.10" % "2.3.0"
 //  "org.mongodb" % "mongo-java-driver" % "2.12.4",
 //  "org.mongodb.morphia" % "morphia" % "0.108",
 //  "org.mongodb.morphia" % "morphia-validation" % "0.108",
