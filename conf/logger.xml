@@ -32,8 +32,8 @@
 
     <logger name="com.travelpi" level="INFO"/>
 
-    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${application.home}/logs/access/accesslog-${date}.log</file>
+    <appender name="ACCESS_FILE" class="ch.qos.logback.core.rolling.AizouFileAppender">
+        <file>${application.home}/logs/access/accesslog_${date}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${application.home}/logs/accesslog-%d.log</fileNamePattern>
         </rollingPolicy>
