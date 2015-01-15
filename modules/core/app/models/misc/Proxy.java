@@ -14,6 +14,17 @@ import java.util.Map;
 @Entity
 @JsonFilter("proxyFilter")
 public class Proxy extends AizouBaseEntity {
+
+    public static final String FD_SCHEME = "scheme";
+    public static final String FD_HOST = "host";
+    public static final String FD_PORT = "port";
+    public static final String FD_USER = "user";
+    public static final String FD_PASSWD = "passwd";
+    public static final String FD_LATENCY = "latency";
+    public static final String FD_VERIFIED = "verified";
+    public static final String FD_DESC = "desc";
+    public static final String FD_VERIFIED_TIME = "verifiedTime";
+
     @Constraints.Required
     public String scheme;
 

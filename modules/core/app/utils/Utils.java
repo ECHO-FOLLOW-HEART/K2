@@ -90,11 +90,19 @@ public class Utils {
         return createResponse(errCode, "");
     }
 
+    public static Result status(int errCode, String msg) {
+        String ret = String.format("{\"lastModified\":%d, \"result\":%s, \"code\":%d}",
+                System.currentTimeMillis() / 1000, msg, errCode);
+//        return ok(ret, "utf-8").as("application/json");
+        return ok(ret).as("application/json;charset=utf-8");
+    }
+
     public static Result createResponse(int errCode, String msg) {
         ObjectNode jsonObj = Json.newObject();
         jsonObj.put("debug", msg);
         return createResponse(errCode, jsonObj);
     }
+
 
     public static Result createResponse(int errCode, JsonNode result) {
         ObjectNode response = Json.newObject();
