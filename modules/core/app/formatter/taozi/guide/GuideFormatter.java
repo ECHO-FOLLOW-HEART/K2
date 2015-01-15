@@ -65,10 +65,9 @@ public class GuideFormatter extends TaoziBaseFormatter {
         filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
-        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
-        ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
-
+//        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
+//        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
+        ObjectMapper mapper = getObjectMapper(filterMap, null);
 
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
                 .addFilter("guideFilter",
@@ -87,7 +86,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
 
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+                new ImageItemSerializer(imageWidth));
         mapper.registerModule(imageItemModule);
 
         ObjectNode result = mapper.valueToTree(item);
