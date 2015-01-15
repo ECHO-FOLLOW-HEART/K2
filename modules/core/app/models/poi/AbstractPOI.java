@@ -281,7 +281,8 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         if (desc == null)
             return "";
         else
-            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+            return desc;
+        //return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
 
     public String getAddress() {
