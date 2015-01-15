@@ -34,6 +34,11 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
         return poiClass;
     }
 
+    public DetailedPOIFormatter setImageWidth(int width) {
+        imageWidth = width;
+        return this;
+    }
+
     public DetailedPOIFormatter(Class<T> poiClass) {
         this.poiClass = poiClass;
 
@@ -80,7 +85,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
 
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 

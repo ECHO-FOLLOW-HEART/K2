@@ -31,8 +31,8 @@ public class POICtrl extends Controller {
 
     public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
                                            int commentPage, int commentPageSize, Long userId,
-                                           int rmdPage, int rmdPageSize) throws AizouException {
-        DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass);
+                                           int rmdPage, int rmdPageSize, int imgWidth) throws AizouException {
+        DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass).setImageWidth(imgWidth);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
@@ -74,6 +74,12 @@ public class POICtrl extends Controller {
      */
     public static Result viewPOIInfo(String poiDesc, String spotId, int commentPage, int commentPageSize,
                                      int rmdPage, int rmdPageSize) {
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+
         Class<? extends AbstractPOI> poiClass;
         switch (poiDesc) {
             case "vs":
@@ -100,7 +106,7 @@ public class POICtrl extends Controller {
                 userId = Long.parseLong(request().getHeader("UserId"));
             else
                 userId = null;
-            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize);
+            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -255,12 +261,17 @@ public class POICtrl extends Controller {
         List<JsonNode> results = new ArrayList<>();
         List<? extends AbstractPOI> it;
         List<Comment> commentsEntities;
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if(imgWidthStr!= null)
+            imgWidth = Integer.valueOf(imgWidthStr);
         try {
             it = PoiAPI.viewPoiList(type, new ObjectId(locId), sf, sort, page, pageSize);
             for (AbstractPOI temp : it) {
                 temp.images = TaoziDataFilter.getOneImage(temp.images);
                 temp.priceDesc = TaoziDataFilter.getPriceDesc(temp);
-                ObjectNode ret = (ObjectNode) new SimplePOIFormatter().format(temp);
+                ObjectNode ret = (ObjectNode) new SimplePOIFormatter().setImageWidth(imgWidth).format(temp);
                 if (poiType.equals("restaurant") || poiType.equals("shopping") ||
                         poiType.equals("hotel")) {
                     commentsEntities = PoiAPI.getPOIComment(temp.getId().toString(), commentPage, commentPageSize);
@@ -290,7 +301,12 @@ public class POICtrl extends Controller {
     public static Result getPoiNear(double lng, double lat, double maxDist, boolean spot, boolean hotel,
                                     boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) {
         try {
-            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, shopping, page, pageSize, commentPage, commentPageSize);
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
+            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, shopping, page, pageSize, commentPage, commentPageSize,imgWidth);
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
@@ -298,8 +314,9 @@ public class POICtrl extends Controller {
     }
 
     private static ObjectNode getPoiNearImpl(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                             boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) throws AizouException {
+                                             boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize,int imgWidth) throws AizouException {
         ObjectNode results = Json.newObject();
+
         //发现poi
         List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
         HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
@@ -333,7 +350,7 @@ public class POICtrl extends Controller {
             if (iterator != null) {
                 for (; iterator.hasNext(); ) {
                     poi = iterator.next();
-                    ret = (ObjectNode) new SimplePOIFormatter().format(poi);
+                    ret = (ObjectNode) new SimplePOIFormatter().setImageWidth(imgWidth).format(poi);
                     if (poiType.equals(PoiAPI.POIType.RESTAURANT) || poiType.equals(PoiAPI.POIType.SHOPPING) ||
                             poiType.equals(PoiAPI.POIType.HOTEL)) {
                         commentsEntities = PoiAPI.getPOIComment(poi.getId().toString(), commentPage, commentPageSize);

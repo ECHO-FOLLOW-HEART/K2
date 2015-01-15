@@ -34,6 +34,11 @@ public class GuideFormatter extends TaoziBaseFormatter {
 
     private Set<String> poiListFields;
 
+    public GuideFormatter setImageWidth(int width) {
+        imageWidth = width;
+        return this;
+    }
+
     @Override
     public JsonNode format(AizouBaseEntity item) {
 
@@ -61,7 +66,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 
 

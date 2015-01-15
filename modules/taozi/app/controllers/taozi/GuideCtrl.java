@@ -38,6 +38,11 @@ public class GuideCtrl extends Controller {
         ObjectNode node;
         Guide result;
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             String tmp = request().getHeader("UserId");
             if (tmp == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
@@ -55,7 +60,7 @@ public class GuideCtrl extends Controller {
             } else
                 result = GuideAPI.getEmptyGuide(ids, selfId);
 
-            node = (ObjectNode) new GuideFormatter().format(result);
+            node = (ObjectNode) new GuideFormatter().setImageWidth(imgWidth).format(result);
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
         } catch (AizouException e) {
@@ -99,6 +104,11 @@ public class GuideCtrl extends Controller {
      */
     public static Result getGuidesByUser(int page, int pageSize) {
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if(imgWidthStr!= null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             String tmp = request().getHeader("UserId");
             if (tmp == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
@@ -109,7 +119,7 @@ public class GuideCtrl extends Controller {
             List<JsonNode> result = new ArrayList<>();
             ObjectNode node;
             for (Guide guide : guides) {
-                node = (ObjectNode) new SimpleGuideFormatter().format(guide);
+                node = (ObjectNode) new SimpleGuideFormatter().setImageWidth(imgWidth).format(guide);
                 addGuideInfoToNode(guide, node);
                 result.add(node);
             }
@@ -160,7 +170,11 @@ public class GuideCtrl extends Controller {
      */
     public static Result getGuideInfo(String id, String part) {
         try {
-
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if(imgWidthStr!= null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             ObjectId guideId = new ObjectId(id);
             List<String> fields = new ArrayList<>();
             Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime,
@@ -190,7 +204,7 @@ public class GuideCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Guide ID is invalid. ID:" + id);
             // 填充攻略信息
             GuideAPI.fillGuideInfo(guide);
-            ObjectNode node = (ObjectNode) new GuideFormatter().format(guide);
+            ObjectNode node = (ObjectNode) new GuideFormatter().setImageWidth(imgWidth).format(guide);
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());

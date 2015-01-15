@@ -96,16 +96,15 @@ public class ImageItemSerializer extends JsonSerializer<ImageItem> {
                     width = right - left;
                     height = bottom - top;
 
-                    imgUrl = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%dx",
+                    imgUrl = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%d",
                             fullUrl, width, height, left, top, maxWidth);
                 }
             }
-
             jsonGenerator.writeStringField("url", imgUrl);
             jsonGenerator.writeNumberField("width", width);
             jsonGenerator.writeNumberField("height", height);
         } else
-            jsonGenerator.writeStringField("url", fullUrl);
+            jsonGenerator.writeStringField("url", String.format("%s?imageView2/2/w/%d", fullUrl, maxWidth));
 
         jsonGenerator.writeEndObject();
     }

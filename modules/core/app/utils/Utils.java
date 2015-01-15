@@ -389,4 +389,16 @@ public class Utils {
         }
         return true;
     }
+
+    public static boolean isNumeric(Collection<?> list) {
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher isNum;
+        for (Object str : list) {
+            isNum = pattern.matcher(str.toString());
+            if (!isNum.matches()) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

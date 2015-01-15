@@ -113,7 +113,7 @@ public class GuideAPI {
             titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_NEWTON);
         String titleStr = titlesBuffer.toString();
         titleStr = titleStr.substring(0, titleStr.length() - 1);
-        titleStr = titleStr + "攻略";
+        titleStr = "我的"+titleStr + "旅行计划";
         return titleStr;
     }
 
