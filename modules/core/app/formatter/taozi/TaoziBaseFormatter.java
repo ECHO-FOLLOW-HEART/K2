@@ -30,6 +30,8 @@ public abstract class TaoziBaseFormatter implements JsonFormatter {
 
     protected Set<String> filteredFields;
 
+    protected int imageWidth;
+
     public Set<String> getFilteredFields() {
         return filteredFields;
     }

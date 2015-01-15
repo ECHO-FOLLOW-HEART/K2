@@ -39,6 +39,11 @@ public class GeoCtrl extends Controller {
      */
     public static Result getLocality(String id, int noteCnt) {
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if(imgWidthStr!= null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             Long userId;
             if (request().hasHeader("UserId"))
                 userId = Long.parseLong(request().getHeader("UserId"));
@@ -49,7 +54,7 @@ public class GeoCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
-            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().format(locality);
+            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
 
             //List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, 0, noteCnt);
             //List<ObjectNode> objs = new ArrayList<>();
@@ -66,53 +71,6 @@ public class GeoCtrl extends Controller {
     }
 
     /**
-     * 特定地点美食、景点、购物发现
-     *
-     * @param locId
-     * @param vs
-     * @param dinning
-     * @param shopping
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping, boolean hotel, boolean restaurant,
-                                        int page, int pageSize) {
-        //TODO 没有美食/购物的数据
-        try {
-            ObjectNode results = Json.newObject();
-            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
-            if (vs)
-                poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
-            if (dinning)
-                poiMap.put(PoiAPI.POIType.DINNING, "dinning");
-
-            if (shopping)
-                poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
-            if (hotel)
-                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
-
-            if (restaurant)
-                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
-
-            for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
-                List<JsonNode> retPoiList = new ArrayList<>();
-                PoiAPI.POIType poiType = entry.getKey();
-                String poiTypeName = entry.getValue();
-
-                // TODO 暂时返回国内数据
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, null, false, page, pageSize);
-                     it.hasNext(); )
-                    retPoiList.add(new SimplePOIFormatter().format(it.next()));
-                results.put(poiTypeName, Json.toJson(retPoiList));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
-
-    /**
      * 获得国内国外目的地
      *
      * @param abroad
@@ -122,17 +80,21 @@ public class GeoCtrl extends Controller {
      */
     public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if(imgWidthStr!= null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             List<ObjectNode> objs = new ArrayList<>();
             List<ObjectNode> dests;
             if (abroad) {
-                // TODO 桃子上线的国家暂时写到配置文件中
                 Configuration config = Configuration.root();
                 Map destnations = (Map) config.getObject("destinations");
                 String countrysStr = destnations.get("country").toString();
                 List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
                 List<Country> countryList = GeoAPI.searchCountryByName(countryNames, Constants.ZERO_COUNT, Constants.MAX_COUNT);
                 for (Country c : countryList) {
-                    ObjectNode node = (ObjectNode) new SimpleCountryFormatter().format(c);
+                    ObjectNode node = (ObjectNode) new SimpleCountryFormatter().setImageWidth(imgWidth).format(c);
                     dests = getDestinationsNodeByCountry(c.getId(), page, 30);
                     node.put("destinations", Json.toJson(dests));
                     objs.add(node);
@@ -163,10 +125,6 @@ public class GeoCtrl extends Controller {
                     objs.add(node);
                 }
 
-//                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 300);
-//                for (Locality des : destinations) {
-//                    objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
-//                }
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
         } catch (AizouException e) {
