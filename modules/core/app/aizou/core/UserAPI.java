@@ -348,7 +348,7 @@ public class UserAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
         List<CriteriaContainerImpl> criList = new ArrayList<>();
         for (String fd : fieldDesc) {
-            if (fd.equals(UserInfo.fnUserId))
+            if (fd.equals(UserInfo.fnUserId) && Utils.isNumeric(valueList))
                 valueList = phraseUserIdType(valueList);
             if (valueList.size() == 1) {
                 criList.add(ds.createQuery(UserInfo.class).criteria(fd).equal(valueList.iterator().next()));
