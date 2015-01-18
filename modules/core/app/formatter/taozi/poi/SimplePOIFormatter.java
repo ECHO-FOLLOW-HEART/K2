@@ -12,7 +12,10 @@ import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
@@ -20,6 +23,11 @@ import java.util.*;
  * Created by zephyre on 10/28/14.
  */
 public class SimplePOIFormatter extends TaoziBaseFormatter {
+
+    public SimplePOIFormatter setImageWidth(int width) {
+        imageWidth = width;
+        return this;
+    }
 
     @Override
     public JsonNode format(AizouBaseEntity item) {
@@ -41,15 +49,11 @@ public class SimplePOIFormatter extends TaoziBaseFormatter {
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 
         ObjectNode result = mapper.valueToTree(item);
 
-//        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC));
-//
-//        listFields.add(AbstractPOI.FD_IMAGES);
-//
         mapFields.add(AbstractPOI.FD_LOCATION);
 
         return postProcess(result);

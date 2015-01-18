@@ -380,4 +380,25 @@ public class Utils {
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in sending sms.");
         }
     }
+
+    public static boolean isNumeric(String str) {
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher isNum = pattern.matcher(str);
+        if (!isNum.matches()) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isNumeric(Collection<?> list) {
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher isNum;
+        for (Object str : list) {
+            isNum = pattern.matcher(str.toString());
+            if (!isNum.matches()) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

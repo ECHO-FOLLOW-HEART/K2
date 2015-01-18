@@ -6,7 +6,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
-import formatter.taozi.misc.*;
+import formatter.taozi.misc.ColumnFormatter;
+import formatter.taozi.misc.CommentFormatter;
+import formatter.taozi.misc.SuggestionFormatter;
+import formatter.taozi.misc.WeatherFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
 import formatter.taozi.user.SelfFavoriteFormatter;
@@ -29,6 +32,7 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.LogUtils;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.net.UnknownHostException;
@@ -218,7 +222,7 @@ public class MiscCtrl extends Controller {
             List locFields = new ArrayList();
             Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc", "timeCostDesc");
             List poiFields = new ArrayList();
-            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price");
+            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price", "timeCostDesc", "rating");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {
@@ -227,7 +231,7 @@ public class MiscCtrl extends Controller {
                         continue;
                     fa.zhName = loc.getZhName();
                     fa.enName = loc.getEnName();
-                    fa.images = loc.getImages();
+                    fa.images = TaoziDataFilter.getOneImage(loc.getImages());
                     fa.desc = loc.getDesc();
                     // 城市显示建议游玩时间
                     fa.timeCostDesc = loc.getTimeCostDesc();
@@ -256,11 +260,11 @@ public class MiscCtrl extends Controller {
                         continue;
                     fa.zhName = poi.zhName;
                     fa.enName = poi.enName;
-                    fa.images = poi.images;
+                    fa.images = TaoziDataFilter.getOneImage(poi.images);
                     fa.desc = poi.desc;
                     fa.locality = poi.getLocality();
                     fa.timeCostDesc = poi.timeCostDesc;
-                    fa.priceDesc = poi.priceDesc;
+                    fa.priceDesc = TaoziDataFilter.getPriceDesc(poi);
                     fa.rating = poi.rating;
                     fa.address = poi.address;
                     fa.telephone = poi.telephone;
@@ -719,15 +723,23 @@ public class MiscCtrl extends Controller {
     public static Result getAlbums(String id, int page, int pageSize) {
 
         try {
-
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 200;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             ObjectId oid = new ObjectId(id);
             List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
             Long amount = MiscAPI.getLocalityAlbumCount(oid);
 
+            ObjectNode imgNode;
             List<ObjectNode> nodeList = new ArrayList<>();
-            for (Images images : items)
-                nodeList.add((ObjectNode) new ImageFormatter().format(images));
-
+            for (Images images : items) {
+                imgNode = Json.newObject();
+                imgNode.put("url", String.format("%s?imageView2/2/w/%d", images.getFullUrl(), imgWidth));
+                imgNode.put("originUrl", String.format("%s?imageView2/2/w/%d", images.getFullUrl(), 960));
+                nodeList.add(imgNode);
+            }
             ObjectNode result = Json.newObject();
             result.put("album", Json.toJson(nodeList));
             result.put("albumCnt", amount);
