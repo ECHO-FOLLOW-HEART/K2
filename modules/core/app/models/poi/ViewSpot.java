@@ -99,6 +99,14 @@ public class ViewSpot extends AbstractPOI {
         return fieldList;
     }
 
+    public String getZhName() {
+        return zhName;
+    }
+
+    public List<String> getAlias() {
+        return alias;
+    }
+
     public Double getTimeCost() {
         return timeCost;
     }
