@@ -11,7 +11,8 @@ import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.misc.ImageItem;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by lxf on 14-11-1.
@@ -24,20 +25,11 @@ public class DetailsEntyrFormatter extends TaoziBaseFormatter {
         item.fillNullMembers();
 
         Map<String, PropertyFilter> filterMap = new HashMap<>();
-        filterMap.put("localityFilter",
+        filterMap.put("detailsEntryFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept(
-                        Locality.fnRemoteTraffic,
-                        Locality.fnLocalTraffic,
-                        Locality.fnActivityIntro,
-                        Locality.fnActivities,
-                        Locality.fnTips,
-                        Locality.fnShoppingIntro,
-                        Locality.fnCommodities,
-                        Locality.fnDinningIntro,
-                        Locality.fnCuisines,
-                        Locality.fnDesc,
-                        Locality.fnGeoHistory,
-                        Locality.fnSpecials));
+                        "title",
+                        "desc",
+                        "images"));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
         serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
