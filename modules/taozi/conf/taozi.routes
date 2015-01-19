@@ -77,8 +77,6 @@ GET           /misc/updates                                      controllers.tao
 GET           /poi/vs/$spotId<[0-9a-f]{24}>                      controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍
 GET           /poi/view-spots/$id<[0-9a-f]{24}>/details          controllers.taozi.POICtrl.getTravelGuide(id: String, fields: String)
-#获取景点的深度介绍-概况
-GET           /poi/view-spots/$id<[0-9a-f]{24}>/outLine          controllers.taozi.POICtrl.getTravelGuideOutLine(id: String)
 # 酒店详情
 GET           /poi/hotel/:spotId                                 controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #美食详情
@@ -141,10 +139,7 @@ GET           /geo/localities/abroad                             controllers.tao
 GET           /geo/localities/:id                                controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
 #查看目的地详情图集
 GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=999)
-#获取景点的深度介绍-概况（H5）
-GET           /geo/localities/$id<[0-9a-f]{24}>/outLine          controllers.taozi.GeoCtrl.getTravelGuideOutLine(id: String)
-#获取景点的深度介绍（H5）
-GET           /geo/localities/$id<[0-9a-f]{24}>/details          controllers.taozi.GeoCtrl.getTravelGuide(id: String, field: String)
+
 #旅行专栏
 GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage",id: String?="")
 

@@ -1,7 +1,5 @@
 package models.geo;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import org.mongodb.morphia.annotations.Embedded;
 
@@ -11,8 +9,7 @@ import java.util.List;
  * Created by zephyre on 12/19/14.
  */
 @Embedded
-@JsonFilter("detailsEntryFilter")
-public class DetailsEntry extends AizouBaseEntity {
+public class DetailsEntry {
     /**
      * 标题
      */
