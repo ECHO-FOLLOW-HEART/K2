@@ -247,7 +247,7 @@ public class GeoCtrl extends Controller {
             return new ArrayList<>();
         List<ObjectNode> objs = new ArrayList<>();
         for (DetailsEntry entry : entries) {
-            objs.add((ObjectNode) new DetailsEntyrFormatter().format(entry));
+            objs.add((ObjectNode) new DetailsEntryFormatter().format(entry));
         }
         return objs;
     }
@@ -259,11 +259,16 @@ public class GeoCtrl extends Controller {
      * @return
      */
     public static Result getTravelGuideOutLine(String locId) {
+        Locality loc = null;
+        try {
+            loc = GeoAPI.locDetails(new ObjectId(locId), Arrays.asList("zhName"));
+        } catch (AizouException e) {
+        }
 
         ObjectNode node;
         List<ObjectNode> result = new ArrayList<>();
         node = Json.newObject();
-        node.put("title", "怎么去");
+        node.put("title", "如何去" + (loc == null ? "" : loc.getZhName()));
         node.put("fields", Json.toJson(Arrays.asList("remoteTraffic")));
         result.add(node);
 
@@ -273,39 +278,39 @@ public class GeoCtrl extends Controller {
         result.add(node);
 
         node = Json.newObject();
-        node.put("title", "娱乐活动");
+        node.put("title", "节庆与民俗活动");
         node.put("fields", Json.toJson(Arrays.asList("activities")));
         result.add(node);
 
         node = Json.newObject();
-        node.put("title", "贴心提示");
+        node.put("title", "旅行游玩小贴士");
         node.put("fields", Json.toJson(Arrays.asList("tips")));
         result.add(node);
 
         node = Json.newObject();
-        node.put("title", "文化背景");
+        node.put("title", "宗教、文化与历史");
         node.put("fields", Json.toJson(Arrays.asList("geoHistory")));
         result.add(node);
 
         node = Json.newObject();
-        node.put("title", "特色风情");
+        node.put("title", "不可错过的游玩体验");
         node.put("fields", Json.toJson(Arrays.asList("specials")));
         result.add(node);
 
-        node = Json.newObject();
-        node.put("title", "描述");
-        node.put("fields", Json.toJson(Arrays.asList("desc")));
-        result.add(node);
+//        node = Json.newObject();
+//        node.put("title", "描述");
+//        node.put("fields", Json.toJson(Arrays.asList("desc")));
+//        result.add(node);
 
-        node = Json.newObject();
-        node.put("title", "地道美食");
-        node.put("fields", Json.toJson(Arrays.asList("dining")));
-        result.add(node);
-
-        node = Json.newObject();
-        node.put("title", "购物指南");
-        node.put("fields", Json.toJson(Arrays.asList("shopping")));
-        result.add(node);
+//        node = Json.newObject();
+//        node.put("title", "地道美食");
+//        node.put("fields", Json.toJson(Arrays.asList("dining")));
+//        result.add(node);
+//
+//        node = Json.newObject();
+//        node.put("title", "购物指南");
+//        node.put("fields", Json.toJson(Arrays.asList("shopping")));
+//        result.add(node);
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
 
