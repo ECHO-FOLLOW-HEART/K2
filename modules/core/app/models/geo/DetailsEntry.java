@@ -11,7 +11,7 @@ import java.util.List;
  * Created by zephyre on 12/19/14.
  */
 @Embedded
-@JsonFilter("geoJsonPointFilter")
+@JsonFilter("detailsEntryFilter")
 public class DetailsEntry extends AizouBaseEntity {
     /**
      * 标题
