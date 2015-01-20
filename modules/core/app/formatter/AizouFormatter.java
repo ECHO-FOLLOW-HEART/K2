@@ -12,10 +12,7 @@ import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import org.bson.types.ObjectId;
 
-import java.util.HashMap;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by zephyre on 1/20/15.
@@ -32,11 +29,17 @@ public abstract class AizouFormatter<T extends AizouBaseEntity> {
 
     protected ObjectMapper mapper;
 
+    protected Set<String> filteredFields = new HashSet<>();
+
+    public Set<String> getFilteredFields() {
+        return filteredFields;
+    }
+
     protected static Map<Class, AizouFormatter> instanceMap = new Hashtable<>();
 
     protected ObjectMapper initObjectMapper(Map<String, PropertyFilter> filterMap,
                                             Map<Class<? extends T>, JsonSerializer<T>> serializerMap) {
-        ObjectMapper mapper = new ObjectMapper();
+        mapper = new ObjectMapper();
 
         if (filterMap == null)
             filterMap = new HashMap<>();

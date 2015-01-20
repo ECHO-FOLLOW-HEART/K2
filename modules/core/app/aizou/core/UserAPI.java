@@ -7,7 +7,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.user.UserFormatter;
+import formatter.taozi.user.UserFormatterOld;
 import models.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.misc.Sequence;
@@ -1104,7 +1104,7 @@ public class UserAPI {
     public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType, String message) throws AizouException {
         if (selfInfo.getEasemobUser() == null)
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
-        ObjectNode info = (ObjectNode) new UserFormatter(false).format(selfInfo);
+        ObjectNode info = (ObjectNode) new UserFormatterOld(false).format(selfInfo);
         // 添加邀请信息
         info.put("attachMsg", message);
         ObjectNode ext = Json.newObject();

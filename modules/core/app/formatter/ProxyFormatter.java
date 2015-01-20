@@ -14,7 +14,8 @@ import java.util.Map;
 public class ProxyFormatter extends AizouFormatter<Proxy> {
 
     public ProxyFormatter() {
-        Map<Class<? extends Proxy>, JsonSerializer<Proxy>> serializerMap=new HashMap<>();
+        Map<Class<? extends Proxy>, JsonSerializer<Proxy>> serializerMap = new HashMap<>();
+
         serializerMap.put(Proxy.class, new ProxySerializer());
         mapper = initObjectMapper(null, serializerMap);
     }
