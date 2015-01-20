@@ -262,8 +262,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     /**
      * 图像
      */
-    public List<ImageItem> covers;
-    public List<String> images;
+    public List<ImageItem> images;
 
     public String cover;
 

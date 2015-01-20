@@ -4,6 +4,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Locality;
+import models.misc.ImageItem;
 import models.misc.TravelNote;
 import models.plan.Plan;
 import models.plan.PlanDayEntry;
@@ -276,7 +277,7 @@ public class TravelNoteAPI {
             note.costLower = (tmp == null ? null : (float) tmp);
             //游记封面
             tmp = doc.get("covers");
-            note.images = (tmp == null || ((List) tmp).isEmpty() ? null : (List) tmp);
+            note.images = transImages((List)tmp);
             //是否精华帖
             tmp = doc.get("essence");
             note.essence = (tmp == null ? null : (Boolean) tmp);
@@ -286,7 +287,19 @@ public class TravelNoteAPI {
 
         return noteList;
     }
+    private static  List<ImageItem> transImages(List<String> list){
+        if(list == null)
+            return new ArrayList<>();
+        List<ImageItem> result = new ArrayList<>();
+        ImageItem imgItem;
+        for(String temp:list){
+            imgItem = new ImageItem();
+            imgItem.setKey(temp);
+            result.add(imgItem);
+        }
+        return result;
 
+    }
     /**
      * 通过目的地或者景点的id获取游记
      *
