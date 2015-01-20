@@ -6,7 +6,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
-import formatter.taozi.misc.*;
+import formatter.taozi.misc.ColumnFormatter;
+import formatter.taozi.misc.CommentFormatter;
+import formatter.taozi.misc.SuggestionFormatter;
+import formatter.taozi.misc.WeatherFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
 import formatter.taozi.user.SelfFavoriteFormatter;
@@ -720,15 +723,23 @@ public class MiscCtrl extends Controller {
     public static Result getAlbums(String id, int page, int pageSize) {
 
         try {
-
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 200;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             ObjectId oid = new ObjectId(id);
             List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
             Long amount = MiscAPI.getLocalityAlbumCount(oid);
 
+            ObjectNode imgNode;
             List<ObjectNode> nodeList = new ArrayList<>();
-            for (Images images : items)
-                nodeList.add((ObjectNode) new ImageFormatter().format(images));
-
+            for (Images images : items) {
+                imgNode = Json.newObject();
+                imgNode.put("url", String.format("%s?imageView2/2/w/%d", images.getFullUrl(), imgWidth));
+                imgNode.put("originUrl", String.format("%s?imageView2/2/w/%d", images.getFullUrl(), 960));
+                nodeList.add(imgNode);
+            }
             ObjectNode result = Json.newObject();
             result.put("album", Json.toJson(nodeList));
             result.put("albumCnt", amount);

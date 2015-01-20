@@ -264,7 +264,7 @@ public class POICtrl extends Controller {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
-        if(imgWidthStr!= null)
+        if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
         try {
             it = PoiAPI.viewPoiList(type, new ObjectId(locId), sf, sort, page, pageSize);
@@ -306,7 +306,7 @@ public class POICtrl extends Controller {
             int imgWidth = 0;
             if (imgWidthStr != null)
                 imgWidth = Integer.valueOf(imgWidthStr);
-            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, shopping, page, pageSize, commentPage, commentPageSize,imgWidth);
+            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, shopping, page, pageSize, commentPage, commentPageSize, imgWidth);
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
@@ -314,7 +314,7 @@ public class POICtrl extends Controller {
     }
 
     private static ObjectNode getPoiNearImpl(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                             boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize,int imgWidth) throws AizouException {
+                                             boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize, int imgWidth) throws AizouException {
         ObjectNode results = Json.newObject();
 
         //发现poi
@@ -407,35 +407,35 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getDinShop(String id, boolean dinning, boolean shopping,
-                                    int page, int pageSize) {
-        //TODO 缺少店铺推荐数据
-        try {
-            ObjectNode results = Json.newObject();
-            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
-            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
-            if (dinning) {
-                destKeyList.add(PoiAPI.DestinationType.DINNING);
-                poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
-            }
-
-            if (shopping) {
-                destKeyList.add(PoiAPI.DestinationType.SHOPPING);
-                poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
-            }
-            ObjectId oid = new ObjectId(id);
-            for (PoiAPI.DestinationType type : destKeyList) {
-
-                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
-                String kind = poiMap.get(type);
-                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new LocalityGuideFormatter().format(locality));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
+//    public static Result getDinShop(String id, boolean dinning, boolean shopping,
+//                                    int page, int pageSize) {
+//        //TODO 缺少店铺推荐数据
+//        try {
+//            ObjectNode results = Json.newObject();
+//            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
+//            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
+//            if (dinning) {
+//                destKeyList.add(PoiAPI.DestinationType.DINNING);
+//                poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
+//            }
+//
+//            if (shopping) {
+//                destKeyList.add(PoiAPI.DestinationType.SHOPPING);
+//                poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
+//            }
+//            ObjectId oid = new ObjectId(id);
+//            for (PoiAPI.DestinationType type : destKeyList) {
+//
+//                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
+//                String kind = poiMap.get(type);
+//                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
+//                results.put(kind, new LocalityGuideFormatter().format(locality));
+//            }
+//            return Utils.createResponse(ErrorCode.NORMAL, results);
+//        } catch (AizouException | NullPointerException e) {
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+//        }
+//    }
 
     /**
      * 游玩攻略
@@ -444,44 +444,48 @@ public class POICtrl extends Controller {
      * @param fields
      * @return
      */
-    public static Result getTravelGuide(String locId, String fields) {
+    public static Result getTravelGuide(String locId, String fields, String poiDesc) {
         try {
-            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
+            List<String> destKeyList = new ArrayList<>();
+
+            Class<? extends AbstractPOI> poiClass;
+            switch (poiDesc) {
+                case "vs":
+                    poiClass = ViewSpot.class;
+                    break;
+                case "hotel":
+                    poiClass = Hotel.class;
+                    break;
+                case "restaurant":
+                    poiClass = Restaurant.class;
+                    break;
+                case "shopping":
+                    poiClass = Shopping.class;
+                    break;
+                case "entertainment":
+                    poiClass = Entertainment.class;
+                    break;
+                default:
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
+            }
+
 
             for (String f : fields.split("\\s*,\\s*")) {
                 switch (f) {
-                    case "remoteTraffic":
-                        destKeyList.add(PoiAPI.DestinationType.REMOTE_TRAFFIC);
-                        break;
-                    case "localTraffic":
-                        destKeyList.add(PoiAPI.DestinationType.LOCAL_TRAFFIC);
-                        break;
-                    case "activities":
-                        destKeyList.add(PoiAPI.DestinationType.ACTIVITY);
-                        break;
                     case "tips":
-                        destKeyList.add(PoiAPI.DestinationType.TIPS);
-                        break;
-                    case "geoHistory":
-                        destKeyList.add(PoiAPI.DestinationType.GEOHISTORY);
-                        break;
-                    case "specials":
-                        destKeyList.add(PoiAPI.DestinationType.SPECIALS);
-                        break;
-                    case "desc":
-                        destKeyList.add(PoiAPI.DestinationType.DESC);
-                        break;
-                    case "dining":
-                        destKeyList.add(PoiAPI.DestinationType.DINNING);
-                        break;
-                    case "shopping":
-                        destKeyList.add(PoiAPI.DestinationType.SHOPPING);
+                        destKeyList.add(AbstractPOI.FD_TIPS);
                         break;
                 }
             }
 
-            Locality locality = PoiAPI.getTravelGuideApi(new ObjectId(locId), destKeyList);
-            return Utils.createResponse(ErrorCode.NORMAL, new LocalityGuideFormatter().format(locality));
+            AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(locId), poiClass, destKeyList);
+            ObjectNode result = Json.newObject();
+            if (fields.equals("tips")) {
+                result.put("desc", "");
+                result.put("contents", Json.toJson(GeoCtrl.contentsToList(poiInfo.getTips())));
+            }
+
+            return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }

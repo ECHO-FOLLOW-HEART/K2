@@ -9,6 +9,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.util.DateUtil;
 import org.bson.types.ObjectId;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -18,6 +19,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import play.Configuration;
 import play.libs.Json;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.crypto.Mac;
@@ -31,6 +33,7 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -119,6 +122,25 @@ public class Utils {
             if (result != null)
                 response.put("err", result);
         }
+        return ok(response);
+    }
+
+    public static Result createResponse(Http.Response rsp, String lastModify, int errCode, JsonNode result) throws ParseException {
+        ObjectNode response = Json.newObject();
+        response.put("lastModified", System.currentTimeMillis() / 1000);
+        if (errCode == 0) {
+            if (result != null)
+                response.put("result", result);
+            response.put("code", 0);
+        } else {
+            response.put("code", errCode);
+            if (result != null)
+                response.put("err", result);
+        }
+        //SimpleDateFormat formatGMT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+        //.formatGMT.setTimeZone(TimeZone.getTimeZone("GMT"));
+        //rsp.setHeader("Last-Modify", formatGMT.format(DateUtil.parseDate(lastModify)));
+        //rsp.setHeader("Cache-control", "public");
         return ok(response);
     }
 
@@ -411,5 +433,54 @@ public class Utils {
             }
         }
         return true;
+    }
+
+    public static final String CACHE_CONTROLKEY = "Cache-control";
+    public static final String IF_MODIFY_SINCE = "If-Modified-Since";
+
+    /**
+     * 判断是否使用App端缓存
+     *
+     * @param request    Http请求
+     * @param lastModify 服务器资源的修改时间 "2015 01 17 00:00:00"
+     * @return
+     */
+    public static boolean useCache(Http.Request request, String lastModify) {
+
+        String cacheControl = request.hasHeader(CACHE_CONTROLKEY) ? request.getHeader(CACHE_CONTROLKEY) : request.getHeader(CACHE_CONTROLKEY.toLowerCase());
+        if (cacheControl == null || cacheControl.equals("") || cacheControl.toLowerCase().equals("no-cache"))
+            return false;
+        String ifModifiedSince = request.hasHeader(IF_MODIFY_SINCE) ? request.getHeader(IF_MODIFY_SINCE) : request.getHeader(IF_MODIFY_SINCE.toLowerCase());
+        if (lastModify == null || ifModifiedSince == null || ifModifiedSince.equals(""))
+            return false;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy MM dd HH:mm:ss");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+//        SimpleDateFormat formatGMT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+//        formatGMT.setTimeZone(TimeZone.getTimeZone("GMT"));
+        Date serverDate;
+        Date appDate;
+        try {
+            serverDate = format.parse(lastModify);
+            LogUtils.info(Utils.class, lastModify);
+            appDate = DateUtil.parseDate(ifModifiedSince);
+        } catch (ParseException e) {
+            return false;
+        }
+        return !appDate.before(serverDate);
+    }
+
+    public static void addCacheResponseHeader(Http.Response rsp, String lastModify) throws ParseException {
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy MM dd HH:mm:ss");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+        SimpleDateFormat formatGMT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+        formatGMT.setTimeZone(TimeZone.getTimeZone("GMT"));
+        rsp.setHeader("Last-Modify", formatGMT.format(format.parse(lastModify)));
+        rsp.setHeader("Cache-control", "public");
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(format.parse(lastModify));
+        cal.add(Calendar.DATE, +1);
+        rsp.setHeader("Expires", formatGMT.format(cal.getTime()));
     }
 }

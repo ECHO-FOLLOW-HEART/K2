@@ -2,10 +2,14 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.MorphiaFactory;
+import models.geo.Locality;
+import models.misc.ImageItem;
 import models.misc.TravelNote;
 import models.plan.Plan;
 import models.plan.PlanDayEntry;
 import models.plan.PlanItem;
+import models.poi.ViewSpot;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
@@ -13,6 +17,8 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.Query;
 import play.Configuration;
 
 import java.text.ParseException;
@@ -111,9 +117,9 @@ public class TravelNoteAPI {
                     note.summary = summary;
                 }
                 if (note.contentsList != null)
-                    note.contents = procContents(note.contentsList);
+                    note.content = procContents(note.contentsList);
                 else
-                    note.contents = "";
+                    note.content = "";
                 results.add(note);
             }
             return results;
@@ -165,6 +171,186 @@ public class TravelNoteAPI {
         return solrRequest(sb.toString(), 0, 10);
 
     }
+
+    /**
+     * 通过id获取全部实体
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    public static TravelNote getNoteById(ObjectId id) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
+        Query<TravelNote> query = ds.createQuery(TravelNote.class).field("_id").equal(id);
+        return query.get();
+    }
+
+
+    /**
+     * 通过id获取游记
+     *
+     * @param id
+     * @param fields
+     * @return
+     * @throws AizouException
+     */
+    public static TravelNote getNoteById(ObjectId id, List<String> fields) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
+        Query<TravelNote> query = ds.createQuery(TravelNote.class).field("_id").equal(id);
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
+        return query.get();
+    }
+
+    /**
+     * 返回游记bean
+     *
+     * @param idList
+     * @param fields
+     * @return
+     * @throws AizouException
+     */
+    public static List<TravelNote> getNotesById(List<String> idList, List<String> fields) throws AizouException {
+        List<TravelNote> noteList = new ArrayList<>();
+        ObjectId oid;
+        TravelNote travelNote;
+        for (String id : idList) {
+            oid = new ObjectId(id);
+            travelNote = getNoteById(oid, fields);
+            noteList.add(travelNote);
+        }
+
+        return noteList;
+    }
+
+    /**
+     * 通过关键字获取游记
+     *
+     * @param keyword
+     * @param page
+     * @param pageSize
+     * @return
+     * @throws SolrServerException
+     */
+    public static List<TravelNote> searchNotesByWord(String keyword, int page, int pageSize) throws SolrServerException, AizouException {
+        List<TravelNote> noteList = new ArrayList<>();
+
+        //solr连接配置
+        Configuration config = Configuration.root().getConfig("solr");
+        String host = config.getString("host", "localhost");
+        Integer port = config.getInt("port", 8983);
+        String coreName = config.getString("core", "travelnote");
+        String url = String.format("http://%s:%d/solr/%s", host, port, coreName);
+        //进行查询，获取游记文档
+        SolrServer server = new HttpSolrServer(url);
+        SolrQuery query = new SolrQuery();
+        query.setQuery(keyword).setStart(page * pageSize).setRows(pageSize);
+        SolrDocumentList noteDocs = server.query(query).getResults();
+        //TODO 更多游记获取不查询数据库
+        Object tmp;
+        for (SolrDocument doc : noteDocs) {
+            TravelNote note = new TravelNote();
+            //获取id
+            note.setId(new ObjectId(doc.get("id").toString()));
+            //姓名
+            tmp = doc.get("authorName");
+            note.authorName = (tmp == null ? null : (String) tmp);
+            //标题
+            tmp = doc.get("title");
+            note.title = (tmp == null ? null : (String) tmp);
+            //头像
+            tmp = doc.get("authorAvatar");
+            note.authorAvatar = (tmp == null ? null : (String) tmp);
+            //摘要
+            tmp = doc.get("summary");
+            note.summary = (tmp == null ? null : (String) tmp);
+            //发表时间
+            tmp = doc.get("publishTime");
+            note.publishTime = (tmp == null ? null : (long) tmp);
+            //出行时间
+            tmp = doc.get("travelTime");
+            note.travelTime = (tmp == null ? null : (long) tmp);
+            //花费上下限
+            tmp = doc.get("costUpper");
+            note.costUpper = (tmp == null ? null : (float) tmp);
+            tmp = doc.get("costLower");
+            note.costLower = (tmp == null ? null : (float) tmp);
+            //游记封面
+            tmp = doc.get("covers");
+            note.images = transImages((List)tmp);
+            //是否精华帖
+            tmp = doc.get("essence");
+            note.essence = (tmp == null ? null : (Boolean) tmp);
+
+            noteList.add(note);
+        }
+
+        return noteList;
+    }
+    private static  List<ImageItem> transImages(List<String> list){
+        if(list == null)
+            return new ArrayList<>();
+        List<ImageItem> result = new ArrayList<>();
+        ImageItem imgItem;
+        for(String temp:list){
+            imgItem = new ImageItem();
+            imgItem.setKey(temp);
+            result.add(imgItem);
+        }
+        return result;
+
+    }
+    /**
+     * 通过目的地或者景点的id获取游记
+     *
+     * @param id
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static List<TravelNote> searchNoteByLocId(String id, int page, int pageSize) throws AizouException, SolrServerException {
+        ObjectId oid = new ObjectId(id);
+        List<TravelNote> noteList;
+        String fields[] = {"zhName", "alias"};
+        Locality locality = LocalityAPI.getLocality(oid, Arrays.asList(fields));
+        ViewSpot viewSpot = PoiAPI.getVsDetail(oid, Arrays.asList(fields));
+        StringBuilder builder = new StringBuilder();
+        String zhName;
+        List<String> alias;
+        if (locality != null) {
+            zhName = locality.getZhName();
+            alias = locality.getAlias();
+            //判断中文名称
+            if (!zhName.equals("")) {
+                builder.append(zhName);
+            }
+            //判断别名
+            if (!alias.isEmpty()) {
+                for (String str : alias) {
+                    builder.append(str);
+                }
+            }
+            noteList = searchNotesByWord(builder.toString(), page, pageSize);
+            return noteList;
+        } else if (viewSpot != null) {
+            zhName = viewSpot.getZhName();
+            alias = viewSpot.getAlias();
+            //判断中文名称
+            if (!zhName.equals("")) {
+                builder.append(zhName);
+            }
+            //判断别名
+            if (!alias.isEmpty()) {
+                for (String str : alias) {
+                    builder.append(str);
+                }
+            }
+            noteList = searchNotesByWord(builder.toString(), page, pageSize);
+            return noteList;
+        } else
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT);
+    }
+
 
     public static List<TravelNote> searchNoteByLoc(List<String> locNames, List<String> vsNames, int page, int pageSize) throws AizouException {
 

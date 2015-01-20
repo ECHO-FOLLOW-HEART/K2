@@ -61,7 +61,7 @@ public class WebPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormatter {
         if (WebPOIFormatter.this.getPoiClass() == ViewSpot.class) {
             String[] keyList = new String[]{
                     ViewSpot.FD_OPEN_TIME, ViewSpot.FD_TIME_COST_DESC, ViewSpot.FD_TRAVEL_MONTH,
-                    ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_GUIDE_URL, ViewSpot.FD_KENGDIE_URL
+                    ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_GUIDE_URL, ViewSpot.FD_TIPS_URL
             };
             Collections.addAll(filteredFields, keyList);
             Collections.addAll(stringFields, keyList);

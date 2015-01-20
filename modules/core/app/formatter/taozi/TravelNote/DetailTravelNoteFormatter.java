@@ -19,6 +19,11 @@ import java.util.Map;
  */
 public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
 
+    public DetailTravelNoteFormatter setImageWidth(int width) {
+        imageWidth = width;
+        return this;
+    }
+
     @Override
     public JsonNode format(AizouBaseEntity item) {
 
@@ -27,23 +32,23 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
         Map<String, PropertyFilter> filterMap = new HashMap<>();
         filterMap.put("travelNoteFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept(
-                        TravelNote.fnAuthorAvatar,
                         TravelNote.fnAuthorName,
-                        TravelNote.fnCover,
+                        TravelNote.fnAuthorAvatar,
+                        TravelNote.fnImages,
                         TravelNote.fnTitle,
-                        TravelNote.fnPublishDate,
-                        TravelNote.fnSource,
+                        TravelNote.fnPublishTime,
+                        TravelNote.fnRating,
+                        TravelNote.fnTravelTime,
                         TravelNote.fnNoteContents,
-                        TravelNote.fnCostLower,
-                        TravelNote.fnCostUpper,
-                        TravelNote.fnSourceUrl,
+                        TravelNote.fnUpperCost,
+                        TravelNote.fnLowerCost,
                         TravelNote.fnCommentCnt,
                         TravelNote.fnViewCnt,
                         TravelNote.fnFavorCnt
                 ));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
 
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 

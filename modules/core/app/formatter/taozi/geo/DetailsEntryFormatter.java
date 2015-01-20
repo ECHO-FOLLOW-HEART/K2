@@ -1,4 +1,4 @@
-package formatter.taozi.TravelNote;
+package formatter.taozi.geo;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -8,16 +8,15 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
+import models.geo.Locality;
 import models.misc.ImageItem;
-import models.misc.TravelNote;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by lxf on 14-11-1.
  */
-public class SimpTravelNoteFormatter extends TaoziBaseFormatter {
+public class DetailsEntryFormatter extends TaoziBaseFormatter {
 
     @Override
     public JsonNode format(AizouBaseEntity item) {
@@ -25,18 +24,11 @@ public class SimpTravelNoteFormatter extends TaoziBaseFormatter {
         item.fillNullMembers();
 
         Map<String, PropertyFilter> filterMap = new HashMap<>();
-        filterMap.put("travelNoteFilter",
+        filterMap.put("detailsEntryFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept(
-                        TravelNote.fnId,
-                        TravelNote.fnAuthorAvatar,
-                        TravelNote.fnAuthorName,
-                        TravelNote.fnImages,
-                        TravelNote.fnTitle,
-                        TravelNote.fnPublishTime,
-                        TravelNote.fnTravelTime,
-                        TravelNote.fnSummary,
-                        TravelNote.fnEssence
-                ));
+                        "title",
+                        "desc",
+                        "images"));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
         serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));

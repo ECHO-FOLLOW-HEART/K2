@@ -2,6 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
@@ -56,6 +57,8 @@ public class GuideAPI {
         // 根据选择的目的地顺序排序
         guideTemplates = sortGuideTemplates(guideTemplates, ids);
         Guide result = constituteUgcGuide(guideTemplates, destinations, userId);
+        // 保存攻略时，置为可用
+        result.setTaoziEna(true);
         //创建时即保存
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE).save(result);
         return result;
@@ -239,9 +242,12 @@ public class GuideAPI {
     public static void deleteGuideById(ObjectId id) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
         Query<Guide> query = ds.createQuery(Guide.class);
         query.field("_id").equal(id);
-        ds.delete(query);
+        update.set(AizouBaseEntity.FD_TAOZIENA, false);
+        ds.update(query, update);
+
     }
 
     /**
@@ -254,7 +260,7 @@ public class GuideAPI {
     public static List<Guide> getGuideByUser(Integer uid, List<String> fieldList, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class);
-        query.field(Guide.fnUserId).equal(uid);
+        query.field(Guide.fnUserId).equal(uid).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         query.offset(page * pageSize).limit(pageSize);
