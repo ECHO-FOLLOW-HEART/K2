@@ -27,16 +27,16 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
         Map<String, PropertyFilter> filterMap = new HashMap<>();
         filterMap.put("travelNoteFilter",
                 SimpleBeanPropertyFilter.filterOutAllExcept(
-                        TravelNote.fnAuthorAvatar,
                         TravelNote.fnAuthorName,
-                        TravelNote.fnCover,
+                        TravelNote.fnAuthorAvatar,
+                        TravelNote.fnCovers,
                         TravelNote.fnTitle,
-                        TravelNote.fnPublishDate,
-                        TravelNote.fnSource,
+                        TravelNote.fnPublishTime,
+                        TravelNote.fnRating,
+                        TravelNote.fnTravelTime,
                         TravelNote.fnNoteContents,
-                        TravelNote.fnCostLower,
-                        TravelNote.fnCostUpper,
-                        TravelNote.fnSourceUrl,
+                        TravelNote.fnUpperCost,
+                        TravelNote.fnLowerCost,
                         TravelNote.fnCommentCnt,
                         TravelNote.fnViewCnt,
                         TravelNote.fnFavorCnt

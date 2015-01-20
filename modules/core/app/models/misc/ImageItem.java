@@ -66,6 +66,12 @@ public class ImageItem extends AizouBaseItem {
      */
     private Integer size;
 
+    public ImageItem() {
+        if (key == null && url != null) {
+            key = url.substring(39, url.length() - 1);
+        }
+    }
+
     /**
      * 根据bucket和key，生成完整的图像链接
      */

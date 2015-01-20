@@ -48,7 +48,7 @@ public class PlanAPI {
                 query.criteria(AbstractPlan.FD_DAYS).lessThanOrEq(maxDays));
 
         query.field(AizouBaseEntity.FD_ENABLED).equal(Boolean.TRUE);
-        query.order(AbstractPlan.FD_MANUAL_PRIORITY).offset(page * pageSize).limit(pageSize);
+        query.order("-forkedCnt," + AbstractPlan.FD_MANUAL_PRIORITY).offset(page * pageSize).limit(pageSize);
 
         return query.asList();
     }

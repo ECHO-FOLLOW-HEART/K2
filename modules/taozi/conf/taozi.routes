@@ -62,7 +62,7 @@ GET           /misc/put-policy/:scenario                         controllers.tao
 #处理资源上传的回调
 POST          /misc/upload-callback                              controllers.taozi.MiscCtrl.getCallback()
 #游记
-GET           /misc/notes/search                                 controllers.taozi.TravelNoteCtrl.searchNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
+GET           /misc/travel-notes/search                                 controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
 #推荐
 GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #搜索
@@ -159,6 +159,6 @@ GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.tao
 #特定地区的美食、购物发现
 GET           /poi/$id<[0-9a-f]{24}>/details                     controllers.taozi.POICtrl.getDinShop(id:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
 #更多精选游记
-GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.getNotes(locId: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=10)
+GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情
-GET           /travel-notes/$id<[0-9a-f]{24}>                    controllers.taozi.TravelNoteCtrl.getTravelNoteDetail(id:String)
+GET           /travel-notes/$id<[0-9a-f]{24}>                    controllers.taozi.TravelNoteCtrl.travelNoteDetail(id:String)
