@@ -1,4 +1,4 @@
-package utils.formatter.taozi.user;
+package formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -22,7 +22,7 @@ import java.util.Set;
  * <p>
  * Created by zephyre on 10/28/14.
  */
-public class ContactFormatter extends TaoziBaseFormatter {
+public class ContactFormatterOld extends TaoziBaseFormatter {
     @Override
     public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = new ObjectMapper();

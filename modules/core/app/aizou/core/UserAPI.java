@@ -1169,6 +1169,29 @@ public class UserAPI {
      * @throws exception.AizouException
      */
     public static List<UserInfo> getContactList(Long selfId) throws AizouException {
+        // 从关系表中取得好友关系列表
+        Set<Long> contactSet = getContactIds(selfId);
+
+        // 取得好友信息
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<UserInfo> queryFriends = ds.createQuery(UserInfo.class);
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (Long tempId : contactSet) {
+            criList.add(queryFriends.criteria("userId").equal(tempId));
+        }
+        queryFriends.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        return queryFriends.asList();
+    }
+
+    /**
+     * api 获得用户的好友列表
+     *
+     * @param selfId
+     * @return
+     * @throws exception.AizouException
+     */
+    public static Set<Long> getContactIds(Long selfId) throws AizouException {
         UserInfo userInfo = getUserInfo(selfId, null);
         if (userInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
@@ -1180,26 +1203,18 @@ public class UserAPI {
         query.or(query.criteria("userA").equal(selfId), query.criteria("userB").equal(selfId));
         List<Relationship> relations = query.asList();
         if (relations.isEmpty())
-            return new ArrayList<>();
+            return new HashSet<>();
 
         // 从好友关系列表中提取好友ID
-        List<Long> friendsIdList = new ArrayList<>();
+        Set<Long> contactSet = new HashSet<>();
         for (Relationship relationship : relations) {
             if (!relationship.getUserA().equals(selfId))
-                friendsIdList.add(relationship.getUserA());
+                contactSet.add(relationship.getUserA());
             else
-                friendsIdList.add(relationship.getUserB());
+                contactSet.add(relationship.getUserB());
         }
 
-        // 取得好友信息
-        Query<UserInfo> queryFriends = ds.createQuery(UserInfo.class);
-        List<CriteriaContainerImpl> criList = new ArrayList<>();
-        for (Long tempId : friendsIdList) {
-            criList.add(queryFriends.criteria("userId").equal(tempId));
-        }
-        queryFriends.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
-
-        return queryFriends.asList();
+        return contactSet;
     }
 
     public static List<UserInfo> getUserByEaseMob(List<String> users, List<String> fieldList) throws AizouException {

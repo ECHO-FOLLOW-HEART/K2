@@ -9,6 +9,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
+import formatter.taozi.user.ContactFormatter;
 import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatterOld;
 import formatter.taozi.user.UserInfoFormatter;
@@ -26,7 +27,6 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.MsgConstants;
 import utils.Utils;
-import utils.formatter.taozi.user.ContactFormatter;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParserFactory;
 
@@ -790,25 +790,53 @@ public class UserCtrl extends Controller {
                 contacts.add(m.convertValue(it.next(), Contact.class));
             }
             UserInfo userInfo;
-            List<UserInfo> friends;
+
+            // 当前用户的联系人
+            Set<Long> contactSet = UserAPI.getContactIds(selfUserId);
+
+            List<String> telList = new ArrayList<>();
+            for (Contact c : contacts) {
+                if (c.tel !=null && !c.tel.isEmpty())
+                    telList.add(c.tel);
+            }
+
+
+            Map<String, Long> matchResult=new HashMap<>();
+            for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel), telList,
+                    Arrays.asList(UserInfo.fnUserId, UserInfo.fnTel), 0, 1000); itr.hasNext(); ){
+                UserInfo user = itr.next();
+                matchResult.put(user.getTel(), user.getUserId());
+            }
+
             for (Contact temp : contacts) {
-                temp.setId(new ObjectId());
-                userInfo = UserAPI.getUserByField(UserInfo.fnTel, temp.tel, Arrays.asList(UserInfo.fnUserId));
-                if (userInfo != null) {
+//                temp.setId(new ObjectId());
+//                userInfo = UserAPI.getUserByField(UserInfo.fnTel, temp.tel, Arrays.asList(UserInfo.fnUserId));
+
+                if (matchResult.containsKey(temp.tel)){
                     temp.isUser = true;
-                    temp.userId = userInfo.getUserId();
-                    friends = UserAPI.getContactList(selfUserId);
-                    temp.isContact = isFriend(temp.userId, friends);
-                } else {
-                    temp.isUser = false;
+                    temp.userId = matchResult.get(temp.tel);
+                    temp.isContact = contactSet.contains(temp.userId);
+                }else{
+                    temp.isUser=false;
                     temp.isContact = false;
                 }
+//
+//                if (userInfo != null) {
+//                    temp.isUser = true;
+//                    temp.userId = userInfo.getUserId();
+//                    temp.isContact = contactSet.contains(temp.userId);
+//                } else {
+//                    temp.isUser = false;
+//                    temp.isContact = false;
+//                }
             }
-            List<JsonNode> nodes = new ArrayList<>();
-            for (Contact temp : contacts) {
-                nodes.add(new ContactFormatter().format(temp));
+
+            try {
+                ContactFormatter formatter = FormatterFactory.getInstance(ContactFormatter.class);
+                return Utils.status(formatter.format(contacts));
+            } catch (ReflectiveOperationException | JsonProcessingException e) {
+                return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodes));
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
