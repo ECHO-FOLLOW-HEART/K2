@@ -276,7 +276,7 @@ public class TravelNoteAPI {
             note.costLower = (tmp == null ? null : (float) tmp);
             //游记封面
             tmp = doc.get("covers");
-            note.noteCovers = (tmp == null || ((List) tmp).isEmpty() ? null : (List) tmp);
+            note.images = (tmp == null || ((List) tmp).isEmpty() ? null : (List) tmp);
             //是否精华帖
             tmp = doc.get("essence");
             note.essence = (tmp == null ? null : (Boolean) tmp);

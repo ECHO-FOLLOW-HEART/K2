@@ -30,7 +30,7 @@ public class SimpTravelNoteFormatter extends TaoziBaseFormatter {
                         TravelNote.fnId,
                         TravelNote.fnAuthorAvatar,
                         TravelNote.fnAuthorName,
-                        TravelNote.fnNoteCovers,
+                        TravelNote.fnImages,
                         TravelNote.fnTitle,
                         TravelNote.fnPublishTime,
                         TravelNote.fnTravelTime,

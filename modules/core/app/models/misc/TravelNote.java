@@ -45,7 +45,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     public static String fnCovers = "covers";
 
     @Transient
-    public static String fnNoteCovers = "noteCovers";
+    public static String fnImages = "images";
 
     @Transient
     public static String fnAuthorName = "authorName";
@@ -263,7 +263,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
      * 图像
      */
     public List<ImageItem> covers;
-    public List noteCovers;
+    public List<String> images;
 
     public String cover;
 
