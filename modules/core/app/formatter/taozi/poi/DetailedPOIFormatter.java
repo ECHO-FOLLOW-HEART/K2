@@ -34,13 +34,18 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
         return poiClass;
     }
 
+    public DetailedPOIFormatter setImageWidth(int width) {
+        imageWidth = width;
+        return this;
+    }
+
     public DetailedPOIFormatter(Class<T> poiClass) {
         this.poiClass = poiClass;
 
         stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC,
-                AbstractPOI.FD_ADDRESS, AbstractPOI.FD_PRICE_DESC, AbstractPOI.FD_TELEPHONE));
+                AbstractPOI.FD_ADDRESS, AbstractPOI.FD_PRICE_DESC));
 
-        listFields.add(AbstractPOI.FD_IMAGES);
+        listFields.addAll(Arrays.asList(AbstractPOI.FD_IMAGES,AbstractPOI.FD_TELEPHONE));
 
         mapFields.add(AbstractPOI.FD_LOCATION);
 
@@ -55,8 +60,8 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
                 AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_ADDRESS,
-                AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE
+                AbstractPOI.FD_PRICE_DESC
+
         );
 
         if (DetailedPOIFormatter.this.getPoiClass() == ViewSpot.class) {
@@ -80,11 +85,11 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
 
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 
-        return postProcess((ObjectNode) mapper.valueToTree(item));
+        return postProcess((ObjectNode)mapper.valueToTree(item));
     }
 
 }

@@ -23,7 +23,7 @@ public class MsgConstants {
     /**
      * 用户不已存在
      */
-    public static String USER_NOT_EXIST_MSG = "该用户不存在.";
+    public static String USER_NOT_EXIST_MSG = "不是桃子用户";
 
     /**
      * 注册时验证码错误
@@ -33,12 +33,12 @@ public class MsgConstants {
     /**
      * 注册时验证码错误
      */
-    public static String CAPTCHA_ERROR_MSG = "验证码错误，请重新发送.";
+    public static String CAPTCHA_ERROR_MSG = "验证码错误";
 
     /**
-     * 注册时验证码错误
+     * 密码错误
      */
-    public static String PWD_ERROR_MSG = "密码不正确，请重新填写.";
+    public static String PWD_ERROR_MSG = "密码错误";
     /**
      * 昵称已存在
      */
@@ -47,7 +47,7 @@ public class MsgConstants {
     /**
      * 昵称已存在
      */
-    public static String NICKNAME_EXIST_MSG = "该昵称已存在.";
+    public static String NICKNAME_EXIST_MSG = "您输入的昵称已经被注册";
 
     /**
      * 新设密码格式不正确
@@ -57,17 +57,7 @@ public class MsgConstants {
     /**
      * 新设密码格式不正确
      */
-    public static String PWD_FORMAT_ERROR_MSG = "请设置6-10位字母或数字。";
-
-    /**
-     * 密码设置失败
-     */
-    public static int PWD_RESET_ERROR = 410;
-
-    /**
-     * 密码设置失败
-     */
-    public static String PWD_RESET_ERROR_MSG = "密码设置失败。";
+    public static String PWD_FORMAT_ERROR_MSG = "请设置6-10位字母或数字";
 
     /**
      * 用户已存在
@@ -77,7 +67,7 @@ public class MsgConstants {
     /**
      * 用户已存在
      */
-    public static String USER_TEL_EXIST_MSG = "您输入的手机号码已存在。";
+    public static String USER_TEL_EXIST_MSG = "手机号已被使用了";
 
     /**
      * 用户已存在
@@ -87,7 +77,7 @@ public class MsgConstants {
     /**
      * 用户已存在
      */
-    public static String USER_TEL_NOT_EXIST_MSG = "您输入的手机号码不是注册用户.";
+    public static String USER_TEL_NOT_EXIST_MSG = "该号码不是桃子用户";
 
     /**
      * 微信注册时请求access_token失败
@@ -97,7 +87,7 @@ public class MsgConstants {
     /**
      * 微信注册时请求用户信息失败
      */
-    public static String WEIXIN_ACESS_ERROR_MSG = "请求微信账号信息失败。";
+    public static String WEIXIN_ACESS_ERROR_MSG = "请求微信账号信息失败";
 
     /**
      * 注册时验证码错误
@@ -107,7 +97,7 @@ public class MsgConstants {
     /**
      * 注册时验证码错误
      */
-    public static String TOKEN_ERROR_MSG = "Token错误，请重新发送.";
+    public static String TOKEN_ERROR_MSG = "请求失败，请重新绑定";
 
     /**
      * 此用户没有收藏项目(数据不存在:402)
@@ -117,5 +107,15 @@ public class MsgConstants {
     /**
      * 此用户没有收藏项目
      */
-    public static String FAVORITE_NOT_EXIT_MSG = "该用户没有收藏项目.";
+    public static String FAVORITE_NOT_EXIT_MSG = "该用户没有收藏项目";
+
+    /**
+     * 昵称不允许是纯数字
+     */
+    public static int NICKNAME_NOT_NUMERIC = 414;
+
+    /**
+     * 昵称不允许是纯数字
+     */
+    public static String NICKNAME_NOT_NUMERIC_MSG = "请不要用纯数字做昵称";
 }

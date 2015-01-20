@@ -346,15 +346,15 @@ public class UserAPI {
 
         if (fieldDesc == null || fieldDesc.isEmpty())
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
-
         List<CriteriaContainerImpl> criList = new ArrayList<>();
         for (String fd : fieldDesc) {
-            if (valueList.size() == 1)
+            if (fd.equals(UserInfo.fnUserId) && Utils.isNumeric(valueList))
+                valueList = phraseUserIdType(valueList);
+            if (valueList.size() == 1) {
                 criList.add(ds.createQuery(UserInfo.class).criteria(fd).equal(valueList.iterator().next()));
-            else if (valueList.size() > 1)
+            } else if (valueList.size() > 1)
                 criList.add(ds.createQuery(UserInfo.class).criteria(fd).hasAnyOf(valueList));
         }
-
         Query<UserInfo> query = ds.createQuery(UserInfo.class);
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
 
@@ -365,6 +365,13 @@ public class UserAPI {
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
+    private static List<Long> phraseUserIdType(Collection<?> list) {
+        List<Long> result = new ArrayList<>();
+        for (Object temp : list) {
+            result.add(Long.valueOf(temp.toString()));
+        }
+        return result;
+    }
 
     /**
      * 根据字段获得用户信息。
@@ -464,6 +471,7 @@ public class UserAPI {
         String easemobPwd = ret[1];
 
         user.setEasemobUser(ret[0]);
+        user.setOrigin(Constants.APP_FLAG_TAOZI);
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
         // 注册机密信息
@@ -725,7 +733,7 @@ public class UserAPI {
      */
     private static String getEaseMobToken() throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        MiscInfo info = ds.createQuery(MiscInfo.class).get();
+        MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_HUANXIN_INFO).get();
 
         String token = info.easemobToken;
         Long tokenExp = info.easemobTokenExpire;
@@ -751,7 +759,7 @@ public class UserAPI {
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.setRequestProperty("Content-Type", "application/json");
-                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
                 out.write(data.toString());
                 out.flush();
                 out.close();
@@ -834,7 +842,7 @@ public class UserAPI {
             conn.setDoInput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(data.toString());
             out.flush();
             out.close();
@@ -941,7 +949,7 @@ public class UserAPI {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
 
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(data.toString());
             out.flush();
             out.close();
@@ -1099,7 +1107,6 @@ public class UserAPI {
         ObjectNode info = (ObjectNode) new UserFormatter(false).format(selfInfo);
         // 添加邀请信息
         info.put("attachMsg", message);
-
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);
         ext.put("content", info);
@@ -1138,7 +1145,7 @@ public class UserAPI {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
 
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(requestBody.toString());
             out.flush();
             out.close();

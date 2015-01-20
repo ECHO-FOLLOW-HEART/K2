@@ -64,12 +64,13 @@ POST          /misc/upload-callback                              controllers.tao
 #游记
 GET           /misc/notes/search                                 controllers.taozi.TravelNoteCtrl.searchNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
 #推荐
-GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=6)
+GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #搜索
 GET           /search                                            controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #提示
 GET           /suggestions                                       controllers.taozi.MiscCtrl.getSuggestions(keyWord: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, shopping: Boolean?=false,pageSize: Int?=5)
-
+#获得版本信息
+GET           /misc/updates                                      controllers.taozi.MiscCtrl.getUpdates()
 #----------POI接口----------
 #查看POI详情
 # 景点详情
@@ -130,14 +131,17 @@ DELETE        /im/chatgroups/groupId/members                     controllers.tao
 POST          /im/chatgroups/detail/groupId                      controllers.taozi.ChatGroupCtrl.modifyChatGroupDetail()
 #----------地理信息接口----------
 # 搜索城市
+#展示国内目的地
+GET           /geo/localities/domestic                           controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=false,page:Int?=0,pageSize:Int?=10)
+#展示国外目的地
+GET           /geo/localities/abroad                             controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
 #查看目的地详情
 GET           /geo/localities/:id                                controllers.taozi.GeoCtrl.getLocality(id: String,noteCnt: Int?=0)
 #查看目的地详情图集
-GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=0)
-#展示目的地
-GET           /destinations                                      controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean?=true,page:Int?=0,pageSize:Int?=10)
+GET           /geo/localities/:id/album                          controllers.taozi.MiscCtrl.getAlbums(id: String,page:Int?=0,pageSize: Int?=999)
+
 #旅行专栏
-GET           /columns                                           controllers.taozi.MiscCtrl.getColumns()
+GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage",id: String?="")
 
 #----------用户评价接口----------
 #保存用户的评价

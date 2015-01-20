@@ -1,15 +1,15 @@
 package controllers.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.ProxyFormatter;
 import models.MorphiaFactory;
 import models.misc.Proxy;
 import org.mongodb.morphia.query.Query;
-import play.libs.Json;
 import play.mvc.Result;
 import utils.Utils;
-import formatter.ProxyFormatter;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,14 +40,12 @@ public class MiscCtrl {
 
             query.order(String.format("latency.%s", verifier)).offset(page * pageSize).limit(pageSize);
 
-            List<JsonNode> results = new ArrayList<>();
-
-            for (Proxy proxy : query) {
-                results.add(new ProxyFormatter().format(proxy));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+            String ret = new ProxyFormatter().format(query.asList());
+            return Utils.status(ErrorCode.NORMAL, ret);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
         }
     }
 }

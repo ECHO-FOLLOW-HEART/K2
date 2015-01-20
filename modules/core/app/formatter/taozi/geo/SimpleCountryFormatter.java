@@ -22,6 +22,11 @@ import java.util.Arrays;
  */
 public class SimpleCountryFormatter extends TaoziBaseFormatter {
 
+    public SimpleCountryFormatter setImageWidth(int width) {
+        imageWidth = width;
+        return this;
+    }
+
     @Override
     public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = getObjectMapper();
@@ -39,7 +44,7 @@ public class SimpleCountryFormatter extends TaoziBaseFormatter {
 
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+                new ImageItemSerializer(imageWidth));
         mapper.registerModule(imageItemModule);
 
         ObjectNode result = mapper.valueToTree(item);

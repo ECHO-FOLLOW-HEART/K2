@@ -32,6 +32,7 @@ public class Constants {
     public static String SYMBOL_QUESTION = "?";
     public static String SYMBOL_BAR = "|";
     public static String SYMBOL_SLASH = "/";
+    public static String SYMBOL_NEWTON = "、";
 
 
 

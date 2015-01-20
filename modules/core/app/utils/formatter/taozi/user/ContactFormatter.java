@@ -48,6 +48,7 @@ public class ContactFormatter extends TaoziBaseFormatter {
                 includedFields.add("isUser");
                 includedFields.add("isContact");
                 includedFields.add("userId");
+                includedFields.add("weixin");
                 return (includedFields.contains(writer.getName()));
             }
 

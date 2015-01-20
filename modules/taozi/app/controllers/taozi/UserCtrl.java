@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -103,6 +103,7 @@ public class UserCtrl extends Controller {
         String captcha = req.get("captcha").asText();
         Integer actionCode = Integer.valueOf(req.get("actionCode").asText());
         Integer userId = 0;
+        // 注册和忘记密码时，无userId；绑定手机号时有userId
         if (req.has("userId"))
             userId = Integer.valueOf(req.get("userId").asText());
         int countryCode = 86;
@@ -114,10 +115,11 @@ public class UserCtrl extends Controller {
             if (captcha.equals("85438734") || UserAPI.checkValidation(countryCode, tel, actionCode, captcha, userId)) {
                 Token token = UserAPI.valCodetoToken(countryCode, tel, actionCode, userId, 600 * 1000);
                 result.put("token", token.value);
-                result.put("isValid", true);
-            } else
-                result.put("isValid", false);
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+            } else {
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
+            }
+
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
@@ -146,7 +148,7 @@ public class UserCtrl extends Controller {
             if (UserAPI.checkToken(token, Integer.valueOf(userId), CAPTCHA_ACTION_BANDTEL)) {
                 //如果手机已存在，则绑定无效
                 if (UserAPI.getUserByField(UserInfo.fnTel, tel) != null) {
-                    return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
+                    return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
                 }
                 userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId, null);
                 userInfo.setTel(tel);
@@ -184,7 +186,7 @@ public class UserCtrl extends Controller {
         try {
             UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
             if (userInfo == null)
-                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
+                return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
 
             //验证密码
             if (UserAPI.validCredential(userInfo, oldPwd)) {
@@ -227,7 +229,7 @@ public class UserCtrl extends Controller {
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
-                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "User not exist.");
 
                 // 机密数据
                 JsonNode creNode = new CredentialFormatter().format(cre);
@@ -327,7 +329,7 @@ public class UserCtrl extends Controller {
             Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
                     userFormatter.getFilteredFields(), 0, 1);
             if (!itr.hasNext())
-                throw new AizouException(ErrorCode.AUTH_ERROR);
+                return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
             UserInfo userInfo = itr.next();
 
             //验证密码
@@ -345,10 +347,9 @@ public class UserCtrl extends Controller {
                     Map.Entry<String, JsonNode> entry = it.next();
                     info.put(entry.getKey(), entry.getValue());
                 }
-
                 return Utils.createResponse(ErrorCode.NORMAL, info);
             } else
-                throw new AizouException(ErrorCode.AUTH_ERROR);
+                return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
@@ -401,7 +402,7 @@ public class UserCtrl extends Controller {
             //请求access_token
             String acc_url = getAccessUrl(urlDomain, urlAccess, appid, secret, code);
             URL url = new URL(acc_url);
-            String json = IOUtils.toString(url);
+            String json = IOUtils.toString(url, "UTF-8");
             ObjectMapper m = new ObjectMapper();
             JsonNode rootNode = m.readTree(json);
             String access_token, openId, info_url;
@@ -417,7 +418,7 @@ public class UserCtrl extends Controller {
             //请求用户信息
             info_url = getInfoUrl(urlDomain, urlInfo, access_token, openId);
             url = new URL(info_url);
-            json = IOUtils.toString(url);
+            json = IOUtils.toString(url, "UTF-8");
             m = new ObjectMapper();
             infoNode = m.readTree(json);
 
@@ -449,8 +450,12 @@ public class UserCtrl extends Controller {
 
             //JSON转化为userInfo
             us = UserAPI.oauthToUserInfoForWX(infoNode);
-            //如果第三方昵称已被其他用户使用，则添加后缀
             if (UserAPI.getUserByField(UserInfo.fnNickName, us.getNickName()) != null) {
+                //如果第三方昵称为纯数字，则添加后缀
+                if (Utils.isNumeric(us.getNickName())) {
+                    us.setNickName(us.getNickName() + "_桃子");
+                }
+                //如果第三方昵称已被其他用户使用，则添加后缀
                 nickDuplicateRemoval(us);
             }
 
@@ -574,7 +579,7 @@ public class UserCtrl extends Controller {
 
             UserFormatter userFormatter = new UserFormatter(false);
 
-            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
+            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName, UserInfo.fnUserId), valueList,
                     userFormatter.getFilteredFields(), 0, 20);
 
             List<JsonNode> result = new ArrayList<>();
@@ -617,8 +622,9 @@ public class UserCtrl extends Controller {
             //修改昵称
             if (req.has("nickName")) {
                 String nickName = req.get("nickName").asText();
-                // TODO 跟踪乱码问题
-//                LogUtils.info(Plan.class, "NickName in POST:" + nickName);
+                if (Utils.isNumeric(nickName)) {
+                    return Utils.createResponse(MsgConstants.NICKNAME_NOT_NUMERIC, MsgConstants.NICKNAME_NOT_NUMERIC_MSG, true);
+                }
                 //如果昵称不存在
                 if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
                     userInfor.setNickName(nickName);
@@ -640,9 +646,6 @@ public class UserCtrl extends Controller {
             if (req.has("avatar"))
                 userInfor.setAvatar(req.get("avatar").asText());
             UserAPI.saveUserInfo(userInfor);
-            // TODO 跟踪乱码问题
-//            LogUtils.info(Plan.class, "NickName in Mongo:" + UserAPI.getUserInfo(userInfor.getUserId()).getNickName());
-//            LogUtils.info(Plan.class, request());
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %d.", userId));
@@ -787,7 +790,7 @@ public class UserCtrl extends Controller {
     public static Result matchAddressBook() {
         try {
             JsonNode req = request().body().asJson();
-            Iterator<JsonNode> it = req.get("contants").elements();
+            Iterator<JsonNode> it = req.get("contacts").elements();
             Long selfUserId = Long.parseLong(request().getHeader("UserId"));
             List<Contact> contacts = new ArrayList();
             ObjectMapper m = new ObjectMapper();

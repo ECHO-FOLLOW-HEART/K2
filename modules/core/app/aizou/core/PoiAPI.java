@@ -2,6 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
@@ -245,70 +246,6 @@ public class PoiAPI {
         return query.iterator();
     }
 
-//    /**
-//     * POI搜索。
-//     *
-//     * @param poiType    POI类型。
-//     * @param locId      POI所在地区（可以为NULL）。
-//     * @param searchWord 搜索关键词（可以为NULL）。
-//     * @param details    是否获取详情。
-//     * @param sortField
-//     * @param asc
-//     * @param page
-//     * @param pageSize
-//     * @return
-//     */
-//    public static BasicDBList poiSearchOld(POIType poiType, String locId, String searchWord, boolean details,
-//                                           String sortField, boolean asc, int page, int pageSize) throws TravelPiException {
-//        String colName;
-//        switch (poiType) {
-//            case VIEW_SPOT:
-//                colName = "view_spot";
-//                break;
-//            case HOTEL:
-//                colName = "hotel";
-//                break;
-//            case RESTAURANT:
-//                colName = "restaurant";
-//                break;
-//            default:
-//                throw new TravelPiException(ErrorCode.UNSUPPORTED_OP, "Unsupported POI type.");
-//        }
-//
-//        QueryBuilder query = QueryBuilder.start();
-//        if (locId != null) {
-//            try {
-//                query.and("geo.locId").is(new ObjectId(locId)).get();
-//            } catch (IllegalArgumentException e) {
-//                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s.", locId));
-//            }
-//        }
-//        if (searchWord != null)
-//            query.and("name").regex(Pattern.compile(searchWord));
-//
-//        BasicDBObjectBuilder facet = BasicDBObjectBuilder.start();
-//        if (!details)
-//            facet.add("imageList", 1).add("tags", 1).add("desc", 1).add("geo.locId", 1).add("geo.locName", 1);
-//
-//        BasicDBObjectBuilder sortBuilder = BasicDBObjectBuilder.start();
-//        if (sortField != null) {
-//            switch (sortField) {
-//                case "score":
-//                    sortBuilder.add("ratings.score", (asc ? 1 : -1));
-//                    break;
-//            }
-//        }
-//        DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);
-//        DBCursor cursor = col.find(query.get()).skip(page * pageSize).limit(pageSize);
-//        cursor.sort(sortBuilder.get());
-//
-//        BasicDBList poiList = new BasicDBList();
-//        while (cursor.hasNext())
-//            poiList.add(cursor.next());
-//
-//        return poiList;
-//    }
-
     /**
      * 获得POI信息。
      *
@@ -324,7 +261,7 @@ public class PoiAPI {
     public static <T extends AbstractPOI> T getPOIInfo(ObjectId poiId, Class<T> poiClass, Collection<String> fieldList)
             throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-        Query<T> query = ds.createQuery(poiClass).field("_id").equal(poiId);
+        Query<T> query = ds.createQuery(poiClass).field("_id").equal(poiId).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
 
@@ -921,15 +858,19 @@ public class PoiAPI {
             case RESTAURANT:
                 poiClass = Restaurant.class;
                 break;
+            case SHOPPING:
+                poiClass = Shopping.class;
+                break;
             default:
                 throw new AizouException(ErrorCode.INVALID_ARGUMENT);
         }
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        query = query.field(AbstractPOI.FD_LOCATION).near(lng, lat, maxDistance, true);
+        query.field(AbstractPOI.FD_LOCATION).near(lng, lat, maxDistance, true).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         query.retrievedFields(true, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.FD_IMAGES,
-                AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION);
+                AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION, AbstractPOI.FD_PRICE_DESC,
+                AbstractPOI.FD_ADDRESS);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }
@@ -977,7 +918,7 @@ public class PoiAPI {
     public static Locality getLocalityByField(ObjectId id, List<String> fieldList) throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(id);
+        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(id).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
 
@@ -1058,7 +999,7 @@ public class PoiAPI {
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
         Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images",
-                "desc", "location", "priceDesc", "address", "tags");
+                "desc", "location", "priceDesc", "address", "tags","price");
         switch (poiType) {
             case VIEW_SPOT:
                 fieldList.add("timeCostDesc");
@@ -1080,7 +1021,7 @@ public class PoiAPI {
 
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         // query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
-        query.field("targets").equal(locId);
+        query.field("targets").equal(locId).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         // 排序
         String stKey = null;
@@ -1129,14 +1070,11 @@ public class PoiAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         if (keyword != null && !keyword.isEmpty()) {
-            query.or(
-                    query.criteria("zhName").equal(Pattern.compile(prefix ? "^" + keyword : keyword)),
-                    query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
-                    query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
-            );
+            query.field("alias").equal(Pattern.compile("^" + keyword));
         }
         if (locId != null)
             query.field("targets").equal(locId);
+        query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         query.order("-hotness");
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();

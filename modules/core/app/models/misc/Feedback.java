@@ -30,6 +30,8 @@ public class Feedback extends AizouBaseEntity implements ITravelPiFormatter {
 
     public List<Contact> contact;
 
+    public String origin;
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

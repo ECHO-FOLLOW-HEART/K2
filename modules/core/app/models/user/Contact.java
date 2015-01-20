@@ -25,4 +25,6 @@ public class Contact extends AizouBaseEntity {
 
     public Long userId;
 
+    public String weixin;
+
 }

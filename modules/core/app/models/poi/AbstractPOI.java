@@ -88,7 +88,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String FD_ADDRESS = "address";
 
     @Transient
-    public static String FD_TELEPHONE = "telephone";
+    public static String FD_TELEPHONE = "tel";
 
     @Transient
     public static String fnHotness = "hotness";
@@ -105,6 +105,8 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
     @Transient
     public static String fnType = "type";
+    @Transient
+    public static String FD_TIMECOSTDESC = "timeCostDesc";
     /**
      * 标识POI的种类，jackson反序列还用
      */
@@ -275,15 +277,12 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         return guideUrl;
     }
 
-    public String getKengdieUrl() {
-        return priceDesc;
-    }
-
     public String getDesc() {
         if (desc == null)
             return "";
         else
-            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+            return desc;
+        //return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
 
     public String getAddress() {
