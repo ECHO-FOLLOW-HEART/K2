@@ -28,6 +28,7 @@ import play.mvc.Result;
 import utils.MsgConstants;
 import utils.Utils;
 import utils.phone.PhoneEntity;
+import utils.phone.PhoneParser;
 import utils.phone.PhoneParserFactory;
 
 import java.io.IOException;
@@ -786,8 +787,17 @@ public class UserCtrl extends Controller {
             Long selfUserId = Long.parseLong(request().getHeader("UserId"));
             List<Contact> contacts = new ArrayList();
             ObjectMapper m = new ObjectMapper();
+
+            PhoneParser parser = PhoneParserFactory.newInstance();
+
             while (it.hasNext()) {
-                contacts.add(m.convertValue(it.next(), Contact.class));
+                Contact c = m.convertValue(it.next(), Contact.class);
+                try {
+                    PhoneEntity phone = parser.parse(c.tel);
+                    c.tel = phone.getPhoneNumber();
+                }catch(IllegalArgumentException ignored){
+                }
+                contacts.add(c);
             }
             UserInfo userInfo;
 
