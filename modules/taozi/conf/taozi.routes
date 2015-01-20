@@ -76,7 +76,7 @@ GET           /misc/updates                                      controllers.tao
 # 景点详情
 GET           /poi/vs/$spotId<[0-9a-f]{24}>                      controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍
-GET           /poi/view-spots/$id<[0-9a-f]{24}>/details          controllers.taozi.POICtrl.getTravelGuide(id: String, fields: String)
+GET           /poi/vs/$id<[0-9a-f]{24}>/details                  controllers.taozi.POICtrl.getTravelGuide(id: String, field: String,poiDesc: String="vs")
 # 酒店详情
 GET           /poi/hotel/:spotId                                 controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #美食详情
@@ -157,7 +157,7 @@ GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments        controllers.tao
 GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.taozi.MiscCtrl.displayComment(id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0, pageSize: Int?=15)
 
 #特定地区的美食、购物发现
-GET           /poi/$id<[0-9a-f]{24}>/details                     controllers.taozi.POICtrl.getDinShop(id:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
+#GET           /poi/$id<[0-9a-f]{24}>/details                     controllers.taozi.POICtrl.getDinShop(id:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
 #更多精选游记
 GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情

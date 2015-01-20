@@ -35,7 +35,7 @@ public class ViewSpot extends AbstractPOI {
     public static String FD_GUIDE_URL = "guideUrl";
 
     @Transient
-    public static String FD_KENGDIE_URL = "kengdieUrl";
+    public static String FD_TIPS_URL = "tipsUrl";
 
     @Transient
     public static String FD_DESC_FLAGS = "descriptionFlag";

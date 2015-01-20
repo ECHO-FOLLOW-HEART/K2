@@ -242,7 +242,7 @@ public class GeoCtrl extends Controller {
         }
     }
 
-    private static List<ObjectNode> contentsToList(List<DetailsEntry> entries) {
+    public static List<ObjectNode> contentsToList(List<DetailsEntry> entries) {
         if (entries == null)
             return new ArrayList<>();
         List<ObjectNode> objs = new ArrayList<>();

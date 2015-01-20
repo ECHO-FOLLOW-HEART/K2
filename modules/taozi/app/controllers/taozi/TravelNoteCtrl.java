@@ -182,13 +182,13 @@ public class TravelNoteCtrl extends Controller {
      */
     public static Result travelNoteDetail(String noteId) {
         try {
-            Long userId;
-            if (request().hasHeader("UserId"))
-                userId = Long.parseLong(request().getHeader("UserId"));
-            else
-                userId = null;
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             TravelNote travelNote = TravelNoteAPI.getNoteById(new ObjectId(noteId));
-            return Utils.createResponse(ErrorCode.NORMAL, new DetailTravelNoteFormatter().format(travelNote));
+            return Utils.createResponse(ErrorCode.NORMAL, new DetailTravelNoteFormatter().setImageWidth(imgWidth).format(travelNote));
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
