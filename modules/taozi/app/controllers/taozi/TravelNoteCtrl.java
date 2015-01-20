@@ -63,18 +63,27 @@ public class TravelNoteCtrl extends Controller {
 
     }
 
-    public static Result searchTravelNotes(String keyword, String locId, int page, int pageSize) {
+    /**
+     * 游记搜索
+     *
+     * @param keyWord
+     * @param locId
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result searchTravelNotes(String keyWord, String locId, int page, int pageSize) {
         List<TravelNote> noteList;
         List<JsonNode> result = new ArrayList<>();
         //通过关键字查询游记
         try {
-            if (!keyword.isEmpty()) {
-                noteList = TravelNoteAPI.searchNotesByWord(keyword, page, pageSize);
+            if (!keyWord.isEmpty()) {
+                noteList = TravelNoteAPI.searchNotesByWord(keyWord, page, pageSize);
                 for (TravelNote travelNote : noteList) {
                     result.add(new SimpTravelNoteFormatter().format(travelNote));
                 }
                 return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-            } else if (locId != null) {
+            } else if (locId != null && !locId.isEmpty()) {
                 noteList = TravelNoteAPI.searchNoteByLocId(locId, page, pageSize);
                 for (TravelNote travelNote : noteList) {
                     result.add(new SimpTravelNoteFormatter().format(travelNote));
