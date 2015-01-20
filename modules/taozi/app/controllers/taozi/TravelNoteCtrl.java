@@ -187,9 +187,10 @@ public class TravelNoteCtrl extends Controller {
                 userId = Long.parseLong(request().getHeader("UserId"));
             else
                 userId = null;
-            TravelNote travelNote = TravelNoteAPI.getNoteById(new ObjectId(noteId));
+            ObjectId oid = new ObjectId(noteId);
+            TravelNote travelNote = TravelNoteAPI.getNoteById(oid);
             return Utils.createResponse(ErrorCode.NORMAL, new DetailTravelNoteFormatter().format(travelNote));
-        } catch (AizouException e) {
+        } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }

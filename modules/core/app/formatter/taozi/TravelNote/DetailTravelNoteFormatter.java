@@ -29,7 +29,7 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
                 SimpleBeanPropertyFilter.filterOutAllExcept(
                         TravelNote.fnAuthorName,
                         TravelNote.fnAuthorAvatar,
-                        TravelNote.fnCovers,
+                        TravelNote.fnImages,
                         TravelNote.fnTitle,
                         TravelNote.fnPublishTime,
                         TravelNote.fnRating,
