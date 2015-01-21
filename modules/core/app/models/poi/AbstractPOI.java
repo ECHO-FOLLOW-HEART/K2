@@ -110,6 +110,9 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     @Transient
     public static String FD_TIPS = "tips";
 
+    @Transient
+    public static String FD_COMMENTS = "comments";
+
     /**
      * 标识POI的种类，jackson反序列还用
      */
@@ -242,6 +245,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     private List<DetailsEntry> tips;
 
+
     public String getTipsUrl() {
         if (tips == null)
             return "";
@@ -250,6 +254,23 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
 
     public List<DetailsEntry> getTips() {
         return tips;
+    }
+
+    /**
+     * 评论
+     *
+     * @param
+     * @return
+     */
+    @Embedded
+    private List<Comment> comments;
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
     }
 
     public static List<String> getRetrievedFields(int level) {

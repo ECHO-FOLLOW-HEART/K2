@@ -16,6 +16,7 @@ import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
+import models.poi.Comment;
 import play.libs.Json;
 
 import java.util.*;
@@ -56,6 +57,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.detTargets,
                 AbstractPOI.FD_TIMECOSTDESC,
                 AbstractPOI.FD_LOCALITY,
+                AbstractPOI.FD_COMMENTS,
                 AbstractPOI.FD_TELEPHONE
         );
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
@@ -63,6 +65,16 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 ItinerItem.fdDayIndex, ItinerItem.fdPoi));
         filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
+        filterMap.put("commentFilter",
+                SimpleBeanPropertyFilter.filterOutAllExcept(
+                        Comment.FD_AVATAR,
+                        Comment.FD_AUTHOR_NAME,
+                        Comment.FD_USER_ID,
+                        Comment.FD_RATING,
+                        Comment.FD_CONTENTS,
+                        Comment.FD_PUBLISHTIME,
+                        Comment.FD_IMAGES
+                ));
 
 //        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
 //        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));

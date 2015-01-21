@@ -116,7 +116,7 @@ public class GuideAPI {
             titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_NEWTON);
         String titleStr = titlesBuffer.toString();
         titleStr = titleStr.substring(0, titleStr.length() - 1);
-        titleStr = "我的"+titleStr + "旅行计划";
+        titleStr = "我的" + titleStr + "旅行计划";
         return titleStr;
     }
 
@@ -390,11 +390,66 @@ public class GuideAPI {
             return new Guide();
         AbstractPOI poi;
         String type;
-        PoiAPI.POIType poiType;
         List<ItinerItem> itinerary = guide.itinerary;
         List<ItinerItem> newItinerary = new ArrayList<>();
         List<Shopping> shopping = guide.shopping;
         List<Restaurant> restaurant = guide.restaurant;
+
+        ObjectId tempId;
+        List<ObjectId> vsIdList = new ArrayList<>();
+        List<ObjectId> hotelIdList = new ArrayList<>();
+        List<ObjectId> restaurantIdList = new ArrayList<>();
+        List<ObjectId> shoppingIdList = new ArrayList<>();
+
+        // 按照类型取得行程单中POI的ID
+        if (itinerary != null && itinerary.size() > 0) {
+            for (ItinerItem temp : itinerary) {
+                type = temp.poi.type;
+                tempId = temp.poi.getId();
+                if (type == null)
+                    continue;
+                switch (type) {
+                    case "vs":
+                        vsIdList.add(tempId);
+                        break;
+                    case "hotel":
+                        hotelIdList.add(tempId);
+                        break;
+                    case "restaurant":
+                        restaurantIdList.add(tempId);
+                        break;
+                    case "shopping":
+                        shoppingIdList.add(tempId);
+                        break;
+                    default:
+                        throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", type));
+                }
+
+            }
+        }
+
+        // 按类型查询POI，并放入Map中
+        List<ViewSpot> vsTempList = (List<ViewSpot>) PoiAPI.getPOIInfoList(vsIdList, "vs", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        List<Restaurant> resTempList = (List<Restaurant>) PoiAPI.getPOIInfoList(restaurantIdList, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        List<Shopping> shopTempList = (List<Shopping>) PoiAPI.getPOIInfoList(shoppingIdList, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        List<Hotel> hotelTempList = (List<Hotel>) PoiAPI.getPOIInfoList(hotelIdList, "hotel", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+
+        // 查询行程单中所有poi的评论
+        List<ObjectId> poiIdList = new ArrayList<>();
+        poiIdList.addAll(vsIdList);
+        poiIdList.addAll(hotelIdList);
+        poiIdList.addAll(restaurantIdList);
+        poiIdList.addAll(shoppingIdList);
+        List<Comment> commentsEntities = PoiAPI.getPOICommentByList(poiIdList, 0, 1);
+        transformCommetnListToMap(commentsEntities, vsTempList, resTempList, shopTempList, hotelTempList);
+
+        //取得行程单中的ID-Entity Map
+        Map<ObjectId, ViewSpot> vsMap = (Map<ObjectId, ViewSpot>) transformPoiListToMap(vsTempList);
+        Map<ObjectId, Restaurant> restaurantMap = (Map<ObjectId, Restaurant>) transformPoiListToMap(resTempList);
+        Map<ObjectId, Shopping> shoppingMap = (Map<ObjectId, Shopping>) transformPoiListToMap(shopTempList);
+        Map<ObjectId, Hotel> hotelMap = (Map<ObjectId, Hotel>) transformPoiListToMap(hotelTempList);
+
+        // 填充行程单中的内容
         if (itinerary != null && itinerary.size() > 0) {
             for (ItinerItem temp : itinerary) {
                 type = temp.poi.type;
@@ -402,21 +457,20 @@ public class GuideAPI {
                     continue;
                 switch (type) {
                     case "vs":
-                        poiType = PoiAPI.POIType.VIEW_SPOT;
+                        poi = vsMap.get(temp.poi.getId());
                         break;
                     case "hotel":
-                        poiType = PoiAPI.POIType.HOTEL;
+                        poi = hotelMap.get(temp.poi.getId());
                         break;
                     case "restaurant":
-                        poiType = PoiAPI.POIType.RESTAURANT;
+                        poi = restaurantMap.get(temp.poi.getId());
                         break;
                     case "shopping":
-                        poiType = PoiAPI.POIType.SHOPPING;
+                        poi = shoppingMap.get(temp.poi.getId());
                         break;
                     default:
                         throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", type));
                 }
-                poi = PoiAPI.getPOIInfo(temp.poi.getId(), poiType, true);
                 if (poi == null) {
                     LogUtils.info(GuideAPI.class, String.format("POI is not exist.Id: %s, Type: %s.", temp.poi.getId().toString(), type));
                     continue;
@@ -433,47 +487,100 @@ public class GuideAPI {
             guide.itinerary = new ArrayList<>();
 
         List<ObjectId> ids;
+        // 填充购物单中的内容
         if (shopping != null && shopping.size() > 0) {
             ids = new ArrayList();
             for (Shopping temp : shopping) {
                 ids.add(temp.getId());
             }
             List<Shopping> shop = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+
+            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
+            transformCommetnListToMap(commentsEntitiesSh, shop);
+
             Map<ObjectId, Shopping> shopMap = new HashMap<>();
             for (Shopping temp : shop) {
                 shopMap.put(temp.getId(), temp);
             }
             List<Shopping> newShop = new ArrayList();
+            Shopping sTemp;
             for (Shopping temp : guide.shopping) {
-                if (shopMap.get(temp.getId()) != null) {
-                    newShop.add(shopMap.get(temp.getId()));
+                sTemp = shopMap.get(temp.getId());
+                if (sTemp.images != null && (!sTemp.images.isEmpty())) {
+                    sTemp.images = Arrays.asList(sTemp.images.get(0));
+                }
+                if (sTemp != null) {
+                    newShop.add(sTemp);
                 }
             }
             guide.shopping = newShop;
         } else
             guide.shopping = new ArrayList<>();
 
-
+        // 填充美食单中的内容
         if (restaurant != null && restaurant.size() > 0) {
             ids = new ArrayList();
             for (Restaurant temp : restaurant) {
                 ids.add(temp.getId());
             }
             List<Restaurant> res = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+
+            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
+            transformCommetnListToMap(commentsEntitiesSh, res);
+
             Map<ObjectId, Restaurant> resMap = new HashMap<>();
             for (Restaurant temp : res) {
                 resMap.put(temp.getId(), temp);
             }
             List<Restaurant> newRes = new ArrayList();
+            Restaurant rTemp;
             for (Restaurant temp : guide.restaurant) {
-                if (resMap.get(temp.getId()) != null) {
-                    newRes.add(resMap.get(temp.getId()));
+                rTemp = resMap.get(temp.getId());
+                if (rTemp.images != null && (!rTemp.images.isEmpty())) {
+                    rTemp.images = Arrays.asList(rTemp.images.get(0));
+                }
+                if (rTemp != null) {
+                    newRes.add(rTemp);
                 }
             }
             guide.restaurant = newRes;
         } else
             guide.restaurant = new ArrayList<>();
         return guide;
+    }
+
+    private static Map<ObjectId, ? extends AbstractPOI> transformPoiListToMap(List<? extends AbstractPOI> list) {
+        Map<ObjectId, AbstractPOI> result = new HashMap<>();
+        if (list == null || list.isEmpty())
+            return result;
+        for (AbstractPOI temp : list) {
+            result.put(temp.getId(), temp);
+        }
+        return result;
+    }
+
+    private static void transformCommetnListToMap(List<Comment> list, List<? extends AbstractPOI>... poiList) {
+        Map<ObjectId, List<Comment>> result = new HashMap<>();
+        List<Comment> value;
+
+        for (Comment temp : list) {
+            value = result.get(temp.getItemId());
+            if (value == null)
+                value = new ArrayList();
+            value.add(temp);
+            result.put(temp.getItemId(), value);
+        }
+        List<Comment> comments;
+        for (int i = 0; i < poiList.length; i++) {
+            for (AbstractPOI poi : poiList[i]) {
+                comments = poi.getComments();
+                if (comments == null)
+                    comments = new ArrayList();
+                if (result.get(poi.getId()) != null)
+                    comments.addAll(result.get(poi.getId()));
+                poi.setComments(comments);
+            }
+        }
     }
 
 }

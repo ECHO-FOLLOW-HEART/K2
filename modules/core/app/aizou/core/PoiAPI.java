@@ -318,6 +318,32 @@ public class PoiAPI {
     }
 
     /**
+     * 获得POI信息相关的评论
+     *
+     * @param poiIds
+     * @return
+     * @throws exception.AizouException
+     */
+    public static List<Comment> getPOICommentByList(List<ObjectId> poiIds, int page, int pageSize) throws AizouException {
+        if(poiIds == null ||poiIds.isEmpty())
+            return new ArrayList<>();
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Comment> query = ds.createQuery(Comment.class);
+
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (ObjectId tempId : poiIds) {
+            if (tempId != null)
+                criList.add(query.criteria(Comment.FD_ITEM_ID).equal(tempId));
+        }
+
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        query.offset(page * pageSize).limit(pageSize);
+
+        return query.asList();
+    }
+
+    /**
      * 批量获得POI信息相关的评论
      *
      * @param poiId
@@ -786,6 +812,9 @@ public class PoiAPI {
      * @return POI详情。如果没有找到，返回null。
      */
     public static List<? extends AbstractPOI> getPOIInfoList(List<ObjectId> ids, String poiType, List<String> fieldList, int page, int pageSize) throws AizouException {
+        if (ids.isEmpty() || ids == null)
+            return new ArrayList<>();
+
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case "vs":
@@ -924,14 +953,15 @@ public class PoiAPI {
 
         return query.get();
     }
-    public static <T extends AbstractPOI> T getPOIByField(ObjectId id, List<String> fields,Class<T> poiClass)
-            throws AizouException {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-            Query<T> query = ds.createQuery(poiClass).field("_id").equal(id).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
-            if (fields != null && !fields.isEmpty())
-                query.retrievedFields(true, fields.toArray(new String[fields.size()]));
 
-            return query.get();
+    public static <T extends AbstractPOI> T getPOIByField(ObjectId id, List<String> fields, Class<T> poiClass)
+            throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<T> query = ds.createQuery(poiClass).field("_id").equal(id).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
+
+        return query.get();
 
     }
 
@@ -957,7 +987,7 @@ public class PoiAPI {
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
         Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images",
-                "desc", "location", "priceDesc", "address", "tags","price");
+                "desc", "location", "priceDesc", "address", "tags", "price");
         switch (poiType) {
             case VIEW_SPOT:
                 fieldList.add("timeCostDesc");
