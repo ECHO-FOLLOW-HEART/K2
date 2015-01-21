@@ -1,8 +1,6 @@
 import com.typesafe.sbt.SbtAspectj.AspectjKeys._
 import com.typesafe.sbt.SbtAspectj._
 
-import scala.reflect.io.File
-
 name := "k2"
 
 version := "2.0"
@@ -32,7 +30,8 @@ libraryDependencies ++= Seq(
   "org.springframework" % "spring-aop" % "3.2.2.RELEASE",
   "org.springframework" % "spring-tx" % "3.2.2.RELEASE",
   "org.aspectj" % "aspectjrt" % "1.8.2",
-  "org.aspectj" % "aspectjweaver" % "1.8.4"
+  "org.aspectj" % "aspectjweaver" % "1.8.4",
+  "com.aizou" % "iisfileappender_2.9.1" % "0.1"
 )
 
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
