@@ -83,24 +83,15 @@ public class PlanCtrl extends Controller {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DAY_OF_YEAR, 3);
 
-            // 处理fromLoc/backLoc的映射
-            Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
-            Object tmp = mapConf.get(fromLocId);
-            if (tmp != null)
-                fromLocId = tmp.toString();
-            tmp = mapConf.get(backLocId);
-            if (tmp != null)
-                backLocId = tmp.toString();
-
             UgcPlan plan = WebPlanAPI.doPlanner(planId, fromLocId, backLocId, cal, req, trafficFlag, hotelFlag, restaurantFlag);
             buildBudget(plan, trafficBudgetDefault, stayBudgetDefault, fromLocId);
 
             JsonNode planJson = plan.toJson();
             fullfill(planJson);
 
-            if (DataFilter.isAppRequest(req))
-                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC), req));
-            else
+//            if (DataFilter.isAppRequest(req))
+//                return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(DataFilter.appJsonFilter(planJson, req, Constants.SMALL_PIC), req));
+//            else
                 return Utils.createResponse(ErrorCode.NORMAL, updatePlanByNode(planJson, uid).toJson());
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -166,7 +157,6 @@ public class PlanCtrl extends Controller {
         String title = data.get("title").asText();
         //String uid = data.has("uid") ? data.get("uid").asText() : "";
 
-        DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
 
         Plan plan = PlanAPI.getPlan(templateId, false);
@@ -206,7 +196,7 @@ public class PlanCtrl extends Controller {
                 endDate = planDayEntry.date;
             }
             dayIndex++;
-            planItemList = new ArrayList<PlanItem>();
+            planItemList = new ArrayList<>();
 
             for (JsonNode item : actv) {
                 try {
@@ -290,6 +280,7 @@ public class PlanCtrl extends Controller {
         ugcPlan.setUpdateTime((new Date()).getTime());
         ugcPlan.setEnabled(true);
         ugcPlan.setIsFromWeb(true);
+
 
         PlanAPI.saveUGCPlan(ugcPlan);
         return ugcPlan;

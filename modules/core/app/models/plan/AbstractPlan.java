@@ -366,7 +366,8 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
         if (images == null) {
             builder.add("imageList", new ArrayList<>());
         } else {
-            ImageItem theImg = images.get(new Random().nextInt(images.size()));
+            //ImageItem theImg = images.get(new Random().nextInt(images.size()));
+            ImageItem theImg = images.get(0);
             String imgUrl = theImg.getFullUrl();
             if (imgUrl == null)
                 imgUrl = theImg.getUrl();
