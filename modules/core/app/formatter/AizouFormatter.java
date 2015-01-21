@@ -1,15 +1,18 @@
 package formatter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.ObjectIdSerializer;
 import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
+import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 
 import java.util.*;
@@ -27,34 +30,36 @@ public abstract class AizouFormatter<T extends AizouBaseEntity> {
         return mapper.writeValueAsString(item);
     }
 
+    public JsonNode formatNode(List<T> itemList) throws JsonProcessingException {
+        return mapper.valueToTree(itemList);
+    }
+
+    public JsonNode formatNode(T item) throws JsonProcessingException {
+        return mapper.valueToTree(item);
+    }
+
     protected ObjectMapper mapper;
 
     protected Set<String> filteredFields = new HashSet<>();
+
+    protected SimpleModule module = new SimpleModule();
 
     public Set<String> getFilteredFields() {
         return filteredFields;
     }
 
-    protected static Map<Class, AizouFormatter> instanceMap = new Hashtable<>();
+    public <T2> void registerSerializer(Class<? extends T2> cls, JsonSerializer<T2> serializer){
+        module.addSerializer(cls, serializer);
+    }
 
-    protected ObjectMapper initObjectMapper(Map<String, PropertyFilter> filterMap,
-                                            Map<Class<? extends T>, JsonSerializer<T>> serializerMap) {
+    protected ObjectMapper initObjectMapper(Map<String, PropertyFilter> filterMap) {
         mapper = new ObjectMapper();
 
         if (filterMap == null)
             filterMap = new HashMap<>();
 
-        if (serializerMap == null)
-            serializerMap = new HashMap<>();
-
-        SimpleModule module = new SimpleModule();
-
         // 添加ObjectId的序列化
-        module.addSerializer(ObjectId.class, new ObjectIdSerializer());
-
-        for (Map.Entry<Class<? extends T>, JsonSerializer<T>> entry : serializerMap.entrySet()) {
-            module.addSerializer(entry.getKey(), entry.getValue());
-        }
+        registerSerializer(ObjectId.class, new ObjectIdSerializer());
 
         mapper.registerModule(module);
 

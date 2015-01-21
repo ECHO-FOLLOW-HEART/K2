@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.misc.ImageItem;
@@ -48,7 +48,7 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
                 ));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
+        serializerMap.put(ImageItem.class, new ImageItemSerializerOld(imageWidth));
 
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.geo.Country;
@@ -79,7 +79,7 @@ public class WebPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormatter {
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+        serializerMap.put(ImageItem.class, new ImageItemSerializerOld(ImageItemSerializerOld.ImageSizeDesc.MEDIUM));
 
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 

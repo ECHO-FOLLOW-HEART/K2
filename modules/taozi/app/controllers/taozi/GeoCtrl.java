@@ -1,21 +1,21 @@
 package controllers.taozi;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import aizou.core.GeoAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.geo.*;
+import formatter.FormatterFactory;
+import formatter.taozi.geo.DetailedLocalityFormatter;
+import formatter.taozi.geo.DetailsEntryFormatter;
+import formatter.taozi.geo.SimpleCountryFormatter;
+import formatter.taozi.geo.SimpleLocalityFormatter;
 import models.geo.Country;
 import models.geo.DetailsEntry;
 import models.geo.Locality;
-import org.apache.solr.common.util.DateUtil;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
@@ -25,12 +25,13 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.Utils;
 
-import javax.xml.soap.DetailEntry;
+import java.text.ParseException;
+import java.util.*;
 
 
 /**
  * 地理相关
- * <p>
+ * <p/>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
@@ -84,6 +85,7 @@ public class GeoCtrl extends Controller {
      */
     public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
         try {
+            long t0 = System.currentTimeMillis();
             Http.Request req = request();
             Http.Response rsp = response();
             // 获取图片宽度
@@ -100,17 +102,25 @@ public class GeoCtrl extends Controller {
                 return status(304, "Content not modified, dude.");
 
             List<ObjectNode> objs = new ArrayList<>();
-            List<ObjectNode> dests;
+
             if (abroad) {
                 String countrysStr = destnations.get("country").toString();
                 List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
-                List<Country> countryList = GeoAPI.searchCountryByName(countryNames, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-                for (Country c : countryList) {
-                    ObjectNode node = (ObjectNode) new SimpleCountryFormatter().setImageWidth(imgWidth).format(c);
-                    dests = getDestinationsNodeByCountry(c.getId(), page, 30);
-                    node.put("destinations", Json.toJson(dests));
-                    objs.add(node);
+                List<Country> countryList = GeoAPI.searchCountryByName(countryNames, Constants.ZERO_COUNT,
+                        Constants.MAX_COUNT);
+
+                SimpleCountryFormatter formatter = new SimpleCountryFormatter();
+                if (imgWidth > 0)
+                    formatter.setImageWidth(imgWidth);
+                JsonNode destResult = formatter.formatNode(countryList);
+
+                for (Iterator<JsonNode> itr = destResult.elements(); itr.hasNext(); ) {
+                    ObjectNode cNode = (ObjectNode) itr.next();
+                    JsonNode localities = getDestinationsNodeByCountry(new ObjectId(cNode.get("id").asText()), page, 30);
+                    cNode.put("destinations", localities);
                 }
+
+                return Utils.createResponse(ErrorCode.NORMAL, destResult);
             } else {
                 Map<String, Object> mapConf = Configuration.root().getConfig("domestic").asMap();
                 Map<String, Object> pinyinConf = Configuration.root().getConfig("pinyin").asMap();
@@ -136,10 +146,13 @@ public class GeoCtrl extends Controller {
                     node.put("pinyin", pinyin);
                     objs.add(node);
                 }
+
+                return Utils.createResponse(rsp, lastModify, ErrorCode.NORMAL, Json.toJson(objs));
             }
-            return Utils.createResponse(rsp, lastModify, ErrorCode.NORMAL, Json.toJson(objs));
         } catch (AizouException | ParseException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        } catch (ReflectiveOperationException | JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
         }
     }
 
@@ -152,13 +165,12 @@ public class GeoCtrl extends Controller {
      * @return
      * @throws exception.AizouException
      */
-    private static List<ObjectNode> getDestinationsNodeByCountry(ObjectId id, int page, int pageSize) throws AizouException {
-        List<ObjectNode> result = new ArrayList<>(pageSize);
+    private static JsonNode getDestinationsNodeByCountry(ObjectId id, int page, int pageSize)
+            throws AizouException, ReflectiveOperationException, JsonProcessingException {
         List<Locality> localities = GeoAPI.getDestinationsByCountry(id, page, pageSize);
-        for (Locality des : localities) {
-            result.add((ObjectNode) new SimpleLocalityFormatter().format(des));
-        }
-        return result;
+
+        SimpleLocalityFormatter formatter = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
+        return formatter.formatNode(localities);
     }
 
     /**

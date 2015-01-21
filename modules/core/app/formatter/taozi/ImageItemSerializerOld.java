@@ -3,7 +3,6 @@ package formatter.taozi;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import formatter.AizouSerializer;
 import models.misc.ImageItem;
 
 import java.io.IOException;
@@ -12,24 +11,20 @@ import java.util.Map;
 /**
  * Created by zephyre on 12/6/14.
  */
-public class ImageItemSerializer extends AizouSerializer<ImageItem> {
+public class ImageItemSerializerOld extends JsonSerializer<ImageItem> {
     private ImageSizeDesc sizeDesc;
     private int width;
 
-    public void setWidth(int width) {
-        this.width = width;
-    }
-
-    public ImageItemSerializer() {
+    public ImageItemSerializerOld() {
         this(ImageSizeDesc.MEDIUM);
     }
 
-    public ImageItemSerializer(ImageSizeDesc sz) {
+    public ImageItemSerializerOld(ImageSizeDesc sz) {
         this.sizeDesc = sz;
         this.width = 0;
     }
 
-    public ImageItemSerializer(int width) {
+    public ImageItemSerializerOld(int width) {
         this.width = width;
     }
 

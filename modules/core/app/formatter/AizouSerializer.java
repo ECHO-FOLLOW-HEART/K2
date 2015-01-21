@@ -1,8 +1,13 @@
 package formatter;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import models.AizouBaseEntity;
+import models.AizouBaseItem;
+import org.bson.types.ObjectId;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -12,13 +17,32 @@ import java.util.Date;
  * <p/>
  * Created by zephyre on 1/15/15.
  */
-public abstract class AizouSerializer<T extends AizouBaseEntity> extends JsonSerializer<T> {
+public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSerializer<T> {
     protected String getString(String val) {
         return (val != null && !val.isEmpty()) ? val : "";
     }
 
     protected String getTimestamp(Date ts) {
         return (ts != null) ? dateFormat.format(ts) : "";
+    }
+
+    /**
+     * 写入ObjectId
+     *
+     * @param item
+     * @param jgen
+     * @param serializerProvider
+     * @throws IOException
+     */
+    protected void writeObjectId(T item, JsonGenerator jgen, SerializerProvider serializerProvider)
+            throws IOException {
+        if (item instanceof AizouBaseEntity) {
+            JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ObjectId.class, null);
+            if (ret != null) {
+                jgen.writeFieldName("id");
+                ret.serialize(((AizouBaseEntity) item).getId(), jgen, serializerProvider);
+            }
+        }
     }
 
     private DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");

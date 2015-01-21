@@ -1,18 +1,11 @@
 package formatter.taozi.poi;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
-import models.misc.ImageItem;
-import models.poi.AbstractPOI;
 import models.traffic.AbstractTrafficHub;
 
 import java.util.*;

@@ -9,20 +9,20 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
-import models.geo.Locality;
+import models.geo.Country;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 
 import java.util.Arrays;
 
 /**
- * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p/>
- * Created by zephyre on 10/28/14.
+ * 格式化国家的简单信息，主要使用在搜索列表中。
+ * <p>
+ * Created by lxf on 14-11-1.
  */
-public class DetailedLocalityFormatter extends TaoziBaseFormatter {
+public class SimpleCountryFormatterOld extends TaoziBaseFormatter {
 
-    public DetailedLocalityFormatter setImageWidth(int width) {
+    public SimpleCountryFormatterOld setImageWidth(int width) {
         imageWidth = width;
         return this;
     }
@@ -32,19 +32,16 @@ public class DetailedLocalityFormatter extends TaoziBaseFormatter {
         ObjectMapper mapper = getObjectMapper();
 
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
-                .addFilter("localityFilter",
+                .addFilter("countryFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
-                                AizouBaseEntity.FD_ID,
-                                AizouBaseEntity.FD_IS_FAVORITE,
-                                Locality.FD_EN_NAME,
-                                Locality.FD_ZH_NAME,
-                                Locality.fnDesc,
-                                Locality.fnLocation,
-                                Locality.fnImages,
-                                Locality.fnTimeCostDesc,
-                                Locality.fnTravelMonth,
-                                Locality.fnImageCnt
+                                Country.fnDesc,
+                                Country.FD_EN_NAME,
+                                Country.FD_ZH_NAME,
+                                Country.fnCode,
+                                Country.FN_ID,
+                                Country.fnImages
                         ));
+
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
                 new ImageItemSerializerOld(imageWidth));
@@ -52,11 +49,9 @@ public class DetailedLocalityFormatter extends TaoziBaseFormatter {
 
         ObjectNode result = mapper.valueToTree(item);
 
-        stringFields.addAll(Arrays.asList(Locality.FD_EN_NAME, Locality.FD_ZH_NAME, Locality.fnTimeCostDesc));
+        stringFields.addAll(Arrays.asList(Country.FD_EN_NAME, Country.FD_ZH_NAME, Country.FN_ID));
 
         listFields.add(AbstractPOI.FD_IMAGES);
-
-        mapFields.add(AbstractPOI.FD_LOCATION);
 
         return postProcess(result);
     }

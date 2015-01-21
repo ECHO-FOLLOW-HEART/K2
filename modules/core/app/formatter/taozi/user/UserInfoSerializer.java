@@ -2,11 +2,9 @@ package formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
 import models.user.UserInfo;
-import org.bson.types.ObjectId;
 
 import java.io.IOException;
 
@@ -27,9 +25,7 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
             throws IOException, JsonProcessingException {
         jgen.writeStartObject();
 
-        jgen.writeFieldName("id");
-        JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ObjectId.class, null);
-        ret.serialize(userInfo.getId(), jgen, serializerProvider);
+        writeObjectId(userInfo, jgen, serializerProvider);
 
         jgen.writeStringField("easemobUser", getString(userInfo.getEasemobUser()));
         jgen.writeStringField("nickName", getString(userInfo.getNickName()));
