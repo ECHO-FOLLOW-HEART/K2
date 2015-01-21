@@ -260,7 +260,7 @@ public class TravelNoteAPI {
             note.title = (tmp == null ? null : (String) tmp);
             //头像
             tmp = doc.get("authorAvatar");
-            note.authorAvatar = (tmp == null ? null : (String) tmp);
+            note.authorAvatar = transImage((String) tmp);
             //摘要
             tmp = doc.get("summary");
             note.summary = (tmp == null ? null : (String) tmp);
@@ -277,29 +277,39 @@ public class TravelNoteAPI {
             note.costLower = (tmp == null ? null : (float) tmp);
             //游记封面
             tmp = doc.get("covers");
-            note.images = transImages((List)tmp);
+            note.images = transImages((List) tmp);
             //是否精华帖
             tmp = doc.get("essence");
             note.essence = (tmp == null ? null : (Boolean) tmp);
+            //添加来源
+            tmp = doc.get("source");
+            note.source = (tmp == null ? null : (String) tmp);
 
             noteList.add(note);
         }
 
         return noteList;
     }
-    private static  List<ImageItem> transImages(List<String> list){
-        if(list == null)
+
+    private static List<ImageItem> transImages(List<String> list) {
+        if (list == null)
             return new ArrayList<>();
         List<ImageItem> result = new ArrayList<>();
-        ImageItem imgItem;
-        for(String temp:list){
-            imgItem = new ImageItem();
-            imgItem.setKey(temp);
-            result.add(imgItem);
-        }
+        ImageItem imgItem = new ImageItem();
+        imgItem.setKey(list.get(0));
+        result.add(imgItem);
         return result;
+    }
+
+    private static String transImage(String key) {
+        if (key == null)
+            return "";
+        ImageItem imgItem = new ImageItem();
+        imgItem.setKey(key);
+        return imgItem.getFullUrl();
 
     }
+
     /**
      * 通过目的地或者景点的id获取游记
      *

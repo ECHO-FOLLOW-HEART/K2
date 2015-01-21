@@ -62,7 +62,7 @@ GET           /misc/put-policy/:scenario                         controllers.tao
 #处理资源上传的回调
 POST          /misc/upload-callback                              controllers.taozi.MiscCtrl.getCallback()
 #游记
-GET           /misc/travel-notes/search                          controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
+#GET           /misc/travel-notes/search                          controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
 #推荐
 GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #搜索
@@ -143,8 +143,6 @@ GET           /geo/localities/:id/album                          controllers.tao
 GET           /geo/localities/$id<[0-9a-f]{24}>/outLine          controllers.taozi.GeoCtrl.getTravelGuideOutLine(id: String)
 #获取景点的深度介绍（H5）
 GET           /geo/localities/$id<[0-9a-f]{24}>/details          controllers.taozi.GeoCtrl.getTravelGuide(id: String, field: String)
-#旅行专栏
-GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage",id: String?="")
 
 #----------用户评价接口----------
 #保存用户的评价
@@ -158,6 +156,8 @@ GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.tao
 
 #特定地区的美食、购物发现
 #GET           /poi/$id<[0-9a-f]{24}>/details                     controllers.taozi.POICtrl.getDinShop(id:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
+#旅行专栏
+GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage",id: String?="")
 #更多精选游记
 GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情

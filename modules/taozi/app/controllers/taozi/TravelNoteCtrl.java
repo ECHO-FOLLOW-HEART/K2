@@ -188,6 +188,8 @@ public class TravelNoteCtrl extends Controller {
             if (imgWidthStr != null)
                 imgWidth = Integer.valueOf(imgWidthStr);
             TravelNote travelNote = TravelNoteAPI.getNoteById(new ObjectId(noteId));
+            if (travelNote == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "TravelNote is null.Id:" + noteId);
             return Utils.createResponse(ErrorCode.NORMAL, new DetailTravelNoteFormatter().setImageWidth(imgWidth).format(travelNote));
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
