@@ -96,8 +96,8 @@ public class GuideAPI {
         if (destinations != null && destinations.get(0) != null)
             ugcGuide.images = destinations.get(0).getImages();
         ugcGuide.title = getUgcGuideTitle(destinations);
-
-
+        // 保存攻略时，置为可用
+        ugcGuide.setTaoziEna(true);
         //创建时即保存
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE).save(ugcGuide);
         return ugcGuide;
