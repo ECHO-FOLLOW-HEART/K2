@@ -14,6 +14,7 @@ import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 import utils.Constants;
 
+import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.DateFormat;
@@ -21,6 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * 用户路线规划。
@@ -211,14 +213,22 @@ public class UgcPlan extends Plan implements ITravelPiFormatter {
             BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
             builder.add("_id", getId().toString());
             builder.add("title", (getTitle() != null && !getTitle().isEmpty()) ? getTitle() : "");
-            builder.add("imageList", (getImageList() != null && !getImageList().isEmpty()) ?
-                    Json.toJson(getImageList()) : new ArrayList<>());
+
+            List<ObjectNode> imgs = new ArrayList<>();
+            ObjectNode imagesNode;
+            if (getImages() != null && !getImages().isEmpty() && getImages().get(0) != null) {
+                imagesNode = Json.newObject();
+                imagesNode.put("url", getImages().get(0).getUrl());
+                imgs.add(imagesNode);
+            }
+            builder.add("images", Json.toJson(imgs));
+
             //全程天数取优化后天数
             builder.add("days", getDetails().size());
             builder.add("updateTime", updateTime);
             builder.add("startDate", startDate != null ? fmt.format(startDate) : "");
             builder.add("endDate", endDate != null ? fmt.format(endDate) : "");
-            builder.add("desc", StringUtils.abbreviate(getDesc(), Constants.ABBREVIATE_LEN));
+            builder.add("desc", getDesc());
 
             return Json.toJson(builder.get());
         }
