@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.geo.Country;
@@ -45,7 +45,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
         stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_DESC,
                 AbstractPOI.FD_ADDRESS, AbstractPOI.FD_PRICE_DESC));
 
-        listFields.addAll(Arrays.asList(AbstractPOI.FD_IMAGES,AbstractPOI.FD_TELEPHONE));
+        listFields.addAll(Arrays.asList(AbstractPOI.FD_IMAGES, AbstractPOI.FD_TELEPHONE));
 
         mapFields.add(AbstractPOI.FD_LOCATION);
 
@@ -60,14 +60,16 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
                 AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_ADDRESS,
-                AbstractPOI.FD_PRICE_DESC
+                AbstractPOI.FD_PRICE_DESC,
+                AbstractPOI.FD_TIPS,
+                AbstractPOI.FD_TAOZIENA
 
         );
 
         if (DetailedPOIFormatter.this.getPoiClass() == ViewSpot.class) {
             String[] keyList = new String[]{
                     ViewSpot.FD_OPEN_TIME, ViewSpot.FD_TIME_COST_DESC, ViewSpot.FD_TRAVEL_MONTH,
-                    ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_GUIDE_URL, ViewSpot.FD_KENGDIE_URL
+                    ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_GUIDE_URL, ViewSpot.FD_TIPS_URL
             };
             Collections.addAll(filteredFields, keyList);
             Collections.addAll(stringFields, keyList);
@@ -78,6 +80,8 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
     public JsonNode format(AizouBaseEntity item) {
 
         Map<String, PropertyFilter> filterMap = new HashMap<>();
+        // tips内容由H5页面给出
+        filteredFields.remove(AbstractPOI.FD_TIPS);
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
         filterMap.put("countryFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
                 AizouBaseEntity.FD_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME));
@@ -85,11 +89,11 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
+        serializerMap.put(ImageItem.class, new ImageItemSerializerOld(imageWidth));
 
         ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
 
-        return postProcess((ObjectNode)mapper.valueToTree(item));
+        return postProcess((ObjectNode) mapper.valueToTree(item));
     }
 
 }

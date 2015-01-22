@@ -9,23 +9,15 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
-import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 
 import java.util.Arrays;
 
 /**
- * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
- * <p/>
- * Created by zephyre on 10/28/14.
+ * Created by lxf on 14-11-12.
  */
-public class DetailedLocalityFormatter extends TaoziBaseFormatter {
-
-    public DetailedLocalityFormatter setImageWidth(int width) {
-        imageWidth = width;
-        return this;
-    }
+public class SimpleLocalityFormatterOld extends TaoziBaseFormatter {
 
     @Override
     public JsonNode format(AizouBaseEntity item) {
@@ -35,28 +27,19 @@ public class DetailedLocalityFormatter extends TaoziBaseFormatter {
                 .addFilter("localityFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
                                 AizouBaseEntity.FD_ID,
-                                AizouBaseEntity.FD_IS_FAVORITE,
-                                Locality.FD_EN_NAME,
-                                Locality.FD_ZH_NAME,
-                                Locality.fnDesc,
-                                Locality.fnLocation,
-                                Locality.fnImages,
-                                Locality.fnTimeCostDesc,
-                                Locality.fnTravelMonth,
-                                Locality.fnImageCnt
+                                AbstractPOI.FD_EN_NAME,
+                                AbstractPOI.FD_ZH_NAME
+
                         ));
+
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializerOld(imageWidth));
+                new ImageItemSerializerOld(ImageItemSerializerOld.ImageSizeDesc.MEDIUM));
         mapper.registerModule(imageItemModule);
 
         ObjectNode result = mapper.valueToTree(item);
 
-        stringFields.addAll(Arrays.asList(Locality.FD_EN_NAME, Locality.FD_ZH_NAME, Locality.fnTimeCostDesc));
-
-        listFields.add(AbstractPOI.FD_IMAGES);
-
-        mapFields.add(AbstractPOI.FD_LOCATION);
+        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AizouBaseEntity.FD_ID));
 
         return postProcess(result);
     }

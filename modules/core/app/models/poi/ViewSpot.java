@@ -35,7 +35,7 @@ public class ViewSpot extends AbstractPOI {
     public static String FD_GUIDE_URL = "guideUrl";
 
     @Transient
-    public static String FD_KENGDIE_URL = "kengdieUrl";
+    public static String FD_TIPS_URL = "tipsUrl";
 
     @Transient
     public static String FD_DESC_FLAGS = "descriptionFlag";
@@ -97,6 +97,14 @@ public class ViewSpot extends AbstractPOI {
         if (level > 2)
             fieldList.addAll(Arrays.asList("rankingA", "openTime", "timeCost"));
         return fieldList;
+    }
+
+    public String getZhName() {
+        return zhName;
+    }
+
+    public List<String> getAlias() {
+        return alias;
     }
 
     public Double getTimeCost() {

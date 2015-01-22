@@ -1,4 +1,4 @@
-package utils.formatter.taozi.TravelNote;
+package formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,19 +13,18 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
-import models.misc.TravelNote;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by lxf on 14-11-1.
+ * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
+ * <p>
+ * Created by zephyre on 10/28/14.
  */
-public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
-
+public class ContactFormatterOld extends TaoziBaseFormatter {
+    @Override
     public JsonNode format(AizouBaseEntity item) {
-
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
@@ -44,10 +43,12 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
 
             private boolean includeImpl(PropertyWriter writer) {
                 Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, AizouBaseEntity.FD_IS_FAVORITE,TravelNote.fnId, TravelNote.fnAuthorAvatar, TravelNote.fnAuthorName, TravelNote.fnCover,
-                        TravelNote.fnTitle, TravelNote.fnPublishDate, TravelNote.fnSource, TravelNote.fnContents, TravelNote.fnCostLower,
-                        TravelNote.fnCostUpper, TravelNote.fnSourceUrl, TravelNote.fnCommentCnt, TravelNote.fnViewCnt, TravelNote.fnFavorCnt);
-
+                includedFields.add("entryId");
+                includedFields.add("sourceId");
+                includedFields.add("isUser");
+                includedFields.add("isContact");
+                includedFields.add("userId");
+                includedFields.add("weixin");
                 return (includedFields.contains(writer.getName()));
             }
 
@@ -62,7 +63,7 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
             }
         };
 
-        FilterProvider filters = new SimpleFilterProvider().addFilter("travelNoteFilter", theFilter);
+        FilterProvider filters = new SimpleFilterProvider().addFilter("contactFilter", theFilter);
         mapper.setFilters(filters);
 
         return mapper.valueToTree(item);

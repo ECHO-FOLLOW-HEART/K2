@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.geo.Locality;
@@ -30,7 +30,7 @@ public class DestinationPOIFormatter extends TaoziBaseFormatter {
         ObjectMapper mapper = getObjectMapper();
 
         SimpleModule imageItemModule = new SimpleModule();
-        imageItemModule.addSerializer(ImageItem.class, new ImageItemSerializer());
+        imageItemModule.addSerializer(ImageItem.class, new ImageItemSerializerOld());
         mapper.registerModule(imageItemModule);
 
         Set<String> filterSet = new HashSet<>();

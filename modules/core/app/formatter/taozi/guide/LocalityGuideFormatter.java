@@ -5,10 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
-import models.guide.AbstractGuide;
 import models.guide.LocalityGuideInfo;
 import models.misc.ImageItem;
 
@@ -42,7 +41,7 @@ public class LocalityGuideFormatter extends TaoziBaseFormatter {
         ObjectMapper mapper = getObjectMapper(filterMap, null);
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+                new ImageItemSerializerOld(ImageItemSerializerOld.ImageSizeDesc.MEDIUM));
         mapper.registerModule(imageItemModule);
 
         return mapper.valueToTree(item);

@@ -127,6 +127,9 @@ public class MorphiaFactory {
             case IMAGESTORE:
                 ds = morphia.createDatastore(client, "imagestore");
                 break;
+            case TRAVELNOTE:
+                ds = morphia.createDatastore(client, "travelnote");
+                break;
         }
         try {
             if (ds != null) {
@@ -150,6 +153,7 @@ public class MorphiaFactory {
         MISC,
         TRAFFIC,
         GUIDE,
-        IMAGESTORE
+        IMAGESTORE,
+        TRAVELNOTE
     }
 }

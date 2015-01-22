@@ -1,4 +1,4 @@
-name := "k2"
+name := "aizou"
 
 version := "2.0"
 

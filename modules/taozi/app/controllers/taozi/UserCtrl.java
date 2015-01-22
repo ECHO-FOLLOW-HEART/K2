@@ -1,14 +1,18 @@
 package controllers.taozi;
 
 import aizou.core.UserAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.FormatterFactory;
+import formatter.taozi.user.ContactFormatter;
 import formatter.taozi.user.CredentialFormatter;
-import formatter.taozi.user.UserFormatter;
+import formatter.taozi.user.UserFormatterOld;
+import formatter.taozi.user.UserInfoFormatter;
 import models.MorphiaFactory;
 import models.misc.Token;
 import models.user.Contact;
@@ -23,8 +27,8 @@ import play.mvc.Controller;
 import play.mvc.Result;
 import utils.MsgConstants;
 import utils.Utils;
-import utils.formatter.taozi.user.ContactFormatter;
 import utils.phone.PhoneEntity;
+import utils.phone.PhoneParser;
 import utils.phone.PhoneParserFactory;
 
 import java.io.IOException;
@@ -35,7 +39,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p>
+ * <p/>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -74,7 +78,7 @@ public class UserCtrl extends Controller {
             } else
                 return Utils.createResponse(ErrorCode.CAPTCHA_ERROR);
 
-            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
 
             Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -225,7 +229,7 @@ public class UserCtrl extends Controller {
                 UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, tel);
                 UserAPI.resetPwd(userInfo, pwd);
 
-                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+                ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
                 if (cre == null)
@@ -324,7 +328,7 @@ public class UserCtrl extends Controller {
             if (telEntry != null && telEntry.getPhoneNumber() != null)
                 valueList.add(telEntry.getPhoneNumber());
 
-            UserFormatter userFormatter = new UserFormatter(true);
+            UserFormatterOld userFormatter = new UserFormatterOld(true);
 
             Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
                     userFormatter.getFilteredFields(), 0, 1);
@@ -334,7 +338,7 @@ public class UserCtrl extends Controller {
 
             //验证密码
             if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
-                ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+                ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
 
                 Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -431,7 +435,7 @@ public class UserCtrl extends Controller {
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserInfo.fnOauthId, infoNode.get("openid").asText());
             if (us != null) {
-                ObjectNode info = (ObjectNode) new UserFormatter(true).format(us);
+                ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(us);
 
                 Credential cre = UserAPI.getCredentialByUserId(us.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -463,7 +467,7 @@ public class UserCtrl extends Controller {
             UserInfo userInfo = UserAPI.regByWeiXin(us);
 
             //返回注册信息
-            ObjectNode info = (ObjectNode) new UserFormatter(true).format(userInfo);
+            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
 
             Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -516,18 +520,7 @@ public class UserCtrl extends Controller {
 
     private static String getInfoUrl(String urlDomain, String urlInfo, String access_token, String openId) {
 
-        StringBuffer info_url = new StringBuffer(10);
-        info_url.append("https://");
-        info_url.append(urlDomain);
-        info_url.append(urlInfo);
-        info_url.append("?");
-        info_url.append("access_token=");
-        info_url.append(access_token);
-        info_url.append("&");
-        info_url.append("openid=");
-        info_url.append(openId);
-
-        return info_url.toString();
+        return "https://" + urlDomain + urlInfo + "?" + "access_token=" + access_token + "&" + "openid=" + openId;
     }
 
     /**
@@ -543,18 +536,21 @@ public class UserCtrl extends Controller {
             selfId = Long.parseLong(tmp);
 
         try {
-            UserFormatter formatter = new UserFormatter(selfId != null && ((Long) userId).equals(selfId));
+            UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+            boolean selfView = (selfId != null && ((Long) userId).equals(selfId));
+            formatter.setSelfView(selfView);
+
             UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
             if (result == null)
-                return null;
-            JsonNode node = formatter.format(result);
+                return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
 
-            if (node != null)
-                return Utils.createResponse(ErrorCode.NORMAL, node);
-            else
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
+            String ret = FormatterFactory.getInstance(UserInfoFormatter.class).format(result);
+
+            return Utils.status(ret);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (ReflectiveOperationException | JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
         }
     }
 
@@ -577,22 +573,19 @@ public class UserCtrl extends Controller {
             if (telEntry != null && telEntry.getPhoneNumber() != null)
                 valueList.add(telEntry.getPhoneNumber());
 
-            UserFormatter userFormatter = new UserFormatter(false);
+            UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+            formatter.setSelfView(false);
 
-            Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName, UserInfo.fnUserId), valueList,
-                    userFormatter.getFilteredFields(), 0, 20);
-
-            List<JsonNode> result = new ArrayList<>();
-            while (itr != null && itr.hasNext()) {
-                UserInfo user = itr.next();
-                JsonNode node = userFormatter.format(user);
-                result.add(node);
+            List<UserInfo> result = new ArrayList<>();
+            for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,
+                    UserInfo.fnUserId), valueList, formatter.getFilteredFields(), 0, 20); itr.hasNext(); ) {
+                result.add(itr.next());
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+            return Utils.status(formatter.format(result));
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user : %s.", keyword));
-        } catch (NumberFormatException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid UserId header.");
+        } catch (JsonProcessingException | ReflectiveOperationException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
         }
     }
 
@@ -741,7 +734,7 @@ public class UserCtrl extends Controller {
 
             List<JsonNode> nodelist = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodelist.add(new UserFormatter(false).format(userInfo));
+                nodelist.add(new UserFormatterOld(false).format(userInfo));
             }
 
             ObjectNode node = Json.newObject();
@@ -774,7 +767,7 @@ public class UserCtrl extends Controller {
             List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
             List<JsonNode> nodeList = new ArrayList<>();
             for (UserInfo userInfo : list) {
-                nodeList.add(new UserFormatter(false).format(userInfo));
+                nodeList.add(new UserFormatterOld(false).format(userInfo));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
         } catch (AizouException e) {
@@ -794,29 +787,66 @@ public class UserCtrl extends Controller {
             Long selfUserId = Long.parseLong(request().getHeader("UserId"));
             List<Contact> contacts = new ArrayList();
             ObjectMapper m = new ObjectMapper();
+
+            PhoneParser parser = PhoneParserFactory.newInstance();
+
             while (it.hasNext()) {
-                contacts.add(m.convertValue(it.next(), Contact.class));
+                Contact c = m.convertValue(it.next(), Contact.class);
+                try {
+                    PhoneEntity phone = parser.parse(c.tel);
+                    c.tel = phone.getPhoneNumber();
+                }catch(IllegalArgumentException ignored){
+                }
+                contacts.add(c);
             }
             UserInfo userInfo;
-            List<UserInfo> friends;
+
+            // 当前用户的联系人
+            Set<Long> contactSet = UserAPI.getContactIds(selfUserId);
+
+            List<String> telList = new ArrayList<>();
+            for (Contact c : contacts) {
+                if (c.tel !=null && !c.tel.isEmpty())
+                    telList.add(c.tel);
+            }
+
+
+            Map<String, Long> matchResult=new HashMap<>();
+            for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel), telList,
+                    Arrays.asList(UserInfo.fnUserId, UserInfo.fnTel), 0, 1000); itr.hasNext(); ){
+                UserInfo user = itr.next();
+                matchResult.put(user.getTel(), user.getUserId());
+            }
+
             for (Contact temp : contacts) {
-                temp.setId(new ObjectId());
-                userInfo = UserAPI.getUserByField(UserInfo.fnTel, temp.tel, Arrays.asList(UserInfo.fnUserId));
-                if (userInfo != null) {
+//                temp.setId(new ObjectId());
+//                userInfo = UserAPI.getUserByField(UserInfo.fnTel, temp.tel, Arrays.asList(UserInfo.fnUserId));
+
+                if (matchResult.containsKey(temp.tel)){
                     temp.isUser = true;
-                    temp.userId = userInfo.getUserId();
-                    friends = UserAPI.getContactList(selfUserId);
-                    temp.isContact = isFriend(temp.userId, friends);
-                } else {
-                    temp.isUser = false;
+                    temp.userId = matchResult.get(temp.tel);
+                    temp.isContact = contactSet.contains(temp.userId);
+                }else{
+                    temp.isUser=false;
                     temp.isContact = false;
                 }
+//
+//                if (userInfo != null) {
+//                    temp.isUser = true;
+//                    temp.userId = userInfo.getUserId();
+//                    temp.isContact = contactSet.contains(temp.userId);
+//                } else {
+//                    temp.isUser = false;
+//                    temp.isContact = false;
+//                }
             }
-            List<JsonNode> nodes = new ArrayList<>();
-            for (Contact temp : contacts) {
-                nodes.add(new ContactFormatter().format(temp));
+
+            try {
+                ContactFormatter formatter = FormatterFactory.getInstance(ContactFormatter.class);
+                return Utils.status(formatter.format(contacts));
+            } catch (ReflectiveOperationException | JsonProcessingException e) {
+                return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodes));
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
