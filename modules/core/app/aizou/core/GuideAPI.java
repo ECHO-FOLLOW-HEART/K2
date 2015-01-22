@@ -277,7 +277,10 @@ public class GuideAPI {
      */
     public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
-        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId).field("userId").equal(userId);
+        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
+        if(userId!= null)
+            query.field("userId").equal(userId);
+
         if (query.iterator().hasNext()) {
             UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
             if (guide.itinerary != null) {
@@ -294,6 +297,8 @@ public class GuideAPI {
                 update.set(AbstractGuide.fnImages, guide.images);
             if (guide.title != null)
                 update.set(Guide.fnTitle, guide.title);
+            if(guide.localities != null)
+                update.set(Guide.fnLocalities, guide.localities);
             update.set(Guide.fnUpdateTime, System.currentTimeMillis());
 
             ds.update(query, update);
