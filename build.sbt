@@ -31,7 +31,7 @@ libraryDependencies ++= Seq(
   "org.springframework" % "spring-tx" % "3.2.2.RELEASE",
   "org.aspectj" % "aspectjrt" % "1.8.2",
   "org.aspectj" % "aspectjweaver" % "1.8.4",
-  "com.aizou" % "iisfileappender_2.9.1" % "0.1"
+  "com.aizou" % "iisfileappender_2.10" % "0.1-SNAPSHOT"
 )
 
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
