@@ -65,16 +65,16 @@ public class GeoCtrl extends Controller {
             MiscAPI.isFavorite(locality, userId);
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
 
-            List<TravelNote> tras = TravelNoteAPI.searchNotesByWord(locality.getZhName(), 0, noteCnt);
-            List<ObjectNode> objs = new ArrayList<>();
-            for (TravelNote tra : tras) {
-                objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
-            }
+//            List<TravelNote> tras = TravelNoteAPI.searchNotesByWord(locality.getZhName(), 0, noteCnt);
+//            List<ObjectNode> objs = new ArrayList<>();
+//            for (TravelNote tra : tras) {
+//                objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
+//            }
             //int imageCnt = locality.getImages() == null ? 0 : locality.getImages().size();
             // 显示图集的数量
             response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
             return Utils.createResponse(ErrorCode.NORMAL, response);
-        } catch (AizouException | SolrServerException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
