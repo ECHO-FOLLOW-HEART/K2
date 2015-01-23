@@ -846,6 +846,25 @@ public class PlanCtrl extends Controller {
                     e.printStackTrace();
                 }
                 break;
+            case "restaurant":
+                Restaurant restaurant = ds.createQuery(Restaurant.class).field("_id").equal(new ObjectId(itemId)).get();
+                ref = new SimpleRef();
+                ref.id = restaurant.getId();
+                ref.zhName = restaurant.name;
+                planItem = new PlanItem();
+                planItem.item = ref;
+                locRef = new SimpleRef();
+                locRef.setEnName(restaurant.getLocality().getEnName());
+                locRef.setZhName(restaurant.getLocality().getZhName());
+                locRef.setId(restaurant.getLocality().getId());
+                planItem.loc = locRef;
+                planItem.type = "restaurant";
+                try {
+                    planItem.ts = timeFmt.parse(st);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+                break;
         }
         return planItem;
     }
