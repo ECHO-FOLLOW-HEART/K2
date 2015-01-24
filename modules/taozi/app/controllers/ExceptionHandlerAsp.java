@@ -1,4 +1,4 @@
-package controllers.taozi;
+package controllers;
 
 import exception.ErrorCode;
 import org.apache.commons.logging.Log;
@@ -22,12 +22,12 @@ public class ExceptionHandlerAsp {
     void allControllers() {
     }
 
-    @Around("allControllers()")
+    @Around("allControllers() && !within(CacheHandler)")
     public Result catchException(ProceedingJoinPoint pjp, JoinPoint joinPoint) {
         try {
             return (Result) pjp.proceed();
         } catch (Throwable throwable) {
-//            throwable.printStackTrace();
+            throwable.printStackTrace();
             logger.info("An unhandled Exception was caught by ExceptionHandler");
             logger.info("Action name:     " + joinPoint.getSignature());
             logger.info("CaughtException: " + throwable.toString());

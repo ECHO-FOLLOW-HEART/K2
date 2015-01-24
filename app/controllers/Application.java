@@ -1,13 +1,24 @@
 package controllers;
 
 import exception.AizouException;
+import play.cache.Cache;
 import play.mvc.Controller;
 import play.mvc.Result;
 
 public class Application extends Controller {
 
     public static Result index() throws AizouException {
-        return ok("WELCOME");
+        return set();
+    }
+
+    public static Result set() {
+        String get = (String) Cache.get("key1");
+        if (get == null) {
+            get = "haha";
+            Cache.set("key1", get, 10);
+            return ok("add: "+get);
+        }
+        return ok(get);
     }
 
 //    @Transactional

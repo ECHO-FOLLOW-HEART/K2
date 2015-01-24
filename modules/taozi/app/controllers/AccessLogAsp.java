@@ -1,4 +1,4 @@
-package controllers.taozi;
+package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
@@ -20,7 +20,6 @@ public class AccessLogAsp {
     private static final String ACCESS = "access";
     private Log logger = LogFactory.getLog(ACCESS);
     // date time c-ip cs-method cs-uri sc-status bytes cached
-    private static final String FORMAT = "%d %t %ip %m %u %s %b %c";
 
     @Before("args(code, result) " +
             "&& call(play.mvc.Result createResponse(int, com.fasterxml.jackson.databind.JsonNode))" +
@@ -39,7 +38,6 @@ public class AccessLogAsp {
     }
 
     private String getLogLine(Http.Context context, int code, JsonNode result) {
-        String ret = FORMAT;
         Date now = new Date();
         String ip = "-";
         String method = "-";
@@ -59,14 +57,7 @@ public class AccessLogAsp {
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
-        ret = ret.replaceFirst("%d", dateFormat.format(now));
-        ret = ret.replaceFirst("%t", timeFormat.format(now));
-        ret = ret.replaceFirst("%ip", ip);
-        ret = ret.replaceFirst("%m", method);
-        ret = ret.replaceFirst("%u", uri);
-        ret = ret.replaceFirst("%s", status);
-        ret = ret.replaceFirst("%b", bytes);
-        ret = ret.replaceFirst("%c", cached);
-        return ret;
+
+        return dateFormat.format(now) + " " + timeFormat.format(now) + " " + ip + " " + method + " " + uri + " " + status + " " + bytes + " " + cached + " ";
     }
 }

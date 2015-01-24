@@ -23,6 +23,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import play.Configuration;
+//import play.cache.Cache;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -105,6 +106,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result recommend(int page, int pageSize) {
+        //TODO
         List<ObjectNode> retNodeList = new ArrayList();
         Datastore ds;
         try {
@@ -568,6 +570,11 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result search(String keyWord, String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
+//        String cacheKey = "search." + keyWord + "." + locId + "." + loc + "." + vs + "." + hotel + "." + restaurant + "." + shopping + "." + page + "." + pageSize;
+//        String jsonStr = (String) Cache.get(cacheKey);
+//        if (jsonStr != null && !jsonStr.isEmpty()) {
+//            return Utils.createResponse(ErrorCode.NORMAL+1, Json.parse(jsonStr));
+//        }
         ObjectNode results = Json.newObject();
         try {
 
@@ -613,6 +620,10 @@ public class MiscCtrl extends Controller {
         } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
+
+//        jsonStr = Json.toJson(results).toString();
+//        Cache.set(cacheKey, jsonStr, 3600);
+//        return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
