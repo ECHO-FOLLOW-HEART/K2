@@ -5,6 +5,7 @@ import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.TravelNote.DetailTravelNoteFormatter;
@@ -75,18 +76,24 @@ public class TravelNoteCtrl extends Controller {
     public static Result searchTravelNotes(String keyWord, String locId, int page, int pageSize) {
         List<TravelNote> noteList;
         List<JsonNode> result = new ArrayList<>();
+        JsonNode note;
+        String url = "http://h5.taozilvxing.com/detail.php?id=";
         //通过关键字查询游记
         try {
             if (!keyWord.isEmpty()) {
                 noteList = TravelNoteAPI.searchNotesByWord(keyWord, page, pageSize);
                 for (TravelNote travelNote : noteList) {
-                    result.add(new SimpTravelNoteFormatter().format(travelNote));
+                    note = new SimpTravelNoteFormatter().format(travelNote);
+                    ((ObjectNode) note).put("detailUrl", url + travelNote.getId());
+                    result.add(note);
                 }
                 return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
             } else if (locId != null && !locId.isEmpty()) {
                 noteList = TravelNoteAPI.searchNoteByLocId(locId, page, pageSize);
                 for (TravelNote travelNote : noteList) {
-                    result.add(new SimpTravelNoteFormatter().format(travelNote));
+                    note = new SimpTravelNoteFormatter().format(travelNote);
+                    ((ObjectNode) note).put("detailUrl", url + travelNote.getId());
+                    result.add(note);
                 }
                 return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
             } else

@@ -57,6 +57,8 @@ public class POICtrl extends Controller {
         ret.put("recommends", Json.toJson(recommends));
 
         ret.put("comments", Json.toJson(comments));
+        if (poiClass == Shopping.class || poiClass == Restaurant.class)
+            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
 
         return ret;
     }
@@ -93,9 +95,6 @@ public class POICtrl extends Controller {
                 break;
             case "shopping":
                 poiClass = Shopping.class;
-                break;
-            case "entertainment":
-                poiClass = Entertainment.class;
                 break;
             default:
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));

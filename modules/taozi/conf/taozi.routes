@@ -160,5 +160,5 @@ GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.tao
 GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage",id: String?="")
 #更多精选游记
 GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
-#返回单篇游记详情
+#返回单篇游记详情(H5)
 GET           /travel-notes/$id<[0-9a-f]{24}>                    controllers.taozi.TravelNoteCtrl.travelNoteDetail(id:String)

@@ -28,6 +28,8 @@ public class GuideCtrl extends Controller {
 
     public static final String HAS_RECOMMENDATION = "recommend";
 
+    public static final String GUIDE_DETAIL_URL = "http://h5.taozilvxing.com/planshare.php?pid=";
+
     /**
      * 更新攻略中相应信息
      *
@@ -61,6 +63,7 @@ public class GuideCtrl extends Controller {
                 result = GuideAPI.getEmptyGuide(ids, selfId);
 
             node = (ObjectNode) new GuideFormatter().setImageWidth(imgWidth).format(result);
+            node.put("detailUrl", GUIDE_DETAIL_URL + result.getId());
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
         } catch (AizouException e) {
@@ -107,7 +110,7 @@ public class GuideCtrl extends Controller {
             // 获取图片宽度
             String imgWidthStr = request().getQueryString("imgWidth");
             int imgWidth = 0;
-            if(imgWidthStr!= null)
+            if (imgWidthStr != null)
                 imgWidth = Integer.valueOf(imgWidthStr);
             String tmp = request().getHeader("UserId");
             if (tmp == null)
@@ -173,7 +176,7 @@ public class GuideCtrl extends Controller {
             // 获取图片宽度
             String imgWidthStr = request().getQueryString("imgWidth");
             int imgWidth = 0;
-            if(imgWidthStr!= null)
+            if (imgWidthStr != null)
                 imgWidth = Integer.valueOf(imgWidthStr);
             ObjectId guideId = new ObjectId(id);
             List<String> fields = new ArrayList<>();
@@ -205,6 +208,7 @@ public class GuideCtrl extends Controller {
             // 填充攻略信息
             GuideAPI.fillGuideInfo(guide);
             ObjectNode node = (ObjectNode) new GuideFormatter().setImageWidth(imgWidth).format(guide);
+            node.put("detailUrl", GUIDE_DETAIL_URL + guide.getId());
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -279,13 +283,6 @@ public class GuideCtrl extends Controller {
     }
 
     private static String removeH5Label(String content) {
-//        String regEx = "(?<=<(p)>).*(?=</p>)";
-//        Pattern p = Pattern.compile(regEx);
-//        Matcher m = p.matcher(content);
-//        String result = "";
-//        while (m.find()) {
-//            result = result + m.group(0);
-//        }
         List<String> regExList = Arrays.asList("<p>", "</p>", "<div>", "</div>");
         for (String regEx : regExList) {
             content = content.replace(regEx, "");
@@ -313,6 +310,8 @@ public class GuideCtrl extends Controller {
             ObjectNode result = Json.newObject();
 
             result.put("id", guide.getId().toString());
+            result.put("detailUrl", GUIDE_DETAIL_URL + guideId);
+
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
