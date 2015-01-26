@@ -57,9 +57,9 @@ public class POICtrl extends Controller {
         ret.put("recommends", Json.toJson(recommends));
 
         ret.put("comments", Json.toJson(comments));
+        // 添加H5接口
         if (poiClass == Shopping.class || poiClass == Restaurant.class)
             ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
-
         return ret;
     }
 
@@ -252,6 +252,9 @@ public class POICtrl extends Controller {
         switch (sortField) {
             case "rating":
                 sf = PoiAPI.SortField.RATING;
+                break;
+            case "hotness":
+                sf = PoiAPI.SortField.HOTNESS;
                 break;
             default:
                 sf = null;

@@ -994,7 +994,7 @@ public class PoiAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
-        Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images",
+        Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images", "hotness",
                 "desc", "location", "priceDesc", "address", "tags", "price");
         switch (poiType) {
             case VIEW_SPOT:
