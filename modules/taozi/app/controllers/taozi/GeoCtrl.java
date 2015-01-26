@@ -77,10 +77,10 @@ public class GeoCtrl extends Controller {
             //int imageCnt = locality.getImages() == null ? 0 : locality.getImages().size();
             // 显示图集的数量
             response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
-            // 显示城市美食介绍URL
-            response.put("diningUrl", "http://h5.taozilvxing.com/dining.php?tid=" + id);
-            // 显示城市购物介绍URL
-            response.put("shoppingUrl", "http://h5.taozilvxing.com/shopping.php?tid=" + id);
+//            // 显示城市美食介绍URL
+//            response.put("diningUrl", "http://h5.taozilvxing.com/dining.php?tid=" + id);
+//            // 显示城市购物介绍URL
+//            response.put("shoppingUrl", "http://h5.taozilvxing.com/shopping.php?tid=" + id);
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());

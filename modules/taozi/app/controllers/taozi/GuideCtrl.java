@@ -17,6 +17,7 @@ import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.LogUtils;
 import utils.Utils;
 
 import java.util.*;
@@ -80,6 +81,7 @@ public class GuideCtrl extends Controller {
     public static Result saveGuide() {
 
         JsonNode data = request().body().asJson();
+        LogUtils.info(GuideCtrl.class, request());
         try {
             String tmp = request().getHeader("UserId");
             if (tmp == null)
@@ -269,11 +271,15 @@ public class GuideCtrl extends Controller {
             Locality locality = GeoAPI.locDetails(new ObjectId(id), fields);
             String content = null;
             ObjectNode result = Json.newObject();
-            if (guidePart.equals("shopping"))
+            if (guidePart.equals("shopping")) {
                 content = locality.getShoppingIntro();
-            else if (guidePart.equals("restaurant"))
+                // 显示城市购物介绍URL
+                result.put("detailUrl", "http://h5.taozilvxing.com/shopping.php?tid=" + id);
+            } else if (guidePart.equals("restaurant")) {
                 content = locality.getDiningIntro();
-
+                // 显示城市美食介绍URL
+                result.put("detailUrl", "http://h5.taozilvxing.com/dining.php?tid=" + id);
+            }
             result.put("desc", content != null ? removeH5Label(content) : "");
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {

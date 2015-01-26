@@ -113,6 +113,11 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String FD_TIPS = "tips";
     @Transient
     public static String FD_VISITGUIDE = "visitGuide";
+    @Transient
+    public static String FD_TRAFFICINFO_URL = "trafficInfoUrl";
+
+    @Transient
+    public static String FD_VISITGUIDE_URL = "visitGuideUrl";
 
     @Transient
     public static String FD_COMMENTS = "comments";
@@ -167,7 +172,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public Integer closeHour;
     @Embedded
     public Description description;
-    public String trafficInfo;
     public List<ImageItem> images;
     public String cover;
     public List<String> tags;
@@ -192,10 +196,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     public Map<String, Object> extra;
     public Double rating;
-    /**
-     * 交通指南URL
-     */
-    public String trafficInfoUrl;
     /**
      * 旅行指南URL
      */
@@ -244,17 +244,62 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     private List<DetailsEntry> tips;
     /**
-     * 防坑攻略URL
+     * 贴士URL
      */
-    public String tipsUrl;
+    private String tipsUrl;
 
     public String getTipsUrl() {
         if (tips == null)
             return "";
         return "http://h5.taozilvxing.com/poi_tips.php?tid=" + this.getId().toString();
     }
+
     public List<DetailsEntry> getTips() {
         return tips;
+    }
+
+    /**
+     * 游玩信息
+     *
+     * @param level
+     * @return
+     */
+    private String visitGuide;
+    /**
+     * 游玩信息URL
+     */
+    private String visitGuideUrl;
+
+    public String getVisitGuideUrl() {
+        if (visitGuide == null || visitGuide.equals(""))
+            return "";
+        return "http://h5.taozilvxing.com/poi_play.php?tid=" + this.getId().toString();
+    }
+
+    /**
+     * 交通信息
+     *
+     * @param level
+     * @return
+     */
+    private String trafficInfo;
+    /**
+     * 交通信息URL
+     */
+    private String trafficInfoUrl;
+
+    public String getTrafficInfoUrl() {
+        if (trafficInfo == null || trafficInfo.equals(""))
+            return "";
+        return "http://h5.taozilvxing.com/poi_traffic.php?tid=" + this.getId().toString();
+    }
+
+    public String getVisitGuide() {
+        return visitGuide;
+    }
+
+    public String getTrafficInfo() {
+        return trafficInfo;
     }
 
     /**
@@ -265,20 +310,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     @Embedded
     private List<Comment> comments;
-
-    /**
-     * 游玩攻略信息
-     *
-     */
-    private String visitGuide;
-
-    public String getVisitGuide() {
-        return visitGuide;
-    }
-
-    public void setVisitGuide(String visitGuide) {
-        this.visitGuide = visitGuide;
-    }
 
     public List<Comment> getComments() {
         return comments;
@@ -326,9 +357,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         this.hotness = hotness;
     }
 
-    public String getTrafficInfoUrl() {
-        return trafficInfoUrl;
-    }
 
     public String getGuideUrl() {
         return guideUrl;
@@ -376,13 +404,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
 
     public String getOpenTime() {
         return openTime;
-    }
-
-    public String getTrafficInfo() {
-        if (trafficInfo == null)
-            return "";
-        else
-            return trafficInfo;
     }
 
     public List<ImageItem> getImages() {

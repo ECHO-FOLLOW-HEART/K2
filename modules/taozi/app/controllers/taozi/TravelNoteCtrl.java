@@ -78,7 +78,7 @@ public class TravelNoteCtrl extends Controller {
         List<TravelNote> noteList;
         List<JsonNode> result = new ArrayList<>();
         JsonNode note;
-        String url = "http://h5.taozilvxing.com/detail.php?id=";
+        String url = "http://h5.taozilvxing.com/dayDetail.php?id=";
         //通过关键字查询游记
         try {
             Long userId = null;

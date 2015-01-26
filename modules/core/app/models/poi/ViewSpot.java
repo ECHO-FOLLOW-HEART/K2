@@ -42,8 +42,6 @@ public class ViewSpot extends AbstractPOI {
 
     public Integer spotId;
 
-    public String trafficInfo;
-
     @Embedded
     public ViewSpotRatings ratings;
 
@@ -84,9 +82,6 @@ public class ViewSpot extends AbstractPOI {
     public Description descriptionFlag;
 
     @Transient
-    private String trafficInfoUrl;
-
-    @Transient
     private String guideUrl;
 
     @Transient
@@ -121,14 +116,6 @@ public class ViewSpot extends AbstractPOI {
 
     public String getTimeCostDesc() {
         return timeCostDesc;
-    }
-
-    public String getTrafficInfoUrl() {
-        return trafficInfoUrl;
-    }
-
-    public void setTrafficInfoUrl(String trafficInfoUrl) {
-        this.trafficInfoUrl = trafficInfoUrl;
     }
 
     public String getGuideUrl() {
