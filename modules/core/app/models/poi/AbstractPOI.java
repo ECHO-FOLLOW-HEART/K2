@@ -108,7 +108,11 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     @Transient
     public static String FD_TIMECOSTDESC = "timeCostDesc";
     @Transient
+    public static String FD_TRAFFICINFO = "trafficInfo";
+    @Transient
     public static String FD_TIPS = "tips";
+    @Transient
+    public static String FD_VISITGUIDE = "visitGuide";
 
     @Transient
     public static String FD_COMMENTS = "comments";
@@ -196,10 +200,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      * 旅行指南URL
      */
     public String guideUrl;
-    /**
-     * 防坑攻略URL
-     */
-    public String tipsUrl;
 
     /**
      * 地址
@@ -236,7 +236,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      * 热门程度
      */
     private Double hotness;
-
     /**
      * 贴士
      *
@@ -244,14 +243,16 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      * @return
      */
     private List<DetailsEntry> tips;
-
+    /**
+     * 防坑攻略URL
+     */
+    public String tipsUrl;
 
     public String getTipsUrl() {
         if (tips == null)
             return "";
         return "http://h5.taozilvxing.com/poi_tips.php?tid=" + this.getId().toString();
     }
-
     public List<DetailsEntry> getTips() {
         return tips;
     }
@@ -264,6 +265,20 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     @Embedded
     private List<Comment> comments;
+
+    /**
+     * 游玩攻略信息
+     *
+     */
+    private String visitGuide;
+
+    public String getVisitGuide() {
+        return visitGuide;
+    }
+
+    public void setVisitGuide(String visitGuide) {
+        this.visitGuide = visitGuide;
+    }
 
     public List<Comment> getComments() {
         return comments;

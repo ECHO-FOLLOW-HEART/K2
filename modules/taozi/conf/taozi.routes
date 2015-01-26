@@ -75,7 +75,7 @@ GET           /misc/updates                                      controllers.tao
 #查看POI详情
 # 景点详情
 GET           /poi/vs/$spotId<[0-9a-f]{24}>                      controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
-#获取景点的深度介绍
+#获取景点的深度介绍(H5)
 GET           /poi/vs/$id<[0-9a-f]{24}>/details                  controllers.taozi.POICtrl.getTravelGuide(id: String, field: String,poiDesc: String="vs")
 # 酒店详情
 GET           /poi/hotel/:spotId                                 controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)

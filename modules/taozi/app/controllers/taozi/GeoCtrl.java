@@ -64,8 +64,12 @@ public class GeoCtrl extends Controller {
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
-
-//            List<TravelNote> tras = TravelNoteAPI.searchNotesByWord(locality.getZhName(), 0, noteCnt);
+//            List<TravelNote> tras = null;
+//            try {
+//                tras = TravelNoteAPI.searchNotesByWord(locality.getZhName(), 0, noteCnt);
+//            } catch (SolrServerException e) {
+//                e.printStackTrace();
+//            }
 //            List<ObjectNode> objs = new ArrayList<>();
 //            for (TravelNote tra : tras) {
 //                objs.add((ObjectNode) new TravelNoteFormatter().format(tra));

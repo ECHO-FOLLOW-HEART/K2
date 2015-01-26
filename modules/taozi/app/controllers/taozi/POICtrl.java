@@ -440,10 +440,10 @@ public class POICtrl extends Controller {
      * 游玩攻略
      *
      * @param locId
-     * @param fields
+     * @param field
      * @return
      */
-    public static Result getTravelGuide(String locId, String fields, String poiDesc) {
+    public static Result getTravelGuide(String locId, String field, String poiDesc) {
         try {
             List<String> destKeyList = new ArrayList<>();
 
@@ -461,27 +461,33 @@ public class POICtrl extends Controller {
                 case "shopping":
                     poiClass = Shopping.class;
                     break;
-                case "entertainment":
-                    poiClass = Entertainment.class;
-                    break;
                 default:
                     return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
             }
 
-
-            for (String f : fields.split("\\s*,\\s*")) {
-                switch (f) {
-                    case "tips":
-                        destKeyList.add(AbstractPOI.FD_TIPS);
-                        break;
-                }
+//            for (String f : fields.split("\\s*,\\s*")) {
+//            }
+            switch (field) {
+                case "tips":
+                    destKeyList.add(AbstractPOI.FD_TIPS);
+                    break;
+                case "trafficInfo":
+                    destKeyList.add(AbstractPOI.FD_TRAFFICINFO);
+                    break;
+                case "visitGuide":
+                    destKeyList.add(AbstractPOI.FD_VISITGUIDE);
+                    break;
             }
 
             AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(locId), poiClass, destKeyList);
             ObjectNode result = Json.newObject();
-            if (fields.equals("tips")) {
+            if (field.equals("tips")) {
                 result.put("desc", "");
                 result.put("contents", Json.toJson(GeoCtrl.contentsToList(poiInfo.getTips())));
+            } else if (field.equals("trafficInfo")) {
+                result.put("contents", Json.toJson(poiInfo.getTrafficInfo()));
+            } else if (field.equals("visitGuide")) {
+                result.put("contents", Json.toJson(poiInfo.getVisitGuide()));
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, result);
