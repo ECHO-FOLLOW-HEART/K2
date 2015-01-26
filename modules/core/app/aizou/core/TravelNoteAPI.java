@@ -280,6 +280,9 @@ public class TravelNoteAPI {
             //是否精华帖
             tmp = doc.get("essence");
             note.essence = (tmp == null ? null : (Boolean) tmp);
+            //获取来源
+            tmp = doc.get("source");
+            note.source = (tmp == null ? null : (String) tmp);
 
             noteList.add(note);
         }

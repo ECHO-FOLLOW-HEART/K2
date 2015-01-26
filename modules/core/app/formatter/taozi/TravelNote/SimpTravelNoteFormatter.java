@@ -35,7 +35,8 @@ public class SimpTravelNoteFormatter extends TaoziBaseFormatter {
                         TravelNote.fnPublishTime,
                         TravelNote.fnTravelTime,
                         TravelNote.fnSummary,
-                        TravelNote.fnEssence
+                        TravelNote.fnEssence,
+                        TravelNote.fnSource
                 ));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
