@@ -18,6 +18,7 @@ import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Created by lxf on 14-11-12.
@@ -121,6 +122,37 @@ public class MiscAPI {
         Iterator<Favorite> it = query.iterator();
         if (it.hasNext())
             item.setIsFavorite(true);
+    }
+
+    /**
+     * 判断是否被收藏
+     *
+     * @param items
+     * @param userId
+     * @throws AizouException
+     */
+    public static void isFavorite(List<? extends AizouBaseEntity> items, Long userId) throws AizouException {
+        if (userId == null) {
+            return;
+        }
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Favorite> query = ds.createQuery(Favorite.class);
+        query.field(UserInfo.fnUserId).equal(userId);
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (AizouBaseEntity temp : items) {
+            criList.add(query.criteria(Favorite.fnItemId).equal(temp.getId()));
+        }
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        List<Favorite> favoriteList = query.asList();
+
+        Map<ObjectId, Favorite> favoriteMap = new HashMap<ObjectId, Favorite>();
+        for (Favorite temp : favoriteList) {
+            favoriteMap.put(temp.itemId, temp);
+        }
+        for (AizouBaseEntity temp : items) {
+            if (favoriteMap.get(temp.getId()) != null)
+                temp.setIsFavorite(true);
+        }
     }
 
     public static List<Images> getLocalityAlbum(ObjectId id, int page, int pageSize) throws AizouException {
