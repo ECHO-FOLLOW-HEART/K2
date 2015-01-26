@@ -333,7 +333,7 @@ public class PoiAPI {
      * @throws exception.AizouException
      */
     public static List<Comment> getPOICommentByList(List<ObjectId> poiIds, int page, int pageSize) throws AizouException {
-        if(poiIds == null ||poiIds.isEmpty())
+        if (poiIds == null || poiIds.isEmpty())
             return new ArrayList<>();
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class);
@@ -1025,6 +1025,9 @@ public class PoiAPI {
             case RATING:
                 stKey = "rating";
                 break;
+            case HOTNESS:
+                stKey = "hotness";
+                break;
         }
         query.order(String.format("%s%s", sort ? "" : "-", stKey));
         query.offset(page * pageSize).limit(pageSize);
@@ -1048,11 +1051,13 @@ public class PoiAPI {
             throws AizouException, SolrServerException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
-        List<? extends AbstractPOI> poiList;
+        List<? extends AbstractPOI> poiList = null;
+
         switch (poiType) {
             case VIEW_SPOT:
+                poiClass = ViewSpot.class;
                 poiList = poiSearch(keyword, page, pageSize);
-                return poiList;
+                break;
             case HOTEL:
                 poiClass = Hotel.class;
                 break;
@@ -1060,14 +1065,24 @@ public class PoiAPI {
                 poiClass = Restaurant.class;
                 break;
             case SHOPPING:
-                poiClass = Restaurant.class;
+                poiClass = Shopping.class;
                 break;
         }
         if (poiClass == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        if (keyword != null && !keyword.isEmpty()) {
-            query.field("alias").equal(Pattern.compile("^" + keyword));
+
+        // TODO 暂时写成这样，等Solr的数据可以及时同步再改
+        if (poiClass == ViewSpot.class || poiList != null) {
+            List<CriteriaContainerImpl> criList = new ArrayList<>();
+            for (AbstractPOI temp : poiList) {
+                criList.add(query.criteria("id").equal(temp.getId()));
+            }
+            query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        } else {
+            if (keyword != null && !keyword.isEmpty()) {
+                query.field("alias").equal(Pattern.compile("^" + keyword));
+            }
         }
         if (locId != null)
             query.field("targets").equal(locId);
