@@ -5,11 +5,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
 import formatter.taozi.geo.DetailedLocalityFormatter;
-import formatter.taozi.misc.ColumnFormatter;
-import formatter.taozi.misc.CommentFormatter;
-import formatter.taozi.misc.SuggestionFormatter;
-import formatter.taozi.misc.WeatherFormatter;
+import formatter.taozi.misc.*;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
 import formatter.taozi.user.SelfFavoriteFormatter;
@@ -842,4 +840,24 @@ public class MiscCtrl extends Controller {
 //
 //        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
 //    }
+
+    public static Result searchQa(String query, int page, int pageSize) {
+        List<Answer> qaList;
+        List<JsonNode> result = new ArrayList<>();
+        //查询答案
+        try {
+            if (!query.isEmpty()) {
+                List<String> sourceList = QaAPI.searchQaApi(query, page, pageSize);
+                qaList = QaAPI.getNotesById(sourceList);
+                for (Answer qa : qaList) {
+                    result.add(new QaFormatter().format(qa));
+                }
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+            } else
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "fail");
+
+        } catch (SolrServerException | AizouException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        }
+    }
 }
