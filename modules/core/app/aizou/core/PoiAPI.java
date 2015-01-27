@@ -75,6 +75,12 @@ public class PoiAPI {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
+
+        // 限制字段
+        List<String> fieldList = new ArrayList<>();
+        Collections.addAll(fieldList, "zhName", "_id");
+        query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+
         query.filter(AbstractPOI.FD_ALIAS, Pattern.compile("^" + word))
                 .order(String.format("-%s, -%s", AbstractPOI.fnHotness, AbstractPOI.fnRating));
         return query.limit(pageSize).iterator();

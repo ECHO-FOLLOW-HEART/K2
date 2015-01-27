@@ -16,6 +16,7 @@ import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Recommendation;
 import models.poi.AbstractPOI;
+import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
@@ -96,52 +97,60 @@ public class MiscCtrl extends Controller {
     public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
                                               int pageSize) throws AizouException {
         ObjectNode ret = Json.newObject();
-
+        ObjectNode temp;
         List<JsonNode> locList = new ArrayList<>();
         if (loc) {
+            Locality item;
             for (Iterator<Locality> it = LocalityAPI.getSuggestion(word, pageSize); it.hasNext(); ) {
-                // 如果locality为北京、上海、天津、重庆这四个直辖市，则忽略level=1的省级行政区
-                Locality item = it.next();
-                locList.add(SimpleLocalityFormatter.getInstance().format(item));
+                item = it.next();
+                temp = Json.newObject();
+                temp.put("_id", item.getId().toString());
+                temp.put("zhName", item.getZhName());
+                locList.add(temp);
             }
         }
-        if (!locList.isEmpty())
-            ret.put("loc", Json.toJson(locList));
-        else
-            ret.put("loc", Json.toJson(new ArrayList<>()));
+        ret.put("loc", Json.toJson(locList));
 
         List<JsonNode> vsList = new ArrayList<>();
+        AbstractPOI item;
         if (vs) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, pageSize);
-                 it.hasNext(); )
-                vsList.add(it.next().toJson(1));
+                 it.hasNext(); ) {
+                item = it.next();
+                temp = Json.newObject();
+                temp.put("_id", item.getId().toString());
+                temp.put("zhName", item.zhName);
+                vsList.add(temp);
+            }
         }
-        if (!vsList.isEmpty())
-            ret.put("vs", Json.toJson(vsList));
-        else
-            ret.put("vs", Json.toJson(new ArrayList<>()));
+        ret.put("vs", Json.toJson(vsList));
 
         List<JsonNode> hotelList = new ArrayList<>();
         if (hotel) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, pageSize);
-                 it.hasNext(); )
-                hotelList.add(it.next().toJson(1));
+                 it.hasNext(); ) {
+                item = it.next();
+                temp = Json.newObject();
+                temp.put("_id", item.getId().toString());
+                temp.put("zhName", item.zhName);
+                hotelList.add(temp);
+            }
         }
-        if (!hotelList.isEmpty())
-            ret.put("hotel", Json.toJson(hotelList));
-        else
-            ret.put("hotel", Json.toJson(new ArrayList<>()));
+        ret.put("hotel", Json.toJson(hotelList));
 
         List<JsonNode> dinningList = new ArrayList<>();
         if (restaurant) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, pageSize);
-                 it.hasNext(); )
-                dinningList.add(it.next().toJson(1));
+                 it.hasNext(); ) {
+                item = it.next();
+                temp = Json.newObject();
+                temp.put("_id", item.getId().toString());
+                temp.put("zhName", item.zhName);
+                dinningList.add(temp);
+            }
+
         }
-        if (!dinningList.isEmpty())
-            ret.put("restaurant", Json.toJson(dinningList));
-        else
-            ret.put("restaurant", Json.toJson(new ArrayList<>()));
+        ret.put("restaurant", Json.toJson(dinningList));
 
         return ret;
     }

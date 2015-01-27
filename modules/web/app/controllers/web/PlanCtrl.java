@@ -701,10 +701,10 @@ public class PlanCtrl extends Controller {
         List<JsonNode> results = new ArrayList<>();
 
         // 处理fromLoc/backLoc的映射
-        Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
-        Object tmp = mapConf.get(fromLoc);
-        if (tmp != null)
-            fromLoc = tmp.toString();
+//        Map<String, Object> mapConf = Configuration.root().getConfig("locMapping").asMap();
+//        Object tmp = mapConf.get(fromLoc);
+//        if (tmp != null)
+//            fromLoc = tmp.toString();
 
         try {
             Double trafficBudget = 0.0;
