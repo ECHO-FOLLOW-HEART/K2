@@ -13,6 +13,7 @@ import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import models.geo.Locality;
 import models.poi.*;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -36,6 +37,8 @@ public class POICtrl extends Controller {
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
+
+
         //是否被收藏
         MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.format(poiInfo);
@@ -273,6 +276,7 @@ public class POICtrl extends Controller {
             for (AbstractPOI temp : it) {
                 temp.images = TaoziDataFilter.getOneImage(temp.images);
                 temp.priceDesc = TaoziDataFilter.getPriceDesc(temp);
+                temp.desc = StringUtils.abbreviate(temp.desc, Constants.ABBREVIATE_LEN);
                 ObjectNode ret = (ObjectNode) new SimplePOIFormatter().setImageWidth(imgWidth).format(temp);
                 if (poiType.equals("restaurant") || poiType.equals("shopping") ||
                         poiType.equals("hotel")) {

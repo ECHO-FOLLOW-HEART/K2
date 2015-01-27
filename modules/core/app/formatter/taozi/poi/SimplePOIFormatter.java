@@ -42,7 +42,9 @@ public class SimplePOIFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_ADDRESS
+                AbstractPOI.FD_ADDRESS,
+                AbstractPOI.FD_TIMECOSTDESC
+
         );
         item.fillNullMembers(filteredFields);
         Map<String, PropertyFilter> filterMap = new HashMap<>();

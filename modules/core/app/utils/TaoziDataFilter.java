@@ -15,7 +15,7 @@ public class TaoziDataFilter {
 
     public static List<ImageItem> getOneImage(List<ImageItem> images) {
 
-        if (images == null)
+        if (images == null || images.isEmpty())
             return new ArrayList<>();
         else
             return Arrays.asList(images.get(0));

@@ -449,7 +449,7 @@ public class Utils {
 
         String cacheControl = request.hasHeader(CACHE_CONTROLKEY) ? request.getHeader(CACHE_CONTROLKEY) : request.getHeader(CACHE_CONTROLKEY.toLowerCase());
         if (cacheControl == null || cacheControl.equals("") || cacheControl.toLowerCase().equals("no-cache"))
-            return false;
+                return false;
         String ifModifiedSince = request.hasHeader(IF_MODIFY_SINCE) ? request.getHeader(IF_MODIFY_SINCE) : request.getHeader(IF_MODIFY_SINCE.toLowerCase());
         if (lastModify == null || ifModifiedSince == null || ifModifiedSince.equals(""))
             return false;

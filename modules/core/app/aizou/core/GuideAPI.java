@@ -17,6 +17,7 @@ import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import utils.Constants;
 import utils.LogUtils;
+import utils.TaoziDataFilter;
 
 import java.util.*;
 
@@ -76,7 +77,7 @@ public class GuideAPI {
         Query<Locality> queryDes = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
                 .createQuery(Locality.class);
         List<String> fieldList = new ArrayList<>();
-        Collections.addAll(fieldList, "_id", "zhName", "enName");
+        Collections.addAll(fieldList, "_id", "zhName", "enName", "images");
         queryDes.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         List<CriteriaContainerImpl> criListDes = new ArrayList<>();
         for (ObjectId id : ids) {
@@ -93,8 +94,8 @@ public class GuideAPI {
         ugcGuide.shopping = new ArrayList<>();
         ugcGuide.restaurant = new ArrayList<>();
         ugcGuide.itineraryDays = 0;
-        if (destinations != null && destinations.get(0) != null)
-            ugcGuide.images = destinations.get(0).getImages();
+        if (destinations != null && destinations.get(0) != null && destinations.get(0).getImages() != null)
+            ugcGuide.images = TaoziDataFilter.getOneImage(destinations.get(0).getImages());
         ugcGuide.title = getUgcGuideTitle(destinations);
         // 保存攻略时，置为可用
         ugcGuide.setTaoziEna(true);
@@ -278,7 +279,7 @@ public class GuideAPI {
     public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
-        if(userId!= null)
+        if (userId != null)
             query.field("userId").equal(userId);
 
         if (query.iterator().hasNext()) {
@@ -297,7 +298,7 @@ public class GuideAPI {
                 update.set(AbstractGuide.fnImages, guide.images);
             if (guide.title != null)
                 update.set(Guide.fnTitle, guide.title);
-            if(guide.localities != null)
+            if (guide.localities != null)
                 update.set(Guide.fnLocalities, guide.localities);
             update.set(Guide.fnUpdateTime, System.currentTimeMillis());
 
@@ -432,12 +433,29 @@ public class GuideAPI {
 
             }
         }
+        // 限制字段
+        List<String> vsFields = new ArrayList<>();
+        List<String> restFields = new ArrayList<>();
+        List<String> shopFields = new ArrayList<>();
+        List<String> hotelFields = new ArrayList<>();
+        Collections.addAll(vsFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
+                AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING,
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY);
+        Collections.addAll(restFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
+                AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE);
+        Collections.addAll(shopFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
+                AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE);
+        Collections.addAll(hotelFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
+                AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE);
 
         // 按类型查询POI，并放入Map中
-        List<ViewSpot> vsTempList = (List<ViewSpot>) PoiAPI.getPOIInfoList(vsIdList, "vs", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-        List<Restaurant> resTempList = (List<Restaurant>) PoiAPI.getPOIInfoList(restaurantIdList, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-        List<Shopping> shopTempList = (List<Shopping>) PoiAPI.getPOIInfoList(shoppingIdList, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-        List<Hotel> hotelTempList = (List<Hotel>) PoiAPI.getPOIInfoList(hotelIdList, "hotel", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        List<ViewSpot> vsTempList = (List<ViewSpot>) PoiAPI.getPOIInfoList(vsIdList, "vs", vsFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        List<Restaurant> resTempList = (List<Restaurant>) PoiAPI.getPOIInfoList(restaurantIdList, "restaurant", restFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        List<Shopping> shopTempList = (List<Shopping>) PoiAPI.getPOIInfoList(shoppingIdList, "shopping", shopFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
+        List<Hotel> hotelTempList = (List<Hotel>) PoiAPI.getPOIInfoList(hotelIdList, "hotel", hotelFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
 
         // 查询行程单中所有poi的评论
         List<ObjectId> poiIdList = new ArrayList<>();

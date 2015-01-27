@@ -48,12 +48,12 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AizouBaseEntity.FD_ID,
                 AbstractPOI.FD_ZH_NAME,
                 AbstractPOI.FD_EN_NAME,
-                AbstractPOI.FD_DESC,
+//                AbstractPOI.FD_DESC,
+//                AbstractPOI.FD_PRICE_DESC,
                 AbstractPOI.FD_IMAGES,
                 AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_ADDRESS,
-                AbstractPOI.FD_PRICE_DESC,
                 AbstractPOI.detTargets,
                 AbstractPOI.FD_TIMECOSTDESC,
                 AbstractPOI.FD_LOCALITY,
@@ -76,8 +76,6 @@ public class GuideFormatter extends TaoziBaseFormatter {
                         Comment.FD_IMAGES
                 ));
 
-//        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-//        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
         ObjectMapper mapper = getObjectMapper(filterMap, null);
 
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
