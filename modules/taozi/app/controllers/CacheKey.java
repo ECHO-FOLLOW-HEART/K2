@@ -12,4 +12,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 public @interface CacheKey {
     boolean asKey() default true;
+    String tag();
 }

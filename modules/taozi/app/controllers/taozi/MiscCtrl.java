@@ -570,17 +570,17 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-//    @UsingCache(key = "search,keyWord=%0,locId={locId},loc=%2,vs=%3,hotel=%4,restaurant=%5,shopping={shopping},page=%7,pageSize=%8",
-//                expireTime = 5)
-    public static Result search(@CacheKey String keyWord,
-                                @CacheKey String locId,
-                                @CacheKey boolean loc,
-                                @CacheKey boolean vs,
-                                @CacheKey boolean hotel,
-                                @CacheKey boolean restaurant,
-                                @CacheKey boolean shopping,
-                                @CacheKey int page,
-                                @CacheKey int pageSize) {
+    @UsingCache(key = "search,keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel},restaurant={restaurant},shopping={shopping},page={p},pageSize={ps}",
+                expireTime = 5)
+    public static Result search(@CacheKey(tag = "keyWord") String keyWord,
+                                @CacheKey(tag = "locId") String locId,
+                                @CacheKey(tag = "loc") boolean loc,
+                                @CacheKey(tag = "vs") boolean vs,
+                                @CacheKey(tag = "hotel") boolean hotel,
+                                @CacheKey(tag = "restaurant") boolean restaurant,
+                                @CacheKey(tag = "shopping") boolean shopping,
+                                @CacheKey(tag = "p") int page,
+                                @CacheKey(tag = "ps") int pageSize) {
         ObjectNode results = Json.newObject();
         try {
 

@@ -30,12 +30,10 @@
         </encoder>
     </appender>
 
-    <logger name="com.travelpi" level="INFO"/>
-
     <appender name="ACCESS_FILE" class="com.aizou.AizouFileAppender">
         <file>${application.home}/logs/access/accesslog_${date}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${application.home}/logs/accesslog-%d.log</fileNamePattern>
+            <fileNamePattern>${application.home}/logs/access/accesslog-%d.log</fileNamePattern>
         </rollingPolicy>
         <encoder>
             <pattern>%msg %n</pattern>
@@ -43,13 +41,17 @@
         </encoder>
     </appender>
 
-    <logger name="access" level="INFO" additivity="false">
-        <appender-ref ref="ACCESS_FILE" />
-        <appender-ref ref="STDOUT"/>
-    </logger>
 
     <root level="INFO">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>
+
+    <logger name="com.travelpi" level="INFO"/>
+
+    <logger name="access" level="INFO" additivity="false">
+        <appender-ref ref="ACCESS_FILE" />
+        <appender-ref ref="STDOUT"/>
+    </logger>
+
 </configuration>

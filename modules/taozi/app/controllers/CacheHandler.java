@@ -28,7 +28,7 @@ public class CacheHandler {
             i = i + 1;
             for (Annotation annotationi : parameter) {
                 if (annotationi != null && annotationi instanceof CacheKey) {
-                    String rep = "%" + i;
+                    String rep = "\\{" + ((CacheKey) annotationi).tag() + "\\}";
                     key = key.replaceFirst(rep, args[i].toString());
                     break;
                 }
