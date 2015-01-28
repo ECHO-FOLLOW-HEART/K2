@@ -8,17 +8,18 @@ import play.mvc.Result;
 public class Application extends Controller {
 
     public static Result index() throws AizouException {
-        return set();
+        Result set = set();
+        return set;
     }
 
     public static Result set() {
-        String get = (String) Cache.get("key1");
-        if (get == null) {
-            get = "haha";
-            Cache.set("key1", get, 10);
-            return ok("add: "+get);
+        String get = (String) Cache.get("key123");
+        if (get == null || get.isEmpty()) {
+            get = "data";
+            Cache.set("key123", get, 10);
+            return ok("get data");
         }
-        return ok(get);
+        return ok("get data from cache");
     }
 
 //    @Transactional

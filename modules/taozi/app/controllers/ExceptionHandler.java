@@ -15,10 +15,10 @@ import utils.Utils;
  * Created by Heaven on 2014/12/30.
  */
 @Aspect
-public class ExceptionHandlerAsp {
+public class ExceptionHandler {
     private Log logger = LogFactory.getLog("ExceptionHandler");
 
-    @Pointcut("call(public play.mvc.Result controllers.taozi..*(..)) && !within(ExceptionHandlerAsp)")
+    @Pointcut("call(public play.mvc.Result controllers.taozi..*(..)) && !within(controllers.ExceptionHandler)")
     void allControllers() {
     }
 

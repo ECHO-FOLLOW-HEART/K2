@@ -6,12 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by Heaven on 2015/1/22.
+ * Created by Heaven on 2015/1/24.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface UsingCache {
-    // default expire time is 10 seconds
-    String key();
-    int exprieTime() default 10;
+@Target(ElementType.PARAMETER)
+public @interface CacheKey {
+    boolean asKey() default true;
 }

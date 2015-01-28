@@ -36,7 +36,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static play.mvc.Results.ok;
+import static utils.WrappedStatus.WrappedOk;
 
 /**
  * 工具类
@@ -108,7 +108,8 @@ public class Utils {
             if (result != null)
                 response.put("err", result);
         }
-        return ok(response);
+//        return ok(response);
+        return WrappedOk(response);
     }
 
     /**

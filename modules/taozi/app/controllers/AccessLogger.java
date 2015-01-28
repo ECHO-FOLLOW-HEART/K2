@@ -16,7 +16,7 @@ import java.util.Date;
  * Created by Heaven on 2015/1/10.
  */
 @Aspect
-public class AccessLogAsp {
+public class AccessLogger {
     private static final String ACCESS = "access";
     private Log logger = LogFactory.getLog(ACCESS);
     // date time c-ip cs-method cs-uri sc-status bytes cached

@@ -3,6 +3,8 @@ package controllers.taozi;
 import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
@@ -23,7 +25,6 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import play.Configuration;
-//import play.cache.Cache;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -106,8 +107,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result recommend(int page, int pageSize) {
-        //TODO
-        List<ObjectNode> retNodeList = new ArrayList();
+        List<ObjectNode> retNodeList = new ArrayList<ObjectNode>();
         Datastore ds;
         try {
             ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
@@ -133,7 +133,7 @@ public class MiscCtrl extends Controller {
             for (Map.Entry<String, List<Recom>> entry : map.entrySet()) {
                 key = entry.getKey();
                 recList = entry.getValue();
-                recNodeList = new ArrayList();
+                recNodeList = new ArrayList<ObjectNode>();
                 for (Recom tem : recList) {
                     recNodeList.add((ObjectNode) new RecomFormatter().format(tem));
                 }
@@ -213,9 +213,9 @@ public class MiscCtrl extends Controller {
             Locality loc;
             AbstractPOI poi;
             PoiAPI.POIType poiType;
-            List locFields = new ArrayList();
+            List<String> locFields = new ArrayList<String>();
             Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc", "timeCostDesc");
-            List poiFields = new ArrayList();
+            List<String> poiFields = new ArrayList<String>();
             Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price");
             for (Favorite fa : faList) {
                 type = fa.type;
@@ -476,6 +476,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
+//    @UsingCache(key = "columns", exprieTime = 20)
     public static Result getColumns() {
         MiscFormatter formatter = new MiscFormatter();
         try {
@@ -569,22 +570,18 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result search(String keyWord, String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
-//        String cacheKey = "search." + keyWord + "." + locId + "." + loc + "." + vs + "." + hotel + "." + restaurant + "." + shopping + "." + page + "." + pageSize;
-//        String jsonStr = (String) Cache.get(cacheKey);
-//        if (jsonStr != null && !jsonStr.isEmpty()) {
-//            return Utils.createResponse(ErrorCode.NORMAL+1, Json.parse(jsonStr));
-//        }
+    @UsingCache(key = "search,keyWord=${0},locId=${1}", exprieTime = 20)
+    public static Result search(@CacheKey String keyWord, @CacheKey String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
         ObjectNode results = Json.newObject();
         try {
 
-            Iterator it;
+            Iterator<Locality> it;
             if (loc) {
                 Locality locality;
                 List<JsonNode> retLocList = new ArrayList<>();
                 it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
                 while (it.hasNext()) {
-                    locality = (Locality) it.next();
+                    locality = it.next();
                     retLocList.add(new DetailedLocalityFormatter().format(locality));
                 }
                 results.put("locality", Json.toJson(retLocList));
@@ -620,10 +617,6 @@ public class MiscCtrl extends Controller {
         } catch (AizouException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
-
-//        jsonStr = Json.toJson(results).toString();
-//        Cache.set(cacheKey, jsonStr, 3600);
-//        return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
     }
 
