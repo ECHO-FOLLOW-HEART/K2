@@ -7,6 +7,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import play.Logger;
 import play.cache.Cache;
 import play.libs.Json;
 import play.mvc.Result;
@@ -47,6 +48,7 @@ public class CacheHandler {
 
         String jsonStr = (String) Cache.get(key);
         if (jsonStr != null && !jsonStr.isEmpty()) {
+            Logger.info("Cache hit!");
             return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         }
 

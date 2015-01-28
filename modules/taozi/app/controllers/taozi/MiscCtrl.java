@@ -55,7 +55,8 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
+    @UsingCache(key = "appHomeImage,{w},{h}", expireTime = 10)
+    public static Result appHomeImage(@CacheKey(tag = "w")int width, @CacheKey(tag = "h")int height, int quality, String format, int interlace) {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).field("application").equal(Constants.APP_FLAG_TAOZI).get();
