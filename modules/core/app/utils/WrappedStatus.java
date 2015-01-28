@@ -9,7 +9,7 @@ import play.mvc.Results;
  * Created by Heaven on 2015/1/28.
  */
 public class WrappedStatus extends Results.Status {
-    private JsonNode jsonBody;
+    private JsonNode jsonBody = null;
 
     public static WrappedStatus WrappedOk(JsonNode jsonNode) {
         return new WrappedStatus(JavaResults.Ok(), jsonNode, Codec.javaSupported("utf-8"));

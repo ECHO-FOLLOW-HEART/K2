@@ -476,7 +476,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-//    @UsingCache(key = "columns", exprieTime = 20)
+    @UsingCache(key = "columns", expireTime = 20)
     public static Result getColumns() {
         MiscFormatter formatter = new MiscFormatter();
         try {
@@ -570,8 +570,16 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "search,keyWord=${0},locId=${1}", exprieTime = 20)
-    public static Result search(@CacheKey String keyWord, @CacheKey String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
+    @UsingCache(key = "search,keyWord=%0,locId=%1,loc=%2,vs=%3,hotel=%4,restaurant=%5,shopping=%6,page=%7,pageSize=%8", expireTime = 5)
+    public static Result search(@CacheKey String keyWord,
+                                @CacheKey String locId,
+                                @CacheKey boolean loc,
+                                @CacheKey boolean vs,
+                                @CacheKey boolean hotel,
+                                @CacheKey boolean restaurant,
+                                @CacheKey boolean shopping,
+                                @CacheKey int page,
+                                @CacheKey int pageSize) {
         ObjectNode results = Json.newObject();
         try {
 

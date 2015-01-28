@@ -7,7 +7,6 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
 import play.mvc.Result;
 import utils.Utils;
 
@@ -18,11 +17,7 @@ import utils.Utils;
 public class ExceptionHandler {
     private Log logger = LogFactory.getLog("ExceptionHandler");
 
-    @Pointcut("call(public play.mvc.Result controllers.taozi..*(..)) && !within(controllers.ExceptionHandler)")
-    void allControllers() {
-    }
-
-    @Around("allControllers() && !within(CacheHandler)")
+    @Around("execution(public play.mvc.Result controllers.taozi..*(..))")
     public Result catchException(ProceedingJoinPoint pjp, JoinPoint joinPoint) {
         try {
             return (Result) pjp.proceed();

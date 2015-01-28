@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 public @interface UsingCache {
     // default expire time is 10 seconds
     String key();
-    int exprieTime() default 10;
+    int expireTime() default 10;
 }
