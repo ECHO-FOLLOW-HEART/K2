@@ -7,7 +7,6 @@ import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import play.Logger;
 import play.mvc.Result;
 import utils.Utils;
 
@@ -27,7 +26,7 @@ public class ExceptionHandler {
             logger.info("An unhandled Exception was caught by ExceptionHandler");
             logger.info("Action name:     " + joinPoint.getSignature());
             logger.info("CaughtException: " + throwable.toString());
-            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "Unknown Error");
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, throwable.toString());
         }
     }
 }

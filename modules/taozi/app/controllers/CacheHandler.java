@@ -40,7 +40,7 @@ public class CacheHandler {
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.UsingCache)")
-    public Result tryUsingCache(ProceedingJoinPoint pjp, JoinPoint joinPoint) {
+    public Result tryUsingCache(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
         UsingCache annotation = method.getAnnotation(UsingCache.class);
@@ -52,16 +52,11 @@ public class CacheHandler {
             return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         }
 
-        try {
-            Result result = (Result) pjp.proceed();
-            JsonNode body = ((WrappedStatus) result).getJsonBody();
-            if (body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
-                Cache.set(key, body.get("result").toString(), annotation.expireTime());
-            }
-            return result;
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
+        Result result = (Result) pjp.proceed();
+        JsonNode body = ((WrappedStatus) result).getJsonBody();
+        if (body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
+            Cache.set(key, body.get("result").toString(), annotation.expireTime());
         }
-        return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "Unknown Error");
+        return result;
     }
 }
