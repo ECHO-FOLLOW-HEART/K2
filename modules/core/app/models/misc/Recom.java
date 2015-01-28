@@ -6,6 +6,8 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
 /**
+ * 桃子用的推荐内容
+ *
  * Created by topy on 2014/9/13.
  */
 @JsonFilter("recomFilter")

@@ -116,34 +116,6 @@ public class POICtrl extends Controller {
     }
 
     /**
-     * 获得景点周边的周边POI按照
-     *
-     * @param gainType
-     * @param lat
-     * @param lgn
-     * @param page
-     * @param pageSize
-     * @return
-     *//*
-    public static Result getPOINearBy(String gainType, String lat, String lgn, int page, int pageSize) {
-
-        try {
-            Double latD = Double.valueOf(lat);
-            Double lngD = Double.valueOf(lat);
-            List<String> fieldsLimit = Arrays.asList(AbstractPOI.simpID, AbstractPOI.FD_NAME, AbstractPOI.FD_DESC, AbstractPOI.FD_IMAGES);
-            List<AbstractPOI> poiInfos = (List<AbstractPOI>) PoiAPI.getPOINearBy(gainType, latD, lngD, fieldsLimit, page, pageSize);
-
-            List<JsonNode> nodeList = new ArrayList();
-            for (AbstractPOI temp : poiInfos) {
-                nodeList.add(new SimplePOIFormatter().format(temp));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch (NumberFormatException | TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        }
-    }*/
-
-    /**
      * 根据关键词搜索POI信息
      *
      * @param poiType
@@ -376,66 +348,26 @@ public class POICtrl extends Controller {
         }
         return results;
     }
-
-    /**
-     * 获取乘车指南/景点简介
-     *
-     * @param id
-     * @param desc
-     * @param traffic
-     * @return
-     */
-    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
-        try {
-            ObjectNode results = Json.newObject();
-            ObjectId oid = new ObjectId(id);
-            ViewSpot viewSpot = PoiAPI.getVsDetail(oid, Arrays.asList(ViewSpot.detDesc));
-            if (desc) {
-                results.put("desc", viewSpot.description.desc);
-            }
-
-            if (traffic) {
-                results.put("traffic", viewSpot.description.traffic);
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
-
-    /**
-     * 特定地点美食、购物发现
-     *
-     * @param id
-     * @param dinning
-     * @param shopping
-     * @param page
-     * @param pageSize
-     * @return
-     */
-//    public static Result getDinShop(String id, boolean dinning, boolean shopping,
-//                                    int page, int pageSize) {
-//        //TODO 缺少店铺推荐数据
+//
+//    /**
+//     * 获取乘车指南/景点简介
+//     *
+//     * @param id
+//     * @param desc
+//     * @param traffic
+//     * @return
+//     */
+//    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
 //        try {
 //            ObjectNode results = Json.newObject();
-//            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
-//            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
-//            if (dinning) {
-//                destKeyList.add(PoiAPI.DestinationType.DINNING);
-//                poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
-//            }
-//
-//            if (shopping) {
-//                destKeyList.add(PoiAPI.DestinationType.SHOPPING);
-//                poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
-//            }
 //            ObjectId oid = new ObjectId(id);
-//            for (PoiAPI.DestinationType type : destKeyList) {
+//            ViewSpot viewSpot = PoiAPI.getVsDetail(oid, Arrays.asList(ViewSpot.detDesc));
+//            if (desc) {
+//                results.put("desc", viewSpot.description.desc);
+//            }
 //
-//                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
-//                String kind = poiMap.get(type);
-//                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-//                results.put(kind, new LocalityGuideFormatter().format(locality));
+//            if (traffic) {
+//                results.put("traffic", viewSpot.description.traffic);
 //            }
 //            return Utils.createResponse(ErrorCode.NORMAL, results);
 //        } catch (AizouException | NullPointerException e) {
@@ -472,8 +404,6 @@ public class POICtrl extends Controller {
                     return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
             }
 
-//            for (String f : fields.split("\\s*,\\s*")) {
-//            }
             switch (field) {
                 case "tips":
                     destKeyList.add(AbstractPOI.FD_TIPS);

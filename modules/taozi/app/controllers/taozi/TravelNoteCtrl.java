@@ -22,7 +22,6 @@ import play.mvc.Result;
 import utils.Utils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -31,39 +30,6 @@ import java.util.List;
  * @author Zephyre
  */
 public class TravelNoteCtrl extends Controller {
-
-    /**
-     * 游记搜索
-     *
-     * @param keyWord
-     * @param locId
-     * @param page
-     * @param pageSize
-     * @return
-     */
-//    public static Result searchNotes(String keyWord, String locId, int page, int pageSize) {
-//        try {
-//            List<TravelNote> noteList;
-//            if (!locId.isEmpty()) {
-//                ObjectId oid = new ObjectId(locId);
-//                Locality locality = LocalityAPI.getLocality(oid);
-//                if (locality == null)
-//                    return Utils.createResponse(ErrorCode.NORMAL, "Locality not exist. iD:" + locId);
-//                noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, page, pageSize);
-//            } else if (!keyWord.isEmpty())
-//                noteList = TravelNoteAPI.searchNoteByLoc(Arrays.asList(keyWord), Arrays.asList(keyWord), page, pageSize);
-//            else
-//                noteList = new ArrayList();
-//            List<JsonNode> ret = new ArrayList<>();
-//            for (TravelNote note : noteList)
-//                ret.add(note.toJson());
-//
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(ret));
-//        } catch (AizouException e) {
-//            return Utils.createResponse(e.getErrCode(), e.getMessage());
-//        }
-//
-//    }
 
     /**
      * 游记搜索
@@ -112,84 +78,6 @@ public class TravelNoteCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
-
-    /**
-     * 特定目的地的游记
-     *
-     * @param locId
-     * @param pageSize
-     * @return
-     */
-//
-//    public static Result getNotes(String locId, String keyword, int page, int pageSize) {
-//        try {
-//            ObjectId objectId = new ObjectId(locId);
-//            List<JsonNode> nodeList = new ArrayList<>();
-//            Locality locality = LocalityAPI.getLocality(objectId, Arrays.asList(Locality.FD_ZH_NAME, Locality.FD_ALIAS));
-//            ViewSpot vs = PoiAPI.getVsDetail(objectId, Arrays.asList(ViewSpot.FD_ZH_NAME, ViewSpot.FD_ALIAS));
-//            List<String> locNames = new ArrayList<>();
-//            List<String> vsNames = new ArrayList<>();
-//            if (locality == null && vs == null)
-//                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-//            else if (vs == null) {
-//                if (locality.getAlias() != null)
-//                    locNames.addAll(locality.getAlias());
-//                if (locality.getZhName() != null)
-//                    locNames.add(locality.getZhName());
-//            } else if (locality == null) {
-//                if (vs.alias != null)
-//                    vsNames.addAll(vs.alias);
-//                if (vs.zhName != null)
-//                    vsNames.add(vs.zhName);
-//            } else {
-//                if (locality.getAlias() != null)
-//                    locNames.addAll(locality.getAlias());
-//                if (locality.getTags() != null)
-//                    locNames.addAll(locality.getTags());
-//                if (locality.getZhName() != null)
-//                    locNames.add(locality.getZhName());
-//                if (vs.alias != null)
-//                    vsNames.addAll(vs.alias);
-//                if (vs.zhName != null)
-//                    vsNames.add(vs.zhName);
-//            }
-//
-//            List<TravelNote> noteList = TravelNoteAPI.searchNoteByLoc(locNames, vsNames, page, pageSize);
-//            for (TravelNote note : noteList) {
-//                nodeList.add(new SimpTravelNoteFormatter().format(note));
-//            }
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-//        } catch (AizouException | NullPointerException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-//        }
-//    }
-//
-//    /**
-//     * 获得游记详情
-//     *
-//     * @param noteId
-//     * @return
-//     */
-//    public static Result getTravelNoteDetail(String noteId) {
-//        try {
-//            Long userId;
-//            if (request().hasHeader("UserId"))
-//                userId = Long.parseLong(request().getHeader("UserId"));
-//            else
-//                userId = null;
-//            List<TravelNote> travelNoteList = TravelNoteAPI.searchNoteById(Arrays.asList(noteId), 1);
-//            List<JsonNode> nodeList = new ArrayList<>();
-//            for (TravelNote note : travelNoteList) {
-//                //是否被收藏
-//                MiscAPI.isFavorite(note, userId);
-//                nodeList.add(new DetailTravelNoteFormatter().format(note));
-//            }
-//
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-//        } catch (AizouException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-//        }
-//    }
 
     /**
      * 获得游记详情

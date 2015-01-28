@@ -6,6 +6,8 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
 /**
+ * 首页专栏
+ *
  * Created by lxf on 14-11-12.
  */
 @JsonFilter("columnFilter")
