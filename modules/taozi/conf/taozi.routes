@@ -159,7 +159,3 @@ GET           /poi/$id<[0-9a-f]{24}>/details                     controllers.tao
 GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情
 GET           /travel-notes/$id<[0-9a-f]{24}>                    controllers.taozi.TravelNoteCtrl.travelNoteDetail(id:String)
-
-#----------问答--------------------
-#问答搜索
-GET           /qa/search                                        controllers.taozi.MiscCtrl.searchQa(query:String?="",page: Int?=0, pageSize:Int?=5)

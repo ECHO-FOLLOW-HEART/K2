@@ -841,23 +841,4 @@ public class MiscCtrl extends Controller {
 //        return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC));
 //    }
 
-    public static Result searchQa(String query, int page, int pageSize) {
-        List<Answer> qaList;
-        List<JsonNode> result = new ArrayList<>();
-        //查询答案
-        try {
-            if (!query.isEmpty()) {
-                List<String> sourceList = QaAPI.searchQaApi(query, page, pageSize);
-                qaList = QaAPI.getNotesById(sourceList);
-                for (Answer qa : qaList) {
-                    result.add(new QaFormatter().format(qa));
-                }
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-            } else
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "fail");
-
-        } catch (SolrServerException | AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        }
-    }
 }
