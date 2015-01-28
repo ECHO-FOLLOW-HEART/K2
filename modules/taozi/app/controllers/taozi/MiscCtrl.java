@@ -570,7 +570,8 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "search,keyWord=%0,locId=%1,loc=%2,vs=%3,hotel=%4,restaurant=%5,shopping=%6,page=%7,pageSize=%8", expireTime = 5)
+//    @UsingCache(key = "search,keyWord=%0,locId={locId},loc=%2,vs=%3,hotel=%4,restaurant=%5,shopping={shopping},page=%7,pageSize=%8",
+//                expireTime = 5)
     public static Result search(@CacheKey String keyWord,
                                 @CacheKey String locId,
                                 @CacheKey boolean loc,

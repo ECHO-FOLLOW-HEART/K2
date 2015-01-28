@@ -1,7 +1,6 @@
 package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.ErrorCode;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -16,8 +15,6 @@ import utils.WrappedStatus;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-
-import static utils.WrappedStatus.WrappedOk;
 
 /**
  * Created by Heaven on 2015/1/22.
@@ -50,13 +47,7 @@ public class CacheHandler {
 
         String jsonStr = (String) Cache.get(key);
         if (jsonStr != null && !jsonStr.isEmpty()) {
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
-            ObjectNode response = Json.newObject();
-            response.put("lastModified", System.currentTimeMillis() / 1000);
-            response.put("cached", true);
-            response.put("result", Json.parse(jsonStr));
-            response.put("code", ErrorCode.NORMAL);
-            return WrappedOk(response);
+            return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         }
 
         try {

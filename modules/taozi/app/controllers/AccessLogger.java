@@ -7,6 +7,7 @@ import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import play.api.mvc.ResponseHeader;
 import play.libs.Json;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -22,7 +23,7 @@ import java.util.Date;
 public class AccessLogger {
     private static final String ACCESS = "access";
     private Log logger = LogFactory.getLog(ACCESS);
-    // date time c-ip cs-method cs-uri sc-status bytes cached
+    // date time c-ip cs-method cs-uri sc-status c-apicode bytes
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))")
     public Result logAccessment(ProceedingJoinPoint pjp) {
@@ -34,7 +35,9 @@ public class AccessLogger {
             if (body == null) {
                 body = Json.parse("{}");
             }
-            String logLine = getLogLine(context, body.get("code").asInt(ErrorCode.UNKOWN_ERROR), body);
+            ResponseHeader s = (ResponseHeader) result.toScala().productElement(0);
+            int status = s.status();
+            String logLine = getLogLine(context, body.get("code").asInt(ErrorCode.UNKOWN_ERROR), status, body);
             logger.info(logLine);
         } catch (Throwable throwable) {
             //assert that pjp.proceed() won't throw exception
@@ -44,7 +47,7 @@ public class AccessLogger {
         }
     }
 
-    private String getLogLine(Http.Context context, int code, JsonNode result) {
+    private String getLogLine(Http.Context context, int code, int responseStatus, JsonNode result) {
         Date now = new Date();
         String ip = "-";
         String method = "-";
@@ -54,19 +57,16 @@ public class AccessLogger {
             method = context.request().method();
             uri = context.request().uri();
         }
-        String status = String.format("%d", code);
+        String status = String.format("%d", responseStatus);
+        String serverCode = String.format("%d", code);
         String bytes = "0";
-        String cached = "0";
         if (result != null) {
             bytes = String.format("%d", result.toString().length());
-            if (result.get("cached") != null && result.get("cached").asBoolean(false)) {
-                cached = "1";
-            }
         }
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
-        return dateFormat.format(now) + " " + timeFormat.format(now) + " " + ip + " " + method + " " + uri + " " + status + " " + bytes + " " + cached + " ";
+        return dateFormat.format(now) + " " + timeFormat.format(now) + " " + ip + " " + method + " " + uri + " " + status + " " + serverCode + " " + bytes;
     }
 }
