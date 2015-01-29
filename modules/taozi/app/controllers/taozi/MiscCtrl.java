@@ -110,6 +110,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
+    @UsingCache(key = "recommend")
     public static Result recommend(int page, int pageSize) {
         List<ObjectNode> retNodeList = new ArrayList<ObjectNode>();
         Datastore ds;
@@ -485,6 +486,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
+    @UsingCache(key = "getColumns", expireTime = 30)
     public static Result getColumns(String type, String id) {
         ColumnFormatter formatter = new ColumnFormatter();
         String url = null;

@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface UsingCache {
-    // default expire time is 10 seconds
+    // default expire time unit is seconds
     String key();
-    int expireTime() default 10;
+    int expireTime() default 300;
 }
