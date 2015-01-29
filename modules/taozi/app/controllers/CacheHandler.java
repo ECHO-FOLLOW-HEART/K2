@@ -2,12 +2,13 @@ package controllers;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
-import play.Logger;
 import play.cache.Cache;
 import play.libs.Json;
 import play.mvc.Result;
@@ -22,6 +23,10 @@ import java.lang.reflect.Method;
  */
 @Aspect
 public class CacheHandler {
+    public static int MAX_KEY_LENGTH = 1000;        //1KB
+    public static int MAX_VALUE_LENGTH = 1000000;   //1MB
+    Log logger = LogFactory.getLog(this.getClass());
+
     private String getCacheKey(UsingCache annotation, Annotation[][] parameterAnnotations, Object[] args) {
         String key = annotation.key();
         int i = -1;
@@ -35,7 +40,7 @@ public class CacheHandler {
                 }
             }
         }
-        return key;
+        return key.length() <= MAX_KEY_LENGTH ?key:key.substring(0, MAX_KEY_LENGTH);
     }
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
@@ -45,17 +50,24 @@ public class CacheHandler {
         Method method = ms.getMethod();
         UsingCache annotation = method.getAnnotation(UsingCache.class);
         String key = getCacheKey(annotation, method.getParameterAnnotations(), joinPoint.getArgs());
-
         String jsonStr = (String) Cache.get(key);
+
+        //缓存命中
         if (jsonStr != null && !jsonStr.isEmpty()) {
-            Logger.info("Cache hit!");
+            logger.info("cache hit!");
             return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         }
 
+        //缓存未命中
         Result result = (Result) pjp.proceed();
         JsonNode body = ((WrappedStatus) result).getJsonBody();
         if (body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
-            Cache.set(key, body.get("result").toString(), annotation.expireTime());
+            String cacheValue = body.get("result").toString();
+            if (cacheValue.length() <= MAX_VALUE_LENGTH) {
+                Cache.set(key, cacheValue, annotation.expireTime());
+            } else {
+                logger.info("Cannot do caching: data size out of limit ("+MAX_VALUE_LENGTH+" Bytes)");
+            }
         }
         return result;
     }
