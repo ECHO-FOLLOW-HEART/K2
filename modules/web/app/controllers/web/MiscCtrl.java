@@ -11,9 +11,12 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.travelpi.geo.LocalityFormatter;
 import formatter.travelpi.geo.SimpleLocalityFormatter;
+import formatter.web.misc.ArticleFormatter;
+import formatter.web.misc.ArticleSimpleFormatter;
 import formatter.web.misc.RecommendationFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
+import models.misc.Article;
 import models.misc.Recommendation;
 import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
@@ -94,6 +97,13 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
+    /**
+     * 联想提示
+     *
+     * @param word
+     * @param pageSize
+     * @return
+     */
     public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
                                               int pageSize) throws AizouException {
         ObjectNode ret = Json.newObject();
@@ -157,7 +167,7 @@ public class MiscCtrl extends Controller {
 
 
     /**
-     * 根据搜索词获得提示
+     * 联想提示
      *
      * @param word
      * @param pageSize
@@ -242,6 +252,14 @@ public class MiscCtrl extends Controller {
         return results;
     }
 
+    /**
+     * 推荐
+     *
+     * @param type
+     * @param page
+     * @param pageSize
+     * @return
+     */
     public static Result recommend(String type, int page, int pageSize) {
         List<JsonNode> results = new ArrayList<>();
 
@@ -266,6 +284,60 @@ public class MiscCtrl extends Controller {
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
+    }
+
+    /**
+     * 获取文章详情
+     *
+     * @param id
+     * @return
+     */
+    public static Result getArticleById(String id) {
+        JsonNode result;
+
+        Datastore ds;
+        try {
+            ObjectId oid = new ObjectId(id);
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            Query<Article> query = ds.createQuery(Article.class);
+
+            query.field("enabled").equal(Boolean.TRUE).field("_id").equal(oid);
+            Article article = query.get();
+
+            if (article == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("INVALID ARTICLE ID: %s", id));
+            result = new ArticleFormatter().format(article);
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
+        return Utils.createResponse(ErrorCode.NORMAL, result);
+    }
+
+    /**
+     * 获取文章列表
+     *
+     * @param
+     * @return
+     */
+    public static Result getArticles(int page, int pageSize) {
+        List<JsonNode> result = new ArrayList();
+
+        Datastore ds;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            Query<Article> query = ds.createQuery(Article.class);
+            query.field("enabled").equal(Boolean.TRUE);
+            query.order("-publishTime").offset(page * pageSize).limit(pageSize);
+            query.retrievedFields(false, "content");
+            JsonNode node;
+            for (Iterator<Article> it = query.iterator(); it.hasNext(); ) {
+                node = new ArticleSimpleFormatter().format(it.next());
+                result.add(node);
+            }
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
     }
 
     public static Result checkValidation() {
