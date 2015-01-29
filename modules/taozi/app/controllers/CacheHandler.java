@@ -17,6 +17,8 @@ import utils.WrappedStatus;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Heaven on 2015/1/22.
@@ -25,6 +27,7 @@ import java.lang.reflect.Method;
 public class CacheHandler {
     public static int MAX_KEY_LENGTH = 1000;        //1KB
     public static int MAX_VALUE_LENGTH = 1000000;   //1MB
+    Lock lock = new ReentrantLock();
     Log logger = LogFactory.getLog(this.getClass());
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
@@ -43,10 +46,12 @@ public class CacheHandler {
         }
 
         //缓存未命中
-        return getResultFromDB(pjp, key, annotation);
+        synchronized (key.intern()) {
+            return getResultFromDB(pjp, key, annotation);
+        }
     }
 
-    private synchronized Result getResultFromDB(ProceedingJoinPoint pjp, String key, UsingCache annotation) throws Throwable {
+    private Result getResultFromDB(ProceedingJoinPoint pjp, String key, UsingCache annotation) throws Throwable {
         //再次尝试从缓存中获取值
         String jsonStr = (String) Cache.get(key);
         if (jsonStr != null && !jsonStr.isEmpty()) {
