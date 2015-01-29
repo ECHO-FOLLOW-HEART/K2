@@ -37,7 +37,7 @@ public class CacheHandler {
         String[] keyList = annotation.keyList().split(SEPARATOR);
         for (String keyEntry : keyList) {
             String key = getCacheKey(keyEntry, method.getParameterAnnotations(), joinPoint.getArgs());
-            logger.info("remove key: " + key);
+            logger.debug("Remove key: " + key);
             Cache.remove(key);
         }
         return (Result) pjp.proceed();
@@ -54,7 +54,7 @@ public class CacheHandler {
 
         //缓存命中
         if (jsonStr != null && !jsonStr.isEmpty()) {
-            logger.info("cache hit!");
+            logger.debug(String.format("Cache hit: %s", key));
             return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         }
 
@@ -68,7 +68,7 @@ public class CacheHandler {
         //再次尝试从缓存中获取值
         String jsonStr = (String) Cache.get(key);
         if (jsonStr != null && !jsonStr.isEmpty()) {
-            logger.info("cache hit!");
+            logger.debug(String.format("Cache hit: %s", key));
             return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         }
 
@@ -78,9 +78,10 @@ public class CacheHandler {
         if (body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
             String cacheValue = body.get("result").toString();
             if (cacheValue.length() <= MAX_VALUE_LENGTH) {
+                logger.debug(String.format("Set to cache: %s", key));
                 Cache.set(key, cacheValue, annotation.expireTime());
             } else {
-                logger.info("Cannot do caching: data size out of limit ("+MAX_VALUE_LENGTH+" Bytes)");
+                logger.warn("Cannot do caching: data size out of limit (" + MAX_VALUE_LENGTH + " Bytes)");
             }
         }
         return result;
@@ -104,6 +105,6 @@ public class CacheHandler {
                 }
             }
         }
-        return key.length() <= MAX_KEY_LENGTH ?key:key.substring(0, MAX_KEY_LENGTH);
+        return key.length() <= MAX_KEY_LENGTH ? key : key.substring(0, MAX_KEY_LENGTH);
     }
 }
