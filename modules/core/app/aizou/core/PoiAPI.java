@@ -1079,6 +1079,7 @@ public class PoiAPI {
                 criList.add(query.criteria("id").equal(temp.getId()));
             }
             query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+            return query.asList();
         } else {
             if (keyword != null && !keyword.isEmpty()) {
                 query.field("alias").equal(Pattern.compile("^" + keyword));
