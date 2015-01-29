@@ -3,7 +3,6 @@ package controllers.taozi;
 import aizou.core.GeoAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
-import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -16,12 +15,9 @@ import formatter.taozi.geo.DetailedLocalityFormatter;
 import formatter.taozi.geo.DetailsEntryFormatter;
 import formatter.taozi.geo.SimpleCountryFormatter;
 import formatter.taozi.geo.SimpleLocalityFormatter;
-import formatter.taozi.misc.TravelNoteFormatter;
 import models.geo.Country;
 import models.geo.DetailsEntry;
 import models.geo.Locality;
-import models.misc.TravelNote;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
@@ -37,18 +33,18 @@ import java.util.*;
 
 /**
  * 地理相关
- * <p>
+ * <p/>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
     /**
      * 根据id查看城市详情
      *
-     * @param id      城市ID
-     * @param noteCnt 游记个数
+     * @param id 城市ID
      * @return
      */
-    public static Result getLocality(String id, int noteCnt) {
+    @UsingCache(key = "getLocality({id})", expireTime = 3600)
+    public static Result getLocality(@CacheKey(tag="id") String id) {
         try {
             // 获取图片宽度
             String imgWidthStr = request().getQueryString("imgWidth");
@@ -75,6 +71,21 @@ public class GeoCtrl extends Controller {
     }
 
     /**
+     * 获得城市图集列表
+     *
+     * @param id
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @UsingCache(key = "getLocalityAlbums({id},{page},{pageSize})", expireTime = 3600)
+    public static Result getLocalityAlbums(@CacheKey(tag = "id") String id,
+                                           @CacheKey(tag = "page") int page,
+                                           @CacheKey(tag = "pageSize") int pageSize) {
+        return MiscCtrl.getAlbums(id, page, pageSize);
+    }
+
+    /**
      * 获得国内国外目的地
      *
      * @param abroad
@@ -82,8 +93,8 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "destinations(abroad={abroad})")
-    public static Result exploreDestinations(@CacheKey(tag = "abroad")boolean abroad, int page, int pageSize) {
+    @UsingCache(key = "destinations(abroad={abroad})", expireTime = 3600)
+    public static Result exploreDestinations(@CacheKey(tag = "abroad") boolean abroad, int page, int pageSize) {
         try {
             long t0 = System.currentTimeMillis();
             Http.Request req = request();

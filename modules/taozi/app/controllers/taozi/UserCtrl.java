@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
+import controllers.CacheKey;
+import controllers.RemoveCache;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -19,7 +22,6 @@ import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.Json;
@@ -681,7 +683,11 @@ public class UserCtrl extends Controller {
         } catch (NumberFormatException | NullPointerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
+        return addContactImpl(userId, contactId);
+    }
 
+    @RemoveCache(keyList = "getContactList({userA})|getContactList({userB})")
+    public static Result addContactImpl(@CacheKey(tag = "userA") long userId, @CacheKey(tag = "userB") long contactId) {
         try {
             UserAPI.addContact(userId, contactId);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
@@ -704,11 +710,26 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
 
+        return delContactImpl(userId, id);
+    }
+
+    @RemoveCache(keyList = "getContactList({userA})|getContactList({userB})")
+    public static Result delContactImpl(@CacheKey(tag = "userA") long userA, @CacheKey(tag = "userB") long userB) {
         try {
-            UserAPI.delContact(userId, id);
+            UserAPI.delContact(userA, userB);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
+    }
+
+    public static Result getContactList() {
+        long userId;
+        try {
+            userId = Integer.parseInt(request().getHeader("UserId"));
+            return getContactListImpl(userId);
+        } catch (NumberFormatException | NullPointerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }
 
@@ -717,14 +738,8 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result getContactList() {
-        long userId;
-        try {
-            userId = Integer.parseInt(request().getHeader("UserId"));
-        } catch (NumberFormatException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
-        }
-
+    @UsingCache(key = "getContactList({id})", expireTime = 300)
+    public static Result getContactListImpl(@CacheKey(tag = "id") long userId) {
         try {
             List<UserInfo> list = UserAPI.getContactList(userId);
             if (list == null)
@@ -793,7 +808,7 @@ public class UserCtrl extends Controller {
                 try {
                     PhoneEntity phone = parser.parse(c.tel);
                     c.tel = phone.getPhoneNumber();
-                }catch(IllegalArgumentException ignored){
+                } catch (IllegalArgumentException ignored) {
                 }
                 contacts.add(c);
             }
@@ -804,14 +819,14 @@ public class UserCtrl extends Controller {
 
             List<String> telList = new ArrayList<>();
             for (Contact c : contacts) {
-                if (c.tel !=null && !c.tel.isEmpty())
+                if (c.tel != null && !c.tel.isEmpty())
                     telList.add(c.tel);
             }
 
 
-            Map<String, Long> matchResult=new HashMap<>();
+            Map<String, Long> matchResult = new HashMap<>();
             for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel), telList,
-                    Arrays.asList(UserInfo.fnUserId, UserInfo.fnTel), 0, 1000); itr.hasNext(); ){
+                    Arrays.asList(UserInfo.fnUserId, UserInfo.fnTel), 0, 1000); itr.hasNext(); ) {
                 UserInfo user = itr.next();
                 matchResult.put(user.getTel(), user.getUserId());
             }
@@ -820,12 +835,12 @@ public class UserCtrl extends Controller {
 //                temp.setId(new ObjectId());
 //                userInfo = UserAPI.getUserByField(UserInfo.fnTel, temp.tel, Arrays.asList(UserInfo.fnUserId));
 
-                if (matchResult.containsKey(temp.tel)){
+                if (matchResult.containsKey(temp.tel)) {
                     temp.isUser = true;
                     temp.userId = matchResult.get(temp.tel);
                     temp.isContact = contactSet.contains(temp.userId);
-                }else{
-                    temp.isUser=false;
+                } else {
+                    temp.isUser = false;
                     temp.isContact = false;
                 }
 

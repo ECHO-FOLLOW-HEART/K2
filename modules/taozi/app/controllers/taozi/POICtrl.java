@@ -4,6 +4,8 @@ import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.LocalityGuideFormatter;
@@ -201,7 +203,15 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result viewPoiList(String poiType, String locId, String tagFilter, String sortField, String sortType, int page, int pageSize, int commentPage, int commentPageSize) {
+    @UsingCache(key="poiList({type},{loc},{sortField},{sortType},{page},{pageSize},{cmtPage},{cmtPageSize}",
+            expireTime = 3600)
+    public static Result viewPoiList(@CacheKey(tag="type") String poiType,
+                                     @CacheKey(tag="loc") String locId, String tagFilter,
+                                     @CacheKey(tag="sortField") String sortField,
+                                     @CacheKey(tag="sortType") String sortType,
+                                     @CacheKey(tag="page") int page, @CacheKey(tag="pageSize") int pageSize,
+                                     @CacheKey(tag="cmtPage") int commentPage,
+                                     @CacheKey(tag="cmtPageSize") int commentPageSize) {
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":

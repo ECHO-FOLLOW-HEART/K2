@@ -5,6 +5,8 @@ import aizou.core.GuideAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.guide.GuideFormatter;
@@ -264,7 +266,9 @@ public class GuideCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result getLocalityGuideInfo(String id, String guidePart) {
+    @UsingCache(key = "getLocalityGuideInfo({id},{type})", expireTime = 3600)
+    public static Result getLocalityGuideInfo(@CacheKey(tag = "id") String id,
+                                              @CacheKey(tag = "type") String guidePart) {
         try {
             List<String> fields = new ArrayList<>();
             Collections.addAll(fields, Locality.fnDinningIntro, Locality.fnShoppingIntro);
