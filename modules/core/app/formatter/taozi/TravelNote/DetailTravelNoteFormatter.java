@@ -44,6 +44,7 @@ public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
                         TravelNote.fnLowerCost,
                         TravelNote.fnCommentCnt,
                         TravelNote.fnViewCnt,
+                        TravelNote.fnSource,
                         TravelNote.fnFavorCnt
                 ));
 

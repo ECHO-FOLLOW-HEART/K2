@@ -3,6 +3,7 @@ package controllers.taozi;
 import aizou.core.GeoAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
+import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -15,9 +16,12 @@ import formatter.taozi.geo.DetailedLocalityFormatter;
 import formatter.taozi.geo.DetailsEntryFormatter;
 import formatter.taozi.geo.SimpleCountryFormatter;
 import formatter.taozi.geo.SimpleLocalityFormatter;
+import formatter.taozi.misc.TravelNoteFormatter;
 import models.geo.Country;
 import models.geo.DetailsEntry;
 import models.geo.Locality;
+import models.misc.TravelNote;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
@@ -33,7 +37,7 @@ import java.util.*;
 
 /**
  * 地理相关
- * <p/>
+ * <p>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
@@ -62,18 +66,11 @@ public class GeoCtrl extends Controller {
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
-
-            //List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, 0, noteCnt);
-            //List<ObjectNode> objs = new ArrayList<>();
-            //for (TravelNote tra : tras) {
-            //    objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
-            //}
-            //int imageCnt = locality.getImages() == null ? 0 : locality.getImages().size();
             // 显示图集的数量
             response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
 

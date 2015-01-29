@@ -62,7 +62,7 @@ GET           /misc/put-policy/:scenario                         controllers.tao
 #处理资源上传的回调
 POST          /misc/upload-callback                              controllers.taozi.MiscCtrl.getCallback()
 #游记
-GET           /misc/travel-notes/search                          controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
+#GET           /misc/travel-notes/search                          controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
 #推荐
 GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #搜索
@@ -75,7 +75,7 @@ GET           /misc/updates                                      controllers.tao
 #查看POI详情
 # 景点详情
 GET           /poi/vs/$spotId<[0-9a-f]{24}>                      controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
-#获取景点的深度介绍
+#获取景点的深度介绍(H5)
 GET           /poi/vs/$id<[0-9a-f]{24}>/details                  controllers.taozi.POICtrl.getTravelGuide(id: String, field: String,poiDesc: String="vs")
 # 酒店详情
 GET           /poi/hotel/:spotId                                 controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
@@ -84,15 +84,15 @@ GET           /poi/restaurant/:spotId                            controllers.tao
 #购物详情
 GET           /poi/shopping/:spotId                              controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, commentPage: Int?=0, commentPageSize: Int?=10,rmdPage: Int?=0, rmdPageSize: Int?=10)
 # POI的搜索
-GET           /poi/search                                        controllers.taozi.POICtrl.poiSearch(poiType: String,tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="score", sort: String?="asc",hotelType: String?="")
+GET           /poi/search                                        controllers.taozi.POICtrl.poiSearch(poiType: String,tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="hotness", sort: String?="desc",hotelType: String?="")
 # 酒店列表
 GET           /poi/hotel/localities/:locId                       controllers.taozi.POICtrl.viewPoiList(poiDesc: String="hotel",locId: String, tagFilter: String?="", sortField: String?="rating",sortType:String?="desc",page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
 # 美食列表
-GET           /poi/restaurant/localities/:locId                  controllers.taozi.POICtrl.viewPoiList(poiDesc: String="restaurant",locId: String, tagFilter: String?="", sortFilter: String?="rating", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
+GET           /poi/restaurant/localities/:locId                  controllers.taozi.POICtrl.viewPoiList(poiDesc: String="restaurant",locId: String, tagFilter: String?="", sortFilter: String?="hotness", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
 # 购物列表
-GET           /poi/shopping/localities/:locId                    controllers.taozi.POICtrl.viewPoiList(poiDesc: String="shopping",locId: String, tagFilter: String?="", sortFilter: String?="rating", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
+GET           /poi/shopping/localities/:locId                    controllers.taozi.POICtrl.viewPoiList(poiDesc: String="shopping",locId: String, tagFilter: String?="", sortFilter: String?="hotness", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
 # 景点列表
-GET           /poi/vs/localities/:locId                          controllers.taozi.POICtrl.viewPoiList(poiDesc: String="vs",locId: String, tagFilter: String?="", sortFilter: String?="rating", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
+GET           /poi/vs/localities/:locId                          controllers.taozi.POICtrl.viewPoiList(poiDesc: String="vs",locId: String, tagFilter: String?="", sortFilter: String?="hotness", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
 #获得景点周边的POI列表
 GET           /poi/nearby                                        controllers.taozi.POICtrl.getPoiNear(lng: Double, lat: Double, maxDist: Double?=2000, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false,shopping: Boolean?=false, page: Int?=0, pageSize: Int?=10,commentPage: Int?=0, commentPageSize: Int?=10)
 
@@ -143,8 +143,6 @@ GET           /geo/localities/:id/album                          controllers.tao
 GET           /geo/localities/$id<[0-9a-f]{24}>/outLine          controllers.taozi.GeoCtrl.getTravelGuideOutLine(id: String)
 #获取景点的深度介绍（H5）
 GET           /geo/localities/$id<[0-9a-f]{24}>/details          controllers.taozi.GeoCtrl.getTravelGuide(id: String, field: String)
-#旅行专栏
-GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage",id: String?="")
 
 #----------用户评价接口----------
 #保存用户的评价
@@ -158,7 +156,9 @@ GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.tao
 
 #特定地区的美食、购物发现
 #GET           /poi/$id<[0-9a-f]{24}>/details                     controllers.taozi.POICtrl.getDinShop(id:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
+#旅行专栏
+GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage",id: String?="")
 #更多精选游记
-GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
-#返回单篇游记详情
+GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyWord: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
+#返回单篇游记详情(H5)
 GET           /travel-notes/$id<[0-9a-f]{24}>                    controllers.taozi.TravelNoteCtrl.travelNoteDetail(id:String)

@@ -24,6 +24,7 @@ import models.poi.Comment;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -653,7 +654,7 @@ public class MiscCtrl extends Controller {
                     retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
-        } catch (AizouException | NullPointerException e) {
+        } catch (AizouException | NullPointerException | SolrServerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));

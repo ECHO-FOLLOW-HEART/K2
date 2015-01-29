@@ -13,6 +13,7 @@ import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import models.geo.Locality;
 import models.poi.*;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -36,6 +37,8 @@ public class POICtrl extends Controller {
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
+
+
         //是否被收藏
         MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.format(poiInfo);
@@ -57,7 +60,9 @@ public class POICtrl extends Controller {
         ret.put("recommends", Json.toJson(recommends));
 
         ret.put("comments", Json.toJson(comments));
-
+        // 添加H5接口
+        if (poiClass == Shopping.class || poiClass == Restaurant.class)
+            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
         return ret;
     }
 
@@ -94,9 +99,6 @@ public class POICtrl extends Controller {
             case "shopping":
                 poiClass = Shopping.class;
                 break;
-            case "entertainment":
-                poiClass = Entertainment.class;
-                break;
             default:
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
         }
@@ -112,34 +114,6 @@ public class POICtrl extends Controller {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
-
-    /**
-     * 获得景点周边的周边POI按照
-     *
-     * @param gainType
-     * @param lat
-     * @param lgn
-     * @param page
-     * @param pageSize
-     * @return
-     *//*
-    public static Result getPOINearBy(String gainType, String lat, String lgn, int page, int pageSize) {
-
-        try {
-            Double latD = Double.valueOf(lat);
-            Double lngD = Double.valueOf(lat);
-            List<String> fieldsLimit = Arrays.asList(AbstractPOI.simpID, AbstractPOI.FD_NAME, AbstractPOI.FD_DESC, AbstractPOI.FD_IMAGES);
-            List<AbstractPOI> poiInfos = (List<AbstractPOI>) PoiAPI.getPOINearBy(gainType, latD, lngD, fieldsLimit, page, pageSize);
-
-            List<JsonNode> nodeList = new ArrayList();
-            for (AbstractPOI temp : poiInfos) {
-                nodeList.add(new SimplePOIFormatter().format(temp));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch (NumberFormatException | TravelPiException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        }
-    }*/
 
     /**
      * 根据关键词搜索POI信息
@@ -254,6 +228,9 @@ public class POICtrl extends Controller {
             case "rating":
                 sf = PoiAPI.SortField.RATING;
                 break;
+            case "hotness":
+                sf = PoiAPI.SortField.HOTNESS;
+                break;
             default:
                 sf = null;
         }
@@ -271,6 +248,7 @@ public class POICtrl extends Controller {
             for (AbstractPOI temp : it) {
                 temp.images = TaoziDataFilter.getOneImage(temp.images);
                 temp.priceDesc = TaoziDataFilter.getPriceDesc(temp);
+                temp.desc = StringUtils.abbreviate(temp.desc, Constants.ABBREVIATE_LEN);
                 ObjectNode ret = (ObjectNode) new SimplePOIFormatter().setImageWidth(imgWidth).format(temp);
                 if (poiType.equals("restaurant") || poiType.equals("shopping") ||
                         poiType.equals("hotel")) {
@@ -370,66 +348,26 @@ public class POICtrl extends Controller {
         }
         return results;
     }
-
-    /**
-     * 获取乘车指南/景点简介
-     *
-     * @param id
-     * @param desc
-     * @param traffic
-     * @return
-     */
-    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
-        try {
-            ObjectNode results = Json.newObject();
-            ObjectId oid = new ObjectId(id);
-            ViewSpot viewSpot = PoiAPI.getVsDetail(oid, Arrays.asList(ViewSpot.detDesc));
-            if (desc) {
-                results.put("desc", viewSpot.description.desc);
-            }
-
-            if (traffic) {
-                results.put("traffic", viewSpot.description.traffic);
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
-
-    /**
-     * 特定地点美食、购物发现
-     *
-     * @param id
-     * @param dinning
-     * @param shopping
-     * @param page
-     * @param pageSize
-     * @return
-     */
-//    public static Result getDinShop(String id, boolean dinning, boolean shopping,
-//                                    int page, int pageSize) {
-//        //TODO 缺少店铺推荐数据
+//
+//    /**
+//     * 获取乘车指南/景点简介
+//     *
+//     * @param id
+//     * @param desc
+//     * @param traffic
+//     * @return
+//     */
+//    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
 //        try {
 //            ObjectNode results = Json.newObject();
-//            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
-//            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
-//            if (dinning) {
-//                destKeyList.add(PoiAPI.DestinationType.DINNING);
-//                poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
-//            }
-//
-//            if (shopping) {
-//                destKeyList.add(PoiAPI.DestinationType.SHOPPING);
-//                poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
-//            }
 //            ObjectId oid = new ObjectId(id);
-//            for (PoiAPI.DestinationType type : destKeyList) {
+//            ViewSpot viewSpot = PoiAPI.getVsDetail(oid, Arrays.asList(ViewSpot.detDesc));
+//            if (desc) {
+//                results.put("desc", viewSpot.description.desc);
+//            }
 //
-//                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
-//                String kind = poiMap.get(type);
-//                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-//                results.put(kind, new LocalityGuideFormatter().format(locality));
+//            if (traffic) {
+//                results.put("traffic", viewSpot.description.traffic);
 //            }
 //            return Utils.createResponse(ErrorCode.NORMAL, results);
 //        } catch (AizouException | NullPointerException e) {
@@ -441,10 +379,10 @@ public class POICtrl extends Controller {
      * 游玩攻略
      *
      * @param locId
-     * @param fields
+     * @param field
      * @return
      */
-    public static Result getTravelGuide(String locId, String fields, String poiDesc) {
+    public static Result getTravelGuide(String locId, String field, String poiDesc) {
         try {
             List<String> destKeyList = new ArrayList<>();
 
@@ -462,27 +400,31 @@ public class POICtrl extends Controller {
                 case "shopping":
                     poiClass = Shopping.class;
                     break;
-                case "entertainment":
-                    poiClass = Entertainment.class;
-                    break;
                 default:
                     return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
             }
 
-
-            for (String f : fields.split("\\s*,\\s*")) {
-                switch (f) {
-                    case "tips":
-                        destKeyList.add(AbstractPOI.FD_TIPS);
-                        break;
-                }
+            switch (field) {
+                case "tips":
+                    destKeyList.add(AbstractPOI.FD_TIPS);
+                    break;
+                case "trafficInfo":
+                    destKeyList.add(AbstractPOI.FD_TRAFFICINFO);
+                    break;
+                case "visitGuide":
+                    destKeyList.add(AbstractPOI.FD_VISITGUIDE);
+                    break;
             }
 
             AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(locId), poiClass, destKeyList);
             ObjectNode result = Json.newObject();
-            if (fields.equals("tips")) {
+            if (field.equals("tips")) {
                 result.put("desc", "");
                 result.put("contents", Json.toJson(GeoCtrl.contentsToList(poiInfo.getTips())));
+            } else if (field.equals("trafficInfo")) {
+                result.put("contents", Json.toJson(poiInfo.getTrafficInfo()));
+            } else if (field.equals("visitGuide")) {
+                result.put("contents", Json.toJson(poiInfo.getVisitGuide()));
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, result);

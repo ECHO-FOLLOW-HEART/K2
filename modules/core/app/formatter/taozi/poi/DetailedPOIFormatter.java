@@ -62,6 +62,8 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_PRICE_DESC,
                 AbstractPOI.FD_TIPS,
+                AbstractPOI.FD_VISITGUIDE,
+                AbstractPOI.FD_TRAFFICINFO,
                 AbstractPOI.FD_TAOZIENA
 
         );
@@ -69,7 +71,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
         if (DetailedPOIFormatter.this.getPoiClass() == ViewSpot.class) {
             String[] keyList = new String[]{
                     ViewSpot.FD_OPEN_TIME, ViewSpot.FD_TIME_COST_DESC, ViewSpot.FD_TRAVEL_MONTH,
-                    ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_GUIDE_URL, ViewSpot.FD_TIPS_URL
+                    ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_VISITGUIDE_URL, ViewSpot.FD_TIPS_URL
             };
             Collections.addAll(filteredFields, keyList);
             Collections.addAll(stringFields, keyList);
@@ -80,8 +82,10 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
     public JsonNode format(AizouBaseEntity item) {
 
         Map<String, PropertyFilter> filterMap = new HashMap<>();
+        List<String> removeFields = new ArrayList<>();
+        Collections.addAll(removeFields, AbstractPOI.FD_TIPS, AbstractPOI.FD_TRAFFICINFO, AbstractPOI.FD_VISITGUIDE);
         // tips内容由H5页面给出
-        filteredFields.remove(AbstractPOI.FD_TIPS);
+        filteredFields.removeAll(removeFields);
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
         filterMap.put("countryFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
                 AizouBaseEntity.FD_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME));

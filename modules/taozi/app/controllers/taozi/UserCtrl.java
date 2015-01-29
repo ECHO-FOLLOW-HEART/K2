@@ -44,11 +44,9 @@ import java.util.regex.Pattern;
  */
 public class UserCtrl extends Controller {
 
-
     public static int CAPTCHA_ACTION_SIGNUP = 1;
     public static int CAPTCHA_ACTION_MODPWD = 2;
     public static int CAPTCHA_ACTION_BANDTEL = 3;
-    public static int CAPTCHA_ACTION_RESET_BANDTEL = 4;
 
     /**
      * 手机注册
@@ -830,15 +828,7 @@ public class UserCtrl extends Controller {
                     temp.isUser=false;
                     temp.isContact = false;
                 }
-//
-//                if (userInfo != null) {
-//                    temp.isUser = true;
-//                    temp.userId = userInfo.getUserId();
-//                    temp.isContact = contactSet.contains(temp.userId);
-//                } else {
-//                    temp.isUser = false;
-//                    temp.isContact = false;
-//                }
+
             }
 
             try {

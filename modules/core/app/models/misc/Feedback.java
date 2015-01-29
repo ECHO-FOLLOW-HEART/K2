@@ -15,6 +15,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * 反馈信息
+ *
  * Created by topy on 2014/8/20.
  */
 public class Feedback extends AizouBaseEntity implements ITravelPiFormatter {

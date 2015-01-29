@@ -6,11 +6,19 @@ import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
+import models.misc.TravelNote;
 import models.poi.*;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
+import play.Configuration;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -313,6 +321,32 @@ public class PoiAPI {
         Query<Comment> query = ds.createQuery(Comment.class);
 
         query.field(Comment.FD_ITEM_ID).equal(id).offset(page * pageSize).limit(pageSize);
+
+        return query.asList();
+    }
+
+    /**
+     * 获得POI信息相关的评论
+     *
+     * @param poiIds
+     * @return
+     * @throws exception.AizouException
+     */
+    public static List<Comment> getPOICommentByList(List<ObjectId> poiIds, int page, int pageSize) throws AizouException {
+        if (poiIds == null || poiIds.isEmpty())
+            return new ArrayList<>();
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<Comment> query = ds.createQuery(Comment.class);
+
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (ObjectId tempId : poiIds) {
+            if (tempId != null)
+                criList.add(query.criteria(Comment.FD_ITEM_ID).equal(tempId));
+        }
+
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        query.offset(page * pageSize).limit(pageSize);
 
         return query.asList();
     }
@@ -786,6 +820,9 @@ public class PoiAPI {
      * @return POI详情。如果没有找到，返回null。
      */
     public static List<? extends AbstractPOI> getPOIInfoList(List<ObjectId> ids, String poiType, List<String> fieldList, int page, int pageSize) throws AizouException {
+        if (ids.isEmpty() || ids == null)
+            return new ArrayList<>();
+
         Class<? extends AbstractPOI> poiClass;
         switch (poiType) {
             case "vs":
@@ -924,14 +961,15 @@ public class PoiAPI {
 
         return query.get();
     }
-    public static <T extends AbstractPOI> T getPOIByField(ObjectId id, List<String> fields,Class<T> poiClass)
-            throws AizouException {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-            Query<T> query = ds.createQuery(poiClass).field("_id").equal(id).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
-            if (fields != null && !fields.isEmpty())
-                query.retrievedFields(true, fields.toArray(new String[fields.size()]));
 
-            return query.get();
+    public static <T extends AbstractPOI> T getPOIByField(ObjectId id, List<String> fields, Class<T> poiClass)
+            throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<T> query = ds.createQuery(poiClass).field("_id").equal(id).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
+
+        return query.get();
 
     }
 
@@ -956,8 +994,8 @@ public class PoiAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
-        Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images",
-                "desc", "location", "priceDesc", "address", "tags","price");
+        Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images", "hotness",
+                "desc", "location", "priceDesc", "address", "tags", "price");
         switch (poiType) {
             case VIEW_SPOT:
                 fieldList.add("timeCostDesc");
@@ -987,6 +1025,9 @@ public class PoiAPI {
             case RATING:
                 stKey = "rating";
                 break;
+            case HOTNESS:
+                stKey = "hotness";
+                break;
         }
         query.order(String.format("%s%s", sort ? "" : "-", stKey));
         query.offset(page * pageSize).limit(pageSize);
@@ -1007,12 +1048,15 @@ public class PoiAPI {
      */
     public static List<? extends AbstractPOI> poiSearchForTaozi(POIType poiType, String keyword, ObjectId locId,
                                                                 boolean prefix, int page, int pageSize)
-            throws AizouException {
+            throws AizouException, SolrServerException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Class<? extends AbstractPOI> poiClass = null;
+        List<? extends AbstractPOI> poiList = null;
+
         switch (poiType) {
             case VIEW_SPOT:
                 poiClass = ViewSpot.class;
+                poiList = poiSearch(keyword, page, pageSize);
                 break;
             case HOTEL:
                 poiClass = Hotel.class;
@@ -1021,14 +1065,25 @@ public class PoiAPI {
                 poiClass = Restaurant.class;
                 break;
             case SHOPPING:
-                poiClass = Restaurant.class;
+                poiClass = Shopping.class;
                 break;
         }
         if (poiClass == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POI type.");
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
-        if (keyword != null && !keyword.isEmpty()) {
-            query.field("alias").equal(Pattern.compile("^" + keyword));
+
+        // TODO 暂时写成这样，等Solr的数据可以及时同步再改
+        if (poiClass == ViewSpot.class || poiList != null) {
+            List<CriteriaContainerImpl> criList = new ArrayList<>();
+            for (AbstractPOI temp : poiList) {
+                criList.add(query.criteria("id").equal(temp.getId()));
+            }
+            query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+            return query.asList();
+        } else {
+            if (keyword != null && !keyword.isEmpty()) {
+                query.field("alias").equal(Pattern.compile("^" + keyword));
+            }
         }
         if (locId != null)
             query.field("targets").equal(locId);
@@ -1038,4 +1093,45 @@ public class PoiAPI {
         return query.asList();
     }
 
+    public static List<? extends AbstractPOI> poiSearch(String keyword, int page, int pageSize) throws SolrServerException {
+        List<AbstractPOI> poiList = new ArrayList<>();
+
+        //solr连接配置
+        Configuration config = Configuration.root().getConfig("solr");
+        String host = config.getString("host", "localhost");
+        Integer port = config.getInt("port", 8983);
+        String coreName = config.getString("viewSpotCore");
+        String url = String.format("http://%s:%d/solr/%s", host, port, coreName);
+        //进行查询，获取游记文档
+        SolrServer server = new HttpSolrServer(url);
+        SolrQuery query = new SolrQuery();
+        String queryString = String.format("alias:%s", keyword);
+        query.setQuery(queryString);
+        query.setStart(page * pageSize).setRows(pageSize);
+        SolrDocumentList vsDocs = server.query(query).getResults();
+        //TODO 不查询数据库
+        Object tmp;
+        for (SolrDocument doc : vsDocs) {
+            ViewSpot vs = new ViewSpot();
+            //获取id
+            vs.setId(new ObjectId(doc.get("id").toString()));
+            //中文名
+            tmp = doc.get("zhName");
+            vs.zhName = (tmp == null ? null : (String) tmp);
+            //英文名
+            tmp = doc.get("enName");
+            vs.enName = (tmp == null ? null : (String) tmp);
+            //简介
+            tmp = doc.get("desc");
+            vs.desc = (tmp == null ? null : (String) tmp);
+            //封面
+            tmp = doc.get("images");
+            vs.images = (tmp == null || ((List) tmp).isEmpty() ? null : (List) tmp);
+
+            poiList.add(vs);
+        }
+
+        return poiList;
+    }
 }
+
