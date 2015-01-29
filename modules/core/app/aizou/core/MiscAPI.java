@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
+import models.AizouBaseItem;
 import models.MorphiaFactory;
 import models.misc.Column;
 import models.misc.Images;
@@ -28,14 +29,14 @@ public class MiscAPI {
     /**
      * 取得旅行专栏图片的url以及跳转链接的url
      *
-     * @return
+     * @param type 专栏的类型。现在有两种：recommend和homepage
      * @throws exception.AizouException
      */
     public static List<Column> getColumns(String type, String id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Column> query = ds.createQuery(Column.class);
         if (id.equals("")) {
-            query.field("type").equal(type);
+            query.field(Column.FD_TYPE).equal(type);
             query.retrievedFields(false, Column.FD_CONTENT);
         } else {
             query.field("_id").equal(new ObjectId(id));

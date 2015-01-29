@@ -4,7 +4,6 @@ import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.CacheKey;
-import controllers.RemoveCache;
 import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
@@ -63,7 +62,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     @UsingCache(key = "appHomeImage,{w},{h}")
-    public static Result appHomeImage(@CacheKey(tag = "w")int width, @CacheKey(tag = "h")int height, int quality, String format, int interlace) {
+    public static Result appHomeImage(@CacheKey(tag = "w") int width, @CacheKey(tag = "h") int height, int quality, String format, int interlace) {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
@@ -488,31 +487,20 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingCache(key = "getColumns", expireTime = 30)
-    @RemoveCache(keyList = "destinations(abroad=true)")
-    public static Result getColumns(String type, String id) {
+    @UsingCache(key = "getColumns({type},{id})", expireTime = 300)
+    public static Result getColumns(@CacheKey(tag="type") String type, @CacheKey(tag="id") String id) {
         ColumnFormatter formatter = new ColumnFormatter();
-        String url = null;
-        try {
-            Configuration config = Configuration.root();
-            Map h5 = (Map) config.getObject("h5");
-            StringBuffer urlSb = new StringBuffer(10);
-            urlSb.append("http://");
-            urlSb.append(h5.get("host").toString());
-            urlSb.append(h5.get("column").toString());
-            urlSb.append(Constants.SYMBOL_QUESTION);
-            urlSb.append("id=");
-            url = urlSb.toString();
-        } catch (NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
+        String url;
+        Configuration config = Configuration.root();
+        Map h5 = (Map) config.getObject("h5");
+        url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
 
         try {
             List<JsonNode> columns = new ArrayList<>();
             List<Column> columnList = MiscAPI.getColumns(type, id);
 
             for (Column c : columnList) {
-                c.setLink(url + c.getId());
+                c.setLink(url + c.getId().toString());
                 columns.add(formatter.format(c));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(columns));
@@ -602,7 +590,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     @UsingCache(key = "search,keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel},restaurant={restaurant},shopping={shopping},page={p},pageSize={ps}",
-                expireTime = 30)
+            expireTime = 30)
     public static Result search(@CacheKey(tag = "keyWord") String keyWord,
                                 @CacheKey(tag = "locId") String locId,
                                 @CacheKey(tag = "loc") boolean loc,
