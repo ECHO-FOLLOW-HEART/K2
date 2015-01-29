@@ -130,7 +130,7 @@ public class LocalityAPI {
 
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
-            query.filter(Locality.FD_ALIAS, Pattern.compile(prefix ? "^" + keyword : keyword));
+            query.filter(Locality.FD_ALIAS, prefix ? Pattern.compile("^" + keyword) : keyword);
         if (countryId != null)
             query.filter(String.format("%s.id", Locality.fnCountry), countryId);
         switch (scope) {
@@ -159,13 +159,14 @@ public class LocalityAPI {
 
     /**
      * 返回特定字段的locality
+     *
      * @param locId
      * @param fieldList
      * @return
      */
-    public static Locality getLocality(ObjectId locId,List<String> fieldList) throws AizouException {
+    public static Locality getLocality(ObjectId locId, List<String> fieldList) throws AizouException {
 
-        Datastore ds=MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
