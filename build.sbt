@@ -1,7 +1,7 @@
 import com.typesafe.sbt.SbtAspectj.AspectjKeys._
 import com.typesafe.sbt.SbtAspectj._
 
-name := "k2"
+name := "aizou"
 
 version := "2.0"
 

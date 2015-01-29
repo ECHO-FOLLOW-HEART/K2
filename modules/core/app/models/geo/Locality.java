@@ -3,17 +3,15 @@ package models.geo;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.AizouBaseEntity;
 import models.misc.ImageItem;
-import models.poi.Cuisine;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 目的地类型
- * <p/>
+ * <p>
  * Created by zephyre on 11/21/14.
  */
 @Entity
@@ -80,8 +78,9 @@ public class Locality extends AizouBaseEntity {
     @Transient
     public static String fnShoppingIntro = "shoppingIntro";
 
+
     @Transient
-    public static String fnDinningIntro = "dinningIntro";
+    public static String fnDinningIntro = "diningIntro";
 
     @Transient
     public static String fnActivityIntro = "activityIntro";
@@ -99,10 +98,10 @@ public class Locality extends AizouBaseEntity {
     public static String fnCuisines = "cuisines";
 
     @Transient
-    public static String fnSpecials="specials";
+    public static String fnSpecials = "specials";
 
     @Transient
-    public static String fnGeoHistory="geoHistory";
+    public static String fnGeoHistory = "geoHistory";
 
     /**
      * 外部交通信息。每个entry都是一个tip，为HTML格式
@@ -127,7 +126,7 @@ public class Locality extends AizouBaseEntity {
     /**
      * 美食综述，HTML格式
      */
-    private String dinningIntro;
+    private String diningIntro;
 
     /**
      * 特色菜式
@@ -435,10 +434,6 @@ public class Locality extends AizouBaseEntity {
         return commodities;
     }
 
-    public String getDinningIntro() {
-        return dinningIntro;
-    }
-
     public List<DetailsEntry> getCuisines() {
         return cuisines;
     }
@@ -461,5 +456,13 @@ public class Locality extends AizouBaseEntity {
 
     public List<DetailsEntry> getSpecials() {
         return specials;
+    }
+
+    public String getDiningIntro() {
+        return diningIntro;
+    }
+
+    public void setDiningIntro(String diningIntro) {
+        this.diningIntro = diningIntro;
     }
 }

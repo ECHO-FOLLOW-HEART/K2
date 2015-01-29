@@ -45,7 +45,7 @@ public class TravelNoteFormatter implements JsonFormatter {
                 Set<String> includedFields = new HashSet<>();
                 Collections.addAll(includedFields, TravelNote.fnId, TravelNote.fnTitle, TravelNote.fnDesc, TravelNote.fnCover,
                         TravelNote.fnAuthorName, TravelNote.fnAuthorAvatar, TravelNote.fnSource,
-                        TravelNote.fnSourceUrl, TravelNote.fnPublishDate
+                        TravelNote.fnSourceUrl, TravelNote.fnPublishTime
                 );
 
                 return (includedFields.contains(writer.getName()));

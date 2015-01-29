@@ -88,7 +88,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String FD_ADDRESS = "address";
 
     @Transient
-    public static String FD_TELEPHONE = "telephone";
+    public static String FD_TELEPHONE = "tel";
 
     @Transient
     public static String fnHotness = "hotness";
@@ -105,6 +105,11 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
     @Transient
     public static String fnType = "type";
+    @Transient
+    public static String FD_TIMECOSTDESC = "timeCostDesc";
+    @Transient
+    public static String FD_TIPS = "tips";
+
     /**
      * 标识POI的种类，jackson反序列还用
      */
@@ -167,7 +172,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     /**
      * 表示该POI的来源。注意：一个POI可以有多个来源。
      * 示例：
-     * <p/>
+     * <p>
      * source: { "baidu": {"url": "foobar", "id": 27384}}
      */
     public Map<String, Object> source;
@@ -191,7 +196,8 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     /**
      * 防坑攻略URL
      */
-    public String kengdieUrl;
+    public String tipsUrl;
+
     /**
      * 地址
      */
@@ -228,6 +234,23 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     private Double hotness;
 
+    /**
+     * 贴士
+     *
+     * @param level
+     * @return
+     */
+    private List<DetailsEntry> tips;
+
+    public String getTipsUrl() {
+        if (tips == null)
+            return "";
+        return "http://h5.taozilvxing.com/poi_tips.php?tid=" + this.getId().toString();
+    }
+
+    public List<DetailsEntry> getTips() {
+        return tips;
+    }
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
@@ -275,15 +298,12 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         return guideUrl;
     }
 
-    public String getKengdieUrl() {
-        return priceDesc;
-    }
-
     public String getDesc() {
         if (desc == null)
             return "";
         else
-            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+            return desc;
+        //return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
 
     public String getAddress() {

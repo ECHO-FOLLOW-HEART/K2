@@ -1,14 +1,13 @@
 package formatter.taozi.guide;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.geo.Locality;
@@ -17,6 +16,7 @@ import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
+import play.libs.Json;
 
 import java.util.*;
 
@@ -30,6 +30,13 @@ public class GuideFormatter extends TaoziBaseFormatter {
     private Set<String> poiStringFields;
 
     private Set<String> localityStringFields;
+
+    private Set<String> poiListFields;
+
+    public GuideFormatter setImageWidth(int width) {
+        imageWidth = width;
+        return this;
+    }
 
     @Override
     public JsonNode format(AizouBaseEntity item) {
@@ -46,8 +53,10 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE,
-                AbstractPOI.detTargets
+                AbstractPOI.detTargets,
+                AbstractPOI.FD_TIMECOSTDESC,
+                AbstractPOI.FD_LOCALITY,
+                AbstractPOI.FD_TELEPHONE
         );
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
         filterMap.put("itinerItemFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
@@ -55,10 +64,9 @@ public class GuideFormatter extends TaoziBaseFormatter {
         filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
                 AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
-        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
-        ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
-
+//        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
+//        serializerMap.put(ImageItem.class, new ImageItemSerializer(imageWidth));
+        ObjectMapper mapper = getObjectMapper(filterMap, null);
 
         ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
                 .addFilter("guideFilter",
@@ -77,7 +85,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
 
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+                new ImageItemSerializerOld(imageWidth));
         mapper.registerModule(imageItemModule);
 
         ObjectNode result = mapper.valueToTree(item);
@@ -88,7 +96,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE);
+                AbstractPOI.FD_TIMECOSTDESC);
 
         localityStringFields = new HashSet<String>() {
         };
@@ -96,8 +104,12 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 Locality.FD_EN_NAME);
 
         Collections.addAll(listFields,
-                AbstractPOI.FD_IMAGES,Guide.fnItinerary,Guide.fnShopping,Guide.fnRestaurant);
+                AbstractPOI.FD_IMAGES, Guide.fnItinerary, Guide.fnShopping, Guide.fnRestaurant);
 
+        poiListFields = new HashSet<String>() {
+        };
+        Collections.addAll(poiListFields,
+                AbstractPOI.FD_TELEPHONE);
         return postProcess(result);
     }
 
@@ -106,12 +118,16 @@ public class GuideFormatter extends TaoziBaseFormatter {
         // 处理字符串字段
         JsonNode oNode = result.get("itinerary");
         postProcessPoiInItinerary(oNode);
+        postProcessListInItinerary(oNode, poiListFields);
         oNode = result.get("shopping");
         postProcessPoiInList(oNode, poiStringFields);
+        postProcessListInList(oNode,poiListFields);
         oNode = result.get("restaurant");
         postProcessPoiInList(oNode, poiStringFields);
+        postProcessListInList(oNode,poiListFields);
         oNode = result.get("localities");
         postProcessPoiInList(oNode, localityStringFields);
+
         return result;
     }
 
@@ -137,6 +153,32 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 for (String key : fields) {
                     if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
                         tempObjNode.put(key, "");
+                }
+            }
+        }
+    }
+
+    private void postProcessListInItinerary(JsonNode oNode, Set<String> fields) {
+        ObjectNode tempObjNode;
+        if (oNode.findValues("poi") != null) {
+            for (JsonNode node : oNode.findValues("poi")) {
+                tempObjNode = (ObjectNode) node;
+                for (String key : fields) {
+                    if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
+                        tempObjNode.put(key, Json.toJson(new ArrayList<>()));
+                }
+            }
+        }
+    }
+
+    private void postProcessListInList(JsonNode oNode, Set<String> fields) {
+        ObjectNode tempObjNode;
+        if (oNode != null && oNode.isArray()) {
+            for (JsonNode node : oNode) {
+                tempObjNode = (ObjectNode) node;
+                for (String key : fields) {
+                    if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
+                        tempObjNode.put(key, Json.toJson(new ArrayList<>()));
                 }
             }
         }

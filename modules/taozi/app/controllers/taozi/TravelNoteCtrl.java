@@ -12,6 +12,7 @@ import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
 import models.geo.Locality;
 import models.misc.TravelNote;
 import models.poi.ViewSpot;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -29,6 +30,15 @@ import java.util.List;
  */
 public class TravelNoteCtrl extends Controller {
 
+    /**
+     * 游记搜索
+     *
+     * @param keyWord
+     * @param locId
+     * @param page
+     * @param pageSize
+     * @return
+     */
     public static Result searchNotes(String keyWord, String locId, int page, int pageSize) {
         try {
             List<TravelNote> noteList;
@@ -54,12 +64,46 @@ public class TravelNoteCtrl extends Controller {
     }
 
     /**
+     * 游记搜索
+     *
+     * @param keyWord
+     * @param locId
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public static Result searchTravelNotes(String keyWord, String locId, int page, int pageSize) {
+        List<TravelNote> noteList;
+        List<JsonNode> result = new ArrayList<>();
+        //通过关键字查询游记
+        try {
+            if (!keyWord.isEmpty()) {
+                noteList = TravelNoteAPI.searchNotesByWord(keyWord, page, pageSize);
+                for (TravelNote travelNote : noteList) {
+                    result.add(new SimpTravelNoteFormatter().format(travelNote));
+                }
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+            } else if (locId != null && !locId.isEmpty()) {
+                noteList = TravelNoteAPI.searchNoteByLocId(locId, page, pageSize);
+                for (TravelNote travelNote : noteList) {
+                    result.add(new SimpTravelNoteFormatter().format(travelNote));
+                }
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+            } else
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "fail");
+        } catch (SolrServerException | AizouException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        }
+    }
+
+    /**
      * 特定目的地的游记
      *
      * @param locId
      * @param pageSize
      * @return
      */
+
     public static Result getNotes(String locId, String keyword, int page, int pageSize) {
         try {
             ObjectId objectId = new ObjectId(locId);
@@ -130,5 +174,24 @@ public class TravelNoteCtrl extends Controller {
         }
     }
 
+    /**
+     * 获得游记详情
+     *
+     * @param noteId
+     * @return
+     */
+    public static Result travelNoteDetail(String noteId) {
+        try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
+            TravelNote travelNote = TravelNoteAPI.getNoteById(new ObjectId(noteId));
+            return Utils.createResponse(ErrorCode.NORMAL, new DetailTravelNoteFormatter().setImageWidth(imgWidth).format(travelNote));
+        } catch (AizouException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
 }
 
