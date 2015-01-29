@@ -17,8 +17,6 @@ import utils.WrappedStatus;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Created by Heaven on 2015/1/22.
@@ -27,7 +25,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class CacheHandler {
     public static int MAX_KEY_LENGTH = 1000;        //1KB
     public static int MAX_VALUE_LENGTH = 1000000;   //1MB
-    Lock lock = new ReentrantLock();
     Log logger = LogFactory.getLog(this.getClass());
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
