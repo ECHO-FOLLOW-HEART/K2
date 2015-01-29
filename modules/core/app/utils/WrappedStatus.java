@@ -3,6 +3,7 @@ package utils;
 import com.fasterxml.jackson.databind.JsonNode;
 import play.api.mvc.Codec;
 import play.core.j.JavaResults;
+import play.libs.Json;
 import play.mvc.Results;
 
 /**
@@ -15,9 +16,18 @@ public class WrappedStatus extends Results.Status {
         return new WrappedStatus(JavaResults.Ok(), jsonNode, Codec.javaSupported("utf-8"));
     }
 
+    public static WrappedStatus WrappedOk(String msg) {
+        return new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
+    }
+
     public WrappedStatus(play.api.mvc.Results.Status status, JsonNode jsonNode, Codec codec) {
         super(status, jsonNode, codec);
         jsonBody = jsonNode;
+    }
+
+    public WrappedStatus(play.api.mvc.Results.Status status, String msg, Codec codec) {
+        super(status, msg, codec);
+        jsonBody = Json.parse(msg);
     }
 
     public JsonNode getJsonBody() {

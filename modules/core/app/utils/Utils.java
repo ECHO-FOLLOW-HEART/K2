@@ -96,7 +96,8 @@ public class Utils {
     public static Result status(int errCode, String msg) {
         String ret = String.format("{\"lastModified\":%d, \"result\":%s, \"code\":%d}",
                 System.currentTimeMillis() / 1000, msg, errCode);
-        return ok(ret).as("application/json;charset=utf-8");
+//        return ok(ret).as("application/json;charset=utf-8");
+        return WrappedOk(ret).as("application/json;charset=utf-8");
     }
 
     public static Result status(String msg) {
@@ -142,7 +143,8 @@ public class Utils {
         //.formatGMT.setTimeZone(TimeZone.getTimeZone("GMT"));
         //rsp.setHeader("Last-Modify", formatGMT.format(DateUtil.parseDate(lastModify)));
         //rsp.setHeader("Cache-control", "public");
-        return ok(response);
+//        return ok(response);
+        return WrappedOk(response);
     }
 
     /**

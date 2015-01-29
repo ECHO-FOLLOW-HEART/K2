@@ -597,7 +597,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     @UsingCache(key = "search,keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel},restaurant={restaurant},shopping={shopping},page={p},pageSize={ps}",
-                expireTime = 5)
+                expireTime = 30)
     public static Result search(@CacheKey(tag = "keyWord") String keyWord,
                                 @CacheKey(tag = "locId") String locId,
                                 @CacheKey(tag = "loc") boolean loc,
