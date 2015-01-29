@@ -23,9 +23,25 @@ import java.lang.reflect.Method;
  */
 @Aspect
 public class CacheHandler {
+    private static final java.lang.String SEPARATOR = "\\|";
     public static int MAX_KEY_LENGTH = 1000;        //1KB
     public static int MAX_VALUE_LENGTH = 1000000;   //1MB
     Log logger = LogFactory.getLog(this.getClass());
+
+    @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
+            "&&@annotation(controllers.RemoveCache)")
+    public Result removeCache(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
+        MethodSignature ms = (MethodSignature) pjp.getSignature();
+        Method method = ms.getMethod();
+        RemoveCache annotation = method.getAnnotation(RemoveCache.class);
+        String[] keyList = annotation.keyList().split(SEPARATOR);
+        for (String keyEntry : keyList) {
+            String key = getCacheKey(keyEntry, method.getParameterAnnotations(), joinPoint.getArgs());
+            logger.info("remove key: " + key);
+            Cache.remove(key);
+        }
+        return (Result) pjp.proceed();
+    }
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.UsingCache)")
@@ -33,7 +49,7 @@ public class CacheHandler {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
         UsingCache annotation = method.getAnnotation(UsingCache.class);
-        String key = getCacheKey(annotation, method.getParameterAnnotations(), joinPoint.getArgs());
+        String key = getCacheKey(annotation.key(), method.getParameterAnnotations(), joinPoint.getArgs());
         String jsonStr = (String) Cache.get(key);
 
         //缓存命中
@@ -43,7 +59,7 @@ public class CacheHandler {
         }
 
         //缓存未命中
-        synchronized (Utils.toSha1Hex(key).intern()) {
+        synchronized (key.intern()) {
             return getResultFromDB(pjp, key, annotation);
         }
     }
@@ -70,8 +86,8 @@ public class CacheHandler {
         return result;
     }
 
-    private String getCacheKey(UsingCache annotation, Annotation[][] parameterAnnotations, Object[] args) {
-        String key = annotation.key();
+    private String getCacheKey(String rawKey, Annotation[][] parameterAnnotations, Object[] args) {
+        String key = rawKey;
         int i = -1;
         for (Annotation[] parameter : parameterAnnotations) {
             i = i + 1;

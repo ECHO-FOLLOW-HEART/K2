@@ -4,6 +4,7 @@ import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.CacheKey;
+import controllers.RemoveCache;
 import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
@@ -487,6 +488,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     @UsingCache(key = "getColumns", expireTime = 30)
+    @RemoveCache(keyList = "destinations(abroad=true)")
     public static Result getColumns(String type, String id) {
         ColumnFormatter formatter = new ColumnFormatter();
         String url = null;
