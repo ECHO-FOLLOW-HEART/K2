@@ -86,6 +86,11 @@ public class CacheHandler {
         return result;
     }
 
+    /**
+     * 获得cache的key
+     *
+     * @param rawKey 原始的key，或模板
+     */
     private String getCacheKey(String rawKey, Annotation[][] parameterAnnotations, Object[] args) {
         String key = rawKey;
         int i = -1;

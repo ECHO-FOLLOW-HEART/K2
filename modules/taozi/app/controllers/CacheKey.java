@@ -11,6 +11,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 public @interface CacheKey {
-    boolean asKey() default true;
     String tag();
 }
