@@ -61,7 +61,7 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    @UsingCache(key = "appHomeImage,{w},{h}")
+    @UsingCache(key = "appHomeImage,{w},{h}", expireTime = 3600)
     public static Result appHomeImage(@CacheKey(tag = "w") int width, @CacheKey(tag = "h") int height, int quality, String format, int interlace) {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
@@ -111,7 +111,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingCache(key = "recommend")
+    @UsingCache(key = "recommend", expireTime = 3600)
     public static Result recommend(int page, int pageSize) {
         List<ObjectNode> retNodeList = new ArrayList<ObjectNode>();
         Datastore ds;
@@ -589,8 +589,9 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "search,keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel},restaurant={restaurant},shopping={shopping},page={p},pageSize={ps}",
-            expireTime = 30)
+    @UsingCache(key = "search(keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel}," +
+            "restaurant={restaurant},shopping={shopping},page={p},pageSize={ps})",
+            expireTime = 300)
     public static Result search(@CacheKey(tag = "keyWord") String keyWord,
                                 @CacheKey(tag = "locId") String locId,
                                 @CacheKey(tag = "loc") boolean loc,

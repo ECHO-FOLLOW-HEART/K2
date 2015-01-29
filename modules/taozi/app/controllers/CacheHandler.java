@@ -54,7 +54,7 @@ public class CacheHandler {
 
         //缓存命中
         if (jsonStr != null && !jsonStr.isEmpty()) {
-            logger.debug(String.format("Cache hit: %s", key));
+            logger.info(String.format("Cache hit: %s", key));
             return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         }
 
@@ -68,7 +68,7 @@ public class CacheHandler {
         //再次尝试从缓存中获取值
         String jsonStr = (String) Cache.get(key);
         if (jsonStr != null && !jsonStr.isEmpty()) {
-            logger.debug(String.format("Cache hit: %s", key));
+            logger.info(String.format("Cache hit: %s", key));
             return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
         }
 
@@ -78,7 +78,7 @@ public class CacheHandler {
         if (body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
             String cacheValue = body.get("result").toString();
             if (cacheValue.length() <= MAX_VALUE_LENGTH) {
-                logger.debug(String.format("Set to cache: %s", key));
+                logger.info(String.format("Set to cache: %s", key));
                 Cache.set(key, cacheValue, annotation.expireTime());
             } else {
                 logger.warn("Cannot do caching: data size out of limit (" + MAX_VALUE_LENGTH + " Bytes)");
