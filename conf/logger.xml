@@ -42,12 +42,12 @@
     </appender>
 
 
-    <root level="INFO">
+    <root level="DEBUG">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>
 
-    <logger name="com.travelpi" level="INFO"/>
+    <!--<logger name="com.travelpi" level="INFO"/>-->
 
     <logger name="access" level="INFO" additivity="false">
         <appender-ref ref="ACCESS_FILE" />

@@ -487,8 +487,8 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingCache(key = "getColumns({type},{id})", expireTime = 300)
-    public static Result getColumns(@CacheKey(tag="type") String type, @CacheKey(tag="id") String id) {
+    @UsingCache(key = "getColumns({type},{id})", expireTime = 86400)
+    public static Result getColumns(@CacheKey(tag = "type") String type, @CacheKey(tag = "id") String id) {
         ColumnFormatter formatter = new ColumnFormatter();
         String url;
         Configuration config = Configuration.root();
