@@ -3,6 +3,9 @@ package controllers.taozi;
 import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.RemoveCache;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
@@ -58,7 +61,8 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
+    @UsingCache(key = "appHomeImage,{w},{h}")
+    public static Result appHomeImage(@CacheKey(tag = "w")int width, @CacheKey(tag = "h")int height, int quality, String format, int interlace) {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
@@ -107,8 +111,9 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
+    @UsingCache(key = "recommend")
     public static Result recommend(int page, int pageSize) {
-        List<ObjectNode> retNodeList = new ArrayList();
+        List<ObjectNode> retNodeList = new ArrayList<ObjectNode>();
         Datastore ds;
         try {
             ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
@@ -134,7 +139,7 @@ public class MiscCtrl extends Controller {
             for (Map.Entry<String, List<Recom>> entry : map.entrySet()) {
                 key = entry.getKey();
                 recList = entry.getValue();
-                recNodeList = new ArrayList();
+                recNodeList = new ArrayList<ObjectNode>();
                 for (Recom tem : recList) {
                     recNodeList.add((ObjectNode) new RecomFormatter().format(tem));
                 }
@@ -219,9 +224,9 @@ public class MiscCtrl extends Controller {
             Locality loc;
             AbstractPOI poi;
             PoiAPI.POIType poiType;
-            List locFields = new ArrayList();
+            List<String> locFields = new ArrayList<>();
             Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc", "timeCostDesc");
-            List poiFields = new ArrayList();
+            List<String> poiFields = new ArrayList<>();
             Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price", "timeCostDesc", "rating");
             for (Favorite fa : faList) {
                 type = fa.type;
@@ -482,6 +487,8 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
+    @UsingCache(key = "getColumns", expireTime = 30)
+    @RemoveCache(keyList = "destinations(abroad=true)")
     public static Result getColumns(String type, String id) {
         ColumnFormatter formatter = new ColumnFormatter();
         String url = null;
@@ -593,17 +600,27 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result search(String keyWord, String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
+    @UsingCache(key = "search,keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel},restaurant={restaurant},shopping={shopping},page={p},pageSize={ps}",
+                expireTime = 30)
+    public static Result search(@CacheKey(tag = "keyWord") String keyWord,
+                                @CacheKey(tag = "locId") String locId,
+                                @CacheKey(tag = "loc") boolean loc,
+                                @CacheKey(tag = "vs") boolean vs,
+                                @CacheKey(tag = "hotel") boolean hotel,
+                                @CacheKey(tag = "restaurant") boolean restaurant,
+                                @CacheKey(tag = "shopping") boolean shopping,
+                                @CacheKey(tag = "p") int page,
+                                @CacheKey(tag = "ps") int pageSize) {
         ObjectNode results = Json.newObject();
         try {
 
-            Iterator it;
+            Iterator<Locality> it;
             if (loc) {
                 Locality locality;
                 List<JsonNode> retLocList = new ArrayList<>();
                 it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
                 while (it.hasNext()) {
-                    locality = (Locality) it.next();
+                    locality = it.next();
                     retLocList.add(new DetailedLocalityFormatter().format(locality));
                 }
                 results.put("locality", Json.toJson(retLocList));

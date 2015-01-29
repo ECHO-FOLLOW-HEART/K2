@@ -6,6 +6,8 @@ import aizou.core.PoiAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -83,7 +85,8 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
+    @UsingCache(key = "destinations(abroad={abroad})")
+    public static Result exploreDestinations(@CacheKey(tag = "abroad")boolean abroad, int page, int pageSize) {
         try {
             long t0 = System.currentTimeMillis();
             Http.Request req = request();

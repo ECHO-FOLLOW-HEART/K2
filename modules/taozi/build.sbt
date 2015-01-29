@@ -1,46 +1,29 @@
 import com.typesafe.sbt.SbtAspectj.AspectjKeys._
 import com.typesafe.sbt.SbtAspectj._
 
-name := "aizou"
-
-version := "2.0"
-
-lazy val `core` = (project in file("modules/core")).enablePlugins(PlayJava)
-
-lazy val `taozi` = (project in file("modules/taozi")).enablePlugins(PlayJava).dependsOn(core)
-
-lazy val `web` = (project in file("modules/web")).enablePlugins(PlayJava).dependsOn(core)
-
-lazy val `k2` = (project in file(".")).enablePlugins(PlayJava)
-  .dependsOn(core)
-  .dependsOn(taozi)
-  .dependsOn(web)
-  .aggregate(core, taozi, web)
+name := "taozi"
 
 scalaVersion := "2.10.3"
 
 libraryDependencies ++= Seq(
-  javaJdbc,
-  javaEbean,
-  cache,
-  javaWs,
-  filters,
+  "org.aspectj" % "aspectjrt" % "1.8.2",
+  "org.aspectj" % "aspectjweaver" % "1.8.4",
   "org.mongodb" % "mongo-java-driver" % "2.12.4",
   "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",
   "org.springframework" % "spring-aop" % "3.2.2.RELEASE",
   "org.springframework" % "spring-tx" % "3.2.2.RELEASE",
-  "org.aspectj" % "aspectjrt" % "1.8.2",
-  "org.aspectj" % "aspectjweaver" % "1.8.4",
-  "com.aizou" % "iisfileappender_2.10" % "0.1-SNAPSHOT",
+  "javax.persistence" % "persistence-api" % "1.0.2",
+  "com.typesafe.play" % "play-test_2.10" % "2.3.0",
   play.PlayImport.cache,
   "com.github.mumoshu" %% "play2-memcached" % "0.6.0"
+//  "org.mongodb" % "mongo-java-driver" % "2.12.4",
+//  "org.mongodb.morphia" % "morphia" % "0.108",
+//  "org.mongodb.morphia" % "morphia-validation" % "0.108",
+//  "cglib" % "cglib-nodep" % "3.1",
+//  "com.thoughtworks.proxytoys" % "proxytoys" % "1.0",
+//  "org.apache.solr" % "solr-solrj" % "4.10.0"
+//  //  "commons-logging" % "commons-logging" % "1.2"
 )
-
-javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
-
-unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
-
-resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.unmanagedResourceDirectories in Test <+= baseDirectory(_ / "target/web/public/test")
 
 aspectjSettings
 
@@ -64,6 +47,12 @@ binaries in Aspectj <++= update map { report =>
 binaries in Aspectj <++= update map { report =>
   report.matching(
     moduleFilter(organization = "org.springframework", name = "spring-tx")
+  )
+}
+
+binaries in Aspectj <++= update map { report =>
+  report.matching(
+    moduleFilter(organization = "javax.persistence", name = "persistence-api")
   )
 }
 

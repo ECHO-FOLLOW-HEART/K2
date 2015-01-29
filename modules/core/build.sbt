@@ -1,3 +1,5 @@
+
+
 name := "core"
 
 scalaVersion := "2.10.3"
@@ -10,6 +12,9 @@ libraryDependencies ++= Seq(
   "com.thoughtworks.proxytoys" % "proxytoys" % "1.0",
   "org.apache.solr" % "solr-solrj" % "4.10.0",
   "dom4j" % "dom4j" % "1.6.1",
-  "jaxen" % "jaxen" % "1.1.6"
+  "jaxen" % "jaxen" % "1.1.6",
+  "org.aspectj" % "aspectjrt" % "1.8.4",
+  "org.aspectj" % "aspectjweaver" % "1.8.4"
   //  "commons-logging" % "commons-logging" % "1.2"
 )
+
