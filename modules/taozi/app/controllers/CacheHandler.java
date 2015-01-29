@@ -43,7 +43,7 @@ public class CacheHandler {
         }
 
         //缓存未命中
-        synchronized (key.intern()) {
+        synchronized (Utils.toSha1Hex(key).intern()) {
             return getResultFromDB(pjp, key, annotation);
         }
     }

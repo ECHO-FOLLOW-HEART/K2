@@ -15,7 +15,7 @@ import utils.Utils;
  */
 @Aspect
 public class ExceptionHandler {
-    private Log logger = LogFactory.getLog("ExceptionHandler");
+    private Log logger = LogFactory.getLog(this.getClass());
 
     @Around("execution(public play.mvc.Result controllers.taozi..*(..))")
     public Result catchException(ProceedingJoinPoint pjp, JoinPoint joinPoint) {
