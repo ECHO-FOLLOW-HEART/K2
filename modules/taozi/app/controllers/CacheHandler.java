@@ -27,22 +27,6 @@ public class CacheHandler {
     public static int MAX_VALUE_LENGTH = 1000000;   //1MB
     Log logger = LogFactory.getLog(this.getClass());
 
-    private String getCacheKey(UsingCache annotation, Annotation[][] parameterAnnotations, Object[] args) {
-        String key = annotation.key();
-        int i = -1;
-        for (Annotation[] parameter : parameterAnnotations) {
-            i = i + 1;
-            for (Annotation annotationi : parameter) {
-                if (annotationi != null && annotationi instanceof CacheKey) {
-                    String rep = "\\{" + ((CacheKey) annotationi).tag() + "\\}";
-                    key = key.replaceFirst(rep, args[i].toString());
-                    break;
-                }
-            }
-        }
-        return key.length() <= MAX_KEY_LENGTH ?key:key.substring(0, MAX_KEY_LENGTH);
-    }
-
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.UsingCache)")
     public Result tryUsingCache(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
@@ -59,6 +43,18 @@ public class CacheHandler {
         }
 
         //缓存未命中
+        return getResultFromDB(pjp, key, annotation);
+    }
+
+    private synchronized Result getResultFromDB(ProceedingJoinPoint pjp, String key, UsingCache annotation) throws Throwable {
+        //再次尝试从缓存中获取值
+        String jsonStr = (String) Cache.get(key);
+        if (jsonStr != null && !jsonStr.isEmpty()) {
+            logger.info("cache hit!");
+            return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
+        }
+
+        //若未命中，则代表是第一次访问，从数据库读取
         Result result = (Result) pjp.proceed();
         JsonNode body = ((WrappedStatus) result).getJsonBody();
         if (body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
@@ -70,5 +66,21 @@ public class CacheHandler {
             }
         }
         return result;
+    }
+
+    private String getCacheKey(UsingCache annotation, Annotation[][] parameterAnnotations, Object[] args) {
+        String key = annotation.key();
+        int i = -1;
+        for (Annotation[] parameter : parameterAnnotations) {
+            i = i + 1;
+            for (Annotation annotationi : parameter) {
+                if (annotationi != null && annotationi instanceof CacheKey) {
+                    String rep = "\\{" + ((CacheKey) annotationi).tag() + "\\}";
+                    key = key.replaceFirst(rep, args[i].toString());
+                    break;
+                }
+            }
+        }
+        return key.length() <= MAX_KEY_LENGTH ?key:key.substring(0, MAX_KEY_LENGTH);
     }
 }
