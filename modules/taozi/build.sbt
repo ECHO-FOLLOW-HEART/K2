@@ -6,7 +6,7 @@ name := "taozi"
 scalaVersion := "2.10.3"
 
 libraryDependencies ++= Seq(
-  "org.aspectj" % "aspectjrt" % "1.8.2",
+  "org.aspectj" % "aspectjrt" % "1.8.4",
   "org.aspectj" % "aspectjweaver" % "1.8.4",
   "org.mongodb" % "mongo-java-driver" % "2.12.4",
   "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",

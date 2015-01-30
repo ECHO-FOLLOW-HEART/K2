@@ -5,6 +5,7 @@ import exception.ErrorCode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import play.api.mvc.ResponseHeader;
@@ -25,26 +26,20 @@ public class AccessLogger {
     private Log logger = LogFactory.getLog(ACCESS);
     // date time c-ip cs-method cs-uri sc-status c-apicode bytes
 
-    @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))")
-    public Result logAccessment(ProceedingJoinPoint pjp) {
+    @AfterReturning(pointcut = "execution(play.mvc.Result controllers.taozi..*(..))", returning = "result")
+    public void logAdvice(Result result) {
+        if (!(result instanceof WrappedStatus))
+            return;
+
         Http.Context context = Http.Context.current();
-        WrappedStatus result = null;
-        try {
-            result = (WrappedStatus) pjp.proceed();
-            JsonNode body = result.getJsonBody();
-            if (body == null) {
-                body = Json.parse("{}");
-            }
-            ResponseHeader s = (ResponseHeader) result.toScala().productElement(0);
-            int status = s.status();
-            String logLine = getLogLine(context, body.get("code").asInt(ErrorCode.UNKOWN_ERROR), status, body);
-            logger.info(logLine);
-        } catch (Throwable throwable) {
-            //assert that pjp.proceed() won't throw exception
-            throwable.printStackTrace();
-        } finally {
-            return result;
+        JsonNode body = ((WrappedStatus)result).getJsonBody();
+        if (body == null) {
+            body = Json.parse("{}");
         }
+        ResponseHeader s = (ResponseHeader) result.toScala().productElement(0);
+        int status = s.status();
+        String logLine = getLogLine(context, body.get("code").asInt(ErrorCode.UNKOWN_ERROR), status, body);
+        logger.info(logLine);
     }
 
     private String getLogLine(Http.Context context, int code, int responseStatus, JsonNode result) {
