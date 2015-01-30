@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.CacheKey;
+import controllers.CheckLastModify;
 import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
@@ -85,6 +86,10 @@ public class GeoCtrl extends Controller {
         return MiscCtrl.getAlbums(id, page, pageSize);
     }
 
+    public static long getLMD(boolean abroad, int page) {
+        return 100;
+    }
+
     /**
      * 获得国内国外目的地
      *
@@ -94,7 +99,10 @@ public class GeoCtrl extends Controller {
      * @return
      */
     @UsingCache(key = "destinations(abroad={abroad})", expireTime = 3600)
-    public static Result exploreDestinations(@CacheKey(tag = "abroad") boolean abroad, int page, int pageSize) {
+    @CheckLastModify(callback = "getLMD", args = "{abroad}|{page}")
+    public static Result exploreDestinations(@CacheKey(tag = "abroad") boolean abroad,
+                                             @CacheKey(tag = "page")int page,
+                                             int pageSize) {
         try {
             long t0 = System.currentTimeMillis();
             Http.Request req = request();
