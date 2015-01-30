@@ -30,13 +30,13 @@ public class CacheHandler {
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.RemoveCache)")
-    public Result removeCache(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
+    public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
         RemoveCache annotation = method.getAnnotation(RemoveCache.class);
         String[] keyList = annotation.keyList().split(SEPARATOR);
         for (String keyEntry : keyList) {
-            String key = getCacheKey(keyEntry, method.getParameterAnnotations(), joinPoint.getArgs());
+            String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
             logger.debug("Remove key: " + key);
             Cache.remove(key);
         }
@@ -45,11 +45,11 @@ public class CacheHandler {
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.UsingCache)")
-    public Result tryUsingCache(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
+    public Result tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
         UsingCache annotation = method.getAnnotation(UsingCache.class);
-        String key = getCacheKey(annotation.key(), method.getParameterAnnotations(), joinPoint.getArgs());
+        String key = getCacheKey(annotation.key(), method.getParameterAnnotations(), pjp.getArgs());
         String jsonStr = (String) Cache.get(key);
 
         //缓存命中
