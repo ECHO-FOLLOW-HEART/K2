@@ -31,22 +31,23 @@ public class AccessLogger {
         if (!(result instanceof WrappedStatus))
             return;
 
-        Http.Context context = Http.Context.current();
         JsonNode body = ((WrappedStatus)result).getJsonBody();
         if (body == null) {
             body = Json.parse("{}");
         }
         ResponseHeader s = (ResponseHeader) result.toScala().productElement(0);
         int status = s.status();
-        String logLine = getLogLine(context, body.get("code").asInt(ErrorCode.UNKOWN_ERROR), status, body);
+        String logLine = getLogLine(body.get("code").asInt(ErrorCode.UNKOWN_ERROR), status, body);
         logger.info(logLine);
     }
 
-    private String getLogLine(Http.Context context, int code, int responseStatus, JsonNode result) {
+    private String getLogLine(int code, int responseStatus, JsonNode result) {
         Date now = new Date();
         String ip = "-";
         String method = "-";
         String uri = "-";
+
+        Http.Context context = Http.Context.current();
         if (context != null) {
             ip = context.request().remoteAddress();
             method = context.request().method();

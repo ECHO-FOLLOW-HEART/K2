@@ -4,13 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import play.cache.Cache;
 import play.libs.Json;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.Utils;
 import utils.WrappedStatus;
@@ -46,32 +46,43 @@ public class CacheHandler {
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.UsingCache)")
     public Result tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
+        Http.Context context = Http.Context.current();
+
+        // 缓存策略：none表示不使用缓存，refresh表示无视现有缓存，强制将其刷新
+        String[] tmp = context.request().queryString().get("cachePolicy");
+        String cachePolicy = (tmp != null && tmp.length >= 1) ? tmp[0] : "";
+
+        if (cachePolicy.equals("none"))
+            return (Result) pjp.proceed();
+
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
         UsingCache annotation = method.getAnnotation(UsingCache.class);
         String key = getCacheKey(annotation.key(), method.getParameterAnnotations(), pjp.getArgs());
+
+        if (cachePolicy.equals("refresh")){
+            // 强制刷新缓存
+            synchronized (key.intern()) {
+                return fetchAndRefreshCache(pjp, key, annotation);
+            }
+        }
+
+        // 双重检查锁
         String jsonStr = (String) Cache.get(key);
-
-        //缓存命中
-        if (jsonStr != null && !jsonStr.isEmpty()) {
-            logger.info(String.format("Cache hit: %s", key));
-            return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
+        if (jsonStr==null || jsonStr.isEmpty()){
+            synchronized (key.intern()){
+                //再次尝试从缓存中获取值
+                jsonStr = (String) Cache.get(key);
+                if (jsonStr==null || jsonStr.isEmpty()){
+                    return fetchAndRefreshCache(pjp, key, annotation);
+                }
+            }
         }
-
-        //缓存未命中
-        synchronized (key.intern()) {
-            return getResultFromDB(pjp, key, annotation);
-        }
+        logger.info(String.format("Cache hit: %s", key));
+        return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
     }
 
-    private Result getResultFromDB(ProceedingJoinPoint pjp, String key, UsingCache annotation) throws Throwable {
-        //再次尝试从缓存中获取值
-        String jsonStr = (String) Cache.get(key);
-        if (jsonStr != null && !jsonStr.isEmpty()) {
-            logger.info(String.format("Cache hit: %s", key));
-            return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
-        }
-
+    private Result fetchAndRefreshCache(ProceedingJoinPoint pjp, String key, UsingCache annotation) throws Throwable {
         //若未命中，则代表是第一次访问，从数据库读取
         Result result = (Result) pjp.proceed();
         JsonNode body = ((WrappedStatus) result).getJsonBody();
