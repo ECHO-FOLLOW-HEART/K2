@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 public @interface UsingCache {
     // default expire time unit is seconds
     String key();
-    int expireTime() default 300;
+    int expireTime() default 600;
 }

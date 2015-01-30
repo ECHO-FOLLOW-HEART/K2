@@ -79,8 +79,13 @@ public class POICtrl extends Controller {
      *                entertainment:美食
      * @param spotId  POI的ID。
      */
-    public static Result viewPOIInfo(String poiDesc, String spotId, int commentPage, int commentPageSize,
-                                     int rmdPage, int rmdPageSize) {
+    @UsingCache(key="poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize}", expireTime = 3600)
+    public static Result viewPOIInfo(String poiDesc,
+                                     @CacheKey(tag="poiId") String spotId,
+                                     @CacheKey(tag="cmtPage") int commentPage,
+                                     @CacheKey(tag="cmtPageSize")int commentPageSize,
+                                     @CacheKey(tag="rmdPage")int rmdPage,
+                                     @CacheKey(tag="rmdPageSize")int rmdPageSize) {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
