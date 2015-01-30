@@ -20,6 +20,14 @@ public class WrappedStatus extends Results.Status {
         return new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
     }
 
+    public static WrappedStatus MiscWrappedStatus(int status) {
+        return new WrappedStatus(JavaResults.Status(status));
+    }
+
+    public WrappedStatus(play.api.mvc.Results.Status status) {
+        super(status);
+    }
+
     public WrappedStatus(play.api.mvc.Results.Status status, JsonNode jsonNode, Codec codec) {
         super(status, jsonNode, codec);
         jsonBody = jsonNode;
