@@ -12,8 +12,9 @@ import play.mvc.Result;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 import static play.mvc.Controller.response;
 import static utils.WrappedStatus.MiscWrappedStatus;
@@ -50,28 +51,30 @@ public class ModifyHandler {
             argsList.add(arg);
         }
         Object[] objects = argsList.toArray();
-        long lastModified = (long) getLastModifyTimeMethod.invoke(method.getDeclaringClass(), objects);
+        long lastModifiedL = (long) getLastModifyTimeMethod.invoke(method.getDeclaringClass(), objects);
+        Date lastModified = new Date(lastModifiedL);
 
         //从Header中获取If-Modified-Since字段
         Http.Context context = Http.Context.current();
         Http.Request request = context.request();
         String ifModifySinceStr = request.getHeader(hIF_MODIFIED_SINCE);
-        long ifModifySince = 0;
+        Date ifModifySince = new Date();
+        DateFormat format = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH);
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
         if (ifModifySinceStr != null && !ifModifySinceStr.isEmpty()) {
-            ifModifySince = Long.parseLong(ifModifySinceStr);
+            ifModifySince = format.parse(ifModifySinceStr);
         }
 
         //判断时间戳
-        if (lastModified <= ifModifySince) {
+        if (!lastModified.after(ifModifySince)) {
             logger.info("304 Not Modified: " + joinPoint.getSignature());
 //            response().setHeader(hCACHE_CONTROL, hMAX_AGE + "=" + MAX_AGE);
             return MiscWrappedStatus(304);
         }
 
         //添加Header字段
-        Long last = lastModified;
         response().setHeader(hCACHE_CONTROL, getCachePolicy(annotation.withPublic()));
-        response().setHeader(hLAST_MODIFIED, last.toString());
+        response().setHeader(hLAST_MODIFIED, format.format(lastModified));
         return (Result) pjp.proceed();
     }
 

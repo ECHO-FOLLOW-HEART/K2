@@ -87,7 +87,7 @@ public class GeoCtrl extends Controller {
     }
 
     public static long getLMD(boolean abroad, int page) {
-        return 100;
+        return System.currentTimeMillis()-3600;
     }
 
     /**
