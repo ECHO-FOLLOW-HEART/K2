@@ -4,9 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterReturning;
-import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import play.api.mvc.ResponseHeader;
 import play.libs.Json;
@@ -31,7 +29,7 @@ public class AccessLogger {
         if (!(result instanceof WrappedStatus))
             return;
 
-        JsonNode body = ((WrappedStatus)result).getJsonBody();
+        JsonNode body = ((WrappedStatus) result).getJsonBody();
         if (body == null) {
             body = Json.parse("{}");
         }
@@ -43,12 +41,19 @@ public class AccessLogger {
 
     private String getLogLine(int code, int responseStatus, JsonNode result) {
         Date now = new Date();
+        String version = "-";
+        String platform = "-";
+        String userid = "-";
         String ip = "-";
         String method = "-";
         String uri = "-";
 
         Http.Context context = Http.Context.current();
+
         if (context != null) {
+            version = context.request().getHeader("Version") == null ? "-" : context.request().getHeader("Version");
+            platform = context.request().getHeader("Platform") == null ? "-" : context.request().getHeader("Platform");
+            userid = context.request().getHeader("UserId") == null ? "-" : context.request().getHeader("UserId");
             ip = context.request().remoteAddress();
             method = context.request().method();
             uri = context.request().uri();
@@ -63,6 +68,6 @@ public class AccessLogger {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm:ss.SSS");
 
-        return dateFormat.format(now) + " " + timeFormat.format(now) + " " + ip + " " + method + " " + uri + " " + status + " " + serverCode + " " + bytes;
+        return dateFormat.format(now) + " " + timeFormat.format(now) + " " + version + " " + platform + " " + userid + " " + ip + " " + method + " " + uri + " " + status + " " + serverCode + " " + bytes;
     }
 }
