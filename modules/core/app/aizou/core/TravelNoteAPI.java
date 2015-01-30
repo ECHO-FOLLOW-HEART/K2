@@ -21,6 +21,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import play.Configuration;
+import utils.LogUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -344,10 +345,10 @@ public class TravelNoteAPI {
     private static HttpSolrServer getSolrConnect() throws SolrServerException {
         //solr连接配置
         Configuration config = Configuration.root().getConfig("solr");
-        String host = config.getString("host", "localhost");
+        String host = config.getString("host");
         Integer port = config.getInt("port", 8983);
         String coreName = config.getString("core", "travelnote");
-        String url = String.format("http://%s:%d/solr/%s", host, port, coreName);
+        String url = String.format("http://%s:%d/solr/%s", "taozilvxing.com", port, coreName);
         return new HttpSolrServer(url);
     }
 
