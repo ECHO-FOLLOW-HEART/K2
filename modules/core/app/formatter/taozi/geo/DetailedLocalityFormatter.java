@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.geo.Locality;
@@ -21,6 +21,11 @@ import java.util.Arrays;
  * Created by zephyre on 10/28/14.
  */
 public class DetailedLocalityFormatter extends TaoziBaseFormatter {
+
+    public DetailedLocalityFormatter setImageWidth(int width) {
+        imageWidth = width;
+        return this;
+    }
 
     @Override
     public JsonNode format(AizouBaseEntity item) {
@@ -42,7 +47,7 @@ public class DetailedLocalityFormatter extends TaoziBaseFormatter {
                         ));
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+                new ImageItemSerializerOld(imageWidth));
         mapper.registerModule(imageItemModule);
 
         ObjectNode result = mapper.valueToTree(item);

@@ -1,6 +1,7 @@
 package controllers.web;
 
 import aizou.core.PoiAPI;
+import aizou.core.WebPoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObject;
@@ -62,7 +63,7 @@ public class POICtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
 
         boolean details = (showDetails != 0);
-        AbstractPOI poiInfo = PoiAPI.getPOIInfo(spotId, poiType, details);
+        AbstractPOI poiInfo = WebPoiAPI.getPOIInfo(spotId, poiType, details);
         if (poiInfo == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
 

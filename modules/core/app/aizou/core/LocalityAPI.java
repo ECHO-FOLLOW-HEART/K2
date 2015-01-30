@@ -245,11 +245,7 @@ public class LocalityAPI {
      */
     public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws AizouException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
-        query.or(
-                query.criteria("zhName").equal(keyword),
-                query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
-                query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
-        );
+        query.field("alias").equal(Pattern.compile("^" + keyword));
         return query.order("-isHot").offset(page * pageSize).limit(pageSize).asList();
     }
 

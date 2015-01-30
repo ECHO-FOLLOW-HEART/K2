@@ -17,7 +17,7 @@ DELETE        /ugc-plans/:ugcPlanId                       controllers.web.PlanCt
 #优化并保存路线
 POST          /plans/optimizers                           controllers.web.PlanCtrl.optimizePlan()
 #路线相关游记
-GET           /misc/notes/search                          controllers.web.TravelNoteCtrl.searchNotes()
+GET           /misc/notes/search                          controllers.web.TravelNoteCtrl.searchNotes(page: Int?=0,pageSize: Int?= 20)
 
 #----------POI接口----------
 #搜索POI信息：根据位置、标签、关键词

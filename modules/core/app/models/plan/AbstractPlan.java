@@ -345,8 +345,10 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
 
         List<JsonNode> targetList = new ArrayList<>();
         if (null != targets) {
-            for (SimpleRef t : targets)
-                targetList.add(t.toJson());
+            for (SimpleRef t : targets) {
+                if (t.id != null && t.zhName != null && !t.zhName.isEmpty())
+                    targetList.add(t.toJson());
+            }
 
             if (targetList.size() > 0) {
                 builder.add("target", targetList.get(0));

@@ -75,8 +75,8 @@ public class BriefPOIFormatter extends TravelPiBaseFormatter {
 
         ObjectNode result = mapper.valueToTree(item);
         result.put("_id", result.get("id").asText());
-//        result.put("name", result.get("zhName").asText());
-        result.put("fullName", result.get("name").asText());
+        result.put("name", result.get("zhName").asText());
+        result.put("fullName", result.get("zhName").asText());
 
 //        List<ImageItem> images = vsItem.getImages();
 ////        JsonNode images = result.get(Locality.fnImages);

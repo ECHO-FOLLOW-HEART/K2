@@ -1,18 +1,21 @@
-name := """aizou"""
+import com.typesafe.sbt.SbtAspectj.AspectjKeys._
+import com.typesafe.sbt.SbtAspectj._
 
-version := "1.3"
+name := "aizou"
 
-lazy val core = (project in file("modules/core")).enablePlugins(PlayJava)
+version := "2.0"
 
-lazy val web = (project in file("modules/web")).enablePlugins(PlayJava).dependsOn(core)
+lazy val `core` = (project in file("modules/core")).enablePlugins(PlayJava)
 
-lazy val travelpi = (project in file("modules/travelpi")).enablePlugins(PlayJava).dependsOn(core)
+lazy val `taozi` = (project in file("modules/taozi")).enablePlugins(PlayJava).dependsOn(core)
 
-lazy val taozi = (project in file("modules/taozi")).enablePlugins(PlayJava).dependsOn(core)
+lazy val `web` = (project in file("modules/web")).enablePlugins(PlayJava).dependsOn(core)
 
-lazy val root = (project in file(".")).enablePlugins(PlayJava)
-  .dependsOn(core).dependsOn(web).dependsOn(travelpi).dependsOn(taozi)
-  .aggregate(core, web, taozi, travelpi)
+lazy val `k2` = (project in file(".")).enablePlugins(PlayJava)
+  .dependsOn(core)
+  .dependsOn(taozi)
+  .dependsOn(web)
+  .aggregate(core, taozi, web)
 
 scalaVersion := "2.10.3"
 
@@ -22,7 +25,48 @@ libraryDependencies ++= Seq(
   cache,
   javaWs,
   filters,
-  "org.mongodb" % "mongo-java-driver" % "2.12.4"
+  "org.mongodb" % "mongo-java-driver" % "2.12.4",
+  "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",
+  "org.springframework" % "spring-aop" % "3.2.2.RELEASE",
+  "org.springframework" % "spring-tx" % "3.2.2.RELEASE",
+  "org.aspectj" % "aspectjrt" % "1.8.2",
+  "org.aspectj" % "aspectjweaver" % "1.8.4",
+  "com.aizou" % "iisfileappender_2.10" % "0.1-SNAPSHOT",
+  play.PlayImport.cache,
+  "com.github.mumoshu" %% "play2-memcached" % "0.6.0"
 )
 
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
+
+unmanagedResourceDirectories in Test <+=  baseDirectory ( _ /"target/web/public/test" )
+
+resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.unmanagedResourceDirectories in Test <+= baseDirectory(_ / "target/web/public/test")
+
+aspectjSettings
+
+showWeaveInfo in Aspectj := false
+
+inputs in Aspectj <+= compiledClasses
+
+
+binaries in Aspectj <++= update map { report =>
+  report.matching(
+    moduleFilter(organization = "org.springframework", name = "spring-aspects")
+  )
+}
+
+binaries in Aspectj <++= update map { report =>
+  report.matching(
+    moduleFilter(organization = "org.springframework", name = "spring-aop")
+  )
+}
+
+binaries in Aspectj <++= update map { report =>
+  report.matching(
+    moduleFilter(organization = "org.springframework", name = "spring-tx")
+  )
+}
+
+products in Compile <<= products in Aspectj
+
+products in Runtime <<= products in Compile

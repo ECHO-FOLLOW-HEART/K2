@@ -3,26 +3,37 @@ package controllers.taozi;
 import aizou.core.GeoAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
+import aizou.core.TravelNoteAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.FormatterFactory;
 import formatter.taozi.geo.DetailedLocalityFormatter;
+import formatter.taozi.geo.DetailsEntryFormatter;
 import formatter.taozi.geo.SimpleCountryFormatter;
 import formatter.taozi.geo.SimpleLocalityFormatter;
-import formatter.taozi.poi.SimplePOIFormatter;
+import formatter.taozi.misc.TravelNoteFormatter;
 import models.geo.Country;
+import models.geo.DetailsEntry;
 import models.geo.Locality;
-import models.poi.AbstractPOI;
+import models.misc.TravelNote;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
 import utils.Utils;
 
+import java.text.ParseException;
 import java.util.*;
+
 
 /**
  * 地理相关
@@ -39,74 +50,27 @@ public class GeoCtrl extends Controller {
      */
     public static Result getLocality(String id, int noteCnt) {
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             Long userId;
             if (request().hasHeader("UserId"))
                 userId = Long.parseLong(request().getHeader("UserId"));
             else
                 userId = null;
             Locality locality = GeoAPI.locDetails(id);
-            //是否被收藏
-            MiscAPI.isFavorite(locality, userId);
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
-            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().format(locality);
-            //List<TravelNote> tras = TravelNoteAPI.searchNoteByLoc(Arrays.asList(locality.getZhName()), null, 0, noteCnt);
-            //List<ObjectNode> objs = new ArrayList<>();
-            //for (TravelNote tra : tras) {
-            //    objs.add((ObjectNode) new TravelNoteFormatter().format(tra));
-            //}
-            int imageCnt = locality.getImages() == null ? 0 : locality.getImages().size();
-            response.put("imageCnt", imageCnt);
+            //是否被收藏
+            MiscAPI.isFavorite(locality, userId);
+            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
+            // 显示图集的数量
+            response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
-        }
-    }
-
-    /**
-     * 特定地点美食、景点、购物发现
-     *
-     * @param locId
-     * @param vs
-     * @param dinning
-     * @param shopping
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result exploreDinShop(String locId, boolean vs, boolean dinning, boolean shopping, boolean hotel, boolean restaurant,
-                                        int page, int pageSize) {
-        //TODO 没有美食/购物的数据
-        try {
-            ObjectNode results = Json.newObject();
-            HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
-            if (vs)
-                poiMap.put(PoiAPI.POIType.VIEW_SPOT, "vs");
-            if (dinning)
-                poiMap.put(PoiAPI.POIType.DINNING, "dinning");
-
-            if (shopping)
-                poiMap.put(PoiAPI.POIType.SHOPPING, "shopping");
-            if (hotel)
-                poiMap.put(PoiAPI.POIType.HOTEL, "hotel");
-
-            if (restaurant)
-                poiMap.put(PoiAPI.POIType.RESTAURANT, "restaurant");
-
-            for (Map.Entry<PoiAPI.POIType, String> entry : poiMap.entrySet()) {
-                List<JsonNode> retPoiList = new ArrayList<>();
-                PoiAPI.POIType poiType = entry.getKey();
-                String poiTypeName = entry.getValue();
-
-                // TODO 暂时返回国内数据
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.explore(poiType, null, false, page, pageSize);
-                     it.hasNext(); )
-                    retPoiList.add(new SimplePOIFormatter().format(it.next()));
-                results.put(poiTypeName, Json.toJson(retPoiList));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
 
@@ -118,33 +82,77 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result exploreDestinations(boolean abroad, int page, int pageSize) {
+    @UsingCache(key = "destinations(abroad={abroad})")
+    public static Result exploreDestinations(@CacheKey(tag = "abroad")boolean abroad, int page, int pageSize) {
         try {
+            long t0 = System.currentTimeMillis();
+            Http.Request req = request();
+            Http.Response rsp = response();
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
+            Configuration config = Configuration.root();
+            Map destnations = (Map) config.getObject("destinations");
+            String lastModify = destnations.get("lastModify").toString();
+            // 添加缓存用的相应头
+            Utils.addCacheResponseHeader(rsp, lastModify);
+            if (Utils.useCache(req, lastModify))
+                return status(304, "Content not modified, dude.");
+
             List<ObjectNode> objs = new ArrayList<>();
-            List<ObjectNode> dests;
+
             if (abroad) {
-                // TODO 桃子上线的国家暂时写到配置文件中
-                Configuration config = Configuration.root();
-                Map destnations = (Map) config.getObject("destinations");
                 String countrysStr = destnations.get("country").toString();
                 List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
-                List<Country> countryList = GeoAPI.searchCountryByName(countryNames, page, pageSize);
-                for (Country c : countryList) {
-                    ObjectNode node = (ObjectNode) new SimpleCountryFormatter().format(c);
-                    dests = getDestinationsNodeByCountry(c.getId(), page, pageSize);
-                    node.put("destinations", Json.toJson(dests));
+                List<Country> countryList = GeoAPI.searchCountryByName(countryNames, Constants.ZERO_COUNT,
+                        Constants.MAX_COUNT);
+
+                SimpleCountryFormatter formatter = new SimpleCountryFormatter();
+                if (imgWidth > 0)
+                    formatter.setImageWidth(imgWidth);
+                JsonNode destResult = formatter.formatNode(countryList);
+
+                for (Iterator<JsonNode> itr = destResult.elements(); itr.hasNext(); ) {
+                    ObjectNode cNode = (ObjectNode) itr.next();
+                    JsonNode localities = getDestinationsNodeByCountry(new ObjectId(cNode.get("id").asText()), page, 30);
+                    cNode.put("destinations", localities);
+                }
+
+                return Utils.createResponse(ErrorCode.NORMAL, destResult);
+            } else {
+                Map<String, Object> mapConf = Configuration.root().getConfig("domestic").asMap();
+                Map<String, Object> pinyinConf = Configuration.root().getConfig("pinyin").asMap();
+                String k;
+                Object v, pinyinObj;
+                ObjectNode node;
+                String zhName = null;
+                String pinyin = null;
+                for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
+                    k = entry.getKey();
+                    v = entry.getValue();
+                    if (v != null)
+                        zhName = v.toString();
+
+                    pinyinObj = pinyinConf.get(k);
+                    if (pinyinObj != null)
+                        pinyin = pinyinObj.toString();
+
+                    node = Json.newObject();
+                    node.put("id", k);
+                    node.put("zhName", zhName);
+                    node.put("enName", "");
+                    node.put("pinyin", pinyin);
                     objs.add(node);
                 }
-            } else {
-                // TODO 全部取出，不要分页，暂时取100个
-                List<Locality> destinations = GeoAPI.getDestinations(abroad, page, 100);
-                for (Locality des : destinations) {
-                    objs.add((ObjectNode) new SimpleLocalityFormatter().format(des));
-                }
+
+                return Utils.createResponse(rsp, lastModify, ErrorCode.NORMAL, Json.toJson(objs));
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (AizouException | ParseException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        } catch (ReflectiveOperationException | JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
         }
     }
 
@@ -157,12 +165,167 @@ public class GeoCtrl extends Controller {
      * @return
      * @throws exception.AizouException
      */
-    private static List<ObjectNode> getDestinationsNodeByCountry(ObjectId id, int page, int pageSize) throws AizouException {
-        List<ObjectNode> result = new ArrayList<>(pageSize);
+    private static JsonNode getDestinationsNodeByCountry(ObjectId id, int page, int pageSize)
+            throws AizouException, ReflectiveOperationException, JsonProcessingException {
         List<Locality> localities = GeoAPI.getDestinationsByCountry(id, page, pageSize);
-        for (Locality des : localities) {
-            result.add((ObjectNode) new SimpleLocalityFormatter().format(des));
-        }
-        return result;
+
+        SimpleLocalityFormatter formatter = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
+        return formatter.formatNode(localities);
     }
+
+    /**
+     * 游玩攻略-H5
+     *
+     * @param locId
+     * @param field
+     * @return
+     */
+    public static Result getTravelGuide(String locId, String field) {
+        try {
+            if (field == null || field.isEmpty())
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            List<String> fieldList = new ArrayList<>();
+            switch (field) {
+                case "remoteTraffic":
+                    fieldList.add(Locality.fnRemoteTraffic);
+                    break;
+                case "localTraffic":
+                    fieldList.add(Locality.fnLocalTraffic);
+                    break;
+                case "activities":
+                    Collections.addAll(fieldList, Locality.fnActivityIntro, Locality.fnActivities);
+                    break;
+                case "tips":
+                    fieldList.add(Locality.fnTips);
+                    break;
+                case "specials":
+                    fieldList.add(Locality.fnSpecials);
+                    break;
+                case "geoHistory":
+                    fieldList.add(Locality.fnGeoHistory);
+                    break;
+                case "dining":
+                    Collections.addAll(fieldList, Locality.fnDinningIntro, Locality.fnCuisines);
+                    break;
+                case "shopping":
+                    Collections.addAll(fieldList, Locality.fnShoppingIntro, Locality.fnCommodities);
+                    break;
+                case "desc":
+                    fieldList.add(Locality.fnDesc);
+                    break;
+                default:
+                    throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            }
+            Locality locality = PoiAPI.getLocalityByField(new ObjectId(locId), fieldList);
+            if (locality == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality is not exist.ID:" + locId);
+            ObjectNode result = Json.newObject();
+            if (field.equals("remoteTraffic")) {
+                result.put("desc", "");
+                result.put("contents", Json.toJson(contentsToList(locality.getRemoteTraffic())));
+            } else if (field.equals("localTraffic")) {
+                result.put("desc", "");
+                result.put("contents", Json.toJson(contentsToList(locality.getLocalTraffic())));
+            } else if (field.equals("activities")) {
+                result.put("desc", locality.getActivityIntro());
+                result.put("contents", Json.toJson(contentsToList(locality.getActivities())));
+            } else if (field.equals("tips")) {
+                result.put("desc", "");
+                result.put("contents", Json.toJson(contentsToList(locality.getTips())));
+            } else if (field.equals("geoHistory")) {
+                result.put("desc", "");
+                result.put("contents", Json.toJson(contentsToList(locality.getGeoHistory())));
+            } else if (field.equals("specials")) {
+                result.put("desc", "");
+                result.put("contents", Json.toJson(contentsToList(locality.getSpecials())));
+            } else if (field.equals("desc")) {
+                result.put("desc", locality.getDesc());
+                result.put("contents", Json.toJson(new ArrayList<>()));
+            } else if (field.equals("dining")) {
+                result.put("desc", locality.getDiningIntro());
+                result.put("contents", Json.toJson(contentsToList(locality.getCuisines())));
+            } else if (field.equals("shopping")) {
+                result.put("desc", locality.getShoppingIntro());
+                result.put("contents", Json.toJson(contentsToList(locality.getCommodities())));
+            }
+            return Utils.createResponse(ErrorCode.NORMAL, result);
+        } catch (AizouException | NullPointerException | NumberFormatException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        }
+    }
+
+    public static List<ObjectNode> contentsToList(List<DetailsEntry> entries) {
+        if (entries == null)
+            return new ArrayList<>();
+        List<ObjectNode> objs = new ArrayList<>();
+        for (DetailsEntry entry : entries) {
+            objs.add((ObjectNode) new DetailsEntryFormatter().format(entry));
+        }
+        return objs;
+    }
+
+    /**
+     * 游玩攻略概览-H5
+     *
+     * @param locId
+     * @return
+     */
+    public static Result getTravelGuideOutLine(String locId) {
+        Locality loc = null;
+        try {
+            loc = GeoAPI.locDetails(new ObjectId(locId), Arrays.asList("zhName"));
+        } catch (AizouException e) {
+        }
+
+        ObjectNode node;
+        List<ObjectNode> result = new ArrayList<>();
+        node = Json.newObject();
+        node.put("title", "如何去" + (loc == null ? "" : loc.getZhName()));
+        node.put("fields", Json.toJson(Arrays.asList("remoteTraffic")));
+        result.add(node);
+
+        node = Json.newObject();
+        node.put("title", "当地交通");
+        node.put("fields", Json.toJson(Arrays.asList("localTraffic")));
+        result.add(node);
+
+        node = Json.newObject();
+        node.put("title", "节庆与民俗活动");
+        node.put("fields", Json.toJson(Arrays.asList("activities")));
+        result.add(node);
+
+        node = Json.newObject();
+        node.put("title", "旅行游玩小贴士");
+        node.put("fields", Json.toJson(Arrays.asList("tips")));
+        result.add(node);
+
+        node = Json.newObject();
+        node.put("title", "宗教、文化与历史");
+        node.put("fields", Json.toJson(Arrays.asList("geoHistory")));
+        result.add(node);
+
+        node = Json.newObject();
+        node.put("title", "不可错过的游玩体验");
+        node.put("fields", Json.toJson(Arrays.asList("specials")));
+        result.add(node);
+
+//        node = Json.newObject();
+//        node.put("title", "描述");
+//        node.put("fields", Json.toJson(Arrays.asList("desc")));
+//        result.add(node);
+
+//        node = Json.newObject();
+//        node.put("title", "地道美食");
+//        node.put("fields", Json.toJson(Arrays.asList("dining")));
+//        result.add(node);
+//
+//        node = Json.newObject();
+//        node.put("title", "购物指南");
+//        node.put("fields", Json.toJson(Arrays.asList("shopping")));
+//        result.add(node);
+
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+
+    }
+
 }

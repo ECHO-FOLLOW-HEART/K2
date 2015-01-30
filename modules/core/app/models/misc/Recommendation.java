@@ -16,6 +16,8 @@ import java.util.Date;
 import java.util.List;
 
 /**
+ * web用的推荐内容
+ *
  * Created by topy on 2014/9/13.
  */
 @JsonFilter("recommendationFilter")

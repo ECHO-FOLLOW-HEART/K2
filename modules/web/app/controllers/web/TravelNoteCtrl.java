@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.misc.TravelNote;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -20,20 +21,19 @@ import java.util.List;
  * @author Zephyre
  */
 public class TravelNoteCtrl extends Controller {
-    public static Result searchNotes() {
+    public static Result searchNotes(int page, int pageSize) {
         String planId = request().getQueryString("planId");
         if (planId == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "PLAN ID NOT FOUND.");
-
         try {
-            List<TravelNote> noteList = TravelNoteAPI.searchNoteByPlan(new ObjectId(planId));
+            List<TravelNote> noteList = TravelNoteAPI.searchNoteByPlan(new ObjectId(planId), page, pageSize);
             List<JsonNode> ret = new ArrayList<>();
             for (TravelNote note : noteList)
                 ret.add(note.toJson());
 
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(ret));
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (AizouException | SolrServerException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
 }

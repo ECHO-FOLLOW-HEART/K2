@@ -6,12 +6,11 @@ import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.misc.ImageItem;
-import models.poi.AbstractPOI;
 import models.user.Favorite;
 
 import java.util.*;
@@ -23,7 +22,7 @@ import java.util.*;
  */
 public class SelfFavoriteFormatter extends TaoziBaseFormatter {
 
-    public SelfFavoriteFormatter() {
+    public SelfFavoriteFormatter(String type) {
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
                 Favorite.fnZhName,
@@ -37,6 +36,16 @@ public class SelfFavoriteFormatter extends TaoziBaseFormatter {
                 Favorite.fnDesc,
                 Favorite.fnLocality
         );
+
+        if (type.equals("vs") || type.equals("locality")) {
+            Collections.addAll(filteredFields, Favorite.fnTimeCostDesc);
+        } else if (type.equals("restaurant") || type.equals("hotel")) {
+            Collections.addAll(filteredFields, Favorite.fnTimeCostDesc, Favorite.fnRating,
+                    Favorite.fnAddress,Favorite.fnPriceDesc,Favorite.fnTelephone);
+        } else if (type.equals("shopping")) {
+            Collections.addAll(filteredFields, Favorite.fnRating);
+        }
+
     }
 
     @Override
@@ -53,7 +62,7 @@ public class SelfFavoriteFormatter extends TaoziBaseFormatter {
         // 注册 SimpleModule
         SimpleModule imageItemModule = new SimpleModule();
         imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
+                new ImageItemSerializerOld(ImageItemSerializerOld.ImageSizeDesc.MEDIUM));
         mapper.registerModule(imageItemModule);
 
 

@@ -35,14 +35,12 @@ public class ViewSpot extends AbstractPOI {
     public static String FD_GUIDE_URL = "guideUrl";
 
     @Transient
-    public static String FD_KENGDIE_URL = "kengdieUrl";
+    public static String FD_TIPS_URL = "tipsUrl";
 
     @Transient
     public static String FD_DESC_FLAGS = "descriptionFlag";
 
     public Integer spotId;
-
-    public String trafficInfo;
 
     @Embedded
     public ViewSpotRatings ratings;
@@ -84,9 +82,6 @@ public class ViewSpot extends AbstractPOI {
     public Description descriptionFlag;
 
     @Transient
-    private String trafficInfoUrl;
-
-    @Transient
     private String guideUrl;
 
     @Transient
@@ -97,6 +92,14 @@ public class ViewSpot extends AbstractPOI {
         if (level > 2)
             fieldList.addAll(Arrays.asList("rankingA", "openTime", "timeCost"));
         return fieldList;
+    }
+
+    public String getZhName() {
+        return zhName;
+    }
+
+    public List<String> getAlias() {
+        return alias;
     }
 
     public Double getTimeCost() {
@@ -113,14 +116,6 @@ public class ViewSpot extends AbstractPOI {
 
     public String getTimeCostDesc() {
         return timeCostDesc;
-    }
-
-    public String getTrafficInfoUrl() {
-        return trafficInfoUrl;
-    }
-
-    public void setTrafficInfoUrl(String trafficInfoUrl) {
-        this.trafficInfoUrl = trafficInfoUrl;
     }
 
     public String getGuideUrl() {
@@ -163,16 +158,12 @@ public class ViewSpot extends AbstractPOI {
             node.put("openTime", DataFilter.openTimeFilter(openTime));
 
             BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-            for (String k : new String[]{"travelMonth", "trafficInfo", "guide", "kengdie"}) {
+            builder.add("travelMonth", new ArrayList<>());
+            for (String k : new String[]{"trafficInfo", "guide", "kengdie"}) {
                 Object val;
                 try {
                     val = ViewSpot.class.getField(k).get(this);
-                    //PC_Chen , travelMonth is a list
-                    if (k.equals("travelMonth") && val instanceof Collection) {
-                        Collection monthList = (Collection) val;
-                        builder.add(k, monthList);
-                    } else
-                        builder.add(k, val != null ? val : "");
+                    builder.add(k, val != null ? val : "");
                 } catch (IllegalAccessException | NoSuchFieldException ignored) {
                 }
             }

@@ -18,13 +18,13 @@ import java.util.List;
 public class Comment extends AizouBaseEntity {
 
     @Transient
-    public static final String FD_AVATAR = "userAvatar";
+    public static final String FD_AVATAR = "authorAvatar";
 
     @Transient
     public static final String FD_ITEM_ID = "itemId";
 
     @Transient
-    public static final String FD_USER_NAME = "userName";
+    public static final String FD_AUTHOR_NAME = "authorName";
 
     @Transient
     public static final String FD_USER_ID = "userId";
@@ -36,7 +36,7 @@ public class Comment extends AizouBaseEntity {
     public static final String FD_CONTENTS = "contents";
 
     @Transient
-    public static final String FD_CTIME = "cTime";
+    public static final String FD_PUBLISHTIME = "publishTime";
 
     @Transient
     public static final String FD_MTIME = "mTime";
@@ -52,12 +52,13 @@ public class Comment extends AizouBaseEntity {
     /**
      * 用户头像
      */
-    private String userAvatar;
+    private String authorAvatar;
+
 
     /**
      * 用户昵称
      */
-    private String userName;
+    private String authorName;
 
     /**
      * 评论的类型
@@ -77,7 +78,7 @@ public class Comment extends AizouBaseEntity {
     /**
      * 评论发表时间
      */
-    private long cTime;
+    private long publishTime;
 
     /**
      * 评论修改时间
@@ -100,22 +101,6 @@ public class Comment extends AizouBaseEntity {
 
     public void setUserId(Long userId) {
         this.userId = userId;
-    }
-
-    public String getUserAvatar() {
-        return userAvatar;
-    }
-
-    public void setUserAvatar(String userAvatar) {
-        this.userAvatar = userAvatar;
-    }
-
-    public String getUserName() {
-        return userName;
-    }
-
-    public void setUserName(String userName) {
-        this.userName = userName;
     }
 
     public String getPoiType() {
@@ -142,14 +127,6 @@ public class Comment extends AizouBaseEntity {
         this.contents = contents;
     }
 
-    public long getcTime() {
-        return cTime;
-    }
-
-    public void setcTime(long cTime) {
-        this.cTime = cTime;
-    }
-
     public long getmTime() {
         return mTime;
     }
@@ -172,5 +149,32 @@ public class Comment extends AizouBaseEntity {
 
     public void setImages(List<ImageItem> images) {
         this.images = images;
+    }
+
+    public String getAuthorAvatar() {
+        if (authorAvatar == null || authorAvatar.equals("")) {
+            return authorAvatar;
+        }
+        return String.format("http://images.taozilvxing.com/%s", authorAvatar);
+    }
+
+    public void setAuthorAvatar(String authorAvatar) {
+        this.authorAvatar = authorAvatar;
+    }
+
+    public String getAuthorName() {
+        return authorName;
+    }
+
+    public long getPublishTime() {
+        return publishTime;
+    }
+
+    public void setPublishTime(long publishTime) {
+        this.publishTime = publishTime;
+    }
+
+    public void setAuthorName(String authorName) {
+        this.authorName = authorName;
     }
 }
