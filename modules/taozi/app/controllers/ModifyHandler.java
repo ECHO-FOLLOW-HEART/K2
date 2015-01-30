@@ -25,11 +25,10 @@ import static utils.WrappedStatus.MiscWrappedStatus;
 public class ModifyHandler {
     private static final java.lang.String SEPARATOR = "\\|";
     public static final String hCACHE_CONTROL = "Cache-Control";
-    public static final String hMAX_AGE = "max-age";
+//    public static final String hMAX_AGE = "max-age";
     public static final String hLAST_MODIFIED = "Last-Modified";
     public static final String hIF_MODIFIED_SINCE = "If-Modified-Since";
-    private static final String CACHE_POLICY = "private";
-    private static final Long MAX_AGE = (long) (3600 * 12);
+//    private static final Long MAX_AGE = (long) (3600 * 12);
     Log logger = LogFactory.getLog(this.getClass());
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
@@ -65,13 +64,13 @@ public class ModifyHandler {
         //判断时间戳
         if (lastModified <= ifModifySince) {
             logger.info("304 Not Modified: " + joinPoint.getSignature());
-            response().setHeader(hCACHE_CONTROL, "no-transform" + ", " + hMAX_AGE + "=" + MAX_AGE);
+//            response().setHeader(hCACHE_CONTROL, hMAX_AGE + "=" + MAX_AGE);
             return MiscWrappedStatus(304);
         }
 
         //添加Header字段
         Long last = lastModified;
-        response().setHeader(hCACHE_CONTROL, CACHE_POLICY + ", " + hMAX_AGE + "=" + MAX_AGE);
+        response().setHeader(hCACHE_CONTROL, getCachePolicy(annotation.withPublic()));
         response().setHeader(hLAST_MODIFIED, last.toString());
         return (Result) pjp.proceed();
     }
@@ -101,4 +100,7 @@ public class ModifyHandler {
         throw new NullPointerException("No Such Method : " + callback);
     }
 
+    private String getCachePolicy(boolean withPublic) {
+        return withPublic ? "public" : "private";
+    }
 }
