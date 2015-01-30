@@ -85,6 +85,7 @@ public class CacheHandler {
     private Result fetchAndRefreshCache(ProceedingJoinPoint pjp, String key, UsingCache annotation) throws Throwable {
         //若未命中，则代表是第一次访问，从数据库读取
         Result result = (Result) pjp.proceed();
+        logger.info("casted class : " + result.getClass());
         JsonNode body = ((WrappedStatus) result).getJsonBody();
         if (body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
             String cacheValue = body.get("result").toString();

@@ -86,7 +86,9 @@ public class GeoCtrl extends Controller {
         return MiscCtrl.getAlbums(id, page, pageSize);
     }
 
+    @UsingCache(key = "getLMD()", expireTime = 30)
     public static long getLMD(boolean abroad, int page) {
+        play.Logger.info("in get LMD");
         return System.currentTimeMillis()-3600;
     }
 

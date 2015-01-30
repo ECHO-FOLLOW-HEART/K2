@@ -11,34 +11,43 @@ import play.mvc.Results;
  */
 public class WrappedStatus extends Results.Status {
     private JsonNode jsonBody = null;
+    private String stringBody = null;
 
     public static WrappedStatus WrappedOk(JsonNode jsonNode) {
-        return new WrappedStatus(JavaResults.Ok(), jsonNode, Codec.javaSupported("utf-8"));
+        WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), jsonNode, Codec.javaSupported("utf-8"));
+        ret.jsonBody = jsonNode;
+        ret.stringBody = jsonNode.toString();
+        return ret;
     }
 
     public static WrappedStatus WrappedOk(String msg) {
-        return new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
+        WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
+        ret.jsonBody = Json.toJson(msg);
+        ret.stringBody = msg;
+        return ret;
     }
 
     public static WrappedStatus MiscWrappedStatus(int status) {
         return new WrappedStatus(JavaResults.Status(status));
     }
 
-    public WrappedStatus(play.api.mvc.Results.Status status) {
+    private WrappedStatus(play.api.mvc.Results.Status status) {
         super(status);
     }
 
-    public WrappedStatus(play.api.mvc.Results.Status status, JsonNode jsonNode, Codec codec) {
+    private WrappedStatus(play.api.mvc.Results.Status status, JsonNode jsonNode, Codec codec) {
         super(status, jsonNode, codec);
-        jsonBody = jsonNode;
     }
 
-    public WrappedStatus(play.api.mvc.Results.Status status, String msg, Codec codec) {
+    private WrappedStatus(play.api.mvc.Results.Status status, String msg, Codec codec) {
         super(status, msg, codec);
-        jsonBody = Json.parse(msg);
     }
 
     public JsonNode getJsonBody() {
         return jsonBody;
+    }
+
+    public String getStringBody() {
+        return stringBody;
     }
 }
