@@ -13,6 +13,11 @@ public class WrappedStatus extends Results.Status {
     private JsonNode jsonBody = null;
     private String stringBody = null;
 
+    /**
+     * get Wrapped Status
+     * @param jsonNode
+     * @return
+     */
     public static WrappedStatus WrappedOk(JsonNode jsonNode) {
         String msg = jsonNode.toString();
         WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
@@ -22,7 +27,7 @@ public class WrappedStatus extends Results.Status {
     }
 
     /**
-     *
+     * get Wrapped status
      * 注意：该函数应该只再缓存命中的情况下使用，否则会增加不必要的序列化开销
      * @param msg
      * @return
@@ -34,6 +39,11 @@ public class WrappedStatus extends Results.Status {
         return ret;
     }
 
+    /**
+     * get assigned Status with empty body
+     * @param status 指定的status, 如304
+     * @return
+     */
     public static WrappedStatus MiscWrappedStatus(int status) {
         return new WrappedStatus(JavaResults.Status(status));
     }

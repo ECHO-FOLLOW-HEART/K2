@@ -63,7 +63,7 @@ public class ModifyHandler {
             ifModifySince = format.parse(ifModifySinceStr);
         }
 
-        //判断时间戳
+        //比较获得了两个时间戳
         if (!lastModified.after(ifModifySince)) {
             logger.info("304 Not Modified: " + joinPoint.getSignature());
             return MiscWrappedStatus(304);
@@ -75,6 +75,13 @@ public class ModifyHandler {
         return (Result) pjp.proceed();
     }
 
+    /**
+     * 根据args字段中指定的tag来从parameterAnnotation和pjpArgs中获取对应的对象的值
+     * @param argTag 参数的tag，形如 {tag}
+     * @param parameterAnnotations
+     * @param pjpArgs
+     * @return
+     */
     private Object getArgWithTag(String argTag, Annotation[][] parameterAnnotations, Object[] pjpArgs) {
         int i = 0;
         for (Annotation[] p : parameterAnnotations) {
@@ -92,7 +99,6 @@ public class ModifyHandler {
     private Method getMethod(Class<?> ctrlClass, String callback) {
         Method[] declaredMethods = ctrlClass.getDeclaredMethods();
         for (Method m : declaredMethods) {
-//            logger.info("    declared: " + m.getName());
             if (m.getName().equals(callback)) {
                 return m;
             }
