@@ -64,9 +64,10 @@ public class ModifyHandler {
         }
 
         //比较获得的两个时间戳
-        if (!lastModified.after(ifModifySince)) {
+        if (lastModified.before(ifModifySince) || lastModified.equals(ifModifySince)) {
             logger.info("304 Not Modified: " + joinPoint.getSignature());
             response().setHeader(hCACHE_CONTROL, getCachePolicy(annotation.withPublic()));
+            response().setHeader(hLAST_MODIFIED, format.format(lastModified));
             return MiscWrappedStatus(304);
         }
 
