@@ -8,6 +8,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import play.Configuration;
 import play.cache.Cache;
 import play.libs.Json;
 import play.mvc.Http;
@@ -17,6 +18,7 @@ import utils.WrappedStatus;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * Created by Heaven on 2015/1/22.
@@ -28,24 +30,44 @@ public class CacheHandler {
     public static int MAX_VALUE_LENGTH = 1000000;   //1MB
     Log logger = LogFactory.getLog(this.getClass());
 
+    private boolean cacheEnabled;
+
+    public CacheHandler() {
+        cacheEnabled = false;
+
+        Map<String, Object> config = Configuration.root().asMap();
+        try {
+            cacheEnabled = (Boolean) ((Map) config.get("memcached")).get("enabled");
+        } catch (ClassCastException | NullPointerException ignored) {
+        }
+    }
+
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.RemoveCache)")
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
-        MethodSignature ms = (MethodSignature) pjp.getSignature();
-        Method method = ms.getMethod();
-        RemoveCache annotation = method.getAnnotation(RemoveCache.class);
-        String[] keyList = annotation.keyList().split(SEPARATOR);
-        for (String keyEntry : keyList) {
-            String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
-            logger.debug("Remove key: " + key);
-            Cache.remove(key);
+
+        if (cacheEnabled) {
+            MethodSignature ms = (MethodSignature) pjp.getSignature();
+            Method method = ms.getMethod();
+            RemoveCache annotation = method.getAnnotation(RemoveCache.class);
+            String[] keyList = annotation.keyList().split(SEPARATOR);
+            for (String keyEntry : keyList) {
+                String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
+                logger.debug("Remove key: " + key);
+                Cache.remove(key);
+            }
         }
+
         return (Result) pjp.proceed();
     }
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.UsingCache)")
     public Result tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
+        if (!cacheEnabled) {
+            return (Result) pjp.proceed();
+        }
+
         Http.Context context = Http.Context.current();
 
         // 缓存策略：none表示不使用缓存，refresh表示无视现有缓存，强制将其刷新
@@ -60,7 +82,7 @@ public class CacheHandler {
         UsingCache annotation = method.getAnnotation(UsingCache.class);
         String key = getCacheKey(annotation.key(), method.getParameterAnnotations(), pjp.getArgs());
 
-        if (cachePolicy.equals("refresh")){
+        if (cachePolicy.equals("refresh")) {
             // 强制刷新缓存
             synchronized (key.intern()) {
                 return fetchAndRefreshCache(pjp, key, annotation);
@@ -69,11 +91,11 @@ public class CacheHandler {
 
         // 双重检查锁
         String jsonStr = (String) Cache.get(key);
-        if (jsonStr==null || jsonStr.isEmpty()){
-            synchronized (key.intern()){
+        if (jsonStr == null || jsonStr.isEmpty()) {
+            synchronized (key.intern()) {
                 //再次尝试从缓存中获取值
                 jsonStr = (String) Cache.get(key);
-                if (jsonStr==null || jsonStr.isEmpty()){
+                if (jsonStr == null || jsonStr.isEmpty()) {
                     return fetchAndRefreshCache(pjp, key, annotation);
                 }
             }
