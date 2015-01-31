@@ -13,5 +13,5 @@ import java.lang.annotation.Target;
 public @interface CheckLastModify {
     String callback();
     String args();
-    boolean withPublic() default false;
+    boolean withPublic() default false; //Cache-Control字段，默认为private
 }

@@ -67,7 +67,6 @@ public class ModifyHandler {
         if (!lastModified.after(ifModifySince)) {
             logger.info("304 Not Modified: " + joinPoint.getSignature());
             response().setHeader(hCACHE_CONTROL, getCachePolicy(annotation.withPublic()));
-            response().setHeader(hLAST_MODIFIED, format.format(lastModified));
             return MiscWrappedStatus(304);
         }
 

@@ -99,7 +99,7 @@ public class GeoCtrl extends Controller {
      * @return
      */
     @UsingCache(key = "destinations(abroad={abroad})", expireTime = 3600)
-    @CheckLastModify(callback = "getLMD", args = "{abroad}|{page}", withPublic = true)
+    @CheckLastModify(callback = "getLMD", args = "{abroad}|{page}")
     public static Result exploreDestinations(@CacheKey(tag = "abroad") boolean abroad,
                                              @CacheKey(tag = "page")int page,
                                              int pageSize) {
