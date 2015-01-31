@@ -6,7 +6,6 @@ import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
-import models.misc.TravelNote;
 import models.poi.*;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
@@ -1073,23 +1072,21 @@ public class PoiAPI {
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
 
         // TODO 暂时写成这样，等Solr的数据可以及时同步再改
-        if (poiClass == ViewSpot.class || poiList != null) {
+        if (poiClass == ViewSpot.class && poiList != null) {
 
-            List<CriteriaContainerImpl> criList = new ArrayList<>();
-            for (AbstractPOI temp : poiList) {
-                criList.add(query.criteria("id").equal(temp.getId()));
-            }
-            query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
-            query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
-            //query.filter(AizouBaseEntity.FD_TAOZIENA,true);
-            query.order("-hotness");
-            query.offset(page * pageSize).limit(pageSize);
+            List<ObjectId> poiIdList = new ArrayList<>();
+            for (AbstractPOI aPoi : poiList)
+                poiIdList.add(aPoi.getId());
+
+            query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness))
+                    .offset(page * pageSize).limit(pageSize);
             return query.asList();
-        } else {
-            if (keyword != null && !keyword.isEmpty()) {
-                query.field("alias").equal(Pattern.compile("^" + keyword));
-            }
         }
+
+        if (keyword != null && !keyword.isEmpty()) {
+            query.field("alias").equal(Pattern.compile("^" + keyword));
+        }
+
         if (locId != null)
             query.field("targets").equal(locId);
         query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
@@ -1113,6 +1110,7 @@ public class PoiAPI {
         String queryString = String.format("alias:%s", keyword);
         query.setQuery(queryString);
         query.setStart(page * pageSize).setRows(pageSize);
+        query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
         SolrDocumentList vsDocs = server.query(query).getResults();
         //TODO 不查询数据库
         Object tmp;
