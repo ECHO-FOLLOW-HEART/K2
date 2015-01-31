@@ -29,11 +29,11 @@ public class CacheHandler {
     Log logger = LogFactory.getLog(this.getClass());
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
-            "&&@annotation(controllers.RemoveCache)")
+            "&&@annotation(controllers.RemoveOcsCache)")
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
-        RemoveCache annotation = method.getAnnotation(RemoveCache.class);
+        RemoveOcsCache annotation = method.getAnnotation(RemoveOcsCache.class);
         String[] keyList = annotation.keyList().split(SEPARATOR);
         for (String keyEntry : keyList) {
             String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
@@ -44,7 +44,7 @@ public class CacheHandler {
     }
 
     @Around(value = "execution(* controllers.taozi..*(..))" +
-            "&&@annotation(controllers.UsingCache)")
+            "&&@annotation(controllers.UsingOcsCache)")
     public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
         Http.Context context = Http.Context.current();
 
@@ -58,7 +58,7 @@ public class CacheHandler {
 
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
-        UsingCache annotation = method.getAnnotation(UsingCache.class);
+        UsingOcsCache annotation = method.getAnnotation(UsingOcsCache.class);
         String key = getCacheKey(annotation.key(), method.getParameterAnnotations(), pjp.getArgs());
 
         if (cachePolicy.equals("refresh")){
@@ -83,7 +83,7 @@ public class CacheHandler {
         return ParserFactory.getInstance().getSerializeParser(method.getReturnType()).dSerializing(jsonStr);
     }
 
-    private Object fetchAndRefreshCache(ProceedingJoinPoint pjp, String key, UsingCache annotation, Class<?> returnType) throws Throwable {
+    private Object fetchAndRefreshCache(ProceedingJoinPoint pjp, String key, UsingOcsCache annotation, Class<?> returnType) throws Throwable {
         //若未命中，则代表是第一次访问，从数据库读取
         SerializeParser serializeParser = ParserFactory.getInstance().getSerializeParser(returnType);
 
@@ -131,8 +131,8 @@ public class CacheHandler {
         for (Annotation[] parameter : parameterAnnotations) {
             i = i + 1;
             for (Annotation annotationi : parameter) {
-                if (annotationi != null && annotationi instanceof CacheKey) {
-                    String rep = "\\{" + ((CacheKey) annotationi).tag() + "\\}";
+                if (annotationi != null && annotationi instanceof Key) {
+                    String rep = "\\{" + ((Key) annotationi).tag() + "\\}";
                     key = key.replaceFirst(rep, args[i].toString());
                     break;
                 }

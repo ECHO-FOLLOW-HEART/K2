@@ -6,12 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by Heaven on 2015/1/22.
+ * Created by Heaven on 2015/1/29.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface UsingCache {
-    // default expire time unit is seconds
-    String key();
-    int expireTime() default 600;
+public @interface RemoveOcsCache {
+    String keyList();
 }

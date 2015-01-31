@@ -31,11 +31,11 @@ public class ModifyHandler {
     Log logger = LogFactory.getLog(this.getClass());
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
-            "&&@annotation(controllers.CheckLastModify)")
+            "&&@annotation(controllers.UsingLocalCache)")
     public Result checkLastModify(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
-        CheckLastModify annotation = method.getAnnotation(CheckLastModify.class);
+        UsingLocalCache annotation = method.getAnnotation(UsingLocalCache.class);
 
         //获取数据的Last-Modified时间
         String callback = annotation.callback();
@@ -87,7 +87,7 @@ public class ModifyHandler {
         int i = 0;
         for (Annotation[] p : parameterAnnotations) {
             for (Annotation an : p) {
-                if (an instanceof CacheKey && ((CacheKey) an).tag().equals(argTag)) {
+                if (an instanceof Key && ((Key) an).tag().equals(argTag)) {
                     return pjpArgs[i];
                 }
                 i = i + 1;

@@ -3,8 +3,8 @@ package controllers.taozi;
 import aizou.core.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.CacheKey;
-import controllers.UsingCache;
+import controllers.Key;
+import controllers.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.geo.DetailedLocalityFormatter;
@@ -61,8 +61,8 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    @UsingCache(key = "appHomeImage,{w},{h}", expireTime = 3600)
-    public static Result appHomeImage(@CacheKey(tag = "w") int width, @CacheKey(tag = "h") int height, int quality, String format, int interlace) {
+    @UsingOcsCache(key = "appHomeImage,{w},{h}", expireTime = 3600)
+    public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height, int quality, String format, int interlace) {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
             MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
@@ -111,7 +111,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingCache(key = "recommend", expireTime = 3600)
+    @UsingOcsCache(key = "recommend", expireTime = 3600)
     public static Result recommend(int page, int pageSize) {
         List<ObjectNode> retNodeList = new ArrayList<ObjectNode>();
         Datastore ds;
@@ -487,8 +487,8 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingCache(key = "getColumns({type},{id})", expireTime = 86400)
-    public static Result getColumns(@CacheKey(tag = "type") String type, @CacheKey(tag = "id") String id) {
+    @UsingOcsCache(key = "getColumns({type},{id})", expireTime = 86400)
+    public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id) {
         ColumnFormatter formatter = new ColumnFormatter();
         String url;
         Configuration config = Configuration.root();
@@ -589,18 +589,18 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "search(keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel}," +
+    @UsingOcsCache(key = "search(keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel}," +
             "restaurant={restaurant},shopping={shopping},page={p},pageSize={ps})",
             expireTime = 300)
-    public static Result search(@CacheKey(tag = "keyWord") String keyWord,
-                                @CacheKey(tag = "locId") String locId,
-                                @CacheKey(tag = "loc") boolean loc,
-                                @CacheKey(tag = "vs") boolean vs,
-                                @CacheKey(tag = "hotel") boolean hotel,
-                                @CacheKey(tag = "restaurant") boolean restaurant,
-                                @CacheKey(tag = "shopping") boolean shopping,
-                                @CacheKey(tag = "p") int page,
-                                @CacheKey(tag = "ps") int pageSize) {
+    public static Result search(@Key(tag = "keyWord") String keyWord,
+                                @Key(tag = "locId") String locId,
+                                @Key(tag = "loc") boolean loc,
+                                @Key(tag = "vs") boolean vs,
+                                @Key(tag = "hotel") boolean hotel,
+                                @Key(tag = "restaurant") boolean restaurant,
+                                @Key(tag = "shopping") boolean shopping,
+                                @Key(tag = "p") int page,
+                                @Key(tag = "ps") int pageSize) {
         ObjectNode results = Json.newObject();
         try {
 

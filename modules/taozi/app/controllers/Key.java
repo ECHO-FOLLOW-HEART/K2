@@ -6,10 +6,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Created by Heaven on 2015/1/29.
+ * Created by Heaven on 2015/1/24.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface RemoveCache {
-    String keyList();
+@Target(ElementType.PARAMETER)
+public @interface Key {
+    String tag();
 }

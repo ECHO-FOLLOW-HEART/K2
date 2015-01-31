@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface CheckLastModify {
+public @interface UsingLocalCache {
     String callback();
     String args();
     boolean withPublic() default false; //Cache-Control字段，默认为private
