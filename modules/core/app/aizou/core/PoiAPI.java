@@ -1074,11 +1074,16 @@ public class PoiAPI {
 
         // TODO 暂时写成这样，等Solr的数据可以及时同步再改
         if (poiClass == ViewSpot.class || poiList != null) {
+
             List<CriteriaContainerImpl> criList = new ArrayList<>();
             for (AbstractPOI temp : poiList) {
                 criList.add(query.criteria("id").equal(temp.getId()));
             }
             query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+            query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
+            //query.filter(AizouBaseEntity.FD_TAOZIENA,true);
+            query.order("-hotness");
+            query.offset(page * pageSize).limit(pageSize);
             return query.asList();
         } else {
             if (keyword != null && !keyword.isEmpty()) {
