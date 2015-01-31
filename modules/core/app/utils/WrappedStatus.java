@@ -23,7 +23,7 @@ public class WrappedStatus extends Results.Status {
         WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
         ret.jsonBody = jsonNode;
         ret.stringBody = msg;
-        return ret;
+        return (WrappedStatus) ret.as("application/json;charset=utf-8");
     }
 
     /**
@@ -36,7 +36,7 @@ public class WrappedStatus extends Results.Status {
         WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
         ret.jsonBody = Json.toJson(msg);
         ret.stringBody = msg;
-        return ret;
+        return (WrappedStatus) ret.as("application/json;charset=utf-8");
     }
 
     /**

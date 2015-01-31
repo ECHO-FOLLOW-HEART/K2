@@ -1,7 +1,5 @@
 package utils;
 
-import exception.ErrorCode;
-
 import static utils.WrappedStatus.WrappedOk;
 
 /**
@@ -10,9 +8,7 @@ import static utils.WrappedStatus.WrappedOk;
 public class ResultParser implements SerializeParser {
     @Override
     public Object dSerializing(String inputStr) {
-        String ret = String.format("{\"lastModified\":%d, \"result\":%s, \"code\":%d}",
-                System.currentTimeMillis() / 1000, inputStr, ErrorCode.NORMAL);
-        return WrappedOk(ret).as("application/json;charset=utf-8");
+        return WrappedOk(inputStr);
     }
 
     @Override

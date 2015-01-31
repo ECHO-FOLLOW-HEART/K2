@@ -52,8 +52,9 @@ public class CacheHandler {
         String[] tmp = context.request().queryString().get("cachePolicy");
         String cachePolicy = (tmp != null && tmp.length >= 1) ? tmp[0] : "";
 
-        if (cachePolicy.equals("none"))
-            return  pjp.proceed();
+        if (cachePolicy.equals("none")) {
+            return pjp.proceed();
+        }
 
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
@@ -90,7 +91,7 @@ public class CacheHandler {
 
         if (returnType.equals(play.mvc.Result.class)) {
             JsonNode body = ((WrappedStatus) res).getJsonBody();
-            ((WrappedStatus) res).as("application/json;charset=utf-8");
+//            ((WrappedStatus) res).as("application/json;charset=utf-8");
             if (body != null && body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
                 safeCaching(key, serializeParser.Serializing(res), annotation.expireTime());
             }
@@ -105,15 +106,15 @@ public class CacheHandler {
      * 对cache的key和value进行长度检查，若长度过大，则不缓存
      * @param key
      * @param cacheValue
-     * @param exprieTime
+     * @param expireTime
      */
-    private void safeCaching(String key, String cacheValue, int exprieTime) {
+    private void safeCaching(String key, String cacheValue, int expireTime) {
         if (key.length() > MAX_KEY_LENGTH) {
             logger.warn("Cannot do caching: key size out of limit (" + MAX_KEY_LENGTH + " Bytes)");
         }
         if (cacheValue.length() <= MAX_VALUE_LENGTH) {
             logger.info(String.format("Set to cache: %s", key));
-            Cache.set(key, cacheValue, exprieTime);
+            Cache.set(key, cacheValue, expireTime);
         } else {
             logger.warn("Cannot do caching: data size out of limit (" + MAX_VALUE_LENGTH + " Bytes)");
         }

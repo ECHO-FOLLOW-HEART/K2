@@ -28,7 +28,6 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.Utils;
 
-import java.text.ParseException;
 import java.util.*;
 
 
@@ -100,7 +99,7 @@ public class GeoCtrl extends Controller {
      * @return
      */
     @UsingCache(key = "destinations(abroad={abroad})", expireTime = 3600)
-    @CheckLastModify(callback = "getLMD", args = "{abroad}|{page}")
+    @CheckLastModify(callback = "getLMD", args = "{abroad}|{page}", withPublic = true)
     public static Result exploreDestinations(@CacheKey(tag = "abroad") boolean abroad,
                                              @CacheKey(tag = "page")int page,
                                              int pageSize) {
@@ -115,11 +114,12 @@ public class GeoCtrl extends Controller {
                 imgWidth = Integer.valueOf(imgWidthStr);
             Configuration config = Configuration.root();
             Map destnations = (Map) config.getObject("destinations");
-            String lastModify = destnations.get("lastModify").toString();
-            // 添加缓存用的相应头
-            Utils.addCacheResponseHeader(rsp, lastModify);
-            if (Utils.useCache(req, lastModify))
-                return status(304, "Content not modified, dude.");
+            //TODO 禁用了这里的304机制，统一由ModifiedHandler处理
+//            String lastModify = destnations.get("lastModify").toString();
+//            添加缓存用的相应头
+//            Utils.addCacheResponseHeader(rsp, lastModify);
+//            if (Utils.useCache(req, lastModify))
+//                return status(304, "Content not modified, dude.");
 
             List<ObjectNode> objs = new ArrayList<>();
 
@@ -166,10 +166,10 @@ public class GeoCtrl extends Controller {
                     node.put("pinyin", pinyin);
                     objs.add(node);
                 }
-
-                return Utils.createResponse(rsp, lastModify, ErrorCode.NORMAL, Json.toJson(objs));
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
+//                return Utils.createResponse(rsp, lastModify, ErrorCode.NORMAL, Json.toJson(objs));
             }
-        } catch (AizouException | ParseException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (ReflectiveOperationException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
