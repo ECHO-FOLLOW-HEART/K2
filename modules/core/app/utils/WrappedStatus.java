@@ -14,15 +14,22 @@ public class WrappedStatus extends Results.Status {
     private String stringBody = null;
 
     public static WrappedStatus WrappedOk(JsonNode jsonNode) {
-        WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), jsonNode, Codec.javaSupported("utf-8"));
+        String msg = jsonNode.toString();
+        WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
         ret.jsonBody = jsonNode;
-        ret.stringBody = jsonNode.toString();
+        ret.stringBody = msg;
         return ret;
     }
 
+    /**
+     *
+     * 注意：该函数应该只再缓存命中的情况下使用，否则会增加不必要的序列化开销
+     * @param msg
+     * @return
+     */
     public static WrappedStatus WrappedOk(String msg) {
         WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
-        ret.jsonBody = Json.toJson(msg);    //just in case...
+        ret.jsonBody = Json.toJson(msg);
         ret.stringBody = msg;
         return ret;
     }
@@ -35,9 +42,9 @@ public class WrappedStatus extends Results.Status {
         super(status);
     }
 
-    private WrappedStatus(play.api.mvc.Results.Status status, JsonNode jsonNode, Codec codec) {
-        super(status, jsonNode, codec);
-    }
+//    private WrappedStatus(play.api.mvc.Results.Status status, JsonNode jsonNode, Codec codec) {
+//        super(status, jsonNode, codec);
+//    }
 
     private WrappedStatus(play.api.mvc.Results.Status status, String msg, Codec codec) {
         super(status, msg, codec);
