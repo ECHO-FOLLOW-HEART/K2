@@ -22,7 +22,7 @@ public class WrappedStatus extends Results.Status {
 
     public static WrappedStatus WrappedOk(String msg) {
         WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
-        ret.jsonBody = Json.toJson(msg);
+        ret.jsonBody = Json.toJson(msg);    //just in case...
         ret.stringBody = msg;
         return ret;
     }

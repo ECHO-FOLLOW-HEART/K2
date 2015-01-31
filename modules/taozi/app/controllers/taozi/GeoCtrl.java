@@ -88,7 +88,6 @@ public class GeoCtrl extends Controller {
 
     @UsingCache(key = "getLMD()", expireTime = 30)
     public static long getLMD(boolean abroad, int page) {
-        play.Logger.info("in get LMD");
         return System.currentTimeMillis()-3600;
     }
 

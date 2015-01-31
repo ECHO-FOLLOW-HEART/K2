@@ -9,10 +9,10 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import play.cache.Cache;
-import play.libs.Json;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.Utils;
+import utils.ParserFactory;
+import utils.SerializeParser;
 import utils.WrappedStatus;
 
 import java.lang.annotation.Annotation;
@@ -43,9 +43,9 @@ public class CacheHandler {
         return (Result) pjp.proceed();
     }
 
-    @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
+    @Around(value = "execution(* controllers.taozi..*(..))" +
             "&&@annotation(controllers.UsingCache)")
-    public Result tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
+    public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
         Http.Context context = Http.Context.current();
 
         // 缓存策略：none表示不使用缓存，refresh表示无视现有缓存，强制将其刷新
@@ -53,7 +53,7 @@ public class CacheHandler {
         String cachePolicy = (tmp != null && tmp.length >= 1) ? tmp[0] : "";
 
         if (cachePolicy.equals("none"))
-            return (Result) pjp.proceed();
+            return  pjp.proceed();
 
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
@@ -63,7 +63,7 @@ public class CacheHandler {
         if (cachePolicy.equals("refresh")){
             // 强制刷新缓存
             synchronized (key.intern()) {
-                return fetchAndRefreshCache(pjp, key, annotation);
+                return fetchAndRefreshCache(pjp, key, annotation, method.getReturnType());
             }
         }
 
@@ -74,29 +74,48 @@ public class CacheHandler {
                 //再次尝试从缓存中获取值
                 jsonStr = (String) Cache.get(key);
                 if (jsonStr==null || jsonStr.isEmpty()){
-                    return fetchAndRefreshCache(pjp, key, annotation);
+                    return fetchAndRefreshCache(pjp, key, annotation, method.getReturnType());
                 }
             }
         }
         logger.info(String.format("Cache hit: %s", key));
-        return Utils.createResponse(ErrorCode.NORMAL, Json.parse(jsonStr));
+        return ParserFactory.getInstance().getSerializeParser(method.getReturnType()).dSerializing(jsonStr);
     }
 
-    private Result fetchAndRefreshCache(ProceedingJoinPoint pjp, String key, UsingCache annotation) throws Throwable {
+    private Object fetchAndRefreshCache(ProceedingJoinPoint pjp, String key, UsingCache annotation, Class<?> returnType) throws Throwable {
         //若未命中，则代表是第一次访问，从数据库读取
-        Result result = (Result) pjp.proceed();
-        logger.info("casted class : " + result.getClass());
-        JsonNode body = ((WrappedStatus) result).getJsonBody();
-        if (body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
-            String cacheValue = body.get("result").toString();
-            if (cacheValue.length() <= MAX_VALUE_LENGTH) {
-                logger.info(String.format("Set to cache: %s", key));
-                Cache.set(key, cacheValue, annotation.expireTime());
-            } else {
-                logger.warn("Cannot do caching: data size out of limit (" + MAX_VALUE_LENGTH + " Bytes)");
+        SerializeParser serializeParser = ParserFactory.getInstance().getSerializeParser(returnType);
+
+        Object res = pjp.proceed();
+
+        if (returnType.equals(play.mvc.Result.class)) {
+            JsonNode body = ((WrappedStatus) res).getJsonBody();
+            if (body != null && body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
+                safeCaching(key, serializeParser.Serializing(res), annotation.expireTime());
             }
+        } else {
+            safeCaching(key, serializeParser.Serializing(res), annotation.expireTime());
         }
-        return result;
+
+        return res;
+    }
+
+    /**
+     * 对cache的key和value进行长度检查，若长度过大，则不缓存
+     * @param key
+     * @param cacheValue
+     * @param exprieTime
+     */
+    private void safeCaching(String key, String cacheValue, int exprieTime) {
+        if (key.length() > MAX_KEY_LENGTH) {
+            logger.warn("Cannot do caching: key size out of limit (" + MAX_KEY_LENGTH + " Bytes)");
+        }
+        if (cacheValue.length() <= MAX_VALUE_LENGTH) {
+            logger.info(String.format("Set to cache: %s", key));
+            Cache.set(key, cacheValue, exprieTime);
+        } else {
+            logger.warn("Cannot do caching: data size out of limit (" + MAX_VALUE_LENGTH + " Bytes)");
+        }
     }
 
     /**
