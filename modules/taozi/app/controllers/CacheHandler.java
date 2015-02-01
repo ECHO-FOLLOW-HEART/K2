@@ -40,6 +40,8 @@ public class CacheHandler {
             cacheEnabled = (Boolean) ((Map) config.get("memcached")).get("enabled");
         } catch (ClassCastException | NullPointerException ignored) {
         }
+
+        logger.info(String.format("Memcached set to %s", cacheEnabled));
     }
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
