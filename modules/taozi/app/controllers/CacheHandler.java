@@ -8,6 +8,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import play.Configuration;
 import play.cache.Cache;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -17,6 +18,7 @@ import utils.WrappedStatus;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * Created by Heaven on 2015/1/22.
@@ -28,24 +30,45 @@ public class CacheHandler {
     public static int MAX_VALUE_LENGTH = 1000000;   //1MB
     Log logger = LogFactory.getLog(this.getClass());
 
+    private boolean cacheEnabled;
+
+    public CacheHandler() {
+        cacheEnabled = false;
+
+        Map<String, Object> config = Configuration.root().asMap();
+        try {
+            cacheEnabled = (Boolean) ((Map) config.get("memcached")).get("enabled");
+        } catch (ClassCastException | NullPointerException ignored) {
+        }
+
+        logger.info(String.format("Memcached set to %s", cacheEnabled));
+    }
+
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
             "&&@annotation(controllers.RemoveOcsCache)")
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
-        MethodSignature ms = (MethodSignature) pjp.getSignature();
-        Method method = ms.getMethod();
-        RemoveOcsCache annotation = method.getAnnotation(RemoveOcsCache.class);
-        String[] keyList = annotation.keyList().split(SEPARATOR);
-        for (String keyEntry : keyList) {
-            String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
-            logger.debug("Remove key: " + key);
-            Cache.remove(key);
+        if (cacheEnabled) {
+            MethodSignature ms = (MethodSignature) pjp.getSignature();
+            Method method = ms.getMethod();
+            RemoveOcsCache annotation = method.getAnnotation(RemoveOcsCache.class);
+            String[] keyList = annotation.keyList().split(SEPARATOR);
+            for (String keyEntry : keyList) {
+                String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
+                logger.debug("Remove key: " + key);
+                Cache.remove(key);
+            }
         }
+
         return (Result) pjp.proceed();
     }
 
     @Around(value = "execution(* controllers.taozi..*(..))" +
             "&&@annotation(controllers.UsingOcsCache)")
     public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
+        if (!cacheEnabled) {
+            return pjp.proceed();
+        }
+
         Http.Context context = Http.Context.current();
 
         // 缓存策略：none表示不使用缓存，refresh表示无视现有缓存，强制将其刷新
@@ -61,7 +84,7 @@ public class CacheHandler {
         UsingOcsCache annotation = method.getAnnotation(UsingOcsCache.class);
         String key = getCacheKey(annotation.key(), method.getParameterAnnotations(), pjp.getArgs());
 
-        if (cachePolicy.equals("refresh")){
+        if (cachePolicy.equals("refresh")) {
             // 强制刷新缓存
             synchronized (key.intern()) {
                 return fetchAndRefreshCache(pjp, key, annotation, method.getReturnType());
@@ -70,11 +93,11 @@ public class CacheHandler {
 
         // 双重检查锁
         String jsonStr = (String) Cache.get(key);
-        if (jsonStr==null || jsonStr.isEmpty()){
-            synchronized (key.intern()){
+        if (jsonStr == null || jsonStr.isEmpty()) {
+            synchronized (key.intern()) {
                 //再次尝试从缓存中获取值
                 jsonStr = (String) Cache.get(key);
-                if (jsonStr==null || jsonStr.isEmpty()){
+                if (jsonStr == null || jsonStr.isEmpty()) {
                     return fetchAndRefreshCache(pjp, key, annotation, method.getReturnType());
                 }
             }
@@ -104,6 +127,7 @@ public class CacheHandler {
 
     /**
      * 对cache的key和value进行长度检查，若长度过大，则不缓存
+     *
      * @param key
      * @param cacheValue
      * @param expireTime

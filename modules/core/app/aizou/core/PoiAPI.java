@@ -4,21 +4,19 @@ import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
 import models.MorphiaFactory;
+import models.SolrServerFactory;
 import models.geo.Country;
 import models.geo.Locality;
-import models.misc.TravelNote;
 import models.poi.*;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
-import play.Configuration;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -1073,18 +1071,24 @@ public class PoiAPI {
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
 
         // TODO 暂时写成这样，等Solr的数据可以及时同步再改
-        if (poiClass == ViewSpot.class || poiList != null) {
-            List<CriteriaContainerImpl> criList = new ArrayList<>();
-            for (AbstractPOI temp : poiList) {
-                criList.add(query.criteria("id").equal(temp.getId()));
-            }
-            query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
-            return query.asList();
-        } else {
-            if (keyword != null && !keyword.isEmpty()) {
-                query.field("alias").equal(Pattern.compile("^" + keyword));
-            }
+        if (poiClass == ViewSpot.class && poiList != null) {
+
+            List<ObjectId> poiIdList = new ArrayList<>();
+            for (AbstractPOI aPoi : poiList)
+                poiIdList.add(aPoi.getId());
+
+            if (!poiIdList.isEmpty()) {
+                query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness))
+                        .offset(page * pageSize).limit(pageSize);
+                return query.asList();
+            } else
+                return new ArrayList<>();
         }
+
+        if (keyword != null && !keyword.isEmpty()) {
+            query.field("alias").equal(Pattern.compile("^" + keyword));
+        }
+
         if (locId != null)
             query.field("targets").equal(locId);
         query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
@@ -1096,19 +1100,16 @@ public class PoiAPI {
     public static List<? extends AbstractPOI> poiSearch(String keyword, int page, int pageSize) throws SolrServerException {
         List<AbstractPOI> poiList = new ArrayList<>();
 
-        //solr连接配置
-        Configuration config = Configuration.root().getConfig("solr");
-        String host = config.getString("host", "localhost");
-        Integer port = config.getInt("port", 8983);
-        String coreName = config.getString("viewSpotCore");
-        String url = String.format("http://%s:%d/solr/%s", host, port, coreName);
-        //进行查询，获取游记文档
-        SolrServer server = new HttpSolrServer(url);
+        SolrServer server = SolrServerFactory.getSolrInstance("viewspot");
+
         SolrQuery query = new SolrQuery();
         String queryString = String.format("alias:%s", keyword);
         query.setQuery(queryString);
         query.setStart(page * pageSize).setRows(pageSize);
+        query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
+        query.addFilterQuery("taoziEna:true");
         SolrDocumentList vsDocs = server.query(query).getResults();
+        
         //TODO 不查询数据库
         Object tmp;
         for (SolrDocument doc : vsDocs) {
