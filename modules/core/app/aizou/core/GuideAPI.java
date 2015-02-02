@@ -457,14 +457,17 @@ public class GuideAPI {
         List<Shopping> shopTempList = (List<Shopping>) PoiAPI.getPOIInfoList(shoppingIdList, "shopping", shopFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
         List<Hotel> hotelTempList = (List<Hotel>) PoiAPI.getPOIInfoList(hotelIdList, "hotel", hotelFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
 
+        /*
+            不显示评论
+         */
         // 查询行程单中所有poi的评论
-        List<ObjectId> poiIdList = new ArrayList<>();
-        poiIdList.addAll(vsIdList);
-        poiIdList.addAll(hotelIdList);
-        poiIdList.addAll(restaurantIdList);
-        poiIdList.addAll(shoppingIdList);
-        List<Comment> commentsEntities = PoiAPI.getPOICommentByList(poiIdList, 0, 1);
-        transformCommetnListToMap(commentsEntities, vsTempList, resTempList, shopTempList, hotelTempList);
+//        List<ObjectId> poiIdList = new ArrayList<>();
+//        poiIdList.addAll(vsIdList);
+//        poiIdList.addAll(hotelIdList);
+//        poiIdList.addAll(restaurantIdList);
+//        poiIdList.addAll(shoppingIdList);
+//        List<Comment> commentsEntities = PoiAPI.getPOICommentByList(poiIdList, 0, 1);
+//        transformCommetnListToMap(commentsEntities, vsTempList, resTempList, shopTempList, hotelTempList);
 
         //取得行程单中的ID-Entity Map
         Map<ObjectId, ViewSpot> vsMap = (Map<ObjectId, ViewSpot>) transformPoiListToMap(vsTempList);
@@ -517,9 +520,11 @@ public class GuideAPI {
                 ids.add(temp.getId());
             }
             List<Shopping> shop = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-
-            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
-            transformCommetnListToMap(commentsEntitiesSh, shop);
+               /*
+                不显示评论 20150202
+               */
+//            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
+//            transformCommetnListToMap(commentsEntitiesSh, shop);
 
             Map<ObjectId, Shopping> shopMap = new HashMap<>();
             for (Shopping temp : shop) {
@@ -547,9 +552,11 @@ public class GuideAPI {
                 ids.add(temp.getId());
             }
             List<Restaurant> res = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-
-            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
-            transformCommetnListToMap(commentsEntitiesSh, res);
+              /*
+                不显示评论 20150202
+               */
+//            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
+//            transformCommetnListToMap(commentsEntitiesSh, res);
 
             Map<ObjectId, Restaurant> resMap = new HashMap<>();
             for (Restaurant temp : res) {
