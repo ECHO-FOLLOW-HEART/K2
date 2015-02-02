@@ -26,6 +26,7 @@ public class ArticleSimpleFormatter extends TaoziBaseFormatter {
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
                 Article.FD_ID,
+                Article.FD_TITLE,
                 Article.FD_DESC,
                 Article.FD_SOURCE,
                 Article.FD_AUTHORNAME,
