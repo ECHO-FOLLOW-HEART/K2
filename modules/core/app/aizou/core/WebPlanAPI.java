@@ -4,9 +4,6 @@ import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
 import models.MorphiaFactory;
-import models.geo.Address;
-import models.geo.Coords;
-import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.SimpleRef;
 import models.plan.*;
@@ -42,6 +39,7 @@ public class WebPlanAPI {
     //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店 5-青年旅社和民俗酒店
 
     public static final String REST_FLAG_NULL = "none";
+    public static final String REST_FLAG_ALL = "all";
     public static final String REST_FLAG_REPUTATION = "reputation";
     public static final String REST_FLAG_SPECIAL = "special";
 
@@ -104,7 +102,7 @@ public class WebPlanAPI {
             addTelomere(false, plan, backLoc, trafficFlag);
         }
 
-        if (!hotelFlag.equals(HOTEL_FLAG_NULL) || !restaurantFlag.equals(REST_FLAG_NULL))
+        if (!hotelFlag.equals(HOTEL_FLAG_NULL) && !restaurantFlag.equals(REST_FLAG_NULL))
             // 加入酒店
             addHotelsAndRestaurants(plan.getDetails(), hotelFlag, restaurantFlag);
 
@@ -140,14 +138,14 @@ public class WebPlanAPI {
         PlanItem actv = dayEntry.actv.get(0);
         if (dayEntry.date == null)
             return plan;
-        ObjectId travelLoc = actv.loc.id;
+        ObjectId travelLoc = actv.loc == null ? null : actv.loc.id;
 
         // 大交通筛选
         List<Calendar> timeLimits = DataFactory.createTrafficTimeFilter(dayEntry.date, epDep);
         Calendar calLower = timeLimits.get(0);
 
         //对特殊的地点做过滤
-        travelLoc = new ObjectId(DataFilter.localMapping(travelLoc.toString()));
+        travelLoc = DataFilter.localMapping(travelLoc);
         AbstractRoute route = epDep ? searchOneWayRoutes(remoteLoc, travelLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE, trafficFlag) :
                 searchOneWayRoutes(travelLoc, remoteLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE, trafficFlag);
 
@@ -182,12 +180,18 @@ public class WebPlanAPI {
 
     private static AbstractRoute searchOneWayRoutes(ObjectId remoteLoc, ObjectId travelLoc, Calendar calLower,
                                                     final List<Calendar> timeLimits, TrafficAPI.SortField sortField, String trafficFlag) throws AizouException {
+        if (remoteLoc == null || travelLoc == null)
+            return null;
         RouteIterator it;
         if (trafficFlag.equals(TRAFFIC_FLAG_AIR))
             it = TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
         else if (trafficFlag.equals(TRAFFIC_FLAG_TRAIN))
             it = TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
-        else
+        else if (trafficFlag.equals(REST_FLAG_ALL)) {
+            it = TrafficAPI.searchAirRoutes(remoteLoc, travelLoc, calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
+            if (!it.hasNext())
+                it = TrafficAPI.searchTrainRoutes(remoteLoc, travelLoc, "", calLower, null, null, timeLimits, null, sortField, -1, 0, 1);
+        } else
             return null;
         return it.hasNext() ? it.next() : null;
     }
@@ -309,29 +313,24 @@ public class WebPlanAPI {
 
                 if (itRest.hasNext()) {
                     Restaurant rest = (Restaurant) itRest.next();
-                    PlanItem restItem = new PlanItem();
+                    PlanItem hotelItem = new PlanItem();
                     SimpleRef ref = new SimpleRef();
                     ref.id = rest.getId();
                     ref.zhName = rest.zhName;
-                    restItem.item = ref;
-                    // 生成address
-                    Address address = new Address();
-                    if (rest.address != null)
-                        address.address = rest.address;
+                    hotelItem.item = ref;
+                    hotelItem.item.zhName = ref.zhName;
 
-                    Coords coords = new Coords();
-                    GeoJsonPoint location = rest.getLocation();
-                    if (location != null) {
-                        double[] c = location.getCoordinates();
-                        coords.lng = c[0];
-                        coords.lat = c[1];
+                    SimpleRef locRef = new SimpleRef();
+                    Locality tempLoc = rest.getLocality();
+                    if (tempLoc != null) {
+                        locRef.setId(tempLoc.getId());
+                        locRef.setZhName(tempLoc.getZhName());
+                        hotelItem.loc = locRef;
                     }
-                    address.coords = rest.coords;
-                    address.loc = ref;
-                    restItem.type = "restaurant";
-                    restItem.ts = dayEntry.date;
+                    hotelItem.type = "restaurant";
+                    hotelItem.ts = dayEntry.date;
 
-                    dayEntry.actv.add(restItem);
+                    dayEntry.actv.add(hotelItem);
                 }
 
                 if (itHotel.hasNext()) {
@@ -341,8 +340,8 @@ public class WebPlanAPI {
                     ref.id = hotel.getId();
                     ref.zhName = hotel.name;
                     hotelItem.item = ref;
-                    if (hotel.addr != null)
-                        hotelItem.loc = hotel.addr.loc;
+
+                    hotelItem.loc = hotel.addr.loc;
                     hotelItem.type = "hotel";
                     hotelItem.ts = dayEntry.date;
 
@@ -405,10 +404,10 @@ public class WebPlanAPI {
         query.field("targets").equal(locId);
         switch (restaurantType) {
             case REST_FLAG_REPUTATION:
-                query.order(String.format("-%s", "hotness"));
+                query.order(String.format("-%s", "ratings.score"));
                 break;
             case REST_FLAG_SPECIAL:
-                query.order(String.format("-%s", "rating"));
+                query.order(String.format("-%s", "ratings.ranking"));
                 break;
         }
         query.offset(page * pageSize).limit(pageSize);
@@ -427,61 +426,38 @@ public class WebPlanAPI {
      * @param sortField @return
      * @throws exception.AizouException
      */
-    public static Iterator<Plan> explore(String locId, String poiId, String sort, String tag, String company, int minDays, int maxDays, int page, int pageSize, String sortField) throws AizouException {
-        try {
-            return explore(
-                    locId != null && !locId.isEmpty() ? new ObjectId(locId) : null,
-                    poiId != null && !poiId.isEmpty() ? new ObjectId(poiId) : null,
-                    sort, tag != null && !tag.isEmpty() ? tag : null, company, minDays, maxDays, page, pageSize, sortField);
-        } catch (IllegalArgumentException e) {
-            throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s, or POI ID: %s.", locId, poiId));
-        }
-    }
-
-    /**
-     * 发现路线
-     *
-     * @param locId
-     * @param poiId
-     * @param sort
-     * @param tag
-     * @param page
-     * @param pageSize
-     * @param sortField @return
-     * @throws exception.AizouException
-     */
-    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, String company, int minDays, int maxDays, int page, int pageSize, String sortField) throws AizouException {
+    public static Iterator<Plan> explore(ObjectId locId, ObjectId poiId, String sort, String tag, String company, String plays, int minDays, int maxDays, int page, int pageSize, String sortField) throws AizouException {
         List<Plan> planList = null;
         if (locId != null)
-            planList = planExploreHelper(locId, true, tag, company, sortField, sort, minDays, maxDays, page, pageSize);
+            planList = planExploreHelper(locId, true, tag, company, plays, sortField, sort, minDays, maxDays, page, pageSize);
         else if (poiId != null)
-            planList = planExploreHelper(poiId, false, tag, company, sortField, sort, minDays, maxDays, page, pageSize);
+            planList = planExploreHelper(poiId, false, tag, company, plays, sortField, sort, minDays, maxDays, page, pageSize);
 
         if (planList != null && !planList.isEmpty())
             return planList.iterator();
 
         // 无法找到路线，准备模糊匹配
-//        if (poiId != null) {
-//            AbstractPOI vs = PoiAPI.getPOIInfo(poiId, PoiAPI.POIType.VIEW_SPOT, Arrays.asList(AbstractPOI.FD_LOCALITY));
-//            if (vs != null)
-//                locId = vs.getLocality().getId();
-//        }
-//
-//        // 退而求其次，从上级Locality找
-//        if (locId != null) {
-//            Locality loc = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST));
-//            if (loc != null) {
-//                List<Locality> locList = loc.getLocList();
-//                if (locList != null && !locList.isEmpty()) {
-//                    for (int idx = locList.size() - 1; idx >= 0; idx--) {
-//                        ObjectId itrLocId = locList.get(idx).getId();
-//                        planList = planExploreHelper(itrLocId, true, tag, company, sortField, sort, minDays, maxDays, page, pageSize);
-//                        if (!planList.isEmpty())
-//                            break;
-//                    }
-//                }
-//            }
-//        }
+        if (poiId != null) {
+            AbstractPOI vs = PoiAPI.getPOIInfo(poiId, PoiAPI.POIType.VIEW_SPOT, Arrays.asList(AbstractPOI.FD_LOCALITY));
+            if (vs != null)
+                locId = vs.getLocality().getId();
+        }
+
+        // 退而求其次，从上级Locality找
+        if (locId != null) {
+            Locality loc = GeoAPI.locDetails(locId, Arrays.asList(Locality.FD_LOCLIST));
+            if (loc != null) {
+                List<Locality> locList = loc.getLocList();
+                if (locList != null && !locList.isEmpty()) {
+                    for (int idx = locList.size() - 1; idx >= 0; idx--) {
+                        ObjectId itrLocId = locList.get(idx).getId();
+                        planList = planExploreHelper(itrLocId, true, tag, company, plays, sortField, sort, minDays, maxDays, page, pageSize);
+                        if (!planList.isEmpty())
+                            break;
+                    }
+                }
+            }
+        }
 
         if (planList != null && !planList.isEmpty())
             return planList.iterator();
@@ -489,8 +465,7 @@ public class WebPlanAPI {
             return new ArrayList<Plan>().iterator();
     }
 
-
-    private static List<Plan> planExploreHelper(ObjectId targetId, boolean isLoc, String tag, String company, String sortField, String sort, int minDays, int maxDays,
+    private static List<Plan> planExploreHelper(ObjectId targetId, boolean isLoc, String tag, String company, String plays, String sortField, String sort, int minDays, int maxDays,
                                                 int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
         Query<Plan> query = ds.createQuery(Plan.class);
@@ -504,8 +479,9 @@ public class WebPlanAPI {
         if (tag != null && !tag.isEmpty())
             query.field(AbstractPlan.FD_TAGS).hasThisOne(tag);
         if (company != null && !company.isEmpty())
-            query.field(AbstractPlan.FD_COMPANY).hasThisOne(company);
-
+            query.field(AbstractPlan.FD_WITHS).hasThisOne(company);
+        if (plays != null && !plays.isEmpty())
+            query.field(AbstractPlan.FD_PLAYS).hasThisOne(plays);
         query.and(query.criteria(AbstractPlan.FD_DAYS).greaterThanOrEq(minDays),
                 query.criteria(AbstractPlan.FD_DAYS).lessThanOrEq(maxDays));
 
@@ -514,4 +490,6 @@ public class WebPlanAPI {
 
         return query.asList();
     }
+
+
 }

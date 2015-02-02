@@ -34,7 +34,10 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
     public static final String FD_TAGS = "tags";
 
     @Transient
-    public static final String FD_COMPANY = "company";
+    public static final String FD_WITHS = "withs";
+
+    @Transient
+    public static final String FD_PLAYS = "plays";
 
     @Transient
     public static final String FD_DETAILS = "details";
@@ -137,9 +140,21 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
     private String moreDesc;
 
     /**
-     * 标签
+     * 和谁出行
      */
-    private List<String> company;
+    private List<String> withs;
+    /**
+     * 玩法
+     */
+    private List<String> plays;
+
+    public List<String> getPlays() {
+        return plays;
+    }
+
+    public void setPlays(List<String> plays) {
+        this.plays = plays;
+    }
 
     public List<SimpleRef> getTargets() {
         return targets;
@@ -325,12 +340,12 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
         this.moreDesc = moreDesc;
     }
 
-    public List<String> getCompany() {
-        return company;
+    public List<String> getWiths() {
+        return withs;
     }
 
-    public void setCompany(List<String> company) {
-        this.company = company;
+    public void setWiths(List<String> withs) {
+        this.withs = withs;
     }
 
     @Override
@@ -346,7 +361,8 @@ abstract public class AbstractPlan extends AizouBaseEntity implements ITravelPiF
         List<JsonNode> targetList = new ArrayList<>();
         if (null != targets) {
             for (SimpleRef t : targets) {
-                if (t.id != null && t.zhName != null && !t.zhName.isEmpty())
+                //if (t.id != null && t.zhName != null && !t.zhName.isEmpty())
+                if (t.id != null)
                     targetList.add(t.toJson());
             }
 

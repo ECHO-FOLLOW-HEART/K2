@@ -536,7 +536,7 @@ public class PlanAPI {
         Calendar calLower = timeLimits.get(0);
 
         //对特殊的地点做过滤
-        travelLoc = new ObjectId(DataFilter.localMapping(travelLoc.toString()));
+        travelLoc = DataFilter.localMapping(travelLoc);
         AbstractRoute route = epDep ? searchOneWayRoutes(remoteLoc, travelLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE) :
                 searchOneWayRoutes(travelLoc, remoteLoc, calLower, timeLimits, TrafficAPI.SortField.PRICE);
 

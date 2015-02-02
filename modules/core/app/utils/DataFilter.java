@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.ValueNode;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Http.Request;
@@ -54,21 +55,25 @@ public class DataFilter {
     /**
      * 有些地区需要映射到具体的县才有交通
      *
-     * @param key
+     * @param id
      * @return
      */
-    public static String localMapping(String key) {
-
+    public static ObjectId localMapping(ObjectId id) {
+        if (id == null)
+            return null;
+        String result;
+        String key = id.toString();
         Map<String, String> locMap = new HashMap<String, String>();
         //大兴安岭地区-映射到漠河县，key-value
         locMap.put("53aa9a6410114e3fd47836cf", "53aa9a6410114e3fd47836d2");
         //湘西土家族苗族自治州-吉首市
         locMap.put("53aa9a6510114e3fd4783b4e", "53aa9a6510114e3fd4783b4f");
         if (locMap.containsKey(key)) {
-            return locMap.get(key);
+            result = locMap.get(key);
         } else {
-            return key;
+            result = key;
         }
+        return new ObjectId(result);
     }
 
 
