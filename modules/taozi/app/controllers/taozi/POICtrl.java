@@ -60,8 +60,9 @@ public class POICtrl extends Controller {
         }
         ObjectNode ret = (ObjectNode) info;
         ret.put("recommends", Json.toJson(recommends));
-
         ret.put("comments", Json.toJson(comments));
+        int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
+        ret.put("commentCnt", commCnt);
         // 添加H5接口
         if (poiClass == Shopping.class || poiClass == Restaurant.class)
             ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
@@ -252,7 +253,7 @@ public class POICtrl extends Controller {
 
         List<JsonNode> results = new ArrayList<>();
         List<? extends AbstractPOI> it;
-        List<Comment> commentsEntities;
+        //List<Comment> commentsEntities;
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
@@ -263,19 +264,22 @@ public class POICtrl extends Controller {
             for (AbstractPOI temp : it) {
                 temp.images = TaoziDataFilter.getOneImage(temp.images);
                 temp.priceDesc = TaoziDataFilter.getPriceDesc(temp);
-                temp.desc = StringUtils.abbreviate(temp.desc, Constants.ABBREVIATE_LEN);
+                //temp.desc = StringUtils.abbreviate(temp.desc, Constants.ABBREVIATE_LEN);
                 ObjectNode ret = (ObjectNode) new SimplePOIFormatter().setImageWidth(imgWidth).format(temp);
-                if (poiType.equals("restaurant") || poiType.equals("shopping") ||
-                        poiType.equals("hotel")) {
-                    commentsEntities = PoiAPI.getPOIComment(temp.getId().toString(), commentPage, commentPageSize);
-                    int commCnt = (int) PoiAPI.getPOICommentCount(temp.getId().toString());
-                    List<JsonNode> comments = new ArrayList<>();
-                    for (Comment cmt : commentsEntities) {
-                        comments.add(new CommentFormatter().format(cmt));
-                    }
-                    ret.put("comments", Json.toJson(comments));
-                    ret.put("commentCnt", commCnt);
-                }
+                /*
+                  Poi列表去掉评论和评论数 20150202
+                 */
+//                if (poiType.equals("restaurant") || poiType.equals("shopping") ||
+//                        poiType.equals("hotel")) {
+//                    commentsEntities = PoiAPI.getPOIComment(temp.getId().toString(), commentPage, commentPageSize);
+//                    int commCnt = (int) PoiAPI.getPOICommentCount(temp.getId().toString());
+//                    List<JsonNode> comments = new ArrayList<>();
+//                    for (Comment cmt : commentsEntities) {
+//                        comments.add(new CommentFormatter().format(cmt));
+//                    }
+//                    ret.put("comments", Json.toJson(comments));
+//                    ret.put("commentCnt", commCnt);
+//                }
                 results.add(ret);
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
@@ -344,17 +348,20 @@ public class POICtrl extends Controller {
                 for (; iterator.hasNext(); ) {
                     poi = iterator.next();
                     ret = (ObjectNode) new SimplePOIFormatter().setImageWidth(imgWidth).format(poi);
-                    if (poiType.equals(PoiAPI.POIType.RESTAURANT) || poiType.equals(PoiAPI.POIType.SHOPPING) ||
-                            poiType.equals(PoiAPI.POIType.HOTEL)) {
-                        commentsEntities = PoiAPI.getPOIComment(poi.getId().toString(), commentPage, commentPageSize);
-                        int commCnt = (int) PoiAPI.getPOICommentCount(poi.getId().toString());
-                        List<JsonNode> comments = new ArrayList<>();
-                        for (Comment cmt : commentsEntities) {
-                            comments.add(new CommentFormatter().format(cmt));
-                        }
-                        ret.put("comments", Json.toJson(comments));
-                        ret.put("commentCnt", commCnt);
-                    }
+                    /*
+                       我身边的POI列表去掉评论和评论数 20150202
+                     */
+//                    if (poiType.equals(PoiAPI.POIType.RESTAURANT) || poiType.equals(PoiAPI.POIType.SHOPPING) ||
+//                            poiType.equals(PoiAPI.POIType.HOTEL)) {
+//                        commentsEntities = PoiAPI.getPOIComment(poi.getId().toString(), commentPage, commentPageSize);
+//                        int commCnt = (int) PoiAPI.getPOICommentCount(poi.getId().toString());
+//                        List<JsonNode> comments = new ArrayList<>();
+//                        for (Comment cmt : commentsEntities) {
+//                            comments.add(new CommentFormatter().format(cmt));
+//                        }
+//                        ret.put("comments", Json.toJson(comments));
+//                        ret.put("commentCnt", commCnt);
+//                    }
                     retPoiList.add(ret);
                 }
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));

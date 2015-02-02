@@ -993,7 +993,7 @@ public class PoiAPI {
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
         Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images", "hotness",
-                "desc", "location", "priceDesc", "address", "tags", "price");
+                "desc", "location","locality", "priceDesc", "address", "tags", "price");
         switch (poiType) {
             case VIEW_SPOT:
                 fieldList.add("timeCostDesc");
