@@ -569,6 +569,8 @@ public class GuideAPI {
             guide.restaurant = newRes;
         } else
             guide.restaurant = new ArrayList<>();
+
+        guide.images = TaoziDataFilter.getOneImage(guide.images);
         return guide;
     }
 

@@ -57,7 +57,7 @@ public class GuideFormatter extends TaoziBaseFormatter {
                 AbstractPOI.detTargets,
                 AbstractPOI.FD_TIMECOSTDESC,
                 AbstractPOI.FD_LOCALITY,
-                AbstractPOI.FD_COMMENTS,
+//                AbstractPOI.FD_COMMENTS,
                 AbstractPOI.FD_TELEPHONE
         );
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));

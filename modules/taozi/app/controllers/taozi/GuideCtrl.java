@@ -20,6 +20,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.LogUtils;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.util.*;
@@ -126,6 +127,7 @@ public class GuideCtrl extends Controller {
             List<JsonNode> result = new ArrayList<>();
             ObjectNode node;
             for (Guide guide : guides) {
+                guide.images = TaoziDataFilter.getOneImage(guide.images);
                 node = (ObjectNode) new SimpleGuideFormatter().setImageWidth(imgWidth).format(guide);
                 addGuideInfoToNode(guide, node);
                 result.add(node);
