@@ -10,7 +10,6 @@ import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
-import formatter.taozi.geo.LocalityGuideFormatter;
 import formatter.taozi.poi.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
