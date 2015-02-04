@@ -6,33 +6,28 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
 import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
-import formatter.taozi.geo.SimpleCountrySerializer;
 import models.AizouBaseEntity;
-import models.geo.Country;
-import models.geo.Locality;
 import models.misc.ImageItem;
+import models.poi.Comment;
 import models.poi.POIRmd;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
- * 返回POI的推荐
- * <p/>
- * Created by zephyre on 10/28/14.
+ * Created by zephyre on 12/11/14.
  */
-public class POIRmdFormatter extends AizouFormatter<POIRmd> {
-
+public class CommentFormatter extends AizouFormatter<Comment> {
 
     public void setImageWidth(int maxWidth) {
         imageItemSerializer.setWidth(maxWidth);
@@ -40,29 +35,35 @@ public class POIRmdFormatter extends AizouFormatter<POIRmd> {
 
     private ImageItemSerializer imageItemSerializer;
 
-    public POIRmdFormatter() {
-        registerSerializer(POIRmd.class, new POIRmdSerializer());
+    public CommentFormatter() {
+        registerSerializer(Comment.class, new CommentSerializer());
 
         imageItemSerializer = new ImageItemSerializer();
         registerSerializer(ImageItem.class, imageItemSerializer);
 
         initObjectMapper(null);
 
-        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, POIRmd.fnTitle,POIRmd.fnImages,POIRmd.fnRating));
+        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID,
+                Comment.FD_AVATAR,
+                Comment.FD_AUTHOR_NAME,
+                Comment.FD_USER_ID,
+                Comment.FD_RATING,
+                Comment.FD_CONTENTS,
+                Comment.FD_PUBLISHTIME,
+                Comment.FD_IMAGES));
     }
 
-    class POIRmdSerializer extends AizouSerializer<POIRmd> {
-
+    class CommentSerializer extends AizouSerializer<Comment> {
 
         @Override
-        public void serialize(POIRmd poiRmd, JsonGenerator jgen, SerializerProvider serializerProvider)
+        public void serialize(Comment comment, JsonGenerator jgen, SerializerProvider serializerProvider)
                 throws IOException, JsonProcessingException {
             jgen.writeStartObject();
 
-            writeObjectId(poiRmd, jgen, serializerProvider);
+            writeObjectId(comment, jgen, serializerProvider);
 
-            jgen.writeFieldName("images");
-            List<ImageItem> images = poiRmd.getImages();
+            jgen.writeFieldName(Comment.FD_IMAGES);
+            List<ImageItem> images = comment.getImages();
             jgen.writeStartArray();
             if (images != null && !images.isEmpty()) {
                 JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ImageItem.class, null);
@@ -71,8 +72,12 @@ public class POIRmdFormatter extends AizouFormatter<POIRmd> {
             }
             jgen.writeEndArray();
 
-            jgen.writeStringField("title", getString(poiRmd.getTitle()));
-            jgen.writeNumberField("rating", getValue(poiRmd.getRating()));
+            jgen.writeStringField(Comment.FD_AVATAR, getString(comment.getAuthorAvatar()));
+            jgen.writeStringField(Comment.FD_AUTHOR_NAME, getString(comment.getAuthorName()));
+            jgen.writeStringField(Comment.FD_CONTENTS, getString(comment.getContents()));
+            jgen.writeNumberField(Comment.FD_USER_ID, getValue(comment.getUserId()));
+            jgen.writeNumberField(Comment.FD_RATING, getValue(comment.getRating()));
+            jgen.writeNumberField(Comment.FD_PUBLISHTIME, getValue(comment.getPublishTime()));
 
             jgen.writeEndObject();
         }

@@ -2,17 +2,20 @@ package controllers.taozi;
 
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.CacheKey;
 import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.FormatterFactory;
 import formatter.taozi.geo.LocalityGuideFormatter;
-import formatter.taozi.misc.CommentFormatter;
+import formatter.taozi.poi.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
+import formatter.taozi.user.ContactFormatter;
 import models.geo.Locality;
 import models.poi.*;
 import org.apache.commons.lang3.StringUtils;
@@ -34,12 +37,11 @@ public class POICtrl extends Controller {
 
     public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
                                            int commentPage, int commentPageSize, Long userId,
-                                           int rmdPage, int rmdPageSize, int imgWidth) throws AizouException {
+                                           int rmdPage, int rmdPageSize, int imgWidth) throws AizouException, JsonProcessingException, IllegalAccessException, InstantiationException {
         DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass).setImageWidth(imgWidth);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
-
 
         //是否被收藏
         MiscAPI.isFavorite(poiInfo, userId);
@@ -47,25 +49,27 @@ public class POICtrl extends Controller {
 
         //取得推荐
         List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
-        List<JsonNode> recommends = new ArrayList<>();
-        for (POIRmd temp : rmdEntities) {
-            recommends.add(new POIRmdFormatter().format(temp));
-        }
+        POIRmdFormatter formatter = FormatterFactory.getInstance(POIRmdFormatter.class);
+        JsonNode recommends = formatter.formatNode(rmdEntities);
 
+        /*
+           不要评论了 20150204
+         */
         // 取得评论
-        List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-        List<JsonNode> comments = new ArrayList<>();
-        for (Comment temp : commentsEntities) {
-            comments.add(new CommentFormatter().format(temp));
-        }
+//        List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
+//        CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
+//        JsonNode comments = comformatter.formatNode(commentsEntities);
+
         ObjectNode ret = (ObjectNode) info;
-        ret.put("recommends", Json.toJson(recommends));
-        ret.put("comments", Json.toJson(comments));
+//        ret.put("comments", comments);
         int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
         ret.put("commentCnt", commCnt);
-        // 添加H5接口
-        if (poiClass == Shopping.class || poiClass == Restaurant.class)
+
+        if (poiClass == Shopping.class || poiClass == Restaurant.class) {
+            // 添加H5接口 更多评论
             ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
+            ret.put("recommends", recommends);
+        }
         return ret;
     }
 
@@ -80,13 +84,13 @@ public class POICtrl extends Controller {
      *                entertainment:美食
      * @param spotId  POI的ID。
      */
-    @UsingCache(key="poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize}", expireTime = 3600)
+    @UsingCache(key = "poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize}", expireTime = 3600)
     public static Result viewPOIInfo(String poiDesc,
-                                     @CacheKey(tag="poiId") String spotId,
-                                     @CacheKey(tag="cmtPage") int commentPage,
-                                     @CacheKey(tag="cmtPageSize")int commentPageSize,
-                                     @CacheKey(tag="rmdPage")int rmdPage,
-                                     @CacheKey(tag="rmdPageSize")int rmdPageSize) {
+                                     @CacheKey(tag = "poiId") String spotId,
+                                     @CacheKey(tag = "cmtPage") int commentPage,
+                                     @CacheKey(tag = "cmtPageSize") int commentPageSize,
+                                     @CacheKey(tag = "rmdPage") int rmdPage,
+                                     @CacheKey(tag = "rmdPageSize") int rmdPageSize) {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
@@ -118,8 +122,8 @@ public class POICtrl extends Controller {
                 userId = null;
             JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (AizouException | JsonProcessingException | InstantiationException | IllegalAccessException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
 
@@ -209,15 +213,15 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key="poiList({type},{loc},{sortField},{sortType},{page},{pageSize},{cmtPage},{cmtPageSize}",
+    @UsingCache(key = "poiList({type},{loc},{sortField},{sortType},{page},{pageSize},{cmtPage},{cmtPageSize}",
             expireTime = 3600)
-    public static Result viewPoiList(@CacheKey(tag="type") String poiType,
-                                     @CacheKey(tag="loc") String locId, String tagFilter,
-                                     @CacheKey(tag="sortField") String sortField,
-                                     @CacheKey(tag="sortType") String sortType,
-                                     @CacheKey(tag="page") int page, @CacheKey(tag="pageSize") int pageSize,
-                                     @CacheKey(tag="cmtPage") int commentPage,
-                                     @CacheKey(tag="cmtPageSize") int commentPageSize) {
+    public static Result viewPoiList(@CacheKey(tag = "type") String poiType,
+                                     @CacheKey(tag = "loc") String locId, String tagFilter,
+                                     @CacheKey(tag = "sortField") String sortField,
+                                     @CacheKey(tag = "sortType") String sortType,
+                                     @CacheKey(tag = "page") int page, @CacheKey(tag = "pageSize") int pageSize,
+                                     @CacheKey(tag = "cmtPage") int commentPage,
+                                     @CacheKey(tag = "cmtPageSize") int commentPageSize) {
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":
