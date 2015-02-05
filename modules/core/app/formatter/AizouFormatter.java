@@ -44,6 +44,9 @@ public abstract class AizouFormatter<T extends AizouBaseEntity> {
 
     protected SimpleModule module = new SimpleModule();
 
+    protected int imageWidth;
+
+
     public Set<String> getFilteredFields() {
         return filteredFields;
     }

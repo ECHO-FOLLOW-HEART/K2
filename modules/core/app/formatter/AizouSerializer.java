@@ -32,6 +32,10 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
         return (val != null) ? val : 0L;
     }
 
+    protected Integer getValue(Integer val) {
+        return (val != null) ? val : 0;
+    }
+
     /**
      * 写入ObjectId
      *
