@@ -101,34 +101,41 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
         // Targets
         jsonGenerator.writeFieldName(AbstractPOI.detTargets);
         List<ObjectId> targets = abstractPOI.targets;
-        jsonGenerator.writeStartArray();
+        JsonSerializer<Object> retObjectId;
         if (targets != null && !targets.isEmpty()) {
-            JsonSerializer<Object> retObjectId = serializerProvider.findValueSerializer(ObjectId.class, null);
+            jsonGenerator.writeStartArray();
+            retObjectId = serializerProvider.findValueSerializer(ObjectId.class, null);
             for (ObjectId id : targets)
                 retObjectId.serialize(id, jsonGenerator, serializerProvider);
+            jsonGenerator.writeEndArray();
+        } else {
+            retObjectId = serializerProvider.findNullValueSerializer(null);
+            retObjectId.serialize(targets, jsonGenerator, serializerProvider);
         }
-        jsonGenerator.writeEndArray();
+
 
         // Locality
         jsonGenerator.writeFieldName(AbstractPOI.FD_LOCALITY);
         Locality localities = abstractPOI.getLocality();
+        JsonSerializer<Object> retLocality;
         if (localities != null) {
-            JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(Locality.class, null);
+            retLocality = serializerProvider.findValueSerializer(Locality.class, null);
             retLocality.serialize(localities, jsonGenerator, serializerProvider);
         } else {
-            jsonGenerator.writeStartObject();
-            jsonGenerator.writeEndObject();
+            retLocality = serializerProvider.findNullValueSerializer(null);
+            retLocality.serialize(localities, jsonGenerator, serializerProvider);
         }
 
         // Location
         jsonGenerator.writeFieldName(AbstractPOI.FD_LOCATION);
         GeoJsonPoint geoJsonPoint = abstractPOI.getLocation();
+        JsonSerializer<Object> retLocalition;
         if (geoJsonPoint != null) {
-            JsonSerializer<Object> retLocalition = serializerProvider.findValueSerializer(GeoJsonPoint.class, null);
+            retLocalition = serializerProvider.findValueSerializer(GeoJsonPoint.class, null);
             retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
         } else {
-            jsonGenerator.writeStartObject();
-            jsonGenerator.writeEndObject();
+            retLocalition = serializerProvider.findNullValueSerializer(null);
+            retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
         }
 
         jsonGenerator.writeEndObject();

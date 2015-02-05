@@ -18,6 +18,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import play.Configuration;
 
@@ -210,17 +211,18 @@ public class TravelNoteAPI {
      * @return
      * @throws AizouException
      */
-    public static List<TravelNote> getNotesById(List<String> idList, List<String> fields) throws AizouException {
-        List<TravelNote> noteList = new ArrayList<>();
-        ObjectId oid;
-        TravelNote travelNote;
-        for (String id : idList) {
-            oid = new ObjectId(id);
-            travelNote = getNoteById(oid, fields);
-            noteList.add(travelNote);
-        }
+    public static List<TravelNote> getNotesByIdList(List<ObjectId> idList, List<String> fields) throws AizouException {
 
-        return noteList;
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
+        Query<TravelNote> query = ds.createQuery(TravelNote.class);
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (ObjectId tempId : idList) {
+            criList.add(query.criteria("id").equal(tempId));
+        }
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
+        return query.asList();
     }
 
     /**

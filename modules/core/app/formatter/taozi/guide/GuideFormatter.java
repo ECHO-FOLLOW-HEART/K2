@@ -28,17 +28,9 @@ import java.util.*;
  */
 public class GuideFormatter extends AizouFormatter<Guide> {
 
-    private ImageItemSerializer imageItemSerializer;
-
-    public GuideFormatter setImageWidth(int width) {
-        imageWidth = width;
-        return this;
-    }
-
-    public GuideFormatter(int width) {
+    public GuideFormatter(int imgWidth) {
         registerSerializer(Guide.class, new GuideSerializer());
-        imageItemSerializer = new ImageItemSerializer(width);
-        registerSerializer(ImageItem.class, imageItemSerializer);
+        registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         registerSerializer(Locality.class, new LocalitySerializer());
         registerSerializer(ItinerItem.class, new ItinerItemSerializer());
         registerSerializer(AbstractPOI.class, new POISerializer());
