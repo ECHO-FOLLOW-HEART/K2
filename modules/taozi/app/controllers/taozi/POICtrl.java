@@ -57,7 +57,7 @@ public class POICtrl extends Controller {
            不要评论了 20150204
          */
         // 取得评论
-        List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
+        List<Comment> commentsEntities = MiscAPI.displayCommentApi(new ObjectId(spotId), null, null, 0, commentPage, commentPageSize);
         CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
         JsonNode comments = comformatter.formatNode(commentsEntities);
 

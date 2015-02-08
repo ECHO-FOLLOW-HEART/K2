@@ -294,7 +294,7 @@ public class MiscCtrl extends Controller {
                     fa.zhName = tnFromFavorate.getName();
                     fa.enName = tnFromFavorate.getName();
                     ImageItem tmg = new ImageItem();
-            tmg.setKey(tnFromFavorate.getCover());
+                    tmg.setKey(tnFromFavorate.getCover());
                     fa.images = Arrays.asList(tmg);
                     fa.desc = tnFromFavorate.getDesc();
                     faShowList.add(fa);
@@ -554,7 +554,7 @@ public class MiscCtrl extends Controller {
     private static JsonNode getCommentsImpl(String poiId, double lower, double upper, long lastUpdate, int pageSize)
             throws AizouException {
         CommentFormatter formatter = new CommentFormatter();
-        List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, pageSize);
+        List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, 0, pageSize);
         List<JsonNode> list = new ArrayList<>();
         for (Comment comment : commentList)
             list.add(formatter.format(comment));
@@ -642,9 +642,9 @@ public class MiscCtrl extends Controller {
                 // 发现POI
                 List<JsonNode> retPoiList = new ArrayList<>();
                 List<? extends AbstractPOI> itPoi = PoiAPI.poiSearchForTaozi(poiType, keyWord, oid, true, page, pageSize);
-                for (AbstractPOI poi : itPoi){
+                for (AbstractPOI poi : itPoi) {
                     poi.images = TaoziDataFilter.getOneImage(poi.images);
-                    poi.desc = StringUtils.abbreviate(poi.desc,Constants.ABBREVIATE_LEN);
+                    poi.desc = StringUtils.abbreviate(poi.desc, Constants.ABBREVIATE_LEN);
                     retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
 
                 }

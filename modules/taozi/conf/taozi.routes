@@ -145,13 +145,13 @@ GET           /geo/localities/$id<[0-9a-f]{24}>/outLine          controllers.tao
 GET           /geo/localities/$id<[0-9a-f]{24}>/details          controllers.taozi.GeoCtrl.getTravelGuide(id: String, field: String)
 
 #----------用户评价接口----------
-#保存用户的评价
+#保存用户的评价(H5)
 POST          /poi/view-spots/$id<[0-9a-f]{24}>/comments         controllers.taozi.MiscCtrl.saveComment(id: String)
-#查看景点的评价
+#查看景点的评价(H5)
 GET           /poi/view-spots/$id<[0-9a-f]{24}>/comments         controllers.taozi.MiscCtrl.displayComment(id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0, pageSize: Int?=15)
-#查看餐厅的评价
+#查看餐厅的评价(H5)
 GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments        controllers.taozi.MiscCtrl.displayComment(id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0, pageSize: Int?=15)
-#查看餐厅的评价
+#查看餐厅的评价(H5)
 GET           /poi/shopping/$id<[0-9a-f]{24}>/comments           controllers.taozi.MiscCtrl.displayComment(id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0, pageSize: Int?=15)
 
 #特定地区的美食、购物发现
