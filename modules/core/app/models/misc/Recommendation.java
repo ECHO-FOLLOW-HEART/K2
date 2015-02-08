@@ -17,7 +17,7 @@ import java.util.List;
 
 /**
  * web用的推荐内容
- *
+ * <p>
  * Created by topy on 2014/9/13.
  */
 @JsonFilter("recommendationFilter")
@@ -94,7 +94,7 @@ public class Recommendation extends AizouBaseEntity implements ITravelPiFormatte
     /**
      * 介绍
      */
-    public Description description;
+    public String desc;
 
     /**
      * 理由
@@ -108,7 +108,7 @@ public class Recommendation extends AizouBaseEntity implements ITravelPiFormatte
                 .add("reason", reason == null ? "" : reason)
                 .add("editor", editorNickName == null ? "" : editorNickName)
                 .add("editorAvatar", editorAvatar == null ? "" : editorAvatar)
-                .add("description", description == null ? "" : description.toJson())
+                .add("desc", desc)
                 .add("editorDate", editorDate == null ? "" : fmt.format(editorDate))
                 .add("planViews", planViews == null ? "" : planViews);
 
@@ -119,7 +119,7 @@ public class Recommendation extends AizouBaseEntity implements ITravelPiFormatte
             for (ImageItem img : images.subList(0, (images.size() >= 5 ? 5 : images.size()))) {
 
                 BasicDBObjectBuilder bld = BasicDBObjectBuilder.start()
-                        .add("url", img.getUrl())
+                        .add("url", img.getUrl() == null ? String.format("http://images.taozilvxing.com/%s", img.getKey()) : img.getUrl())
                         .add("w", img.getW())
                         .add("h", img.getH());
 

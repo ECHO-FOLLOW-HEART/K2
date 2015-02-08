@@ -70,3 +70,5 @@ GET           /recommend/editor                           controllers.web.MiscCt
 GET           /recommend/mustgo                           controllers.web.MiscCtrl.recommend(sortType: String = "mustGoWeight", page: Int?=0, pageSize: Int?=20)
 #人气之旅
 GET           /recommend/popularity                       controllers.web.MiscCtrl.recommend(sortType: String = "popularityWeight", page: Int?=0, pageSize: Int?=20)
+
+GET           /addRec                                     controllers.web.Bache.addRecPlans(tyep: Int)
