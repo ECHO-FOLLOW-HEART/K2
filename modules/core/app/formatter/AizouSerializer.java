@@ -26,7 +26,9 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
         return (ts != null) ? dateFormat.format(ts) : "";
     }
 
-    protected Double getValue(Double val) { return (val != null) ? val : 0d; }
+    protected Double getValue(Double val) {
+        return (val != null) ? val : 0d;
+    }
 
     protected Long getValue(Long val) {
         return (val != null) ? val : 0L;
@@ -34,6 +36,10 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
 
     protected Integer getValue(Integer val) {
         return (val != null) ? val : 0;
+    }
+
+    protected Boolean getValue(Boolean val) {
+        return val;
     }
 
     /**

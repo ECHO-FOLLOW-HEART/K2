@@ -3,6 +3,7 @@ package controllers.taozi;
 import aizou.core.GeoAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
+import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -18,6 +19,7 @@ import formatter.taozi.geo.SimpleLocalityFormatter;
 import models.geo.Country;
 import models.geo.DetailsEntry;
 import models.geo.Locality;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
@@ -25,6 +27,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.text.ParseException;
@@ -59,6 +62,8 @@ public class GeoCtrl extends Controller {
             Locality locality = GeoAPI.locDetails(id);
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
+            locality.setDesc(StringUtils.abbreviate(locality.getDesc(), Constants.ABBREVIATE_LEN));
+            locality.setImages(TaoziDataFilter.getOneImage(locality.getImages()));
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
