@@ -993,7 +993,7 @@ public class PoiAPI {
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
         Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images", "hotness",
-                "desc", "location","locality", "priceDesc", "address", "tags", "price");
+                "desc", "location", "locality", "priceDesc", "address", "tags", "price");
         switch (poiType) {
             case VIEW_SPOT:
                 fieldList.add("timeCostDesc");
@@ -1080,7 +1080,16 @@ public class PoiAPI {
             if (!poiIdList.isEmpty()) {
                 query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness))
                         .offset(page * pageSize).limit(pageSize);
-                return query.asList();
+                Map<ObjectId, AbstractPOI> tmpMap = new HashMap<>();
+                for (AbstractPOI tmpPoi : query.asList())
+                    tmpMap.put(tmpPoi.getId(), tmpPoi);
+
+                List<AbstractPOI> result = new ArrayList<>();
+                for (AbstractPOI aPoi : poiList)
+                    result.add(tmpMap.get(aPoi.getId()));
+                return result;
+
+//                return query.asList();
             } else
                 return new ArrayList<>();
         }
@@ -1106,10 +1115,10 @@ public class PoiAPI {
         String queryString = String.format("alias:%s", keyword);
         query.setQuery(queryString);
         query.setStart(page * pageSize).setRows(pageSize);
-        query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
+//        query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
         query.addFilterQuery("taoziEna:true");
         SolrDocumentList vsDocs = server.query(query).getResults();
-        
+
         //TODO 不查询数据库
         Object tmp;
         for (SolrDocument doc : vsDocs) {
