@@ -2,27 +2,18 @@ package formatter.taozi.poi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
 import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.ImageItemSerializerOld;
-import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.misc.ImageItem;
 import models.poi.Comment;
-import models.poi.POIRmd;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by zephyre on 12/11/14.
@@ -76,8 +67,9 @@ public class CommentFormatter extends AizouFormatter<Comment> {
             jgen.writeStringField(Comment.FD_AUTHOR_NAME, getString(comment.getAuthorName()));
             jgen.writeStringField(Comment.FD_CONTENTS, getString(comment.getContents()));
             jgen.writeNumberField(Comment.FD_USER_ID, getValue(comment.getUserId()));
-            jgen.writeNumberField(Comment.FD_RATING, getValue(comment.getRating()));
-            jgen.writeNumberField(Comment.FD_PUBLISHTIME, getValue(comment.getPublishTime()));
+            Double ratingVal = comment.getRating();
+            jgen.writeNumberField(Comment.FD_RATING, ratingVal != null ? ratingVal : 0);
+            jgen.writeNumberField(Comment.FD_PUBLISHTIME, comment.getPublishTime());
 
             jgen.writeEndObject();
         }

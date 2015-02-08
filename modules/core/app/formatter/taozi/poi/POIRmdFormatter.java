@@ -2,23 +2,12 @@ package formatter.taozi.poi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
 import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.ImageItemSerializerOld;
-import formatter.taozi.TaoziBaseFormatter;
-import formatter.taozi.geo.SimpleCountrySerializer;
 import models.AizouBaseEntity;
-import models.geo.Country;
-import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.POIRmd;
 
@@ -48,7 +37,7 @@ public class POIRmdFormatter extends AizouFormatter<POIRmd> {
 
         initObjectMapper(null);
 
-        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, POIRmd.fnTitle,POIRmd.fnImages,POIRmd.fnRating));
+        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, POIRmd.fnTitle, POIRmd.fnImages, POIRmd.fnRating));
     }
 
     class POIRmdSerializer extends AizouSerializer<POIRmd> {
@@ -72,7 +61,9 @@ public class POIRmdFormatter extends AizouFormatter<POIRmd> {
             jgen.writeEndArray();
 
             jgen.writeStringField("title", getString(poiRmd.getTitle()));
-            jgen.writeNumberField("rating", getValue(poiRmd.getRating()));
+
+            Double ratingVal = poiRmd.getRating();
+            jgen.writeNumberField("rating", ratingVal != null ? ratingVal : 0);
 
             jgen.writeEndObject();
         }
