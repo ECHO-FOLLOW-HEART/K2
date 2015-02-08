@@ -12,8 +12,8 @@ import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
-import formatter.taozi.geo.DetailedLocalityFormatter;
 import formatter.taozi.geo.DetailsEntryFormatter;
+import formatter.taozi.geo.LocalityFormatter;
 import formatter.taozi.geo.SimpleCountryFormatter;
 import formatter.taozi.geo.SimpleLocalityFormatter;
 import models.geo.Country;
@@ -66,12 +66,14 @@ public class GeoCtrl extends Controller {
             locality.setImages(TaoziDataFilter.getOneImage(locality.getImages()));
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
-            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
+
+            LocalityFormatter localityFormatter = FormatterFactory.getInstance(LocalityFormatter.class, imgWidth);
+            ObjectNode response = (ObjectNode) localityFormatter.formatNode(locality);
             // 显示图集的数量
             response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
             response.put("playGuide", "http://h5.taozilvxing.com/play.php?tid=" + id);
             return Utils.createResponse(ErrorCode.NORMAL, response);
-        } catch (AizouException e) {
+        } catch (AizouException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }

@@ -42,6 +42,8 @@ public class POICtrl extends Controller {
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
 
+        // 处理价格
+        poiInfo.priceDesc = TaoziDataFilter.getPriceDesc(poiInfo);
         //是否被收藏
         MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.format(poiInfo);
@@ -55,12 +57,12 @@ public class POICtrl extends Controller {
            不要评论了 20150204
          */
         // 取得评论
-//        List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-//        CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
-//        JsonNode comments = comformatter.formatNode(commentsEntities);
+        List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
+        CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
+        JsonNode comments = comformatter.formatNode(commentsEntities);
 
         ObjectNode ret = (ObjectNode) info;
-//        ret.put("comments", comments);
+        ret.put("comments", comments);
         int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
         ret.put("commentCnt", commCnt);
 

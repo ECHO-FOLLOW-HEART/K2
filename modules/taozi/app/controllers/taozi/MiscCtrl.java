@@ -1,13 +1,14 @@
 package controllers.taozi;
 
 import aizou.core.*;
+import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.CacheKey;
 import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.geo.DetailedLocalityFormatter;
+import formatter.taozi.geo.DetailedLocalityFormatterOld;
 import formatter.taozi.misc.ColumnFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.misc.SuggestionFormatter;
@@ -23,6 +24,7 @@ import models.poi.Comment;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -612,7 +614,7 @@ public class MiscCtrl extends Controller {
                 it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
                 while (it.hasNext()) {
                     locality = it.next();
-                    retLocList.add(new DetailedLocalityFormatter().format(locality));
+                    retLocList.add(new DetailedLocalityFormatterOld().format(locality));
                 }
                 results.put("locality", Json.toJson(retLocList));
             }
@@ -640,8 +642,13 @@ public class MiscCtrl extends Controller {
                 // 发现POI
                 List<JsonNode> retPoiList = new ArrayList<>();
                 List<? extends AbstractPOI> itPoi = PoiAPI.poiSearchForTaozi(poiType, keyWord, oid, true, page, pageSize);
-                for (AbstractPOI poi : itPoi)
+                for (AbstractPOI poi : itPoi){
+                    poi.images = TaoziDataFilter.getOneImage(poi.images);
+                    poi.desc = StringUtils.abbreviate(poi.desc,Constants.ABBREVIATE_LEN);
                     retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
+
+                }
+
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
         } catch (AizouException | NullPointerException | SolrServerException e) {
