@@ -138,22 +138,20 @@ public class MiscCtrl extends Controller {
             String key;
             ObjectNode tempNode;
             List<Recom> recList;
-            List<ObjectNode> recNodeList;
+            RecomFormatter recomFormatter = FormatterFactory.getInstance(RecomFormatter.class);
             for (Map.Entry<String, List<Recom>> entry : map.entrySet()) {
                 key = entry.getKey();
                 recList = entry.getValue();
-                recNodeList = new ArrayList<ObjectNode>();
-                for (Recom tem : recList) {
-                    recNodeList.add((ObjectNode) new RecomFormatter().format(tem));
-                }
                 tempNode = Json.newObject();
                 tempNode.put("title", key == null ? "" : key);
-                tempNode.put("contents", Json.toJson(recNodeList));
+                tempNode.put("contents", recomFormatter.formatNode(recList));
                 retNodeList.add(tempNode);
             }
 
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (JsonProcessingException | InstantiationException | IllegalAccessException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(retNodeList));
     }
