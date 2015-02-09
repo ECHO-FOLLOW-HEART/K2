@@ -57,7 +57,7 @@ public class GuideFormatter extends AizouFormatter<Guide> {
                 throws IOException {
             jgen.writeStartObject();
 
-            writeObjectId(guide, jgen, serializerProvider);
+            writeObjectId(guide, jgen);
 
             // Images
             jgen.writeFieldName("images");

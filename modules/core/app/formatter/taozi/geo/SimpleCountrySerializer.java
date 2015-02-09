@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
+import formatter.base.DefaultObjectIdWriter;
+import formatter.base.ObjectIdWriter;
 import models.geo.Country;
 import models.misc.ImageItem;
 
@@ -14,12 +16,15 @@ import java.util.List;
  * Created by zephyre on 1/20/15.
  */
 public class SimpleCountrySerializer extends AizouSerializer<Country> {
+
+    private ObjectIdWriter oidWriter = new DefaultObjectIdWriter();
+
     @Override
     public void serialize(Country country, JsonGenerator jgen, SerializerProvider serializerProvider)
             throws IOException {
         jgen.writeStartObject();
 
-        writeObjectId(country, jgen, serializerProvider);
+        writeObjectId(country, jgen);
 
         jgen.writeFieldName("images");
         List<ImageItem> images = country.getImages();

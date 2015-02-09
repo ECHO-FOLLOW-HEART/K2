@@ -25,7 +25,7 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
             throws IOException, JsonProcessingException {
         jgen.writeStartObject();
 
-        writeObjectId(userInfo, jgen, serializerProvider);
+        writeObjectId(userInfo, jgen);
 
         jgen.writeStringField("easemobUser", getString(userInfo.getEasemobUser()));
         jgen.writeStringField("nickName", getString(userInfo.getNickName()));

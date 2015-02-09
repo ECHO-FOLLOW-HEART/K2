@@ -48,7 +48,7 @@ public class POIRmdFormatter extends AizouFormatter<POIRmd> {
                 throws IOException, JsonProcessingException {
             jgen.writeStartObject();
 
-            writeObjectId(poiRmd, jgen, serializerProvider);
+            writeObjectId(poiRmd, jgen);
 
             jgen.writeFieldName("images");
             List<ImageItem> images = poiRmd.getImages();

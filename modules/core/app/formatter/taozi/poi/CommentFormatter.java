@@ -51,7 +51,7 @@ public class CommentFormatter extends AizouFormatter<Comment> {
                 throws IOException, JsonProcessingException {
             jgen.writeStartObject();
 
-            writeObjectId(comment, jgen, serializerProvider);
+            writeObjectId(comment, jgen);
 
             jgen.writeFieldName(Comment.FD_IMAGES);
             List<ImageItem> images = comment.getImages();

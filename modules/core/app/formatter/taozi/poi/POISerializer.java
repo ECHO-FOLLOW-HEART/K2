@@ -41,7 +41,7 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
             throws IOException {
         jsonGenerator.writeStartObject();
 
-        writeObjectId(abstractPOI, jsonGenerator, serializerProvider);
+        writeObjectId(abstractPOI, jsonGenerator);
         jsonGenerator.writeStringField(AbstractPOI.FD_ZH_NAME, getString(abstractPOI.zhName));
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
 
