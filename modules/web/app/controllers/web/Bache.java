@@ -113,15 +113,15 @@ public class Bache extends Controller {
                         rec.popularityWeight = index;
                         break;
                 }
-                int number = new Random().nextInt(3) + 1;
+                int number = new Random().nextInt(59);
                 index++;
                 rec.imageList = null;
                 rec.images = pl.getImages();
                 rec.setId(pl.getId());
                 rec.name = pl.getTitle();
-                rec.editorNickName = userInfos.get(index).getNickName();
+                rec.editorNickName = userInfos.get(number).getNickName();
 //                rec.editorAvatar = String.format("http://images.taozilvxing.com/%s", userInfos.get(index).getAvatar());
-                rec.editorAvatar = userInfos.get(index).getAvatar();
+                rec.editorAvatar = userInfos.get(number).getAvatar();
                 rec.desc = pl.getDesc();
                 rec.editorDate = new Date();
                 rec.planViews = pl.getForkedCnt();

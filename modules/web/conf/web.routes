@@ -71,5 +71,5 @@ GET           /recommend/mustgo                           controllers.web.MiscCt
 #人气之旅
 GET           /recommend/popularity                       controllers.web.MiscCtrl.recommend(sortType: String = "popularityWeight", page: Int?=0, pageSize: Int?=20)
 
-GET           /addRec                                     controllers.web.Bache.addRecPlans(tyep: Int)
-GET           /addRecNew                                  controllers.web.Bache.addRecPlansNew(tyep: Int?=1)
+GET           /addRec                                     controllers.web.Bache.addRecPlans(itemType: Int)
+GET           /addRecNew                                  controllers.web.Bache.addRecPlansNew(itemType: Int?=1)
