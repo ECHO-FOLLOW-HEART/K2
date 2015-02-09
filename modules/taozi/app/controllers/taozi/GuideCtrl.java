@@ -76,7 +76,7 @@ public class GuideCtrl extends Controller {
             node.put("detailUrl", GUIDE_DETAIL_URL + result.getId());
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
-        } catch (AizouException | JsonProcessingException | InstantiationException | IllegalAccessException e) {
+        } catch (AizouException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, node);
@@ -226,7 +226,7 @@ public class GuideCtrl extends Controller {
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
-        } catch (IllegalArgumentException | JsonProcessingException | InstantiationException | IllegalAccessException e) {
+        } catch (IllegalArgumentException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }

@@ -60,6 +60,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends TaoziBaseFormat
                 AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_ADDRESS,
+                AbstractPOI.FD_PRICE,
                 AbstractPOI.FD_PRICE_DESC,
                 AbstractPOI.FD_TIPS,
                 AbstractPOI.FD_VISITGUIDE,

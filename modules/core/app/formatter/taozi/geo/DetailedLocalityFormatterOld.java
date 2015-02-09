@@ -20,9 +20,9 @@ import java.util.Arrays;
  * <p/>
  * Created by zephyre on 10/28/14.
  */
-public class DetailedLocalityFormatter extends TaoziBaseFormatter {
+public class DetailedLocalityFormatterOld extends TaoziBaseFormatter {
 
-    public DetailedLocalityFormatter setImageWidth(int width) {
+    public DetailedLocalityFormatterOld setImageWidth(int width) {
         imageWidth = width;
         return this;
     }

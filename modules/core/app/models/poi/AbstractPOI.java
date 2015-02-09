@@ -413,6 +413,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
             return images;
     }
 
+
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
 

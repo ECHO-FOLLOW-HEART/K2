@@ -1078,8 +1078,8 @@ public class PoiAPI {
                 poiIdList.add(aPoi.getId());
 
             if (!poiIdList.isEmpty()) {
-                query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness))
-                        .offset(page * pageSize).limit(pageSize);
+                query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness));
+                       // .offset(page * pageSize).limit(pageSize);
                 return query.asList();
             } else
                 return new ArrayList<>();

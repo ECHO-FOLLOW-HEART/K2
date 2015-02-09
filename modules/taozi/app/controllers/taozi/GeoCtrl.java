@@ -3,6 +3,7 @@ package controllers.taozi;
 import aizou.core.GeoAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
+import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -11,13 +12,14 @@ import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
-import formatter.taozi.geo.DetailedLocalityFormatter;
 import formatter.taozi.geo.DetailsEntryFormatter;
+import formatter.taozi.geo.LocalityFormatter;
 import formatter.taozi.geo.SimpleCountryFormatter;
 import formatter.taozi.geo.SimpleLocalityFormatter;
 import models.geo.Country;
 import models.geo.DetailsEntry;
 import models.geo.Locality;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
@@ -25,6 +27,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.text.ParseException;
@@ -59,14 +62,18 @@ public class GeoCtrl extends Controller {
             Locality locality = GeoAPI.locDetails(id);
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
+            locality.setDesc(StringUtils.abbreviate(locality.getDesc(), Constants.ABBREVIATE_LEN));
+            locality.setImages(TaoziDataFilter.getOneImage(locality.getImages()));
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
-            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
+
+            LocalityFormatter localityFormatter = FormatterFactory.getInstance(LocalityFormatter.class, imgWidth);
+            ObjectNode response = (ObjectNode) localityFormatter.formatNode(locality);
             // 显示图集的数量
             response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
             response.put("playGuide", "http://h5.taozilvxing.com/play.php?tid=" + id);
             return Utils.createResponse(ErrorCode.NORMAL, response);
-        } catch (AizouException e) {
+        } catch (AizouException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }

@@ -34,8 +34,7 @@ public class FormatterFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends AizouFormatter> T getInstance(Class<T> classOf, Object... args)
-            throws InstantiationException, IllegalAccessException {
+    public static <T extends AizouFormatter> T getInstance(Class<T> classOf, Object... args) {
         try {
             if (!instance.mapHolder.containsKey(classOf)) {
                 synchronized (instance) {
@@ -50,6 +49,10 @@ public class FormatterFactory {
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
         return (T) instance.mapHolder.get(classOf);
