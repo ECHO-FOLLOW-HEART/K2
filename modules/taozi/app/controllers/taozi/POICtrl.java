@@ -53,9 +53,6 @@ public class POICtrl extends Controller {
         POIRmdFormatter formatter = FormatterFactory.getInstance(POIRmdFormatter.class);
         JsonNode recommends = formatter.formatNode(rmdEntities);
 
-        /*
-           不要评论了 20150204
-         */
         // 取得评论
         List<Comment> commentsEntities = MiscAPI.displayCommentApi(new ObjectId(spotId), null, null, 0, commentPage, commentPageSize);
         CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
