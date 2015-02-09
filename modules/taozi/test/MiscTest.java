@@ -267,6 +267,9 @@ public class MiscTest extends AizouTest {
         });
     }
 
+    /**
+     * 获得游记详情
+     */
     @Test
     public void testTravelNote() {
         running(app, new Runnable() {
@@ -298,6 +301,119 @@ public class MiscTest extends AizouTest {
                 for (JsonNode img : images) {
                     assertFields(img, "url");
                     assertText(img, "url", false);
+                }
+            }
+        });
+    }
+
+    /**
+     * 获得用户收藏
+     */
+    @Test
+    public void testGetFavorites() {
+        running(app, new Runnable() {
+            private void testEntity(JsonNode node, String... fields) {
+                assertFields(node, fields);
+                assertText(node, new String[]{"id", "itemId", "type", "zhName"}, false);
+                assertText(node, new String[]{"enName", "desc", "timeCostDesc"}, true);
+                for (String key : new String[]{"userId", "createTime"})
+                    assertThat(node.get(key).asLong()).isPositive();
+
+                JsonNode images = node.get("images");
+                assertThat(images.isArray()).isTrue();
+                for (JsonNode img : images)
+                    assertText(img, "url", false);
+
+                JsonNode locality = node.get("locality");
+                if (locality.size() > 0) {
+                    assertText(locality, new String[]{"id", "zhName"}, false);
+                    assertText(locality, "enName", true);
+                }
+            }
+
+            private void testEntity(JsonNode node) {
+                String[] fields = new String[]{"id", "userId", "itemId", "type", "zhName", "enName", "desc", "images",
+                        "createTime", "locality", "timeCostDesc"};
+                testEntity(node, fields);
+            }
+
+            private void testPoi(JsonNode node) {
+                String[] fields = new String[]{"id", "userId", "itemId", "type", "zhName", "enName", "desc", "images",
+                        "createTime", "locality", "timeCostDesc", "priceDesc", "rating", "address", "telephone"};
+                testEntity(node, fields);
+                assertText(node, new String[]{"priceDesc", "address", "telephone"}, true);
+
+                JsonNode rating = node.get("rating");
+                assertThat(!rating.isNull()).isTrue();
+                double ratingVal = rating.asDouble();
+                assertThat(ratingVal >= 0 && ratingVal <= 1).isTrue();
+            }
+
+            private void testLocality(JsonNode node) {
+                testEntity(node);
+            }
+
+            private void testViewSpot(JsonNode node) {
+                testEntity(node);
+            }
+
+            private void testRestaurant(JsonNode node) {
+                testPoi(node);
+            }
+
+            private void testShopping(JsonNode node) {
+                testPoi(node);
+            }
+
+            private void testTravelNote(JsonNode node) {
+                assertFields(node, "id", "itemId", "type", "userId", "zhName", "enName", "desc", "images", "createTime",
+                        "locality");
+                assertText(node, new String[]{"id", "itemId", "type", "zhName"}, false);
+                assertText(node, new String[]{"enName", "desc"}, true);
+                for (String key : new String[]{"userId", "createTime"})
+                    assertThat(node.get(key).asLong()).isPositive();
+
+                JsonNode images = node.get("images");
+                assertThat(images.isArray()).isTrue();
+                for (JsonNode img : images)
+                    assertText(img, "url", false);
+
+                JsonNode locality = node.get("locality");
+                if (locality.size() > 0) {
+                    assertText(locality, new String[]{"id", "zhName"}, false);
+                    assertText(locality, "enName", true);
+                }
+            }
+
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.MiscCtrl.getFavorite("", 0, 10);
+                FakeRequest req = fakeRequest(routes.MiscCtrl.getFavorite("", 0, 10));
+                Long userId = 100009L;
+                req.withHeader("UserId", userId.toString());
+                JsonNode node = getResultNode(handler, req);
+
+                assertThat(node.isArray() && node.size() > 0).isTrue();
+
+                for (JsonNode item : node) {
+                    String itemType = item.get("type").asText();
+                    switch (itemType) {
+                        case "locality":
+                            testLocality(item);
+                            break;
+                        case "vs":
+                            testViewSpot(item);
+                            break;
+                        case "travelNote":
+                            testTravelNote(item);
+                            break;
+                        case "restaurant":
+                            testRestaurant(item);
+                            break;
+                        default:
+                            System.out.println(itemType);
+                            assertThat(false).isTrue();
+                    }
                 }
             }
         });
