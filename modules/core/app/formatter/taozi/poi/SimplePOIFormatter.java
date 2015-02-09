@@ -45,6 +45,7 @@ public class SimplePOIFormatter extends TaoziBaseFormatter {
                 AbstractPOI.FD_PRICE_DESC,
                 AbstractPOI.FD_ADDRESS,
                 AbstractPOI.FD_TIMECOSTDESC,
+                AbstractPOI.FD_RANK,
                 AbstractPOI.FD_LOCALITY
 
         );
