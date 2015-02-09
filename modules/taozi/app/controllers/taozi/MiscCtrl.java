@@ -1,14 +1,15 @@
 package controllers.taozi;
 
 import aizou.core.*;
-import com.ctc.wstx.util.StringUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.CacheKey;
 import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.geo.DetailedLocalityFormatterOld;
+import formatter.FormatterFactory;
+import formatter.taozi.geo.LocalityFormatter;
 import formatter.taozi.misc.ColumnFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.misc.SuggestionFormatter;
@@ -606,17 +607,23 @@ public class MiscCtrl extends Controller {
                                 @CacheKey(tag = "ps") int pageSize) {
         ObjectNode results = Json.newObject();
         try {
-
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             Iterator<Locality> it;
             if (loc) {
+
                 Locality locality;
-                List<JsonNode> retLocList = new ArrayList<>();
+                List<Locality> retLocList = new ArrayList<>();
                 it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
                 while (it.hasNext()) {
                     locality = it.next();
-                    retLocList.add(new DetailedLocalityFormatterOld().format(locality));
+                    retLocList.add(locality);
                 }
-                results.put("locality", Json.toJson(retLocList));
+                LocalityFormatter localityFormatter = FormatterFactory.getInstance(LocalityFormatter.class, imgWidth);
+                results.put("locality", localityFormatter.formatNode(retLocList));
             }
 
             List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
@@ -651,7 +658,7 @@ public class MiscCtrl extends Controller {
 
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
-        } catch (AizouException | NullPointerException | SolrServerException e) {
+        } catch (AizouException | NullPointerException | SolrServerException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
