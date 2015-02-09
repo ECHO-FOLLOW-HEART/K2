@@ -1,8 +1,7 @@
-package taozi.test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.taozi.routes;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import play.GlobalSettings;
 import play.api.mvc.HandlerRef;
@@ -17,10 +16,12 @@ import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.*;
+import static utils.TestHelpers.*;
 
 /**
  * Created by zephyre on 12/8/14.
  */
+@Ignore
 public class POITest extends AizouTest {
 
     private static FakeApplication app;

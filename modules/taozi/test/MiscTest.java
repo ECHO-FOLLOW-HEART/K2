@@ -1,5 +1,3 @@
-package taozi.test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,11 +12,13 @@ import java.util.HashMap;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.*;
+import static utils.TestHelpers.*;
 
 
 /**
  * Created by Heaven on 2014/12/13.
  */
+@Ignore
 public class MiscTest extends AizouTest{
 
     /**
