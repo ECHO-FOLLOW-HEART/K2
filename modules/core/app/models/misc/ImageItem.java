@@ -4,13 +4,12 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import models.AizouBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
-import play.data.validation.Constraints;
 
 import java.util.Map;
 
 /**
  * 表示一张图像。
- * <p/>
+ * <p>
  * Created by zephyre on 8/14/14.
  */
 @JsonFilter("imageItemFilter")
@@ -67,12 +66,19 @@ public class ImageItem extends AizouBaseItem {
      */
     private Integer size;
 
+    public ImageItem() {
+        if (key == null && url != null) {
+            key = url.substring(39, url.length() - 1);
+        }
+    }
+
     /**
      * 根据bucket和key，生成完整的图像链接
      */
     public String getFullUrl() {
         if (key != null)
-            return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
+            //return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
+            return String.format("http://images.taozilvxing.com/%s", key);
         else
             return null;
     }
@@ -156,4 +162,5 @@ public class ImageItem extends AizouBaseItem {
     public void setCropHint(Map<String, Integer> cropHint) {
         this.cropHint = cropHint;
     }
+
 }

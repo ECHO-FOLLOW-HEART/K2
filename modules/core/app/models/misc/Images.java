@@ -78,7 +78,7 @@ public class Images extends AizouBaseEntity {
      * 根据bucket和key，生成完整的图像链接
      */
     public String getFullUrl() {
-        return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
+        return String.format("http://images.taozilvxing.com/%s", key);
     }
 
     public String getKey() {

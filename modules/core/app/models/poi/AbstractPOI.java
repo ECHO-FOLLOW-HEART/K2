@@ -88,7 +88,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String FD_ADDRESS = "address";
 
     @Transient
-    public static String FD_TELEPHONE = "telephone";
+    public static String FD_TELEPHONE = "tel";
 
     @Transient
     public static String fnHotness = "hotness";
@@ -105,6 +105,23 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String fnMoreCommentsUrl = "fnMoreCommentsUrl";
     @Transient
     public static String fnType = "type";
+    @Transient
+    public static String FD_TIMECOSTDESC = "timeCostDesc";
+    @Transient
+    public static String FD_TRAFFICINFO = "trafficInfo";
+    @Transient
+    public static String FD_TIPS = "tips";
+    @Transient
+    public static String FD_VISITGUIDE = "visitGuide";
+    @Transient
+    public static String FD_TRAFFICINFO_URL = "trafficInfoUrl";
+
+    @Transient
+    public static String FD_VISITGUIDE_URL = "visitGuideUrl";
+
+    @Transient
+    public static String FD_COMMENTS = "comments";
+
     /**
      * 标识POI的种类，jackson反序列还用
      */
@@ -155,7 +172,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public Integer closeHour;
     @Embedded
     public Description description;
-    public String trafficInfo;
     public List<ImageItem> images;
     public String cover;
     public List<String> tags;
@@ -181,17 +197,10 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public Map<String, Object> extra;
     public Double rating;
     /**
-     * 交通指南URL
-     */
-    public String trafficInfoUrl;
-    /**
      * 旅行指南URL
      */
     public String guideUrl;
-    /**
-     * 防坑攻略URL
-     */
-    public String kengdieUrl;
+
     /**
      * 地址
      */
@@ -227,7 +236,88 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      * 热门程度
      */
     private Double hotness;
+    /**
+     * 贴士
+     *
+     * @param level
+     * @return
+     */
+    private List<DetailsEntry> tips;
+    /**
+     * 贴士URL
+     */
+    private String tipsUrl;
 
+    public String getTipsUrl() {
+        if (tips == null)
+            return "";
+        return "http://h5.taozilvxing.com/poi_tips.php?tid=" + this.getId().toString();
+    }
+
+    public List<DetailsEntry> getTips() {
+        return tips;
+    }
+
+    /**
+     * 游玩信息
+     *
+     * @param level
+     * @return
+     */
+    private String visitGuide;
+    /**
+     * 游玩信息URL
+     */
+    private String visitGuideUrl;
+
+    public String getVisitGuideUrl() {
+        if (visitGuide == null || visitGuide.equals(""))
+            return "";
+        return "http://h5.taozilvxing.com/poi_play.php?tid=" + this.getId().toString();
+    }
+
+    /**
+     * 交通信息
+     *
+     * @param level
+     * @return
+     */
+    private String trafficInfo;
+    /**
+     * 交通信息URL
+     */
+    private String trafficInfoUrl;
+
+    public String getTrafficInfoUrl() {
+        if (trafficInfo == null || trafficInfo.equals(""))
+            return "";
+        return "http://h5.taozilvxing.com/poi_traffic.php?tid=" + this.getId().toString();
+    }
+
+    public String getVisitGuide() {
+        return visitGuide;
+    }
+
+    public String getTrafficInfo() {
+        return trafficInfo;
+    }
+
+    /**
+     * 评论
+     *
+     * @param
+     * @return
+     */
+    @Embedded
+    private List<Comment> comments;
+
+    public List<Comment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<Comment> comments) {
+        this.comments = comments;
+    }
 
     public static List<String> getRetrievedFields(int level) {
         switch (level) {
@@ -237,7 +327,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
                 return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "images", "id", "desc", "images",
                         "tags", "location", "locList"));
             case 3:
-                return new ArrayList<>(Arrays.asList("name", "addr", "ratings", "desc", "images", "tags", "contact",
+                return new ArrayList<>(Arrays.asList("zhName", "enName", "rating", "name", "addr", "ratings", "desc", "images", "tags", "contact",
                         "url", "price", "priceDesc", "alias", "locality", "location"));
         }
         return new ArrayList<>();
@@ -267,23 +357,17 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         this.hotness = hotness;
     }
 
-    public String getTrafficInfoUrl() {
-        return trafficInfoUrl;
-    }
 
     public String getGuideUrl() {
         return guideUrl;
-    }
-
-    public String getKengdieUrl() {
-        return priceDesc;
     }
 
     public String getDesc() {
         if (desc == null)
             return "";
         else
-            return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
+            return desc;
+        //return StringUtils.abbreviate(desc, Constants.ABBREVIATE_LEN);
     }
 
     public String getAddress() {
@@ -322,13 +406,6 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         return openTime;
     }
 
-    public String getTrafficInfo() {
-        if (trafficInfo == null)
-            return "";
-        else
-            return trafficInfo;
-    }
-
     public List<ImageItem> getImages() {
         if (images == null)
             return new ArrayList();
@@ -345,6 +422,8 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
             ratings = new CheckinRatings();
         builder.add("ratings", ratings.toJson());
         builder.add("name", (name != null ? name : ""));
+        builder.add("zhName", (zhName != null ? zhName : ""));
+        builder.add("name", (zhName != null ? zhName : ""));
 
         // level2
         // TODO 完善POI所使用的Formatter

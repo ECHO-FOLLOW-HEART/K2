@@ -5,15 +5,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
+import models.geo.Locality;
+import models.poi.ViewSpot;
 import org.apache.commons.lang3.StringUtils;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
+import scala.Int;
 import utils.Constants;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 游记攻略
@@ -40,6 +42,12 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     public static String fnCover = "cover";
 
     @Transient
+    public static String fnCovers = "covers";
+
+    @Transient
+    public static String fnImages = "images";
+
+    @Transient
     public static String fnAuthorName = "authorName";
 
     @Transient
@@ -52,7 +60,9 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     public static String fnSourceUrl = "sourceUrl";
 
     @Transient
-    public static String fnPublishDate = "publishDate";
+    public static String fnPublishTime = "publishTime";
+    @Transient
+    public static String fnTravelTime = "travelTime";
 
     @Transient
     public static String fnStartDate = "startDate";
@@ -61,15 +71,17 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     public static String fnSummary = "summary";
 
     @Transient
-    public static String fnContents = "contents";
+    public static String fnContents = "contentsList";
     @Transient
-    public static String fnNoteContents = "noteContents";
+    public static String fnNoteContents = "contents";
     @Transient
     public static String fnCostLower = "costLower";
-
+    @Transient
+    public static String fnLowerCost = "lowerCost";
     @Transient
     public static String fnCostUpper = "costUpper";
-
+    @Transient
+    public static String fnUpperCost = "upperCost";
     @Transient
     public static String fnFavorCnt = "favorCnt";
 
@@ -78,6 +90,10 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnViewCnt = "viewCnt";
+    @Transient
+    public static String fnRating = "rating";
+    @Transient
+    public static String fnEssence = "essence";
 
     /**
      * 名称(与Title名称一致)
@@ -91,17 +107,24 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     /**
      * 作者名称
      */
-    public String authorName;
+    public String author;
 
+    public String authorName;
     /**
      * 作者头像
      */
+    public String avatar;
     public String authorAvatar;
+
+    /**
+     * 作者的id
+     */
+    public Long authorId;
 
     /**
      * 发表时间
      */
-    public Long publishDate;
+    public Long publishTime;
 
     /**
      * 发表时间
@@ -121,6 +144,56 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
      * 浏览次数
      */
     public Integer viewCnt;
+
+    /**
+     * 分享次数
+     */
+    public Integer shareCnt;
+    /**
+     * 评分
+     */
+    public Double rating;
+    /**
+     * 热度
+     */
+    public Double hotness;
+
+    /**
+     * 游记中提到的景点
+     */
+    public List<ViewSpot> viewSpotList;
+
+    /**
+     * 游记中提到的目的地
+     */
+    public List<Locality> localityList;
+
+    /**
+     * 天数
+     */
+    public Integer lowerDays;
+
+    /**
+     * 天数
+     */
+    public Integer uppperDays;
+
+    /**
+     * 人均花销
+     */
+    public Double lowerCost;
+
+    public Double upperCost;
+
+    /**
+     * 出游的月份/季节
+     */
+    public List<Integer> months;
+
+    /**
+     * 出游的时间
+     */
+    public Long travelTime;
 
     /**
      * 花费下限
@@ -160,12 +233,17 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     /**
      * 游记正文
      */
-    public List<String> contents;
+    public List<String> contentsList;
+    public List<Map<String, String>> contents;
 
+    /**
+     * 游记标签
+     */
+    public List<String> tags;
     /**
      * 游记正文
      */
-    public String noteContents;
+    public String content;
     /**
      * 游记来源
      */
@@ -180,6 +258,11 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
      * 是否为精华游记
      */
     public Boolean elite;
+    public Boolean essence;
+    /**
+     * 图像
+     */
+    public List<ImageItem> images;
 
     public String cover;
 
@@ -206,18 +289,17 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
     }
 
 /*    public String getPublishDate() {
-        if (publishDate == null)
+        if (publishTime == null)
             return "";
         else
-            return new SimpleDateFormat("yyyy-MM-dd EE z").format(publishDate);
-
+            return new SimpleDateFormat("yyyy-MM-dd EE z").format(publishTime);
     }*/
 
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-        builder.add("id", this.getId().toString()).add("title", title).add("authorName", authorName)
+        builder.add("id", this.getId().toString()).add("title", title).add("author", author)
                 .add("cover", cover);
-        for (String k : new String[]{"source", "sourceUrl", "summary", "authorName", "authorAvatar", "title"}) {
+        for (String k : new String[]{"source", "sourceUrl", "summary", "author", "avatar", "title"}) {
             try {
                 Object val = TravelNote.class.getField(k).get(this);
                 builder.add(k, val != null ? val.toString() : "");
@@ -234,7 +316,7 @@ public class TravelNote extends AizouBaseEntity implements ITravelPiFormatter {
             }
         }
 
-        builder.add("publishDate", publishDate == null ? "" : publishDate);
+        builder.add("publishTime", publishTime);
 
         return Json.toJson(builder.get());
     }

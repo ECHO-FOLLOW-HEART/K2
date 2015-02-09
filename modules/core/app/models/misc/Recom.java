@@ -6,6 +6,8 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
 /**
+ * 桃子用的推荐内容
+ *
  * Created by topy on 2014/9/13.
  */
 @JsonFilter("recomFilter")
@@ -15,9 +17,7 @@ public class Recom extends AizouBaseEntity {
     @Transient
     public static String fnId = "id";
     @Transient
-    public static String fnZhName = "zhName";
-    @Transient
-    public static String fnEnName = "enName";
+    public static String fnTitle = "title";
     @Transient
     public static String fnDesc = "desc";
     @Transient
@@ -26,10 +26,21 @@ public class Recom extends AizouBaseEntity {
     public static String fnLinkType = "linkType";
     @Transient
     public static String fnLinkUrl = "linkUrl";
+    @Transient
+    public static String fnItemType = "itemType";
+    @Transient
+    public static String fnItemId = "itemId";
+
+
     /**
-     * 推荐类型
+     * 推荐分类
      */
-    public String title;
+    public String type;
+
+    /**
+     * 推荐项目的类型
+     */
+    public String itemType;
     /**
      * 图片
      */
@@ -41,20 +52,18 @@ public class Recom extends AizouBaseEntity {
     /**
      * 推荐名称
      */
-    public String zhName;
+    public String title;
 
     /**
-     * 推荐名称
+     * 跳转类型:app-app内跳转，html-HTML5页面跳转
      */
-    public String enName;
-    /**
-     * 跳转类型:1.去攻略 2.去H5页面
-     */
-    public int linkType;
+    public String linkType;
     /**
      * 跳转页面
      */
     public String linkUrl;
     public Integer weight;
+
+    public String itemId;
 
 }

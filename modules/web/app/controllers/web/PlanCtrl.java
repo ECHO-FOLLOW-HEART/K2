@@ -571,9 +571,9 @@ public class PlanCtrl extends Controller {
         endCal.setTime(endDate);
         //根据模板路线获取UGC路线
         Plan plan = PlanAPI.getPlan(templateId, false);
-        UgcPlan ugcPlan = new UgcPlan(plan);
         if (plan == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid plan ID: %s.", templateId));
+        UgcPlan ugcPlan = new UgcPlan(plan);
 
         //补全信息
         List<PlanDayEntry> dayEntryList = raw2plan(details, trafficInfo, startCal, endCal, false);

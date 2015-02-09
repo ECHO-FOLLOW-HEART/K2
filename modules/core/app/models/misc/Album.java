@@ -9,7 +9,7 @@ import org.mongodb.morphia.annotations.Entity;
 import java.util.List;
 
 /**
- * 相册集合
+ * 相册集合(废弃)
  *
  * @author Zephyre
  */
