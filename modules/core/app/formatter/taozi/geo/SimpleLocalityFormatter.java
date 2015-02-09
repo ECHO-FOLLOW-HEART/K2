@@ -1,46 +1,19 @@
 package formatter.taozi.geo;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.TaoziBaseFormatter;
+import formatter.AizouFormatter;
 import models.AizouBaseEntity;
-import models.misc.ImageItem;
-import models.poi.AbstractPOI;
+import models.geo.Locality;
 
 import java.util.Arrays;
 
 /**
- * Created by lxf on 14-11-12.
+ * Created by zephyre on 1/20/15.
  */
-public class SimpleLocalityFormatter extends TaoziBaseFormatter {
+public class SimpleLocalityFormatter extends AizouFormatter<Locality> {
+    public SimpleLocalityFormatter() {
+        registerSerializer(Locality.class, new SimpleLocalitySerializer());
+        initObjectMapper(null);
 
-    @Override
-    public JsonNode format(AizouBaseEntity item) {
-        ObjectMapper mapper = getObjectMapper();
-
-        ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
-                .addFilter("localityFilter",
-                        SimpleBeanPropertyFilter.filterOutAllExcept(
-                                AizouBaseEntity.FD_ID,
-                                AbstractPOI.FD_EN_NAME,
-                                AbstractPOI.FD_ZH_NAME
-
-                        ));
-
-        SimpleModule imageItemModule = new SimpleModule();
-        imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
-        mapper.registerModule(imageItemModule);
-
-        ObjectNode result = mapper.valueToTree(item);
-
-        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AizouBaseEntity.FD_ID));
-
-        return postProcess(result);
+        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME,Locality.FD_EN_NAME));
     }
 }

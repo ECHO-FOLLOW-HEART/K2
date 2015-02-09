@@ -7,7 +7,7 @@ import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.user.UserFormatter;
+import formatter.taozi.user.UserFormatterOld;
 import models.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.misc.Sequence;
@@ -346,15 +346,15 @@ public class UserAPI {
 
         if (fieldDesc == null || fieldDesc.isEmpty())
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
-
         List<CriteriaContainerImpl> criList = new ArrayList<>();
         for (String fd : fieldDesc) {
-            if (valueList.size() == 1)
+            if (fd.equals(UserInfo.fnUserId) && Utils.isNumeric(valueList))
+                valueList = phraseUserIdType(valueList);
+            if (valueList.size() == 1) {
                 criList.add(ds.createQuery(UserInfo.class).criteria(fd).equal(valueList.iterator().next()));
-            else if (valueList.size() > 1)
+            } else if (valueList.size() > 1)
                 criList.add(ds.createQuery(UserInfo.class).criteria(fd).hasAnyOf(valueList));
         }
-
         Query<UserInfo> query = ds.createQuery(UserInfo.class);
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
 
@@ -365,6 +365,13 @@ public class UserAPI {
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
+    private static List<Long> phraseUserIdType(Collection<?> list) {
+        List<Long> result = new ArrayList<>();
+        for (Object temp : list) {
+            result.add(Long.valueOf(temp.toString()));
+        }
+        return result;
+    }
 
     /**
      * 根据字段获得用户信息。
@@ -464,6 +471,7 @@ public class UserAPI {
         String easemobPwd = ret[1];
 
         user.setEasemobUser(ret[0]);
+        user.setOrigin(Constants.APP_FLAG_TAOZI);
         MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
 
         // 注册机密信息
@@ -725,7 +733,7 @@ public class UserAPI {
      */
     private static String getEaseMobToken() throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        MiscInfo info = ds.createQuery(MiscInfo.class).get();
+        MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_HUANXIN_INFO).get();
 
         String token = info.easemobToken;
         Long tokenExp = info.easemobTokenExpire;
@@ -751,7 +759,7 @@ public class UserAPI {
                 conn.setDoOutput(true);
                 conn.setDoInput(true);
                 conn.setRequestProperty("Content-Type", "application/json");
-                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+                OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
                 out.write(data.toString());
                 out.flush();
                 out.close();
@@ -834,7 +842,7 @@ public class UserAPI {
             conn.setDoInput(true);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(data.toString());
             out.flush();
             out.close();
@@ -941,7 +949,7 @@ public class UserAPI {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
 
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(data.toString());
             out.flush();
             out.close();
@@ -1096,10 +1104,9 @@ public class UserAPI {
     public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType, String message) throws AizouException {
         if (selfInfo.getEasemobUser() == null)
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
-        ObjectNode info = (ObjectNode) new UserFormatter(false).format(selfInfo);
+        ObjectNode info = (ObjectNode) new UserFormatterOld(false).format(selfInfo);
         // 添加邀请信息
         info.put("attachMsg", message);
-
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);
         ext.put("content", info);
@@ -1138,7 +1145,7 @@ public class UserAPI {
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
 
-            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream());
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(requestBody.toString());
             out.flush();
             out.close();
@@ -1162,6 +1169,29 @@ public class UserAPI {
      * @throws exception.AizouException
      */
     public static List<UserInfo> getContactList(Long selfId) throws AizouException {
+        // 从关系表中取得好友关系列表
+        Set<Long> contactSet = getContactIds(selfId);
+
+        // 取得好友信息
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<UserInfo> queryFriends = ds.createQuery(UserInfo.class);
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (Long tempId : contactSet) {
+            criList.add(queryFriends.criteria("userId").equal(tempId));
+        }
+        queryFriends.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        return queryFriends.asList();
+    }
+
+    /**
+     * api 获得用户的好友列表
+     *
+     * @param selfId
+     * @return
+     * @throws exception.AizouException
+     */
+    public static Set<Long> getContactIds(Long selfId) throws AizouException {
         UserInfo userInfo = getUserInfo(selfId, null);
         if (userInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
@@ -1173,26 +1203,18 @@ public class UserAPI {
         query.or(query.criteria("userA").equal(selfId), query.criteria("userB").equal(selfId));
         List<Relationship> relations = query.asList();
         if (relations.isEmpty())
-            return new ArrayList<>();
+            return new HashSet<>();
 
         // 从好友关系列表中提取好友ID
-        List<Long> friendsIdList = new ArrayList<>();
+        Set<Long> contactSet = new HashSet<>();
         for (Relationship relationship : relations) {
             if (!relationship.getUserA().equals(selfId))
-                friendsIdList.add(relationship.getUserA());
+                contactSet.add(relationship.getUserA());
             else
-                friendsIdList.add(relationship.getUserB());
+                contactSet.add(relationship.getUserB());
         }
 
-        // 取得好友信息
-        Query<UserInfo> queryFriends = ds.createQuery(UserInfo.class);
-        List<CriteriaContainerImpl> criList = new ArrayList<>();
-        for (Long tempId : friendsIdList) {
-            criList.add(queryFriends.criteria("userId").equal(tempId));
-        }
-        queryFriends.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
-
-        return queryFriends.asList();
+        return contactSet;
     }
 
     public static List<UserInfo> getUserByEaseMob(List<String> users, List<String> fieldList) throws AizouException {

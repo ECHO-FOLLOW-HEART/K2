@@ -2,23 +2,29 @@ package controllers.taozi;
 
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.geo.LocalityGuideFormatter;
-import formatter.taozi.misc.CommentFormatter;
+import formatter.FormatterFactory;
+import formatter.taozi.poi.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
+import formatter.taozi.user.ContactFormatter;
 import models.geo.Locality;
 import models.poi.*;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.DataFilter;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.util.*;
@@ -30,33 +36,41 @@ public class POICtrl extends Controller {
 
     public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
                                            int commentPage, int commentPageSize, Long userId,
-                                           int rmdPage, int rmdPageSize) throws AizouException {
-        DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass);
+                                           int rmdPage, int rmdPageSize, int imgWidth) throws AizouException, JsonProcessingException, IllegalAccessException, InstantiationException {
+        DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = new DetailedPOIFormatter<>(poiClass).setImageWidth(imgWidth);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields());
-        //是否被收藏
-        MiscAPI.isFavorite(poiInfo, userId);
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
+
+        // 处理价格
+        poiInfo.priceDesc = TaoziDataFilter.getPriceDesc(poiInfo);
+        //是否被收藏
+        MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.format(poiInfo);
 
         //取得推荐
         List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
-        List<JsonNode> recommends = new ArrayList<>();
-        for (POIRmd temp : rmdEntities) {
-            recommends.add(new POIRmdFormatter().format(temp));
-        }
+        POIRmdFormatter formatter = FormatterFactory.getInstance(POIRmdFormatter.class);
+        JsonNode recommends = formatter.formatNode(rmdEntities);
 
+        /*
+           不要评论了 20150204
+         */
         // 取得评论
-        List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-        List<JsonNode> comments = new ArrayList<>();
-        for (Comment temp : commentsEntities) {
-            comments.add(new CommentFormatter().format(temp));
-        }
+        List<Comment> commentsEntities = MiscAPI.displayCommentApi(new ObjectId(spotId), null, null, 0, commentPage, commentPageSize);
+        CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
+        JsonNode comments = comformatter.formatNode(commentsEntities);
+
         ObjectNode ret = (ObjectNode) info;
-        ret.put("recommends", Json.toJson(recommends));
+        ret.put("comments", comments);
+        int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
+        ret.put("commentCnt", commCnt);
 
-        ret.put("comments", Json.toJson(comments));
-
+        if (poiClass == Shopping.class || poiClass == Restaurant.class) {
+            // 添加H5接口 更多评论
+            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
+            ret.put("recommends", recommends);
+        }
         return ret;
     }
 
@@ -71,8 +85,19 @@ public class POICtrl extends Controller {
      *                entertainment:美食
      * @param spotId  POI的ID。
      */
-    public static Result viewPOIInfo(String poiDesc, String spotId, int commentPage, int commentPageSize,
-                                     int rmdPage, int rmdPageSize) {
+    @UsingCache(key = "poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize}", expireTime = 3600)
+    public static Result viewPOIInfo(String poiDesc,
+                                     @CacheKey(tag = "poiId") String spotId,
+                                     @CacheKey(tag = "cmtPage") int commentPage,
+                                     @CacheKey(tag = "cmtPageSize") int commentPageSize,
+                                     @CacheKey(tag = "rmdPage") int rmdPage,
+                                     @CacheKey(tag = "rmdPageSize") int rmdPageSize) {
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+
         Class<? extends AbstractPOI> poiClass;
         switch (poiDesc) {
             case "vs":
@@ -87,9 +112,6 @@ public class POICtrl extends Controller {
             case "shopping":
                 poiClass = Shopping.class;
                 break;
-            case "entertainment":
-                poiClass = Entertainment.class;
-                break;
             default:
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
         }
@@ -99,40 +121,12 @@ public class POICtrl extends Controller {
                 userId = Long.parseLong(request().getHeader("UserId"));
             else
                 userId = null;
-            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize);
+            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
-        }
-    }
-
-    /**
-     * 获得景点周边的周边POI按照
-     *
-     * @param gainType
-     * @param lat
-     * @param lgn
-     * @param page
-     * @param pageSize
-     * @return
-     *//*
-    public static Result getPOINearBy(String gainType, String lat, String lgn, int page, int pageSize) {
-
-        try {
-            Double latD = Double.valueOf(lat);
-            Double lngD = Double.valueOf(lat);
-            List<String> fieldsLimit = Arrays.asList(AbstractPOI.simpID, AbstractPOI.FD_NAME, AbstractPOI.FD_DESC, AbstractPOI.FD_IMAGES);
-            List<AbstractPOI> poiInfos = (List<AbstractPOI>) PoiAPI.getPOINearBy(gainType, latD, lngD, fieldsLimit, page, pageSize);
-
-            List<JsonNode> nodeList = new ArrayList();
-            for (AbstractPOI temp : poiInfos) {
-                nodeList.add(new SimplePOIFormatter().format(temp));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
-        } catch (NumberFormatException | TravelPiException e) {
+        } catch (AizouException | JsonProcessingException | InstantiationException | IllegalAccessException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
-    }*/
+    }
 
     /**
      * 根据关键词搜索POI信息
@@ -220,7 +214,15 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result viewPoiList(String poiType, String locId, String tagFilter, String sortField, String sortType, int page, int pageSize, int commentPage, int commentPageSize) {
+    @UsingCache(key = "poiList({type},{loc},{sortField},{sortType},{page},{pageSize},{cmtPage},{cmtPageSize}",
+            expireTime = 3600)
+    public static Result viewPoiList(@CacheKey(tag = "type") String poiType,
+                                     @CacheKey(tag = "loc") String locId, String tagFilter,
+                                     @CacheKey(tag = "sortField") String sortField,
+                                     @CacheKey(tag = "sortType") String sortType,
+                                     @CacheKey(tag = "page") int page, @CacheKey(tag = "pageSize") int pageSize,
+                                     @CacheKey(tag = "cmtPage") int commentPage,
+                                     @CacheKey(tag = "cmtPageSize") int commentPageSize) {
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":
@@ -247,28 +249,42 @@ public class POICtrl extends Controller {
             case "rating":
                 sf = PoiAPI.SortField.RATING;
                 break;
+            case "hotness":
+                sf = PoiAPI.SortField.HOTNESS;
+                break;
             default:
                 sf = null;
         }
 
         List<JsonNode> results = new ArrayList<>();
         List<? extends AbstractPOI> it;
-        List<Comment> commentsEntities;
+        //List<Comment> commentsEntities;
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
         try {
             it = PoiAPI.viewPoiList(type, new ObjectId(locId), sf, sort, page, pageSize);
             for (AbstractPOI temp : it) {
-                ObjectNode ret = (ObjectNode) new SimplePOIFormatter().format(temp);
-                if (poiType.equals("restaurant") || poiType.equals("shopping") ||
-                        poiType.equals("hotel")) {
-                    commentsEntities = PoiAPI.getPOIComment(temp.getId().toString(), commentPage, commentPageSize);
-                    int commCnt = (int) PoiAPI.getPOICommentCount(temp.getId().toString());
-                    List<JsonNode> comments = new ArrayList<>();
-                    for (Comment cmt : commentsEntities) {
-                        comments.add(new CommentFormatter().format(cmt));
-                    }
-                    ret.put("comments", Json.toJson(comments));
-                    ret.put("commentCnt", commCnt);
-                }
+                temp.images = TaoziDataFilter.getOneImage(temp.images);
+                temp.priceDesc = TaoziDataFilter.getPriceDesc(temp);
+                //temp.desc = StringUtils.abbreviate(temp.desc, Constants.ABBREVIATE_LEN);
+                ObjectNode ret = (ObjectNode) new SimplePOIFormatter().setImageWidth(imgWidth).format(temp);
+                /*
+                  Poi列表去掉评论和评论数 20150202
+                 */
+//                if (poiType.equals("restaurant") || poiType.equals("shopping") ||
+//                        poiType.equals("hotel")) {
+//                    commentsEntities = PoiAPI.getPOIComment(temp.getId().toString(), commentPage, commentPageSize);
+//                    int commCnt = (int) PoiAPI.getPOICommentCount(temp.getId().toString());
+//                    List<JsonNode> comments = new ArrayList<>();
+//                    for (Comment cmt : commentsEntities) {
+//                        comments.add(new CommentFormatter().format(cmt));
+//                    }
+//                    ret.put("comments", Json.toJson(comments));
+//                    ret.put("commentCnt", commCnt);
+//                }
                 results.add(ret);
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
@@ -287,7 +303,12 @@ public class POICtrl extends Controller {
     public static Result getPoiNear(double lng, double lat, double maxDist, boolean spot, boolean hotel,
                                     boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) {
         try {
-            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, shopping, page, pageSize, commentPage, commentPageSize);
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
+            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, shopping, page, pageSize, commentPage, commentPageSize, imgWidth);
             return Utils.createResponse(ErrorCode.NORMAL, results);
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
@@ -295,8 +316,9 @@ public class POICtrl extends Controller {
     }
 
     private static ObjectNode getPoiNearImpl(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                             boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) throws AizouException {
+                                             boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize, int imgWidth) throws AizouException {
         ObjectNode results = Json.newObject();
+
         //发现poi
         List<PoiAPI.POIType> poiKeyList = new ArrayList<>();
         HashMap<PoiAPI.POIType, String> poiMap = new HashMap<>();
@@ -330,18 +352,21 @@ public class POICtrl extends Controller {
             if (iterator != null) {
                 for (; iterator.hasNext(); ) {
                     poi = iterator.next();
-                    ret = (ObjectNode) new SimplePOIFormatter().format(poi);
-                    if (poiType.equals(PoiAPI.POIType.RESTAURANT) || poiType.equals(PoiAPI.POIType.SHOPPING) ||
-                            poiType.equals(PoiAPI.POIType.HOTEL)) {
-                        commentsEntities = PoiAPI.getPOIComment(poi.getId().toString(), commentPage, commentPageSize);
-                        int commCnt = (int) PoiAPI.getPOICommentCount(poi.getId().toString());
-                        List<JsonNode> comments = new ArrayList<>();
-                        for (Comment cmt : commentsEntities) {
-                            comments.add(new CommentFormatter().format(cmt));
-                        }
-                        ret.put("comments", Json.toJson(comments));
-                        ret.put("commentCnt", commCnt);
-                    }
+                    ret = (ObjectNode) new SimplePOIFormatter().setImageWidth(imgWidth).format(poi);
+                    /*
+                       我身边的POI列表去掉评论和评论数 20150202
+                     */
+//                    if (poiType.equals(PoiAPI.POIType.RESTAURANT) || poiType.equals(PoiAPI.POIType.SHOPPING) ||
+//                            poiType.equals(PoiAPI.POIType.HOTEL)) {
+//                        commentsEntities = PoiAPI.getPOIComment(poi.getId().toString(), commentPage, commentPageSize);
+//                        int commCnt = (int) PoiAPI.getPOICommentCount(poi.getId().toString());
+//                        List<JsonNode> comments = new ArrayList<>();
+//                        for (Comment cmt : commentsEntities) {
+//                            comments.add(new CommentFormatter().format(cmt));
+//                        }
+//                        ret.put("comments", Json.toJson(comments));
+//                        ret.put("commentCnt", commCnt);
+//                    }
                     retPoiList.add(ret);
                 }
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
@@ -350,118 +375,86 @@ public class POICtrl extends Controller {
         }
         return results;
     }
-
-    /**
-     * 获取乘车指南/景点简介
-     *
-     * @param id
-     * @param desc
-     * @param traffic
-     * @return
-     */
-    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
-        try {
-            ObjectNode results = Json.newObject();
-            ObjectId oid = new ObjectId(id);
-            ViewSpot viewSpot = PoiAPI.getVsDetail(oid, Arrays.asList(ViewSpot.detDesc));
-            if (desc) {
-                results.put("desc", viewSpot.description.desc);
-            }
-
-            if (traffic) {
-                results.put("traffic", viewSpot.description.traffic);
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
-
-    /**
-     * 特定地点美食、购物发现
-     *
-     * @param id
-     * @param dinning
-     * @param shopping
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static Result getDinShop(String id, boolean dinning, boolean shopping,
-                                    int page, int pageSize) {
-        //TODO 缺少店铺推荐数据
-        try {
-            ObjectNode results = Json.newObject();
-            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
-            HashMap<PoiAPI.DestinationType, String> poiMap = new HashMap<>();
-            if (dinning) {
-                destKeyList.add(PoiAPI.DestinationType.DINNING);
-                poiMap.put(PoiAPI.DestinationType.DINNING, "dinning");
-            }
-
-            if (shopping) {
-                destKeyList.add(PoiAPI.DestinationType.SHOPPING);
-                poiMap.put(PoiAPI.DestinationType.SHOPPING, "shopping");
-            }
-            ObjectId oid = new ObjectId(id);
-            for (PoiAPI.DestinationType type : destKeyList) {
-
-                Locality locality = PoiAPI.getTravelGuideApi(oid, type, page, pageSize);
-                String kind = poiMap.get(type);
-                //results.put(kind, new DestinationGuideFormatter().format(destination,kind));
-                results.put(kind, new LocalityGuideFormatter().format(locality));
-            }
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException | NullPointerException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
+//
+//    /**
+//     * 获取乘车指南/景点简介
+//     *
+//     * @param id
+//     * @param desc
+//     * @param traffic
+//     * @return
+//     */
+//    public static Result getLocDetail(String id, boolean desc, boolean traffic) {
+//        try {
+//            ObjectNode results = Json.newObject();
+//            ObjectId oid = new ObjectId(id);
+//            ViewSpot viewSpot = PoiAPI.getVsDetail(oid, Arrays.asList(ViewSpot.detDesc));
+//            if (desc) {
+//                results.put("desc", viewSpot.description.desc);
+//            }
+//
+//            if (traffic) {
+//                results.put("traffic", viewSpot.description.traffic);
+//            }
+//            return Utils.createResponse(ErrorCode.NORMAL, results);
+//        } catch (AizouException | NullPointerException e) {
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+//        }
+//    }
 
     /**
      * 游玩攻略
      *
      * @param locId
-     * @param fields
+     * @param field
      * @return
      */
-    public static Result getTravelGuide(String locId, String fields) {
+    public static Result getTravelGuide(String locId, String field, String poiDesc) {
         try {
-            List<PoiAPI.DestinationType> destKeyList = new ArrayList<>();
+            List<String> destKeyList = new ArrayList<>();
 
-            for (String f: fields.split("\\s*,\\s*")){
-                switch (f){
-                    case "remoteTraffic":
-                        destKeyList.add(PoiAPI.DestinationType.REMOTE_TRAFFIC);
-                        break;
-                    case "localTraffic":
-                        destKeyList.add(PoiAPI.DestinationType.LOCAL_TRAFFIC);
-                        break;
-                    case "activities":
-                        destKeyList.add(PoiAPI.DestinationType.ACTIVITY);
-                        break;
-                    case "tips":
-                        destKeyList.add(PoiAPI.DestinationType.TIPS);
-                        break;
-                    case "geoHistory":
-                        destKeyList.add(PoiAPI.DestinationType.GEOHISTORY);
-                        break;
-                    case "specials":
-                        destKeyList.add(PoiAPI.DestinationType.SPECIALS);
-                        break;
-                    case "desc":
-                        destKeyList.add(PoiAPI.DestinationType.DESC);
-                        break;
-                    case "dining":
-                        destKeyList.add(PoiAPI.DestinationType.DINNING);
-                        break;
-                    case "shopping":
-                        destKeyList.add(PoiAPI.DestinationType.SHOPPING);
-                        break;
-                }
+            Class<? extends AbstractPOI> poiClass;
+            switch (poiDesc) {
+                case "vs":
+                    poiClass = ViewSpot.class;
+                    break;
+                case "hotel":
+                    poiClass = Hotel.class;
+                    break;
+                case "restaurant":
+                    poiClass = Restaurant.class;
+                    break;
+                case "shopping":
+                    poiClass = Shopping.class;
+                    break;
+                default:
+                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
             }
 
-            Locality locality = PoiAPI.getTravelGuideApi(new ObjectId(locId), destKeyList);
-            return Utils.createResponse(ErrorCode.NORMAL, new LocalityGuideFormatter().format(locality));
+            switch (field) {
+                case "tips":
+                    destKeyList.add(AbstractPOI.FD_TIPS);
+                    break;
+                case "trafficInfo":
+                    destKeyList.add(AbstractPOI.FD_TRAFFICINFO);
+                    break;
+                case "visitGuide":
+                    destKeyList.add(AbstractPOI.FD_VISITGUIDE);
+                    break;
+            }
+
+            AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(locId), poiClass, destKeyList);
+            ObjectNode result = Json.newObject();
+            if (field.equals("tips")) {
+                result.put("desc", "");
+                result.put("contents", Json.toJson(GeoCtrl.contentsToList(poiInfo.getTips())));
+            } else if (field.equals("trafficInfo")) {
+                result.put("contents", Json.toJson(poiInfo.getTrafficInfo()));
+            } else if (field.equals("visitGuide")) {
+                result.put("contents", Json.toJson(poiInfo.getVisitGuide()));
+            }
+
+            return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | NumberFormatException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }

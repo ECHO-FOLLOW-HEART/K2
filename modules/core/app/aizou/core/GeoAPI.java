@@ -2,6 +2,7 @@ package aizou.core;
 
 
 import exception.AizouException;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
@@ -44,7 +45,7 @@ public class GeoAPI {
      */
     public static Locality locDetails(ObjectId locId, List<String> fields) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId);
+        Query<Locality> query = ds.createQuery(Locality.class).field("_id").equal(locId).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         if (fields != null && !fields.isEmpty())
             query.retrievedFields(true, fields.toArray(new String[fields.size()]));
         return query.get();
@@ -74,13 +75,11 @@ public class GeoAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
         if (keyword != null && !keyword.isEmpty())
-            query.or(
-                    query.criteria("zhName").equal(Pattern.compile(prefix ? "^" + keyword : keyword)),
-                    query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
-                    query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
-            );
+            query.field("alias").equal(Pattern.compile("^" + keyword));
+
         if (countryId != null)
             query.field(String.format("%s.id", Locality.fnCountry)).equal(countryId);
+        query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         return query.order(String.format("-%s", Locality.fnHotness))
                 .offset(page * pageSize).limit(pageSize).iterator();
     }
@@ -95,11 +94,7 @@ public class GeoAPI {
     public static List<Country> searchCountryByName(String keyword, int page, int pageSize) throws AizouException {
         Query<Country> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO).createQuery(Country.class);
         if (!keyword.equals("")) {
-            query.or(
-                    query.criteria("zhName").equal(keyword),
-                    query.criteria("enName").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE)),
-                    query.criteria("alias").equal(Pattern.compile("^" + keyword, Pattern.CASE_INSENSITIVE))
-            );
+            query.field("alias").equal(Pattern.compile("^" + keyword));
         }
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
@@ -116,9 +111,10 @@ public class GeoAPI {
         if (keywords != null) {
             List<CriteriaContainerImpl> criList = new ArrayList<>();
             for (String word : keywords)
-                criList.add(query.criteria("zhName").equal(Pattern.compile("^" + word)));
+                criList.add(query.criteria("alias").equal(Pattern.compile("^" + word)));
             query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
         }
+        query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
     }
@@ -144,9 +140,10 @@ public class GeoAPI {
     public static List<Locality> getDestinationsByCountry(ObjectId countryID, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
-        query.field("country.id").equal(countryID);
+        query.field("locList._id").equal(countryID).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         query.order("-hotness");
         query.offset(page * pageSize).limit(pageSize);
+        query.retrievedFields(true, AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME);
         return query.asList();
     }
 }

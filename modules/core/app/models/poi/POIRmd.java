@@ -20,7 +20,6 @@ public class POIRmd extends AizouBaseEntity {
     @Transient
     public static String fnTitle = "title";
 
-
     @Transient
     public static String fnImages = "images";
 
@@ -30,22 +29,52 @@ public class POIRmd extends AizouBaseEntity {
     /**
      * 推荐的poiId
      */
-    public ObjectId poiId;
+    private ObjectId poiId;
 
     /**
      * 推荐标题
      */
-    public String title;
+    private String title;
 
     /**
      * 推荐的图片
      */
-    public List<ImageItem> images;
+    private List<ImageItem> images;
 
     /**
      * 评分
      */
-    public Double rating;
+    private Double rating;
 
+    public ObjectId getPoiId() {
+        return poiId;
+    }
 
+    public void setPoiId(ObjectId poiId) {
+        this.poiId = poiId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public List<ImageItem> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ImageItem> images) {
+        this.images = images;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
 }

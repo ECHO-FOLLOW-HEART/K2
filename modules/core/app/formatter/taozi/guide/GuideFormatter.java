@@ -1,23 +1,24 @@
 package formatter.taozi.guide;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.TaoziBaseFormatter;
-import models.AizouBaseEntity;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import formatter.AizouFormatter;
+import formatter.AizouSerializer;
+import formatter.taozi.*;
+import formatter.taozi.geo.LocalitySerializer;
+import formatter.taozi.poi.POISerializer;
+import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
+import models.poi.Restaurant;
+import models.poi.Shopping;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -25,120 +26,107 @@ import java.util.*;
  * <p>
  * Created by zephyre on 10/28/14.
  */
-public class GuideFormatter extends TaoziBaseFormatter {
+public class GuideFormatter extends AizouFormatter<Guide> {
 
-    private Set<String> poiStringFields;
+    public GuideFormatter(int imgWidth) {
+        registerSerializer(Guide.class, new GuideSerializer());
+        registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
+        registerSerializer(Locality.class, new LocalitySerializer());
+        registerSerializer(ItinerItem.class, new ItinerItemSerializer());
+        registerSerializer(AbstractPOI.class, new POISerializer());
+        registerSerializer(GeoJsonPoint.class, new GeoJsonPointSerializer());
 
-    private Set<String> localityStringFields;
+        initObjectMapper(null);
 
-    @Override
-    public JsonNode format(AizouBaseEntity item) {
-
-        Map<String, PropertyFilter> filterMap = new HashMap<>();
-        filteredFields = new HashSet<>();
-        Collections.addAll(filteredFields,
-                AizouBaseEntity.FD_ID,
-                AbstractPOI.FD_ZH_NAME,
-                AbstractPOI.FD_EN_NAME,
-                AbstractPOI.FD_DESC,
-                AbstractPOI.FD_IMAGES,
-                AbstractPOI.FD_LOCATION,
-                AbstractPOI.FD_RATING,
-                AbstractPOI.FD_ADDRESS,
-                AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE,
-                AbstractPOI.detTargets
-        );
-        filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
-        filterMap.put("itinerItemFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
-                ItinerItem.fdDayIndex, ItinerItem.fdPoi));
-        filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(
-                AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
-
-        Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
-        serializerMap.put(ImageItem.class, new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
-        ObjectMapper mapper = getObjectMapper(filterMap, serializerMap);
-
-
-        ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
-                .addFilter("guideFilter",
-                        SimpleBeanPropertyFilter.filterOutAllExcept(
-                                AbstractGuide.fdId,
-                                AbstractGuide.fnTitle,
-                                AbstractGuide.fnItinerary,
-                                AbstractGuide.fnShopping,
-                                AbstractGuide.fnRestaurant,
-                                Guide.fnUserId,
-                                Guide.fnLocalities,
-                                Guide.fnUpdateTime,
-                                Guide.fnImages,
-                                Guide.fnItineraryDays
-                        ));
-
-        SimpleModule imageItemModule = new SimpleModule();
-        imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializer(ImageItemSerializer.ImageSizeDesc.MEDIUM));
-        mapper.registerModule(imageItemModule);
-
-        ObjectNode result = mapper.valueToTree(item);
-
-        poiStringFields = new HashSet<String>() {
-        };
-        Collections.addAll(poiStringFields,
-                AbstractPOI.FD_ADDRESS,
-                AbstractPOI.FD_EN_NAME,
-                AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_TELEPHONE);
-
-        localityStringFields = new HashSet<String>() {
-        };
-        Collections.addAll(localityStringFields,
-                Locality.FD_EN_NAME);
-
-        Collections.addAll(listFields,
-                AbstractPOI.FD_IMAGES,Guide.fnItinerary,Guide.fnShopping,Guide.fnRestaurant);
-
-        return postProcess(result);
+        filteredFields.addAll(Arrays.asList(
+                AbstractGuide.fdId,
+                AbstractGuide.fnTitle,
+                AbstractGuide.fnItinerary,
+                AbstractGuide.fnShopping,
+                AbstractGuide.fnRestaurant,
+                Guide.fnUserId,
+                Guide.fnLocalities,
+                Guide.fnUpdateTime,
+                Guide.fnImages,
+                Guide.fnItineraryDays));
     }
 
-    protected ObjectNode postProcess(ObjectNode result) {
+    class GuideSerializer extends AizouSerializer<Guide> {
+        @Override
+        public void serialize(Guide guide, JsonGenerator jgen, SerializerProvider serializerProvider)
+                throws IOException {
+            jgen.writeStartObject();
 
-        // 处理字符串字段
-        JsonNode oNode = result.get("itinerary");
-        postProcessPoiInItinerary(oNode);
-        oNode = result.get("shopping");
-        postProcessPoiInList(oNode, poiStringFields);
-        oNode = result.get("restaurant");
-        postProcessPoiInList(oNode, poiStringFields);
-        oNode = result.get("localities");
-        postProcessPoiInList(oNode, localityStringFields);
-        return result;
-    }
+            writeObjectId(guide, jgen, serializerProvider);
 
-    private void postProcessPoiInItinerary(JsonNode oNode) {
-        ObjectNode tempObjNode;
-        if (oNode.findValues("poi") != null) {
-            for (JsonNode node : oNode.findValues("poi")) {
-                tempObjNode = (ObjectNode) node;
-                for (String key : poiStringFields) {
-                    if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
-                        tempObjNode.put(key, "");
-                }
-
+            // Images
+            jgen.writeFieldName("images");
+            List<ImageItem> images = guide.getImages();
+            jgen.writeStartArray();
+            if (images != null && !images.isEmpty()) {
+                JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ImageItem.class, null);
+                for (ImageItem image : images)
+                    ret.serialize(image, jgen, serializerProvider);
             }
-        }
-    }
+            jgen.writeEndArray();
 
-    private void postProcessPoiInList(JsonNode oNode, Set<String> fields) {
-        ObjectNode tempObjNode;
-        if (oNode != null && oNode.isArray()) {
-            for (JsonNode node : oNode) {
-                tempObjNode = (ObjectNode) node;
-                for (String key : fields) {
-                    if (tempObjNode.get(key) == null || tempObjNode.get(key).isNull())
-                        tempObjNode.put(key, "");
+            jgen.writeStringField(AbstractGuide.fnTitle, getString(guide.title));
+            jgen.writeNumberField(Guide.fnUserId, getValue(guide.userId));
+            jgen.writeNumberField(Guide.fnItineraryDays, getValue(guide.itineraryDays));
+            jgen.writeNumberField(Guide.fnUpdateTime, getValue(guide.updateTime));
+
+            // Locality
+            jgen.writeFieldName(Guide.fnLocalities);
+            jgen.writeStartArray();
+            List<Locality> localities = guide.localities;
+            if (localities != null && !localities.isEmpty()) {
+                JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(Locality.class, null);
+                for (Locality locality : localities) {
+                    retLocality.serialize(locality, jgen, serializerProvider);
                 }
             }
+            jgen.writeEndArray();
+
+
+            // Itinerary
+            jgen.writeFieldName(Guide.fnItinerary);
+            jgen.writeStartArray();
+            List<ItinerItem> itinerItems = guide.itinerary;
+            if (itinerItems != null && !itinerItems.isEmpty()) {
+                JsonSerializer<Object> retItinerItems = serializerProvider.findValueSerializer(ItinerItem.class, null);
+                for (ItinerItem itinerItem : itinerItems) {
+                    if (itinerItem != null && itinerItem.poi != null) {
+                        retItinerItems.serialize(itinerItem, jgen, serializerProvider);
+                    }
+                }
+            }
+            jgen.writeEndArray();
+
+            //Shopping
+            jgen.writeFieldName(Guide.fnShopping);
+            jgen.writeStartArray();
+            List<Shopping> shoppings = guide.shopping;
+            if (shoppings != null && !shoppings.isEmpty()) {
+                JsonSerializer<Object> retShoppings = serializerProvider.findValueSerializer(Shopping.class, null);
+                for (Shopping shopping : shoppings) {
+                    retShoppings.serialize(shopping, jgen, serializerProvider);
+                }
+            }
+            jgen.writeEndArray();
+
+            // Restaurant
+            jgen.writeFieldName(Guide.fnRestaurant);
+            jgen.writeStartArray();
+            List<Restaurant> restaurants = guide.restaurant;
+            if (restaurants != null && !restaurants.isEmpty()) {
+                JsonSerializer<Object> retRestaurants = serializerProvider.findValueSerializer(Restaurant.class, null);
+                for (Restaurant restaurant : restaurants) {
+                    retRestaurants.serialize(restaurant, jgen, serializerProvider);
+                }
+            }
+            jgen.writeEndArray();
+
+            jgen.writeEndObject();
         }
     }
 

@@ -1,131 +1,48 @@
 package formatter.taozi.geo;
 
-import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.BeanPropertyWriter;
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
+import formatter.AizouFormatter;
+import formatter.taozi.ImageItemSerializer;
+import formatter.taozi.ImageItemSerializerOld;
+import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
-import models.geo.GeoJsonPoint;
 import models.geo.Locality;
-import models.misc.SimpleRef;
-import formatter.JsonFormatter;
+import models.guide.AbstractGuide;
+import models.guide.Guide;
+import models.misc.ImageItem;
+import models.poi.AbstractPOI;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
 
 /**
- * Created by lxf on 14-11-1.
+ * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
+ * <p/>
+ * Created by zephyre on 10/28/14.
  */
-public class LocalityFormatter implements JsonFormatter {
-    @Override
-    public JsonNode format(AizouBaseEntity item) {
-        ObjectMapper mapper = new ObjectMapper();
+public class LocalityFormatter extends AizouFormatter<Locality> {
 
-        mapper.configure(SerializationFeature.INDENT_OUTPUT, true);
-        mapper.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+    public LocalityFormatter(int imgWidth){
+        registerSerializer(Locality.class,new LocalitySerializer(LocalitySerializer.Level.DETAILED));
+        registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
 
-        PropertyFilter theFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
+        initObjectMapper(null);
 
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                Collections.addAll(includedFields, Locality.fnLocation, Locality.fnDesc, Locality.FD_EN_NAME,
-                        "id", Locality.FD_ZH_NAME, Locality.fnLocation, Locality.fnImages,
-                        Locality.fnTimeCost, Locality.fnTimeCostDesc, Locality.fnTravelMonth, Locality.fnImageCnt);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        PropertyFilter geoJsonPointFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-                includedFields.add(GeoJsonPoint.FD_COORDS);
-                includedFields.add(GeoJsonPoint.fnType);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        PropertyFilter simpleRefFilter = new SimpleBeanPropertyFilter() {
-            @Override
-            public void serializeAsField
-                    (Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer) throws Exception {
-                if (include(writer)) {
-                    writer.serializeAsField(pojo, jgen, provider);
-                } else if (!jgen.canOmitFields()) { // since 2.3
-                    writer.serializeAsOmittedField(pojo, jgen, provider);
-                }
-            }
-
-            private boolean includeImpl(PropertyWriter writer) {
-                Set<String> includedFields = new HashSet<>();
-
-                includedFields.add(SimpleRef.simpID);
-                includedFields.add(SimpleRef.simpZhName);
-                includedFields.add(SimpleRef.simpEnName);
-                return (includedFields.contains(writer.getName()));
-            }
-
-            @Override
-            protected boolean include(BeanPropertyWriter beanPropertyWriter) {
-                return includeImpl(beanPropertyWriter);
-            }
-
-            @Override
-            protected boolean include(PropertyWriter writer) {
-                return includeImpl(writer);
-            }
-        };
-
-        FilterProvider filters = new SimpleFilterProvider().addFilter("localityFilter", theFilter)
-                .addFilter("countryFilter", simpleRefFilter).addFilter("geoJsonPointFilter", geoJsonPointFilter);
-        mapper.setFilters(filters);
-
-        return mapper.valueToTree(item);
+        filteredFields.addAll(Arrays.asList(
+                AizouBaseEntity.FD_ID,
+                AizouBaseEntity.FD_IS_FAVORITE,
+                Locality.FD_EN_NAME,
+                Locality.FD_ZH_NAME,
+                Locality.fnDesc,
+                Locality.fnLocation,
+                Locality.fnImages,
+                Locality.fnTimeCostDesc,
+                Locality.fnTravelMonth,
+                Locality.fnImageCnt));
     }
+
 }

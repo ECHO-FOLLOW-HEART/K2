@@ -1,31 +1,43 @@
 package controllers.taozi;
 
+import aizou.core.GeoAPI;
 import aizou.core.GuideAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.FormatterFactory;
 import formatter.taozi.guide.GuideFormatter;
-import formatter.taozi.guide.LocalityGuideFormatter;
+import formatter.taozi.guide.GuideFormatterOld;
 import formatter.taozi.guide.SimpleGuideFormatter;
+import formatter.taozi.user.ContactFormatter;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
-import models.guide.LocalityGuideInfo;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.LogUtils;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
  * Created by topy on 2014/11/5.
  */
 public class GuideCtrl extends Controller {
+
+    public static final String HAS_RECOMMENDATION = "recommend";
+
+    public static final String GUIDE_DETAIL_URL = "http://h5.taozilvxing.com/planshare.php?pid=";
 
     /**
      * 更新攻略中相应信息
@@ -35,23 +47,37 @@ public class GuideCtrl extends Controller {
     public static Result createGuide() {
         JsonNode data = request().body().asJson();
         ObjectNode node;
+        Guide result;
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             String tmp = request().getHeader("UserId");
             if (tmp == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
             Integer selfId = Integer.parseInt(tmp);
+            String action = data.has("action") ? data.get("action").asText() : "";
             Iterator<JsonNode> iterator = data.get("locId").iterator();
             List<ObjectId> ids = new ArrayList<>();
             while (iterator.hasNext()) {
                 ids.add(new ObjectId(iterator.next().asText()));
             }
-            Guide temp = GuideAPI.getGuideByDestination(ids, selfId);
-            GuideAPI.fillGuideInfo(temp);
-            node = (ObjectNode) new GuideFormatter().format(temp);
+            // 如果用户需要推荐攻略，就根据目的地推荐攻略
+            if (action.equals(HAS_RECOMMENDATION)) {
+                result = GuideAPI.getGuideByDestination(ids, selfId);
+                GuideAPI.fillGuideInfo(result);
+            } else
+                result = GuideAPI.getEmptyGuide(ids, selfId);
+
+            GuideFormatter formatter = FormatterFactory.getInstance(GuideFormatter.class, imgWidth);
+            node = (ObjectNode) formatter.formatNode(result);
+            node.put("detailUrl", GUIDE_DETAIL_URL + result.getId());
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (AizouException | JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
@@ -64,6 +90,7 @@ public class GuideCtrl extends Controller {
     public static Result saveGuide() {
 
         JsonNode data = request().body().asJson();
+        LogUtils.info(GuideCtrl.class, request());
         try {
             String tmp = request().getHeader("UserId");
             if (tmp == null)
@@ -91,6 +118,11 @@ public class GuideCtrl extends Controller {
      */
     public static Result getGuidesByUser(int page, int pageSize) {
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             String tmp = request().getHeader("UserId");
             if (tmp == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
@@ -101,7 +133,8 @@ public class GuideCtrl extends Controller {
             List<JsonNode> result = new ArrayList<>();
             ObjectNode node;
             for (Guide guide : guides) {
-                node = (ObjectNode) new SimpleGuideFormatter().format(guide);
+                guide.images = TaoziDataFilter.getOneImage(guide.images);
+                node = (ObjectNode) new SimpleGuideFormatter().setImageWidth(imgWidth).format(guide);
                 addGuideInfoToNode(guide, node);
                 result.add(node);
             }
@@ -152,7 +185,11 @@ public class GuideCtrl extends Controller {
      */
     public static Result getGuideInfo(String id, String part) {
         try {
-
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             ObjectId guideId = new ObjectId(id);
             List<String> fields = new ArrayList<>();
             Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime,
@@ -178,16 +215,20 @@ public class GuideCtrl extends Controller {
                     throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Error guide part."));
             }
             Guide guide = GuideAPI.getGuideById(guideId, fields);
+            if (guide == null)
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Guide ID is invalid. ID:" + id);
             // 填充攻略信息
             GuideAPI.fillGuideInfo(guide);
-            ObjectNode node = (ObjectNode) new GuideFormatter().format(guide);
+            // ObjectNode node = (ObjectNode) new GuideFormatterOld().setImageWidth(imgWidth).format(guide);
+            GuideFormatter formatter = FormatterFactory.getInstance(GuideFormatter.class, imgWidth);
+            ObjectNode node = (ObjectNode) formatter.formatNode(guide);
+            node.put("detailUrl", GUIDE_DETAIL_URL + guide.getId());
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
-
     }
 
     /**
@@ -234,26 +275,39 @@ public class GuideCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result getLocalityGuideInfo(String id, String guidePart) {
+    @UsingCache(key = "getLocalityGuideInfo({id},{type})", expireTime = 3600)
+    public static Result getLocalityGuideInfo(@CacheKey(tag = "id") String id,
+                                              @CacheKey(tag = "type") String guidePart) {
         try {
-
-            LocalityGuideInfo localityGuideInfo = GuideAPI.getLocalityGuideInfo(new ObjectId(id));
-            ObjectNode node = (ObjectNode) new LocalityGuideFormatter().format(localityGuideInfo);
-            //重新设置Json-Key
+            List<String> fields = new ArrayList<>();
+            Collections.addAll(fields, Locality.fnDinningIntro, Locality.fnShoppingIntro);
+            Locality locality = GeoAPI.locDetails(new ObjectId(id), fields);
+            String content = null;
             ObjectNode result = Json.newObject();
             if (guidePart.equals("shopping")) {
-                result.put("images", node.get(LocalityGuideInfo.fnShoppingImages));
-                result.put("desc", node.get(LocalityGuideInfo.fnShoppingDesc));
+                content = locality.getShoppingIntro();
+                // 显示城市购物介绍URL
+                result.put("detailUrl", "http://h5.taozilvxing.com/shopping.php?tid=" + id);
             } else if (guidePart.equals("restaurant")) {
-                result.put("images", node.get(LocalityGuideInfo.fnRestaurantImages));
-                result.put("desc", node.get(LocalityGuideInfo.fnRestaurantDesc));
+                content = locality.getDiningIntro();
+                // 显示城市美食介绍URL
+                result.put("detailUrl", "http://h5.taozilvxing.com/dining.php?tid=" + id);
             }
-
+            result.put("desc", content != null ? removeH5Label(content) : "");
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
         }
 
+    }
+
+    private static String removeH5Label(String content) {
+        List<String> regExList = Arrays.asList("<p>", "</p>", "<div>", "</div>");
+        for (String regEx : regExList) {
+            content = content.replace(regEx, "");
+        }
+
+        return content;
     }
 
     /**
@@ -275,6 +329,8 @@ public class GuideCtrl extends Controller {
             ObjectNode result = Json.newObject();
 
             result.put("id", guide.getId().toString());
+            result.put("detailUrl", GUIDE_DETAIL_URL + guideId);
+
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException | NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());

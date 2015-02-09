@@ -1,12 +1,18 @@
 package controllers.taozi;
 
 import aizou.core.*;
+import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.CacheKey;
+import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.geo.DetailedLocalityFormatter;
-import formatter.taozi.misc.*;
+import formatter.taozi.geo.DetailedLocalityFormatterOld;
+import formatter.taozi.misc.ColumnFormatter;
+import formatter.taozi.misc.CommentFormatter;
+import formatter.taozi.misc.SuggestionFormatter;
+import formatter.taozi.misc.WeatherFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
 import formatter.taozi.user.SelfFavoriteFormatter;
@@ -18,16 +24,20 @@ import models.poi.Comment;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
 import utils.LogUtils;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.net.UnknownHostException;
@@ -53,20 +63,17 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    public static Result appHomeImage(int width, int height, int quality, String format, int interlace) {
+    @UsingCache(key = "appHomeImage,{w},{h}", expireTime = 3600)
+    public static Result appHomeImage(@CacheKey(tag = "w") int width, @CacheKey(tag = "h") int height, int quality, String format, int interlace) {
         try {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            MiscInfo info = ds.createQuery(MiscInfo.class).field("application").equal(Constants.APP_FLAG_TAOZI).get();
+            MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
             if (info == null)
                 return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
             ObjectNode node = Json.newObject();
             // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.appHomeImage, width, height, quality, format, interlace);
-            //添加封面故事信息
-            if (info.coverStory != null)
-                for (Map.Entry<String, String> entry : info.coverStory.entrySet()) {
-                    node.put(entry.getKey(), entry.getValue() == null ? "" : entry.getValue());
-                }
+            String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value, width, height, quality, format, interlace);
+
             node.put("image", url);
             node.put("width", width);
             node.put("height", height);
@@ -81,15 +88,17 @@ public class MiscCtrl extends Controller {
     public static Result postFeedback() throws UnknownHostException, AizouException {
         JsonNode feedback = request().body().asJson();
         try {
-            Integer uid = feedback.has("userId") ? feedback.get("userId").asInt() : null;
+            Integer uid = request().hasHeader("UserId") ? Integer.parseInt(request().getHeader("UserId")) : null;
             String body = feedback.has("body") ? feedback.get("body").asText().trim() : null;
-            if (body == null || body.equals("") || uid == null)
+            if (body == null || body.equals(""))
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid feedback content.");
             Feedback feedBack = new Feedback();
             Datastore dsSave = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            feedBack.uid = uid;
+            if (uid != null)
+                feedBack.uid = uid;
             feedBack.body = body;
             feedBack.time = new Date();
+            feedBack.origin = Constants.APP_FLAG_TAOZI;
             feedBack.setEnabled(true);
             dsSave.save(feedBack);
             return Utils.createResponse(ErrorCode.NORMAL, "Success");
@@ -104,8 +113,9 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
+    @UsingCache(key = "recommend", expireTime = 3600)
     public static Result recommend(int page, int pageSize) {
-        List<ObjectNode> retNodeList = new ArrayList();
+        List<ObjectNode> retNodeList = new ArrayList<ObjectNode>();
         Datastore ds;
         try {
             ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
@@ -114,15 +124,15 @@ public class MiscCtrl extends Controller {
             query.field("enabled").equal(Boolean.TRUE);
             query.order("weight").offset(page * pageSize).limit(pageSize);
             Recom recom;
-            Map<String, List<Recom>> map = new HashMap<>();
+            Map<String, List<Recom>> map = new LinkedHashMap<>();
             List<Recom> tempList;
             for (Iterator<Recom> it = query.iterator(); it.hasNext(); ) {
                 recom = it.next();
-                tempList = map.get(recom.title);
+                tempList = map.get(recom.type);
                 if (tempList == null)
                     tempList = new ArrayList<>();
                 tempList.add(recom);
-                map.put(recom.title, tempList);
+                map.put(recom.type, tempList);
             }
             String key;
             ObjectNode tempNode;
@@ -131,7 +141,7 @@ public class MiscCtrl extends Controller {
             for (Map.Entry<String, List<Recom>> entry : map.entrySet()) {
                 key = entry.getKey();
                 recList = entry.getValue();
-                recNodeList = new ArrayList();
+                recNodeList = new ArrayList<ObjectNode>();
                 for (Recom tem : recList) {
                     recNodeList.add((ObjectNode) new RecomFormatter().format(tem));
                 }
@@ -162,8 +172,13 @@ public class MiscCtrl extends Controller {
             Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
             Query<Favorite> query = ds.createQuery(Favorite.class);
             query.field("userId").equal(userId).field("type").equal(type).field("itemId").equal(oid);
-            if (query.iterator().hasNext())
-                return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Favorite item has existed");
+            if (query.iterator().hasNext()) {
+                // 如果已收藏，则更新收藏时间，并返回已收藏的提示
+                UpdateOperations<Favorite> update = ds.createUpdateOperations(Favorite.class);
+                update.set(Favorite.fnCreateTime, new Date());
+                ds.update(query, update);
+                return Utils.createResponse(ErrorCode.DATA_EXIST, "Favorite item has existed");
+            }
             Favorite fa = new Favorite();
             fa.setId(new ObjectId());
             fa.itemId = oid;
@@ -206,15 +221,15 @@ public class MiscCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<Favorite>()));
             List<Favorite> faShowList = new ArrayList<>();
             List<Favorite> noteFav = new ArrayList<>();
-            List<String> travelNoteIds = new ArrayList<>();
+            List<ObjectId> travelNoteIds = new ArrayList<>();
             String type;
             Locality loc;
             AbstractPOI poi;
             PoiAPI.POIType poiType;
-            List locFields = new ArrayList();
+            List<String> locFields = new ArrayList<>();
             Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc", "timeCostDesc");
-            List poiFields = new ArrayList();
-            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price");
+            List<String> poiFields = new ArrayList<>();
+            Collections.addAll(poiFields, "id", "zhName", "enName", "images", "desc", "type", "locality", "address", "price", "timeCostDesc", "rating");
             for (Favorite fa : faList) {
                 type = fa.type;
                 if (type.equals("locality")) {
@@ -223,13 +238,14 @@ public class MiscCtrl extends Controller {
                         continue;
                     fa.zhName = loc.getZhName();
                     fa.enName = loc.getEnName();
-                    fa.images = loc.getImages();
+                    fa.images = TaoziDataFilter.getOneImage(loc.getImages());
                     fa.desc = loc.getDesc();
                     // 城市显示建议游玩时间
                     fa.timeCostDesc = loc.getTimeCostDesc();
                 } else if (type.equals("travelNote")) {
-                    travelNoteIds.add(fa.itemId.toString());
+                    travelNoteIds.add(fa.itemId);
                     noteFav.add(fa);
+                    continue;
                 } else if (type.equals("vs") || type.equals("hotel") || type.equals("restaurant") || type.equals("shopping")) {
                     switch (type) {
                         case "vs":
@@ -252,38 +268,38 @@ public class MiscCtrl extends Controller {
                         continue;
                     fa.zhName = poi.zhName;
                     fa.enName = poi.enName;
-                    fa.images = poi.images;
+                    fa.images = TaoziDataFilter.getOneImage(poi.images);
                     fa.desc = poi.desc;
                     fa.locality = poi.getLocality();
                     fa.timeCostDesc = poi.timeCostDesc;
-                    fa.priceDesc = poi.priceDesc;
+                    fa.priceDesc = TaoziDataFilter.getPriceDesc(poi);
                     fa.rating = poi.rating;
                     fa.address = poi.address;
                     fa.telephone = poi.telephone;
                 }
                 faShowList.add(fa);
             }
-            // TODO 如果type不等于travelNote,则一下语句会抛出NullPointerException异常
-//            List<TravelNote> travelNotes = TravelNoteAPI.searchNoteById(travelNoteIds, Constants.MAX_COUNT);
-//            Map<String, TravelNote> travelNoteMap = new HashMap<>();
-//            for (TravelNote temp : travelNotes)
-//                travelNoteMap.put(temp.getId().toString(), temp);
-//            TravelNote tnFromFavorate;
-//            if (travelNotes != null && travelNotes.size() > 0) {
-//                for (Favorite fa : noteFav) {
-//                    tnFromFavorate = travelNoteMap.get(fa.itemId.toString());
-//                    if (tnFromFavorate == null)
-//                        continue;
-//                    fa.zhName = tnFromFavorate.getName();
-//                    fa.enName = tnFromFavorate.getName();
-//                    ImageItem tmg = new ImageItem();
-//                    TODO 如何设置URL
-                    //tmg.setKey(tnFromFavorate.getCover());
-//                    fa.images = Arrays.asList(tmg);
-//                    fa.desc = tnFromFavorate.getDesc();
-//                    faShowList.add(fa);
-//                }
-//            }
+            List<String> noteFields = new ArrayList<>();
+            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc");
+            List<TravelNote> travelNotes = TravelNoteAPI.getNotesByIdList(travelNoteIds, noteFields);
+            Map<String, TravelNote> travelNoteMap = new HashMap<>();
+            for (TravelNote temp : travelNotes)
+                travelNoteMap.put(temp.getId().toString(), temp);
+            TravelNote tnFromFavorate;
+            if (travelNotes != null && travelNotes.size() > 0) {
+                for (Favorite fa : noteFav) {
+                    tnFromFavorate = travelNoteMap.get(fa.itemId.toString());
+                    if (tnFromFavorate == null)
+                        continue;
+                    fa.zhName = tnFromFavorate.getName();
+                    fa.enName = tnFromFavorate.getName();
+                    ImageItem tmg = new ImageItem();
+                    tmg.setKey(tnFromFavorate.getCover());
+                    fa.images = Arrays.asList(tmg);
+                    fa.desc = tnFromFavorate.getDesc();
+                    faShowList.add(fa);
+                }
+            }
             // 按照创建时间排序
             Collections.sort(faShowList, new Comparator<Favorite>() {
                 public int compare(Favorite arg0, Favorite arg1) {
@@ -474,11 +490,20 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    public static Result getColumns() {
-        MiscFormatter formatter = new MiscFormatter();
+    @UsingCache(key = "getColumns({type},{id})", expireTime = 86400)
+    public static Result getColumns(@CacheKey(tag = "type") String type, @CacheKey(tag = "id") String id) {
+        ColumnFormatter formatter = new ColumnFormatter();
+        String url;
+        Configuration config = Configuration.root();
+        Map h5 = (Map) config.getObject("h5");
+        url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
+
         try {
             List<JsonNode> columns = new ArrayList<>();
-            for (Column c : MiscAPI.getColumns()) {
+            List<Column> columnList = MiscAPI.getColumns(type, id);
+
+            for (Column c : columnList) {
+                c.setLink(url + c.getId().toString());
                 columns.add(formatter.format(c));
             }
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(columns));
@@ -502,8 +527,8 @@ public class MiscCtrl extends Controller {
             UserInfo user = UserAPI.getUserInfo(userIdLong,
                     Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar));
             if (user != null) {
-                comment.setUserName(user.getNickName());
-                comment.setUserAvatar(user.getAvatar());
+                comment.setAuthorName(user.getNickName());
+                comment.setAuthorAvatar(user.getAvatar());
                 comment.setUserId(userIdLong);
             } else {
                 throw new AizouException(ErrorCode.USER_NOT_EXIST);
@@ -516,7 +541,7 @@ public class MiscCtrl extends Controller {
             comment.setContents(contents);
             comment.setRating(rating);
             long commentTime = System.currentTimeMillis();
-            comment.setcTime(commentTime);
+            comment.setPublishTime(commentTime);
             comment.setmTime(commentTime);
 
             JsonNode result = MiscAPI.saveComment(comment);
@@ -529,7 +554,7 @@ public class MiscCtrl extends Controller {
     private static JsonNode getCommentsImpl(String poiId, double lower, double upper, long lastUpdate, int pageSize)
             throws AizouException {
         CommentFormatter formatter = new CommentFormatter();
-        List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, pageSize);
+        List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, 0, pageSize);
         List<JsonNode> list = new ArrayList<>();
         for (Comment comment : commentList)
             list.add(formatter.format(comment));
@@ -567,18 +592,29 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result search(String keyWord, String locId, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping, int page, int pageSize) {
+    @UsingCache(key = "search(keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel}," +
+            "restaurant={restaurant},shopping={shopping},page={p},pageSize={ps})",
+            expireTime = 300)
+    public static Result search(@CacheKey(tag = "keyWord") String keyWord,
+                                @CacheKey(tag = "locId") String locId,
+                                @CacheKey(tag = "loc") boolean loc,
+                                @CacheKey(tag = "vs") boolean vs,
+                                @CacheKey(tag = "hotel") boolean hotel,
+                                @CacheKey(tag = "restaurant") boolean restaurant,
+                                @CacheKey(tag = "shopping") boolean shopping,
+                                @CacheKey(tag = "p") int page,
+                                @CacheKey(tag = "ps") int pageSize) {
         ObjectNode results = Json.newObject();
         try {
 
-            Iterator it;
+            Iterator<Locality> it;
             if (loc) {
                 Locality locality;
                 List<JsonNode> retLocList = new ArrayList<>();
                 it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
                 while (it.hasNext()) {
-                    locality = (Locality) it.next();
-                    retLocList.add(new DetailedLocalityFormatter().format(locality));
+                    locality = it.next();
+                    retLocList.add(new DetailedLocalityFormatterOld().format(locality));
                 }
                 results.put("locality", Json.toJson(retLocList));
             }
@@ -606,11 +642,16 @@ public class MiscCtrl extends Controller {
                 // 发现POI
                 List<JsonNode> retPoiList = new ArrayList<>();
                 List<? extends AbstractPOI> itPoi = PoiAPI.poiSearchForTaozi(poiType, keyWord, oid, true, page, pageSize);
-                for (AbstractPOI poi : itPoi)
+                for (AbstractPOI poi : itPoi) {
+                    poi.images = TaoziDataFilter.getOneImage(poi.images);
+                    poi.desc = StringUtils.abbreviate(poi.desc, Constants.ABBREVIATE_LEN);
                     retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
+
+                }
+
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
-        } catch (AizouException | NullPointerException e) {
+        } catch (AizouException | NullPointerException | SolrServerException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));
@@ -687,6 +728,7 @@ public class MiscCtrl extends Controller {
 
     /**
      * 取得图集
+     * 默认情况会取出全部图集
      *
      * @param id
      * @param page
@@ -696,26 +738,75 @@ public class MiscCtrl extends Controller {
     public static Result getAlbums(String id, int page, int pageSize) {
 
         try {
-
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 200;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             ObjectId oid = new ObjectId(id);
-            // 默认情况会取出全部图集
-            if (pageSize == 0)
-                pageSize = Constants.MAX_COUNT;
             List<Images> items = MiscAPI.getLocalityAlbum(oid, page, pageSize);
+            Long amount = MiscAPI.getLocalityAlbumCount(oid);
 
+            ObjectNode imgNode;
             List<ObjectNode> nodeList = new ArrayList<>();
-            for (Images images : items)
-                nodeList.add((ObjectNode) new ImageFormatter().format(images));
-
+            for (Images images : items) {
+                imgNode = Json.newObject();
+                imgNode.put("url", String.format("%s?imageView2/2/w/%d", images.getFullUrl(), imgWidth));
+                imgNode.put("originUrl", String.format("%s?imageView2/2/w/%d", images.getFullUrl(), 960));
+                nodeList.add(imgNode);
+            }
             ObjectNode result = Json.newObject();
             result.put("album", Json.toJson(nodeList));
-            result.put("albumCnt", nodeList.size());
+            result.put("albumCnt", amount);
             return Utils.createResponse(ErrorCode.NORMAL, result);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
     }
 
+    /**
+     * 获得更新信息
+     *
+     * @return
+     */
+    public static Result getUpdates() {
+
+        String platform = request().getHeader("Platform");
+        String ver = request().getHeader("Version");
+        if (ver == null || ver.isEmpty() || platform == null || platform.isEmpty())
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID ARGUMENT");
+        platform = platform.toLowerCase();
+        ver = ver.toLowerCase();
+
+        double oldVerN = 0;
+        String[] oldVerP = ver.split("\\.");
+        for (int i = 0; i < oldVerP.length; i++)
+            oldVerN += Math.pow(10, -3 * i) * Double.parseDouble(oldVerP[i]);
+
+        List<String> keyList = new ArrayList<>();
+        Collections.addAll(keyList, MiscInfo.FD_UPDATE_ANDROID_VERSION, MiscInfo.FD_UPDATE_ANDROID_URL);
+        Map<String, String> miscInfos;
+        try {
+            miscInfos = MiscAPI.getMiscInfos(keyList);
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
+
+        String newVerS = miscInfos.get(MiscInfo.FD_UPDATE_ANDROID_VERSION);
+        String[] newVerP = newVerS.split("\\.");
+        double newVerN = 0;
+        for (int i = 0; i < newVerP.length; i++)
+            newVerN += Math.pow(10, -3 * i) * Double.parseDouble(newVerP[i]);
+
+        ObjectNode result = Json.newObject();
+        if (newVerN > oldVerN) {
+            result.put("update", true);
+            result.put("version", newVerS);
+            result.put("downloadUrl", miscInfos.get(MiscInfo.FD_UPDATE_ANDROID_URL));
+        } else
+            result.put("update", false);
+        return Utils.createResponse(ErrorCode.NORMAL, result);
+    }
 //    public static Result testForTest() throws KrbException {
 //        Configuration config = Configuration.root();
 //        Configuration c = config.getConfig("solr");

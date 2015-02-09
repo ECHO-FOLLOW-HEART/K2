@@ -4,19 +4,22 @@ import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
+import models.AizouBaseItem;
 import models.MorphiaFactory;
 import models.misc.Column;
 import models.misc.Images;
+import models.misc.MiscInfo;
 import models.poi.Comment;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * Created by lxf on 14-11-12.
@@ -26,12 +29,18 @@ public class MiscAPI {
     /**
      * 取得旅行专栏图片的url以及跳转链接的url
      *
-     * @return
+     * @param type 专栏的类型。现在有两种：recommend和homepage
      * @throws exception.AizouException
      */
-    public static List<Column> getColumns() throws AizouException {
+    public static List<Column> getColumns(String type, String id) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Column> query = ds.createQuery(Column.class);
+        if (id.equals("")) {
+            query.field(Column.FD_TYPE).equal(type);
+            query.retrievedFields(false, Column.FD_CONTENT);
+        } else {
+            query.field("_id").equal(new ObjectId(id));
+        }
         return query.asList();
 
     }
@@ -79,15 +88,15 @@ public class MiscAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower, Double upper, long lastUpdate, int pageSize)
+    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower, Double upper, long lastUpdate, int page, int pageSize)
             throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Comment> query = ds.createQuery(Comment.class).field(Comment.FD_ITEM_ID).equal(poiId);
-        query = query.order("-" + Comment.FD_CTIME);
+        query = query.order("-" + Comment.FD_PUBLISHTIME);
 
         if (lastUpdate != 0)
-            query.field(Comment.FD_CTIME).lessThan(lastUpdate);
+            query.field(Comment.FD_PUBLISHTIME).lessThan(lastUpdate);
 
 //        query.field(Comment.FD_RATING).greaterThanOrEq(lower).field(Comment.FD_RATING).lessThanOrEq(upper);
 
@@ -116,6 +125,37 @@ public class MiscAPI {
             item.setIsFavorite(true);
     }
 
+    /**
+     * 判断是否被收藏
+     *
+     * @param items
+     * @param userId
+     * @throws AizouException
+     */
+    public static void isFavorite(List<? extends AizouBaseEntity> items, Long userId) throws AizouException {
+        if (userId == null) {
+            return;
+        }
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Favorite> query = ds.createQuery(Favorite.class);
+        query.field(UserInfo.fnUserId).equal(userId);
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (AizouBaseEntity temp : items) {
+            criList.add(query.criteria(Favorite.fnItemId).equal(temp.getId()));
+        }
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        List<Favorite> favoriteList = query.asList();
+
+        Map<ObjectId, Favorite> favoriteMap = new HashMap<ObjectId, Favorite>();
+        for (Favorite temp : favoriteList) {
+            favoriteMap.put(temp.itemId, temp);
+        }
+        for (AizouBaseEntity temp : items) {
+            if (favoriteMap.get(temp.getId()) != null)
+                temp.setIsFavorite(true);
+        }
+    }
+
     public static List<Images> getLocalityAlbum(ObjectId id, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
         Query<Images> query = ds.createQuery(Images.class);
@@ -123,6 +163,31 @@ public class MiscAPI {
         query.field(Images.FD_ITEMID).equal(id);
         query.offset(page * pageSize).limit(pageSize);
         return query.asList();
+    }
+
+    public static Long getLocalityAlbumCount(ObjectId id) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Query<Images> query = ds.createQuery(Images.class);
+
+        query.field(Images.FD_ITEMID).equal(id);
+        return query.countAll();
+    }
+
+    public static Map<String, String> getMiscInfos(List<String> keys) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Query<MiscInfo> query = ds.createQuery(MiscInfo.class);
+
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (String key : keys) {
+            criList.add(query.criteria("key").equal(key));
+        }
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        List<MiscInfo> miscInfos = query.asList();
+        Map<String, String> result = new HashMap<>();
+        for (MiscInfo miscInfo : miscInfos) {
+            result.put(miscInfo.key, miscInfo.value);
+        }
+        return result;
     }
 
 }

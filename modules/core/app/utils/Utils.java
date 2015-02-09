@@ -9,6 +9,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.solr.common.util.DateUtil;
 import org.bson.types.ObjectId;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -18,6 +19,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.Morphia;
 import play.Configuration;
 import play.libs.Json;
+import play.mvc.Http;
 import play.mvc.Result;
 
 import javax.crypto.Mac;
@@ -31,12 +33,13 @@ import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static play.mvc.Results.ok;
+import static utils.WrappedStatus.WrappedOk;
 
 /**
  * 工具类
@@ -90,11 +93,23 @@ public class Utils {
         return createResponse(errCode, "");
     }
 
+    public static Result status(int errCode, String msg) {
+        String ret = String.format("{\"lastModified\":%d, \"result\":%s, \"code\":%d}",
+                System.currentTimeMillis() / 1000, msg, errCode);
+//        return ok(ret).as("application/json;charset=utf-8");
+        return WrappedOk(ret).as("application/json;charset=utf-8");
+    }
+
+    public static Result status(String msg) {
+        return status(ErrorCode.NORMAL, msg);
+    }
+
     public static Result createResponse(int errCode, String msg) {
         ObjectNode jsonObj = Json.newObject();
         jsonObj.put("debug", msg);
         return createResponse(errCode, jsonObj);
     }
+
 
     public static Result createResponse(int errCode, JsonNode result) {
         ObjectNode response = Json.newObject();
@@ -108,7 +123,28 @@ public class Utils {
             if (result != null)
                 response.put("err", result);
         }
-        return ok(response);
+//        return ok(response);
+        return WrappedOk(response);
+    }
+
+    public static Result createResponse(Http.Response rsp, String lastModify, int errCode, JsonNode result) throws ParseException {
+        ObjectNode response = Json.newObject();
+        response.put("lastModified", System.currentTimeMillis() / 1000);
+        if (errCode == 0) {
+            if (result != null)
+                response.put("result", result);
+            response.put("code", 0);
+        } else {
+            response.put("code", errCode);
+            if (result != null)
+                response.put("err", result);
+        }
+        //SimpleDateFormat formatGMT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+        //.formatGMT.setTimeZone(TimeZone.getTimeZone("GMT"));
+        //rsp.setHeader("Last-Modify", formatGMT.format(DateUtil.parseDate(lastModify)));
+        //rsp.setHeader("Cache-control", "public");
+//        return ok(response);
+        return WrappedOk(response);
     }
 
     /**
@@ -379,5 +415,75 @@ public class Utils {
         } catch (DocumentException | MalformedURLException | IllegalArgumentException e) {
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in sending sms.");
         }
+    }
+
+    public static boolean isNumeric(String str) {
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher isNum = pattern.matcher(str);
+        if (!isNum.matches()) {
+            return false;
+        }
+        return true;
+    }
+
+    public static boolean isNumeric(Collection<?> list) {
+        Pattern pattern = Pattern.compile("[0-9]*");
+        Matcher isNum;
+        for (Object str : list) {
+            isNum = pattern.matcher(str.toString());
+            if (!isNum.matches()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static final String CACHE_CONTROLKEY = "Cache-control";
+    public static final String IF_MODIFY_SINCE = "If-Modified-Since";
+
+    /**
+     * 判断是否使用App端缓存
+     *
+     * @param request    Http请求
+     * @param lastModify 服务器资源的修改时间 "2015 01 17 00:00:00"
+     * @return
+     */
+    public static boolean useCache(Http.Request request, String lastModify) {
+
+        String cacheControl = request.hasHeader(CACHE_CONTROLKEY) ? request.getHeader(CACHE_CONTROLKEY) : request.getHeader(CACHE_CONTROLKEY.toLowerCase());
+        if (cacheControl == null || cacheControl.equals("") || cacheControl.toLowerCase().equals("no-cache"))
+                return false;
+        String ifModifiedSince = request.hasHeader(IF_MODIFY_SINCE) ? request.getHeader(IF_MODIFY_SINCE) : request.getHeader(IF_MODIFY_SINCE.toLowerCase());
+        if (lastModify == null || ifModifiedSince == null || ifModifiedSince.equals(""))
+            return false;
+        SimpleDateFormat format = new SimpleDateFormat("yyyy MM dd HH:mm:ss");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+//        SimpleDateFormat formatGMT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+//        formatGMT.setTimeZone(TimeZone.getTimeZone("GMT"));
+        Date serverDate;
+        Date appDate;
+        try {
+            serverDate = format.parse(lastModify);
+            LogUtils.info(Utils.class, lastModify);
+            appDate = DateUtil.parseDate(ifModifiedSince);
+        } catch (ParseException e) {
+            return false;
+        }
+        return !appDate.before(serverDate);
+    }
+
+    public static void addCacheResponseHeader(Http.Response rsp, String lastModify) throws ParseException {
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy MM dd HH:mm:ss");
+        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+        SimpleDateFormat formatGMT = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+        formatGMT.setTimeZone(TimeZone.getTimeZone("GMT"));
+        rsp.setHeader("Last-Modify", formatGMT.format(format.parse(lastModify)));
+        rsp.setHeader("Cache-control", "public");
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(format.parse(lastModify));
+        cal.add(Calendar.DATE, +1);
+        rsp.setHeader("Expires", formatGMT.format(cal.getTime()));
     }
 }

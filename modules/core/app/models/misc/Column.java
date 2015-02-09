@@ -6,9 +6,11 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
 /**
+ * 首页专栏
+ *
  * Created by lxf on 14-11-12.
  */
-@JsonFilter("travelColumnsFilter")
+@JsonFilter("columnFilter")
 @Entity
 public class Column extends AizouBaseEntity {
 
@@ -17,8 +19,16 @@ public class Column extends AizouBaseEntity {
 
     @Transient
     public static final String FD_LINK = "link";
+
     @Transient
     public static final String FD_TITLE = "title";
+
+    @Transient
+    public static final String FD_CONTENT = "content";
+
+    @Transient
+    public static final String FD_TYPE = "type";
+
 
     /**
      * 标题
@@ -34,6 +44,35 @@ public class Column extends AizouBaseEntity {
      * 跳转的url
      */
     private String link;
+
+    /**
+     * Html页的内容
+     *
+     * @return
+     */
+    private String content;
+
+    /**
+     * 显示类型：homepage-显示在首页的内容，recommend-显示在推荐页的内容
+     */
+    private String type;
+
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
 
     public String getTitle() {
         return title;
