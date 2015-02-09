@@ -319,7 +319,7 @@ public class MiscCtrl extends Controller {
      * @param
      * @return
      */
-    public static Result getArticles(int page, int pageSize) {
+    public static Result getArticles(String removeId, int page, int pageSize) {
         List<JsonNode> result = new ArrayList();
 
         Datastore ds;
@@ -330,8 +330,13 @@ public class MiscCtrl extends Controller {
             query.order("-publishTime").offset(page * pageSize).limit(pageSize);
             query.retrievedFields(false, "content");
             JsonNode node;
+            Article article;
             for (Iterator<Article> it = query.iterator(); it.hasNext(); ) {
-                node = new ArticleSimpleFormatter().format(it.next());
+                article = it.next();
+                // 除ID为removeId之外的其他文章列表
+                if (article.getId().equals(removeId))
+                    continue;
+                node = new ArticleSimpleFormatter().format(article);
                 result.add(node);
             }
         } catch (AizouException e) {

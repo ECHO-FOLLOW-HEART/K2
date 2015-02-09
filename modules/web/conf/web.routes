@@ -55,7 +55,7 @@ POST          /users/oauth-login                          controllers.web.UserCt
 
 #----------文章接口----------
 GET           /articles/$id<[0-9a-f]{24}>                 controllers.web.MiscCtrl.getArticleById(id: String)
-GET           /articles                                   controllers.web.MiscCtrl.getArticles(page: Int?=0, pageSize: Int?=20)
+GET           /articles                                   controllers.web.MiscCtrl.getArticles(removeId: String?="",page: Int?=0, pageSize: Int?=20)
 
 #----------推荐接口----------
 #热门景点
