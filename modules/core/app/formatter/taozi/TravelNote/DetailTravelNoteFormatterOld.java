@@ -17,9 +17,9 @@ import java.util.Map;
 /**
  * Created by lxf on 14-11-1.
  */
-public class DetailTravelNoteFormatter extends TaoziBaseFormatter {
+public class DetailTravelNoteFormatterOld extends TaoziBaseFormatter {
 
-    public DetailTravelNoteFormatter setImageWidth(int width) {
+    public DetailTravelNoteFormatterOld setImageWidth(int width) {
         imageWidth = width;
         return this;
     }
