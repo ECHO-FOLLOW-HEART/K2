@@ -7,6 +7,7 @@ import models.geo.Locality;
 import models.misc.Recommendation;
 import models.plan.AbstractPlan;
 import models.plan.Plan;
+import models.plan.UgcPlan;
 import models.poi.Comment;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
@@ -33,7 +34,7 @@ public class Bache extends Controller {
             "广州市", "福州市", "台北市", "海口市"};
     public static String[] vsList = new String[]{"火石寨", "黄梁梦吕仙祠", "景洪曼听公园", "中国竹艺城", "神木臭柏自然保护区",
             "寒山寺", "罗锅箐―大羊场", "景洪曼听公园", "大连星海国际会展中心", "兴光朝鲜族民族村", "梅城故城址", "布托湖", "朗豪坊商场", "高岭山", "蒲花暗河景区", "石象寺"};
-    public static String[] plListNew = new String[]{"高句丽云峰湖之旅", "桂林激情之旅", "别样武汉走透透", "老上海徒步路线六", "苏杭天堂自由行"};
+    public static String[] plListNew = new String[]{"太原","苏州","香港","福建","丽江","三亚","西安"};
     public static String[] plListEdit = new String[]{"厦门", "三亚", "海口", "哈尔滨", "大连", "杭州", "苏州", "平遥", "陕西"};
     public static String[] plListMust = new String[]{"北京", "上海", "广州", "深圳", "成都", "桂林", "天津", "西藏"};
     public static String[] plListPopular = new String[]{"张家界", "福建", "新疆", "山东", "成都", "太原"};
@@ -41,6 +42,12 @@ public class Bache extends Controller {
             "http://tp1.sinaimg.cn/1449136544/180/5700214805/0", "http://tp2.sinaimg.cn/1988161053/180/5649844519/1",
             "http://tp2.sinaimg.cn/1350968733/180/5622387392/1"};
 
+    /**
+     * 添加推荐路线
+     *
+     * @param plType
+     * @return
+     */
     public static Result addRecPlans(int plType) {
         List<String> capList = new ArrayList<>();
 
@@ -71,7 +78,7 @@ public class Bache extends Controller {
 
             List<ObjectId> cityIds = getHotCities(capList);
 
-            List<UserInfo> userInfos = getAvatars(0,60);
+            List<UserInfo> userInfos = getAvatars(0, 60);
 
             Query<Plan> querySrc = ds.createQuery(Plan.class);
             querySrc.field("desc").notEqual(null).field("desc").notEqual("")
@@ -164,6 +171,111 @@ public class Bache extends Controller {
             result.add(tempInfo);
         }
         return result;
+    }
+
+    /**
+     * 添加新鲜出炉
+     *
+     * @param plType
+     * @return
+     */
+    public static Result addRecPlansNew(int plType) {
+        List<String> capList = new ArrayList<>();
+        if (plType != 1)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Only type 1.");
+        Class cls = Plan.class;
+        int manualIndex = 1;
+        switch (plType) {
+            case 1:
+                manualIndex = 1;
+                capList = Arrays.asList(plListNew);
+                break;
+            case 2:
+                manualIndex = 2;
+                capList = Arrays.asList(plListEdit);
+                break;
+            case 3:
+                manualIndex = 3;
+                capList = Arrays.asList(plListMust);
+                break;
+            case 4:
+                manualIndex = 4;
+                capList = Arrays.asList(plListPopular);
+                break;
+        }
+        Datastore ds;
+        try {
+
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+
+            List<ObjectId> cityIds = getHotCities(capList);
+
+            List<UserInfo> userInfos = getAvatars(0, 60);
+
+            Query<UgcPlan> querySrc = ds.createQuery(UgcPlan.class);
+            querySrc.field("desc").notEqual(null).field("desc").notEqual("")
+                    .field("days").greaterThan(3)
+                    .field("images").notEqual(null).field("enabled").equal(Boolean.TRUE);
+
+//            List<CriteriaContainerImpl> criList = new ArrayList<>();
+//            for (ObjectId tempId : cityIds) {
+//                criList.add(querySrc.criteria(String.format("%s.id", AbstractPlan.FD_TARGETS)).hasThisOne(tempId));
+//            }
+//            querySrc.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+            querySrc.order("updateTime,-forkedCnt").limit(100);
+
+            List<UgcPlan> titleList = querySrc.asList();
+            List<Recommendation> recommendList = new ArrayList<>();
+            Recommendation rec;
+            ObjectId oid;
+            Set<ObjectId> objectIdSet = new HashSet<>();
+            int index = 1;
+            for (UgcPlan pl : titleList) {
+                rec = new Recommendation();
+                switch (plType) {
+                    case 1:
+                        rec.newItemWeight = index;
+                        break;
+                    case 2:
+                        rec.editorWeight = index;
+                        break;
+                    case 3:
+                        rec.mustGoWeight = index;
+                        break;
+                    case 4:
+                        rec.popularityWeight = index;
+                        break;
+                }
+
+                oid = pl.getTemplateId();
+                if (objectIdSet.contains(oid))
+                    continue;
+                else
+                    objectIdSet.add(oid);
+
+                rec.images = pl.getImages();
+                rec.setId(pl.getId());
+                rec.name = pl.getTitle();
+                rec.editorNickName = userInfos.get(index).getNickName();
+//                rec.editorAvatar = String.format("http://images.taozilvxing.com/%s", userInfos.get(index).getAvatar());
+                rec.editorAvatar = userInfos.get(index).getAvatar();
+                rec.desc = pl.getDesc();
+                rec.editorDate = new Date();
+                rec.planViews = pl.getForkedCnt();
+                rec.setEnabled(true);
+                recommendList.add(rec);
+                // 取前十个
+                if (index > 9)
+                    break;
+                index++;
+            }
+            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            update.save(recommendList);
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        }
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
     }
 //    /**
 //     * Need
@@ -421,135 +533,6 @@ public class Bache extends Controller {
 //    }
 //
 
-//    /**
-//     * 添加推荐计划
-//     *
-//     * @param plType
-//     * @return
-//     */
-//    public static Result getRecPlans(int plType) {
-//        List<String> capList = Arrays.asList(plListNew);
-//
-//        Class cls = Plan.class;
-//        int manualIndex = 1;
-//        switch (plType) {
-//            case 1:
-//                manualIndex = 1;
-//                capList = Arrays.asList(plListNew);
-//                break;
-//            case 2:
-//                manualIndex = 2;
-//                capList = Arrays.asList(plListEdit);
-//                break;
-//            case 3:
-//                manualIndex = 3;
-//                capList = Arrays.asList(plListMust);
-//                break;
-//            case 4:
-//                manualIndex = 4;
-//                capList = Arrays.asList(plListPopular);
-//                break;
-//        }
-//        Datastore ds = null;
-//        try {
-//
-//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-//
-//
-//            Query<Plan> querySrc = ds.createQuery(Plan.class);
-//            querySrc.field("manualPriority").equal(manualIndex).field("desc").notEqual(null)
-//                    .field("images").notEqual(null).field("enabled").equal(Boolean.TRUE);
-//
-//            List<Plan> titleList = querySrc.asList();
-//            List<Recommendation> recommendList = new ArrayList<Recommendation>();
-//            Recommendation rec;
-//            int index = 1;
-//            for (Plan pl : titleList) {
-//                rec = new Recommendation();
-//                switch (plType) {
-//                    case 1:
-//                        rec.newItemWeight = index;
-//                        break;
-//                    case 2:
-//                        rec.editorWeight = index;
-//                        break;
-//                    case 3:
-//                        rec.mustGoWeight = index;
-//                        break;
-//                    case 4:
-//                        rec.popularityWeight = index;
-//                        break;
-//                }
-//                int number = new Random().nextInt(3) + 1;
-//                index++;
-//                rec.imageList = null;
-//                rec.images = pl.getImages();
-//                rec.setId(pl.getId());
-//                rec.name = pl.getTitle();
-//                rec.editorNickName = EDITOR_NICKNAME[number];
-//                rec.editorAvatar = EDITOR_AVATAR[number];
-//                rec.description = pl.getDescription();
-//                rec.editorDate = new Date();
-//                rec.planViews = 1000 + new Random().nextInt(1000);
-//                rec.setEnabled(true);
-//                recommendList.add(rec);
-//            }
-//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-//
-//            update.save(recommendList);
-//
-//
-//        } catch (AizouException e) {
-//            return Utils.createResponse(e.getErrCode(), e.getMessage());
-//        }
-//
-//        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
-//    }
-
-    public static Result changeId(int plType) {
-        String field = null;
-        switch (plType) {
-            case 1:
-                field = "mustGoWeight";
-                break;
-            case 2:
-                field = "popularityWeight";
-                break;
-            case 3:
-                field = "newItemWeight";
-                break;
-            case 4:
-                field = "editorWeight";
-                break;
-        }
-        Datastore ds = null;
-        Datastore planDs = null;
-
-        Plan newPlan;
-        try {
-            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            UpdateOperations<Recommendation> update = ds.createUpdateOperations(Recommendation.class);
-            Query<Recommendation> queryRec = ds.createQuery(Recommendation.class);
-            List<Recommendation> recs = queryRec.field(field).notEqual(null).asList();
-
-            planDs = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
-            Query<Plan> querySrc = planDs.createQuery(Plan.class);
-
-            for (Recommendation rec : recs) {
-                newPlan = querySrc.field("title").equal(rec.name).get();
-                if (newPlan == null) {
-                    System.out.println(rec.name);
-                    continue;
-                }
-                ds.delete(rec);
-                //update.set("_id",newPlan.getId());
-            }
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
-        }
-
-        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
-    }
 //
 //    /**
 //     * 在路线中标识路线所属的省，支持根据省会查询接口
