@@ -1,7 +1,6 @@
 package controllers.taozi;
 
 import aizou.core.*;
-import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.CacheKey;
@@ -356,11 +355,10 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result putPolicy(String scenario) {
-
         Configuration config = Configuration.root();
         try {
             String userId = request().getHeader("UserId");
-            String picName = getPicName(userId);
+            String picName = getPicName(Integer.parseInt(request().getHeader("UserId")));
             Map qiniu = (Map) config.getObject("qiniu");
             String secretKey = qiniu.get("secertKey").toString();
             String accessKey = qiniu.get("accessKey").toString();
@@ -450,9 +448,9 @@ public class MiscCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static String getPicName(String userId) {
+    public static String getPicName(long userId) {
         Date date = new Date();
-        return "avt_" + userId + date.getTime() + ".jpg";
+        return String.format("avt_%d_%d.jpg", userId, date.getTime());
     }
 
     /**
