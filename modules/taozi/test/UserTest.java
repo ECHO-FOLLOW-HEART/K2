@@ -55,18 +55,6 @@ public class UserTest extends AizouTest {
         assertThat(userInfo.get("userId").asLong()).isPositive();
     }
 
-    public void loginInfoHandler(JsonNode info) {
-        assertText(info, "easemobPwd", false);
-        assertText(info, "secKey", false);
-
-        String pwd = info.get("easemobPwd").asText();
-        String key = info.get("secKey").asText();
-        ObjectNode info2 = info.deepCopy();
-        info2.remove(Arrays.asList("easemobPwd", "secKey"));
-
-        userInfoHandler(info2, true);
-    }
-
     /**
      * 测试获得用户详情的功能
      */
@@ -137,7 +125,6 @@ public class UserTest extends AizouTest {
      * 删除联系人
      */
     @Test
-    @Ignore
     public void delContactCheck() {
         running(app, new Runnable() {
             @Override
@@ -229,7 +216,12 @@ public class UserTest extends AizouTest {
                         assertThat(node.get("result")).isEqualTo(null);
                     } else {
                         JsonNode node = getResultNode(handler, req);
-                        loginInfoHandler(node);
+
+                        assertText(node, "easemobPwd", false);
+                        assertText(node, "secKey", false);
+                        ObjectNode info2 = node.deepCopy();
+                        info2.remove(Arrays.asList("easemobPwd", "secKey"));
+                        userInfoHandler(info2, true);
                         assertThat(node.get("userId").asLong()).isEqualTo(100009L);
                     }
                 }
@@ -237,6 +229,9 @@ public class UserTest extends AizouTest {
         });
     }
 
+    /**
+     * 使用通讯录查找用户
+     */
     @Test
     public void searchByAddrBookCheck() {
         running(app, new Runnable() {
@@ -251,8 +246,6 @@ public class UserTest extends AizouTest {
 
                 HandlerRef<?> handler = routes.ref.UserCtrl.matchAddressBook();
                 JsonNode node = getResultNode(handler, req);
-
-                System.out.println(node);
 
                 assertThat(node.size()).isEqualTo(2);
 
@@ -336,12 +329,27 @@ public class UserTest extends AizouTest {
         });
     }
 
+    @Test
+    public void contactRequestCheck() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.UserCtrl.requestAddContact();
+                FakeRequest req = fakeRequest(routes.UserCtrl.matchAddressBook());
+                req.withJsonBody(Json.parse("{ \"userId\": 100009, \"message\": \"加一下吧\" }"));
+                Long selfId = 100027L;
+                req.withHeader("UserId", selfId.toString());
+
+                getResultNode(handler, req);
+            }
+        });
+    }
+
 
     /**
      * 测试修改账户信息的功能
      */
     @Test
-    @Ignore
     public void editCheck() {
         running(app, new Runnable() {
             @Override
@@ -349,22 +357,22 @@ public class UserTest extends AizouTest {
                 String timeString = new SimpleDateFormat().format(new Date());
                 List<String> fields = Arrays.asList("nickName", "signature");
 
-                long targetId = 100076;
+                Long targetId = 100027L;
                 for (String f : fields) {
-                    for (long selfId : new long[]{0, targetId}) {
+                    for (Long selfId : new Long[]{0L, targetId}) {
+                        HandlerRef<?> handler = routes.ref.UserCtrl.editorUserInfo(targetId);
                         FakeRequest req = fakeRequest(routes.UserCtrl.editorUserInfo(targetId));
                         req.withJsonBody(Json.parse(String.format("{\"%s\": \"%s\"}", f, timeString +
                                 String.format("%d", new Random().nextInt(Integer.MAX_VALUE)))));
-                        req.withHeader("UserId", String.format("%d", selfId));
+                        req.withHeader("UserId", selfId.toString());
 
-                        HandlerRef<?> handler = routes.ref.UserCtrl.editorUserInfo(targetId);
-                        Result result = callAction(handler, req);
-                        JsonNode node = Json.parse(contentAsString(result));
-
-                        if (selfId == 0)
+                        if (selfId == 0) {
+                            Result result = callAction(handler, req);
+                            JsonNode node = Json.parse(contentAsString(result));
                             assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
-                        else
-                            assertThat(node.get("code").asInt()).isEqualTo(0);
+                        } else {
+                            getResultNode(handler, req);
+                        }
                     }
                 }
             }
