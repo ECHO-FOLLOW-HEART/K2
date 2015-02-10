@@ -29,10 +29,6 @@ import java.util.Map;
  */
 public class CommentFormatter extends AizouFormatter<Comment> {
 
-    public void setImageWidth(int maxWidth) {
-        imageItemSerializer.setWidth(maxWidth);
-    }
-
     private ImageItemSerializer imageItemSerializer;
 
     public CommentFormatter() {
@@ -72,10 +68,14 @@ public class CommentFormatter extends AizouFormatter<Comment> {
             }
             jgen.writeEndArray();
 
+            if (comment.getUserId() == null)
+                jgen.writeNullField(Comment.FD_USER_ID);
+            else
+                jgen.writeNumberField(Comment.FD_USER_ID, getValue(comment.getUserId()));
+
             jgen.writeStringField(Comment.FD_AVATAR, getString(comment.getAuthorAvatar()));
             jgen.writeStringField(Comment.FD_AUTHOR_NAME, getString(comment.getAuthorName()));
             jgen.writeStringField(Comment.FD_CONTENTS, getString(comment.getContents()));
-            jgen.writeNumberField(Comment.FD_USER_ID, getValue(comment.getUserId()));
             jgen.writeNumberField(Comment.FD_RATING, getValue(comment.getRating()));
             jgen.writeNumberField(Comment.FD_PUBLISHTIME, getValue(comment.getPublishTime()));
 
