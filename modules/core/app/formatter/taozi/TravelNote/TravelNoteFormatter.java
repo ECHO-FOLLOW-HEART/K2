@@ -1,28 +1,17 @@
 package formatter.taozi.TravelNote;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
-import formatter.taozi.GeoJsonPointSerializer;
 import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.ImageItemSerializerOld;
-import formatter.taozi.TaoziBaseFormatter;
-import models.AizouBaseEntity;
-import models.geo.GeoJsonPoint;
-import models.guide.Guide;
 import models.misc.ImageItem;
 import models.misc.TravelNote;
-import models.poi.AbstractPOI;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by lxf on 14-11-1.
@@ -80,16 +69,18 @@ public class TravelNoteFormatter extends AizouFormatter<TravelNote> {
             jgen.writeStartObject();
 
             writeObjectId(travelNote, jgen, serializerProvider);
-            // authorAvatar
-//            if (travelNote.authorAvatar == null || travelNote.authorAvatar.equals(""))
-//                jgen.writeStringField(TravelNote.fnAuthorAvatar, "");
-//            else
-//                jgen.writeStringField(TravelNote.fnAuthorAvatar, imageWidth == 0 ? travelNote.authorAvatar : getString(String.format("%s?imageView2/2/w/%d", travelNote.authorAvatar, imageWidth)));
             jgen.writeStringField(TravelNote.fnAuthorAvatar, getString(travelNote.authorAvatar));
+            jgen.writeStringField(TravelNote.fnAuthorName, getString(travelNote.authorName));
             jgen.writeStringField(TravelNote.fnTitle, getString(travelNote.title));
             jgen.writeStringField(TravelNote.fnSummary, getString(travelNote.summary));
             jgen.writeBooleanField(TravelNote.fnEssence, getValue(travelNote.essence));
-            jgen.writeStringField(TravelNote.fnSource, getString(travelNote.source));
+
+            if (travelNote.source != null &&
+                    (travelNote.source.contains("百度") || travelNote.source.contains("baidu")))
+                jgen.writeStringField(TravelNote.fnSource, "baidu");
+            else
+                jgen.writeStringField(TravelNote.fnSource, "");
+
             // publishTime
             if (travelNote.publishTime == null)
                 jgen.writeNullField(TravelNote.fnPublishTime);
