@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
-import models.guide.Guide;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 import models.poi.Restaurant;
@@ -14,7 +13,6 @@ import models.poi.Shopping;
 import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
 
-import javax.swing.text.View;
 import java.io.IOException;
 import java.util.List;
 
@@ -98,7 +96,9 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
 
         }
         // Rank
-        jsonGenerator.writeNumberField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
+        Integer rank = abstractPOI.getRank();
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, rank != null ? rank : null);
+
         // Targets
         jsonGenerator.writeFieldName(AbstractPOI.detTargets);
         List<ObjectId> targets = abstractPOI.targets;

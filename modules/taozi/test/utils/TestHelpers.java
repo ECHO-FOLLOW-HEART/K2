@@ -5,6 +5,7 @@ import play.api.mvc.HandlerRef;
 import play.libs.Json;
 import play.mvc.Result;
 import play.test.FakeRequest;
+import utils.validator.NumberValidator;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -67,38 +68,16 @@ public class TestHelpers {
         }
     }
 
-    public static void assertInt(JsonNode node, String field, boolean nullable) {
-        assertInt(node, new String[]{field}, nullable);
+    public static void assertNumber(JsonNode node, boolean nullable) {
+        assertNumber(node, nullable, null);
     }
 
-    public static void assertInt(JsonNode node, String[] fields, boolean nullable) {
-        for (String key : fields) {
-            JsonNode valNode = node.get(key);
+    public static void assertNumber(JsonNode node, boolean nullable, NumberValidator validator) {
+        if (!nullable)
+            assertThat(node.isNull()).isFalse();
 
-            if (!nullable && (valNode == null || valNode.isNull()))
-                assertThat(false).isTrue();
-
-            if (valNode != null && !valNode.isNull()) {
-                assertThat(valNode.isInt()).isTrue();
-            }
-        }
-    }
-
-    public static void assertFloat(JsonNode node, String field, boolean nullable) {
-        assertFloat(node, new String[]{field}, nullable);
-    }
-
-    public static void assertFloat(JsonNode node, String[] fields, boolean nullable) {
-        for (String key : fields) {
-            JsonNode valNode = node.get(key);
-
-            if (!nullable && (valNode == null || valNode.isNull()))
-                assertThat(false).isTrue();
-
-            if (valNode != null && !valNode.isNull()) {
-                assertThat(valNode.isDouble()).isTrue();
-            }
-        }
+        if (!node.isNull() && validator != null)
+            validator.validate(node);
     }
 
     public static void assertCoords(double lng, double lat) {
