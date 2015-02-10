@@ -1,67 +1,93 @@
 import com.fasterxml.jackson.databind.JsonNode;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
-import play.GlobalSettings;
+import play.Configuration;
 import play.api.mvc.HandlerRef;
-import play.libs.Json;
 import play.test.FakeApplication;
 
-import play.mvc.Result;
+import java.io.File;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.test.Helpers.*;
+import static play.test.Helpers.fakeApplication;
+import static play.test.Helpers.running;
 import static utils.TestHelpers.*;
 
 /**
  * Created by zephyre on 12/8/14.
  */
-@Ignore
 public class GeoTest extends AizouTest {
 
     private static FakeApplication app;
 
+    private static Long selfId = 100027L;
+
     @BeforeClass
     public static void setup() {
-//        Config c = ConfigFactory.parseFile(new File("./conf/application.conf"));
-//        Configuration config = new Configuration(c);
-        app = fakeApplication(new GlobalSettings());
+        Config c = ConfigFactory.parseFile(new File("../../conf/application.conf"));
+        Configuration config = new Configuration(c);
+        app = fakeApplication(config.asMap());
     }
 
     /**
-     * 目的地列表测试
+     * 国内目的地推荐
      */
     @Test
-    public void exploreDestinations() {
+    public void testDestDomestic() {
         running(app, new Runnable() {
             @Override
             public void run() {
                 int page = 0;
                 int pageSize = 10;
-                for (Boolean abroad : new Boolean[]{true, false}) {
-                    HandlerRef<?> handler = routes.ref.GeoCtrl.exploreDestinations(abroad, page, pageSize);
-                    Result result = callAction(handler);
-                    JsonNode node = Json.parse(contentAsString(result));
-                    assertThat(node.get("code").asInt()).isEqualTo(0);
-                    JsonNode response = node.get("result");
-                    if (abroad.equals(false)) {
-                        for (JsonNode tmp : response) {
-                            assertText(tmp, new String[]{"id", "zhName"}, false);
-                        }
-                    } else {
-                        for (JsonNode tmp : response) {
-                            assertText(tmp, new String[]{"id", "zhName"}, false);
-                            JsonNode dest = tmp.get("destinations");
-                            for (JsonNode tmpNode : dest) {
-                                assertText(tmpNode, new String[]{"id", "zhName"}, false);
-                            }
-                        }
+                HandlerRef<?> handler = routes.ref.GeoCtrl.exploreDestinations(false, page, pageSize);
+                JsonNode node = getResultNode(handler);
+
+                assertThat(node.isArray() && node.size() > 0).isTrue();
+
+                for (JsonNode loc : node) {
+                    assertFields(loc, "id", "zhName", "enName", "pinyin");
+                    assertText(loc, false, "id", "zhName", "pinyin");
+                    assertText(loc, true, "enName");
+                }
+            }
+        });
+    }
+
+    /**
+     * 国外目的地推荐
+     */
+    @Test
+    public void testDestAbroad() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                int page = 0;
+                int pageSize = 10;
+                HandlerRef<?> handler = routes.ref.GeoCtrl.exploreDestinations(true, page, pageSize);
+                JsonNode node = getResultNode(handler);
+
+                assertThat(node.isArray() && node.size() > 0).isTrue();
+
+                for (JsonNode loc : node) {
+                    assertFields(loc, "id", "images", "zhName", "enName", "code", "desc", "destinations");
+                    assertText(loc, false, "id", "zhName", "enName", "code", "enName");
+                    assertText(loc, true, "desc");
+
+                    JsonNode images = loc.get("images");
+                    assertImages(images, false);
+
+                    JsonNode destList = loc.get("destinations");
+                    assertThat(destList.isArray() && destList.size() > 0).isTrue();
+                    for (JsonNode dest : destList) {
+                        assertFields(dest, "id", "enName", "zhName");
+                        assertText(dest, false, "id", "zhName");
+                        assertText(dest, true, "enName");
                     }
                 }
             }
         });
-
     }
 
 //    /**

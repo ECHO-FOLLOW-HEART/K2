@@ -54,11 +54,7 @@ public class TestHelpers {
         assertThat(nodeFields).isEqualTo(standands);
     }
 
-    public static void assertText(JsonNode node, String field, boolean allowEmpty) {
-        assertText(node, new String[]{field}, allowEmpty);
-    }
-
-    public static void assertText(JsonNode node, String[] fields, boolean allowEmpty) {
+    public static void assertText(JsonNode node, boolean allowEmpty, String... fields) {
         for (String key : fields) {
             JsonNode txtNode = node.get(key);
             if (txtNode == null)
@@ -126,6 +122,6 @@ public class TestHelpers {
             assertThat(images.size()).isPositive();
 
         for (JsonNode img : images)
-            assertText(img, "url", false);
+            assertText(img, false, "url");
     }
 }

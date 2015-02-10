@@ -55,8 +55,8 @@ public class POITest extends AizouTest {
                 assertThat(tmp.isArray()).isTrue();
                 assertThat(tmp.size()).isGreaterThan(0);
                 for (JsonNode poiNode : tmp) {
-                    assertText(poiNode, new String[]{"id", "zhName"}, false);
-                    assertText(poiNode, "desc", true);
+                    assertText(poiNode, false, new String[]{"id", "zhName"});
+                    assertText(poiNode, true, "desc");
                     assertThat(poiNode.get("images").isArray()).isTrue();
                     JsonNode coords = poiNode.get("location").get("coordinates");
                     double lng = coords.get(0).asDouble();
@@ -123,8 +123,8 @@ public class POITest extends AizouTest {
                     JsonNode response = Json.parse(contentAsString(result));
                     assertThat(response.get("code").asInt()).isEqualTo(0);
                     response = response.get("result");
-                    assertText(response, new String[]{"id", "zhName"}, false);
-                    assertText(response, new String[]{"enName", "priceDesc", "desc", "address", "telephone"}, true);
+                    assertText(response, false, new String[]{"id", "zhName"});
+                    assertText(response, true, new String[]{"enName", "priceDesc", "desc", "address", "telephone"});
                     JsonNode coords = response.get("location").get("coordinates");
                     double lng = coords.get(0).asDouble();
                     double lat = coords.get(1).asDouble();
@@ -132,8 +132,8 @@ public class POITest extends AizouTest {
                     for (String field : new String[]{"images", "recommends", "comments"})
                         assertThat(response.get(field).isArray()).isTrue();
                     if (type.equals("vs")) {
-                        assertText(response, new String[]{"travelMonth", "openTime", "timeCostDesc", "trafficInfoUrl",
-                                "kengdieUrl", "guideUrl"}, true);
+                        assertText(response, true, new String[]{"travelMonth", "openTime", "timeCostDesc", "trafficInfoUrl",
+                                "kengdieUrl", "guideUrl"});
                     }
 
 
@@ -230,7 +230,7 @@ public class POITest extends AizouTest {
                     assertThat(node.get("code").asInt()).isEqualTo(0);
                     JsonNode response = node.get("result");
                     for (JsonNode tmp : response) {
-                        assertText(tmp, new String[]{"type", "id", "zhName"}, false);
+                        assertText(tmp, false, new String[]{"type", "id", "zhName"});
                         assertThat(tmp.get("rating").asDouble()).isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(1);
                         assertThat(tmp.get("images").isArray()).isTrue();
                         JsonNode coords = tmp.get("location").get("coordinates");

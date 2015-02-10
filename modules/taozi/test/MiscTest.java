@@ -58,7 +58,7 @@ public class MiscTest extends AizouTest {
                 JsonNode node = getResultNode(handler);
                 assertFields(node, "image", "width", "height", "fmt", "quality");
 
-                assertText(node, new String[]{"image", "fmt"}, false);
+                assertText(node, false, new String[]{"image", "fmt"});
                 for (String key : new String[]{"width", "height", "quality"})
                     assertThat(node.get(key).asInt()).isPositive();
             }
@@ -77,8 +77,8 @@ public class MiscTest extends AizouTest {
             private void checkLocality(JsonNode item) {
                 assertFields(item, "id", "zhName", "enName", "isFavorite", "desc", "timeCostDesc", "travelMonth",
                         "imageCnt", "images", "location");
-                assertText(item, new String[]{"id", "zhName", "desc", "timeCostDesc", "travelMonth"}, false);
-                assertText(item, "enName", true);
+                assertText(item, false, new String[]{"id", "zhName", "desc", "timeCostDesc", "travelMonth"});
+                assertText(item, true, "enName");
 
                 assertThat(item.get("isFavorite").isBoolean()).isTrue();
                 JsonNode imageCnt = item.get("imageCnt");
@@ -92,8 +92,8 @@ public class MiscTest extends AizouTest {
             }
 
             private void checkPoi(JsonNode item) {
-                assertText(item, new String[]{"type", "id", "zhName"}, false);
-                assertText(item, new String[]{"enName", "priceDesc", "desc", "address"}, true);
+                assertText(item, false, new String[]{"type", "id", "zhName"});
+                assertText(item, true, new String[]{"enName", "priceDesc", "desc", "address"});
 
                 assertThat(item.get("isFavorite").isBoolean()).isTrue();
 
@@ -126,8 +126,8 @@ public class MiscTest extends AizouTest {
                         "desc", "openTime", "images", "rating", "address", "timeCostDesc", "location", "tipsUrl",
                         "visitGuideUrl", "trafficInfoUrl", "rank", "travelMonth", "tel");
                 checkPoi(item);
-                assertText(item, new String[]{"timeCostDesc", "tipsUrl", "visitGuideUrl", "trafficInfoUrl",
-                        "travelMonth", "openTime"}, true);
+                assertText(item, true, new String[]{"timeCostDesc", "tipsUrl", "visitGuideUrl", "trafficInfoUrl",
+                        "travelMonth", "openTime"});
             }
 
             @Override
@@ -209,7 +209,7 @@ public class MiscTest extends AizouTest {
 
                 for (JsonNode section : node) {
                     assertFields(section, "title", "contents");
-                    assertText(section, "title", false);
+                    assertText(section, false, "title");
 
                     JsonNode contents = section.get("contents");
                     assertThat(contents.isArray()).isTrue();
@@ -217,8 +217,8 @@ public class MiscTest extends AizouTest {
 
                     for (JsonNode item : contents) {
                         assertFields(item, "itemId", "title", "itemType", "linkType", "linkUrl", "desc", "cover");
-                        assertText(item, new String[]{"itemId", "title", "itemType", "linkType", "desc", "cover"}, false);
-                        assertText(item, "linkUrl", true);
+                        assertText(item, false, new String[]{"itemId", "title", "itemType", "linkType", "desc", "cover"});
+                        assertText(item, true, "linkUrl");
                     }
                 }
             }
@@ -237,7 +237,7 @@ public class MiscTest extends AizouTest {
                 FakeRequest req = fakeRequest(routes.MiscCtrl.putPolicy("portrait"));
                 req.withHeader("UserId", "100027");
                 JsonNode node = getResultNode(handler, req);
-                assertText(node, new String[]{"uploadToken", "key"}, false);
+                assertText(node, false, new String[]{"uploadToken", "key"});
             }
         });
     }
@@ -255,7 +255,7 @@ public class MiscTest extends AizouTest {
                     JsonNode node = getResultNode(handler);
                     for (JsonNode c : node) {
                         assertFields(c, "id", "title", "cover", "link", "type");
-                        assertText(c, new String[]{"id", "title", "cover", "link"}, false);
+                        assertText(c, false, new String[]{"id", "title", "cover", "link"});
                         assertThat(c.get("type").asText()).isEqualTo(itemType);
                     }
                 }
@@ -290,8 +290,8 @@ public class MiscTest extends AizouTest {
             private void checkResult(JsonNode note) {
                 assertFields(note, "id", "title", "authorName", "authorAvatar", "publishTime", "travelTime", "summary",
                         "source", "essence", "images", "detailUrl");
-                assertText(note, new String[]{"id", "title", "authorName", "summary", "detailUrl"}, false);
-                assertText(note, new String[]{"source", "authorAvatar"}, true);
+                assertText(note, false, new String[]{"id", "title", "authorName", "summary", "detailUrl"});
+                assertText(note, true, new String[]{"source", "authorAvatar"});
                 assertThat(note.get("publishTime").asLong()).isPositive();
                 JsonNode travelTime = note.get("travelTime");
                 if (!travelTime.isNull())
@@ -301,7 +301,7 @@ public class MiscTest extends AizouTest {
                 assertThat(images.isArray()).isTrue();
                 for (JsonNode img : images) {
                     assertFields(img, "url");
-                    assertText(img, "url", false);
+                    assertText(img, false, "url");
                 }
             }
 
@@ -338,7 +338,7 @@ public class MiscTest extends AizouTest {
                         "travelTime", "contents", "source", "images");
 
                 // TODO 需要把favorCnt也纳入到检查范围中
-                assertText(node, new String[]{"title", "authorName", "authorAvatar"}, false);
+                assertText(node, false, new String[]{"title", "authorName", "authorAvatar"});
                 for (String key : new String[]{"publishTime", "commentCnt", "viewCnt",
                         "lowerCost", "upperCost", "travelTime"})
                     assertThat(node.get(key).asLong()).isGreaterThanOrEqualTo(0);
@@ -348,7 +348,7 @@ public class MiscTest extends AizouTest {
                 assertThat(contents.size()).isPositive();
                 for (JsonNode c : contents) {
                     assertFields(c, "content", "title");
-                    assertText(c, new String[]{"content", "title"}, false);
+                    assertText(c, false, new String[]{"content", "title"});
                 }
 
                 JsonNode images = node.get("images");
@@ -356,7 +356,7 @@ public class MiscTest extends AizouTest {
                 assertThat(images.size()).isPositive();
                 for (JsonNode img : images) {
                     assertFields(img, "url");
-                    assertText(img, "url", false);
+                    assertText(img, false, "url");
                 }
             }
         });
@@ -370,20 +370,20 @@ public class MiscTest extends AizouTest {
         running(app, new Runnable() {
             private void testEntity(JsonNode node, String... fields) {
                 assertFields(node, fields);
-                assertText(node, new String[]{"id", "itemId", "type", "zhName"}, false);
-                assertText(node, new String[]{"enName", "desc", "timeCostDesc"}, true);
+                assertText(node, false, new String[]{"id", "itemId", "type", "zhName"});
+                assertText(node, true, new String[]{"enName", "desc", "timeCostDesc"});
                 for (String key : new String[]{"userId", "createTime"})
                     assertThat(node.get(key).asLong()).isPositive();
 
                 JsonNode images = node.get("images");
                 assertThat(images.isArray()).isTrue();
                 for (JsonNode img : images)
-                    assertText(img, "url", false);
+                    assertText(img, false, "url");
 
                 JsonNode locality = node.get("locality");
                 if (locality.size() > 0) {
-                    assertText(locality, new String[]{"id", "zhName"}, false);
-                    assertText(locality, "enName", true);
+                    assertText(locality, false, new String[]{"id", "zhName"});
+                    assertText(locality, true, "enName");
                 }
             }
 
@@ -397,7 +397,7 @@ public class MiscTest extends AizouTest {
                 String[] fields = new String[]{"id", "userId", "itemId", "type", "zhName", "enName", "desc", "images",
                         "createTime", "locality", "timeCostDesc", "priceDesc", "rating", "address", "telephone"};
                 testEntity(node, fields);
-                assertText(node, new String[]{"priceDesc", "address", "telephone"}, true);
+                assertText(node, true, new String[]{"priceDesc", "address", "telephone"});
 
                 JsonNode rating = node.get("rating");
                 assertThat(!rating.isNull()).isTrue();
@@ -424,20 +424,20 @@ public class MiscTest extends AizouTest {
             private void testTravelNote(JsonNode node) {
                 assertFields(node, "id", "itemId", "type", "userId", "zhName", "enName", "desc", "images", "createTime",
                         "locality");
-                assertText(node, new String[]{"id", "itemId", "type", "zhName"}, false);
-                assertText(node, new String[]{"enName", "desc"}, true);
+                assertText(node, false, new String[]{"id", "itemId", "type", "zhName"});
+                assertText(node, true, new String[]{"enName", "desc"});
                 for (String key : new String[]{"userId", "createTime"})
                     assertThat(node.get(key).asLong()).isPositive();
 
                 JsonNode images = node.get("images");
                 assertThat(images.isArray()).isTrue();
                 for (JsonNode img : images)
-                    assertText(img, "url", false);
+                    assertText(img, false, "url");
 
                 JsonNode locality = node.get("locality");
                 if (locality.size() > 0) {
-                    assertText(locality, new String[]{"id", "zhName"}, false);
-                    assertText(locality, "enName", true);
+                    assertText(locality, false, new String[]{"id", "zhName"});
+                    assertText(locality, true, "enName");
                 }
             }
 
