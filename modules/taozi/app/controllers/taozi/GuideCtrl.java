@@ -149,12 +149,12 @@ public class GuideCtrl extends Controller {
      */
     private static void addGuideInfoToNode(Guide guide) {
         // 添加攻略天数
-        guide.dayCnt = guide.itineraryDays;
+        guide.setDayCnt(guide.getItineraryDays());
 
         // 添加攻略摘要
         List<Locality> dests = guide.localities;
         if (dests == null) {
-            guide.summary = "";
+            guide.setSummary("");
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -167,7 +167,7 @@ public class GuideCtrl extends Controller {
                 images.addAll(des.getImages());
         }
         String summary = sb.toString();
-        guide.summary = summary.substring(0, summary.length() - 1);
+        guide.setSummary(summary.substring(0, summary.length() - 1));
 
     }
 
