@@ -235,8 +235,8 @@ public class MiscTest extends AizouTest {
             private void checkResult(JsonNode note) {
                 assertFields(note, "id", "title", "authorName", "authorAvatar", "publishTime", "travelTime", "summary",
                         "source", "essence", "images", "detailUrl");
-                assertText(note, new String[]{"id", "title", "authorName", "summary", "source", "detailUrl"}, false);
-                assertText(note, "authorAvatar", true);
+                assertText(note, new String[]{"id", "title", "authorName", "summary", "detailUrl"}, false);
+                assertText(note, new String[]{"source", "authorAvatar"}, true);
                 assertThat(note.get("publishTime").asLong()).isPositive();
                 JsonNode travelTime = note.get("travelTime");
                 if (!travelTime.isNull())
@@ -278,8 +278,9 @@ public class MiscTest extends AizouTest {
                 HandlerRef<?> handler = routes.ref.TravelNoteCtrl.travelNoteDetail("54b257ec5a2df6bba9d19b0d");
                 JsonNode node = getResultNode(handler);
 
-                assertFields(node, "title", "authorName", "authorAvatar", "publishTime", "favorCnt", "commentCnt",
-                        "viewCnt", "rating", "lowerCost", "upperCost", "travelTime", "contents", "source", "images");
+                assertFields(node, "id", "title", "authorName", "authorAvatar", "summary", "publishTime",
+                        "favorCnt", "commentCnt", "essence", "viewCnt", "rating", "lowerCost", "upperCost",
+                        "travelTime", "contents", "source", "images");
 
                 // TODO 需要把favorCnt也纳入到检查范围中
                 assertText(node, new String[]{"title", "authorName", "authorAvatar"}, false);
