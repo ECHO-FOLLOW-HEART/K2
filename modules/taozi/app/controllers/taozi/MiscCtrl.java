@@ -22,7 +22,6 @@ import models.geo.Locality;
 import models.misc.*;
 import models.poi.AbstractPOI;
 import models.poi.Comment;
-import models.poi.Restaurant;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
@@ -497,15 +496,16 @@ public class MiscCtrl extends Controller {
         url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
 
         try {
-            List<JsonNode> columns = new ArrayList<>();
             List<Column> columnList = MiscAPI.getColumns(type, id);
-
             for (Column c : columnList) {
                 c.setLink(url + c.getId().toString());
-                columns.add(formatter.format(c));
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(columns));
+            ColumnFormatter columnFormatter = FormatterFactory.getInstance(ColumnFormatter.class);
+
+            return Utils.createResponse(ErrorCode.NORMAL, columnFormatter.formatNode(columnList));
         } catch (AizouException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+        } catch (JsonProcessingException | InstantiationException | IllegalAccessException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
@@ -544,19 +544,17 @@ public class MiscCtrl extends Controller {
 
             JsonNode result = MiscAPI.saveComment(comment);
             return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (AizouException e) {
+        } catch (AizouException | InstantiationException | IllegalAccessException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
 
     private static JsonNode getCommentsImpl(String poiId, double lower, double upper, long lastUpdate, int pageSize)
-            throws AizouException {
-        CommentFormatter formatter = new CommentFormatter();
+            throws AizouException, IllegalAccessException, InstantiationException, JsonProcessingException {
+        CommentFormatter formatter = FormatterFactory.getInstance(CommentFormatter.class);
         List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, 0, pageSize);
-        List<JsonNode> list = new ArrayList<>();
-        for (Comment comment : commentList)
-            list.add(formatter.format(comment));
-        return Json.toJson(list);
+
+        return formatter.formatNode(commentList);
     }
 
     /**
@@ -571,7 +569,7 @@ public class MiscCtrl extends Controller {
         try {
             JsonNode results = getCommentsImpl(poiId, lower, upper, lastUpdate, pageSize);
             return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException e) {
+        } catch (AizouException | InstantiationException | IllegalAccessException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
