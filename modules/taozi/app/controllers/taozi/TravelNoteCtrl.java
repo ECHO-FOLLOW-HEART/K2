@@ -9,7 +9,7 @@ import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
-import formatter.taozi.TravelNote.TravelNoteFormatter;
+import formatter.taozi.misc.TravelNoteFormatter;
 import models.misc.TravelNote;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
