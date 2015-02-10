@@ -278,6 +278,9 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
     public String getAvatarSmall() {
         if (avatar == null || avatar.equals(""))
             return "";
+        // 如果是微信登录
+        if (avatar.startsWith("http://wx.qlogo.cn"))
+            return avatar;
         return String.format("%s?imageView2/2/w/%d", avatar, 200);
     }
 

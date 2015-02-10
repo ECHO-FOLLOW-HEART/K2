@@ -219,7 +219,7 @@ public class MiscCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<Favorite>()));
             List<Favorite> faShowList = new ArrayList<>();
             List<Favorite> noteFav = new ArrayList<>();
-            List<String> travelNoteIds = new ArrayList<>();
+            List<ObjectId> travelNoteIds = new ArrayList<>();
             String type;
             Locality loc;
             AbstractPOI poi;
@@ -241,8 +241,9 @@ public class MiscCtrl extends Controller {
                     // 城市显示建议游玩时间
                     fa.timeCostDesc = loc.getTimeCostDesc();
                 } else if (type.equals("travelNote")) {
-                    travelNoteIds.add(fa.itemId.toString());
+                    travelNoteIds.add(fa.itemId);
                     noteFav.add(fa);
+                    continue;
                 } else if (type.equals("vs") || type.equals("hotel") || type.equals("restaurant") || type.equals("shopping")) {
                     switch (type) {
                         case "vs":
@@ -276,27 +277,27 @@ public class MiscCtrl extends Controller {
                 }
                 faShowList.add(fa);
             }
-            // TODO 如果type不等于travelNote,则一下语句会抛出NullPointerException异常
-//            List<TravelNote> travelNotes = TravelNoteAPI.searchNoteById(travelNoteIds, Constants.MAX_COUNT);
-//            Map<String, TravelNote> travelNoteMap = new HashMap<>();
-//            for (TravelNote temp : travelNotes)
-//                travelNoteMap.put(temp.getId().toString(), temp);
-//            TravelNote tnFromFavorate;
-//            if (travelNotes != null && travelNotes.size() > 0) {
-//                for (Favorite fa : noteFav) {
-//                    tnFromFavorate = travelNoteMap.get(fa.itemId.toString());
-//                    if (tnFromFavorate == null)
-//                        continue;
-//                    fa.zhName = tnFromFavorate.getName();
-//                    fa.enName = tnFromFavorate.getName();
-//                    ImageItem tmg = new ImageItem();
-//                    TODO 如何设置URL
-            //tmg.setKey(tnFromFavorate.getCover());
-//                    fa.images = Arrays.asList(tmg);
-//                    fa.desc = tnFromFavorate.getDesc();
-//                    faShowList.add(fa);
-//                }
-//            }
+            List<String> noteFields = new ArrayList<>();
+            Collections.addAll(locFields, "id", "zhName", "enName", "images", "desc");
+            List<TravelNote> travelNotes = TravelNoteAPI.getNotesByIdList(travelNoteIds, noteFields);
+            Map<String, TravelNote> travelNoteMap = new HashMap<>();
+            for (TravelNote temp : travelNotes)
+                travelNoteMap.put(temp.getId().toString(), temp);
+            TravelNote tnFromFavorate;
+            if (travelNotes != null && travelNotes.size() > 0) {
+                for (Favorite fa : noteFav) {
+                    tnFromFavorate = travelNoteMap.get(fa.itemId.toString());
+                    if (tnFromFavorate == null)
+                        continue;
+                    fa.zhName = tnFromFavorate.getName();
+                    fa.enName = tnFromFavorate.getName();
+                    ImageItem tmg = new ImageItem();
+            tmg.setKey(tnFromFavorate.getCover());
+                    fa.images = Arrays.asList(tmg);
+                    fa.desc = tnFromFavorate.getDesc();
+                    faShowList.add(fa);
+                }
+            }
             // 按照创建时间排序
             Collections.sort(faShowList, new Comparator<Favorite>() {
                 public int compare(Favorite arg0, Favorite arg1) {

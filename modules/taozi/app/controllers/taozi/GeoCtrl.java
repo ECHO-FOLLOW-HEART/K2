@@ -33,7 +33,7 @@ import java.util.*;
 
 /**
  * 地理相关
- * <p/>
+ * <p>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
@@ -44,7 +44,7 @@ public class GeoCtrl extends Controller {
      * @return
      */
     @UsingCache(key = "getLocality({id})", expireTime = 3600)
-    public static Result getLocality(@CacheKey(tag="id") String id) {
+    public static Result getLocality(@CacheKey(tag = "id") String id) {
         try {
             // 获取图片宽度
             String imgWidthStr = request().getQueryString("imgWidth");
@@ -64,6 +64,7 @@ public class GeoCtrl extends Controller {
             ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
             // 显示图集的数量
             response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
+            response.put("playGuide", "http://h5.taozilvxing.com/play.php?tid=" + id);
             return Utils.createResponse(ErrorCode.NORMAL, response);
         } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());

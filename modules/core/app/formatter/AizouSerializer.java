@@ -14,7 +14,7 @@ import java.util.Date;
 
 /**
  * Serializer的基类
- * <p/>
+ * <p>
  * Created by zephyre on 1/15/15.
  */
 public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSerializer<T> {
@@ -24,6 +24,16 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
 
     protected String getTimestamp(Date ts) {
         return (ts != null) ? dateFormat.format(ts) : "";
+    }
+
+    protected Double getValue(Double val) { return (val != null) ? val : 0d; }
+
+    protected Long getValue(Long val) {
+        return (val != null) ? val : 0L;
+    }
+
+    protected Integer getValue(Integer val) {
+        return (val != null) ? val : 0;
     }
 
     /**
