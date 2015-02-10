@@ -40,18 +40,18 @@ public class UserTest extends AizouTest {
         if (self) {
             assertFields(userInfo, "id", "easemobUser", "nickName", "avatar", "avatarSmall", "gender",
                     "signature", "userId", "tel", "dialCode");
-            assertText(userInfo, "tel", true);
+            assertText(userInfo, true, "tel");
             JsonNode dialCodeNode = userInfo.get("dialCode");
             if (dialCodeNode != null && !dialCodeNode.isNull())
                 assertThat(dialCodeNode.asInt()).isPositive();
         } else {
             assertFields(userInfo, "id", "easemobUser", "nickName", "avatar", "avatarSmall", "gender",
                     "signature", "userId", "memo");
-            assertText(userInfo, "memo", true);
+            assertText(userInfo, true, "memo");
         }
 
-        assertText(userInfo, new String[]{"id", "easemobUser", "nickName"}, false);
-        assertText(userInfo, new String[]{"avatar", "avatarSmall", "gender", "signature"}, true);
+        assertText(userInfo, false, new String[]{"id", "easemobUser", "nickName"});
+        assertText(userInfo, true, new String[]{"avatar", "avatarSmall", "gender", "signature"});
         assertThat(userInfo.get("userId").asLong()).isPositive();
     }
 
@@ -217,8 +217,8 @@ public class UserTest extends AizouTest {
                     } else {
                         JsonNode node = getResultNode(handler, req);
 
-                        assertText(node, "easemobPwd", false);
-                        assertText(node, "secKey", false);
+                        assertText(node, false, "easemobPwd");
+                        assertText(node, false, "secKey");
                         ObjectNode info2 = node.deepCopy();
                         info2.remove(Arrays.asList("easemobPwd", "secKey"));
                         userInfoHandler(info2, true);
@@ -259,7 +259,7 @@ public class UserTest extends AizouTest {
                             "name",
                             "tel",
                             "weixin");
-                    assertText(user, new String[]{"name", "tel", "weixin"}, true);
+                    assertText(user, true, new String[]{"name", "tel", "weixin"});
                     for (String key : new String[]{"entryId", "sourceId"})
                         assertThat(user.get(key).asLong()).isPositive();
                     for (String key : new String[]{"isUser", "isContact"}) {
@@ -321,8 +321,8 @@ public class UserTest extends AizouTest {
                         txtKeyList.add("tel");
                         assertThat(node.get("dialCode").asInt()).isNotEqualTo(0);
                         txtKeyList.addAll(Arrays.asList("gender", "signature", "avatar"));
-                        assertText(node, txtKeyList.toArray(new String[txtKeyList.size()]), true);
-                        assertText(node, new String[]{"id", "easemobUser", "nickName"}, false);
+                        assertText(node, true, txtKeyList.toArray(new String[txtKeyList.size()]));
+                        assertText(node, false, new String[]{"id", "easemobUser", "nickName"});
                     }
                 }
             }
