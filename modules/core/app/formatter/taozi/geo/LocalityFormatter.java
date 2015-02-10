@@ -41,8 +41,9 @@ public class LocalityFormatter extends AizouFormatter<Locality> {
                 Locality.fnLocation,
                 Locality.fnImages,
                 Locality.fnTimeCostDesc,
-                Locality.fnTravelMonth,
-                Locality.fnImageCnt));
+                Locality.fnTravelMonth
+//                Locality.fnImageCnt
+        ));
     }
 
 }

@@ -47,7 +47,7 @@ public class MiscTest extends AizouTest {
      * 测试获取封面故事功能
      */
     @Test
-    public void testCoverStories() throws Exception {
+    public void testCoverStories() {
         running(app, new Runnable() {
             @Override
             public void run() {
@@ -71,26 +71,97 @@ public class MiscTest extends AizouTest {
      * @throws Exception
      */
     @Test
-    @Ignore
-    public void testSearch() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("search",
-                String.class, String.class, boolean.class, boolean.class, boolean.class, boolean.class, boolean.class, int.class, int.class);
-        method.setAccessible(true);
-        Result res = (Result) method.invoke(MiscCtrl.class,
-                "北", "5473ccd7b8ce043a64108c46", true, false, true, true, true, 0, 3);
-        JSONObject result = new JSONObject(contentAsString(res));
+    public void testSearch() {
+        running(app, new Runnable() {
 
-        // The return code of result should be 0
-        assertThat(result.getInt("code")).isEqualTo(0);
+            private void checkLocality(JsonNode item) {
+                assertFields(item, "id", "zhName", "enName", "isFavorite", "desc", "timeCostDesc", "travelMonth",
+                        "imageCnt", "images", "location");
+                assertText(item, new String[]{"id", "zhName", "desc", "timeCostDesc", "travelMonth"}, false);
+                assertText(item, "enName", true);
 
-        // The searchResult should have loc, shopping, hotel and restaurant information
-        //      should not have vs information
-        JSONObject searchResult = result.getJSONObject("result");
-        assertThat(searchResult.has("loc")).isTrue();
-        assertThat(searchResult.has("shopping")).isTrue();
-        assertThat(searchResult.has("hotel")).isTrue();
-        assertThat(searchResult.has("restaurant")).isTrue();
-        assertThat(searchResult.has("vs")).isFalse();
+                assertThat(item.get("isFavorite").isBoolean()).isTrue();
+                JsonNode imageCnt = item.get("imageCnt");
+                if (!imageCnt.isNull())
+                    assertThat(imageCnt.asInt()).isPositive();
+
+                JsonNode images = item.get("images");
+                assertImages(images, false);
+
+                assertCoords(item.get("location"));
+            }
+
+            private void checkPoi(JsonNode item) {
+                assertText(item, new String[]{"type", "id", "zhName"}, false);
+                assertText(item, new String[]{"enName", "priceDesc", "desc", "address"}, true);
+
+                assertThat(item.get("isFavorite").isBoolean()).isTrue();
+
+                JsonNode images = item.get("images");
+                assertImages(images, true);
+
+                for (String key : new String[]{"price", "rank"}) {
+                    JsonNode val = item.get(key);
+                    if (val.isNull())
+                        continue;
+                    assertThat(val.asInt() >= 0);
+                }
+
+                double rating = item.get("rating").asDouble();
+                assertThat(rating >= 0 && rating <= 1).isTrue();
+
+                assertCoords(item.get("location"));
+
+                assertThat(item.get("tel").isArray()).isTrue();
+            }
+
+            private void checkRestaurant(JsonNode item) {
+                assertFields(item, "type", "id", "isFavorite", "zhName", "enName", "price", "priceDesc",
+                        "desc", "images", "rating", "address", "location", "rank", "tel");
+                checkPoi(item);
+            }
+
+            private void checkVs(JsonNode item) {
+                assertFields(item, "type", "id", "isFavorite", "zhName", "enName", "price", "priceDesc",
+                        "desc", "openTime", "images", "rating", "address", "timeCostDesc", "location", "tipsUrl",
+                        "visitGuideUrl", "trafficInfoUrl", "rank", "travelMonth", "tel");
+                checkPoi(item);
+                assertText(item, new String[]{"timeCostDesc", "tipsUrl", "visitGuideUrl", "trafficInfoUrl",
+                        "travelMonth", "openTime"}, true);
+            }
+
+            @Override
+            public void run() {
+                String keyword = "北京";
+                HandlerRef<?> handler = routes.ref.MiscCtrl.search(keyword, "", true, true, false, true, false, 0, 10);
+                JsonNode node = getResultNode(handler);
+
+                assertFields(node, "locality", "vs", "restaurant");
+
+                JsonNode locList = node.get("locality");
+                assertThat(locList.isArray() && locList.size() > 0).isTrue();
+                for (JsonNode loc : locList)
+                    checkLocality(loc);
+
+//                for (String key : new String[]{"vs", "restaurant"}) {
+                JsonNode poiList = node.get("vs");
+                assertThat(poiList.isArray() && poiList.size() > 0).isTrue();
+                for (JsonNode poi : poiList) {
+                    checkVs(poi);
+                    assertThat(poi.get("type").asText()).isEqualTo("vs");
+                }
+
+                poiList = node.get("restaurant");
+                assertThat(poiList.isArray() && poiList.size() > 0).isTrue();
+                for (JsonNode poi : poiList) {
+                    checkRestaurant(poi);
+                    assertThat(poi.get("type").asText()).isEqualTo("restaurant");
+                }
+
+
+//                }
+            }
+        });
     }
 
     /**

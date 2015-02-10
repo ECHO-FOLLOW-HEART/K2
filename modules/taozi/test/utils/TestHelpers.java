@@ -88,10 +88,44 @@ public class TestHelpers {
         }
     }
 
+    public static void assertFloat(JsonNode node, String field, boolean nullable) {
+        assertFloat(node, new String[]{field}, nullable);
+    }
+
+    public static void assertFloat(JsonNode node, String[] fields, boolean nullable) {
+        for (String key : fields) {
+            JsonNode valNode = node.get(key);
+
+            if (!nullable && (valNode == null || valNode.isNull()))
+                assertThat(false).isTrue();
+
+            if (valNode != null && !valNode.isNull()) {
+                assertThat(valNode.isDouble()).isTrue();
+            }
+        }
+    }
+
     public static void assertCoords(double lng, double lat) {
         assertThat(Math.abs(lng)).isGreaterThan(0);
         assertThat(Math.abs(lng)).isLessThan(180);
         assertThat(Math.abs(lat)).isGreaterThan(0);
         assertThat(Math.abs(lat)).isLessThan(90);
+    }
+
+    public static void assertCoords(JsonNode item) {
+        double lng = item.get("coordinates").get(0).asDouble();
+        double lat = item.get("coordinates").get(1).asDouble();
+        assertThat(lng > -180 && lng < 180).isTrue();
+        assertThat(lat > -90 && lat < 90).isTrue();
+        assertThat(lat != 0 && lng != 0).isTrue();
+    }
+
+    public static void assertImages(JsonNode images, boolean allowEmpty) {
+        assertThat(images.isArray()).isTrue();
+        if (!allowEmpty)
+            assertThat(images.size()).isPositive();
+
+        for (JsonNode img : images)
+            assertText(img, "url", false);
     }
 }
