@@ -350,14 +350,25 @@ public class GuideAPI {
      *
      * @param id
      * @param title
+     * @param userId
      * @throws exception.AizouException
      */
-    public static void saveGuideTitle(ObjectId id, String title) throws AizouException {
+    public static void saveGuideTitle(ObjectId id, String title, Long userId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+
+        Query<Guide> query = ds.createQuery(Guide.class)
+                .field("_id").equal(id)
+                .field(Guide.fnUserId).equal(userId)
+                .retrievedFields(true, AizouBaseEntity.FD_ID);
+
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
         uo.set(Guide.fnTitle, title);
         uo.set(Guide.fnUpdateTime, System.currentTimeMillis());
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
+
+        Guide ret = ds.findAndModify(query, uo);
+        if (ret == null)
+            // 说明没有操作者没有修改guide的权限
+            throw new AizouException(ErrorCode.AUTH_ERROR);
     }
 
     /**
@@ -440,16 +451,16 @@ public class GuideAPI {
         List<String> hotelFields = new ArrayList<>();
         Collections.addAll(vsFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY,AbstractPOI.FD_RANK);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_RANK);
         Collections.addAll(restFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE,AbstractPOI.FD_RANK);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
         Collections.addAll(shopFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE,AbstractPOI.FD_RANK);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
         Collections.addAll(hotelFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE,AbstractPOI.FD_RANK);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
 
         // 按类型查询POI，并放入Map中
         List<ViewSpot> vsTempList = (List<ViewSpot>) PoiAPI.getPOIInfoList(vsIdList, "vs", vsFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);

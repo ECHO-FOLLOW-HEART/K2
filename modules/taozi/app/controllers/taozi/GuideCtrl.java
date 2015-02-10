@@ -255,10 +255,13 @@ public class GuideCtrl extends Controller {
         try {
             JsonNode req = request().body().asJson();
             String title = req.get("title").asText();
-            GuideAPI.saveGuideTitle(new ObjectId(id), title);
+            Long userId = Long.parseLong(request().getHeader("UserId"));
+            GuideAPI.saveGuideTitle(new ObjectId(id), title, userId);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
-        } catch (AizouException | NullPointerException | IllegalArgumentException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT);
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
     }
