@@ -3,6 +3,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import controllers.taozi.MiscCtrl;
 import controllers.taozi.routes;
+import exception.ErrorCode;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.BeforeClass;
@@ -420,6 +421,38 @@ public class MiscTest extends AizouTest {
         });
     }
 
+    @Test
+    public void testAddFavorites() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.MiscCtrl.addFavorite();
+                FakeRequest req = fakeRequest(routes.MiscCtrl.addFavorite());
+                req.withHeader("UserId", selfId.toString());
+                req.withJsonBody(Json.parse("{ \"itemId\" :\"547bfdedb8ce043eb2d85033\", \"type\":\"vs\" }"));
+
+                Result result = callAction(handler, req);
+                JsonNode node = Json.parse(contentAsString(result));
+                assertThat(node.get("code").asInt()).isIn(0, ErrorCode.DATA_EXIST);
+            }
+        });
+    }
+
+    @Test
+    public void testDelFavorites() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String oid = "547bfdedb8ce043eb2d85033";
+                HandlerRef<?> handler = routes.ref.MiscCtrl.delFavorite(oid);
+                FakeRequest req = fakeRequest(routes.MiscCtrl.delFavorite(oid));
+                req.withHeader("UserId", selfId.toString());
+
+                getResultNode(handler, req);
+            }
+        });
+    }
+
     /**
      * 针对 上传回调 的测试
      */
@@ -444,98 +477,5 @@ public class MiscTest extends AizouTest {
         // The field 'userId' and 'url' should keep unchanged
         assertThat(result.get("userId").asText()).isEqualTo("123456");
         assertThat(result.get("url").asText()).isEqualTo("test.lvxingpai.cn");
-    }
-
-    /**
-     * 针对 添加收藏 的测试 （返回失败）
-     */
-    @Test
-    @Ignore
-    public void testAddFavorite_Fail() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("addFavorite");
-        method.setAccessible(true);
-
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", "100084");
-        HashMap<String, String> body = new HashMap<>();
-        body.put("type", "hotel");
-        body.put("itemId", "fake2342");
-        req.setRequestJson(body);
-        Result res = (Result) req.apply(method, MiscCtrl.class);
-        JsonNode response = Json.parse(contentAsString(res));
-
-        // The response code should be 100 because invalid objectId
-        assertThat(response.get("code").asInt()).isEqualTo(100);
-    }
-
-    /**
-     * 针对 添加收藏 的测试 （返回 Favorite item has existed）
-     */
-    @Test
-    @Ignore
-    public void testAddFavorite_Succ() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("addFavorite");
-        method.setAccessible(true);
-
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", "100084");
-        HashMap<String, String> body = new HashMap<>();
-        body.put("type", "hotel");
-        body.put("itemId", "53b053c110114e050b1d24b6");
-        req.setRequestJson(body);
-        Result res = (Result) req.apply(method, MiscCtrl.class);
-        JsonNode response = Json.parse(contentAsString(res));
-
-        // The response code should be 402 because Favorite item has existed
-        assertThat(response.get("code").asInt()).isEqualTo(402);
-
-    }
-
-    /**
-     * 针对 删除收藏 的测试
-     */
-    @Test
-    @Ignore
-    public void testDelFavorite() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("delFavorite", String.class);
-        method.setAccessible(true);
-
-        String userId = "100032";
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", userId);
-
-        Result response = (Result) req.apply(method, MiscCtrl.class, "112233");
-        JsonNode result = Json.parse(contentAsString(response));
-
-        // The result code should be 100 because invalid ObjectId
-        assertThat(result.get("code").asInt()).isEqualTo(100);
-    }
-
-    /**
-     * 针对 取得收藏 的测试
-     */
-    @Test
-    @Ignore
-    public void testGetFavorite() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("getFavorite",
-                String.class, int.class, int.class);
-        method.setAccessible(true);
-
-        String userId = "100032";
-        int page = 0;
-        int pageSize = 5;
-        MockRequest req = new MockRequest();
-        req.setHeader("UserId", userId);
-
-        Result response = (Result) req.apply(method, MiscCtrl.class, "hotel", page, pageSize);
-        JsonNode result = Json.parse(contentAsString(response));
-
-        // The response code should be zero
-        assertThat(result.get("code").asInt()).isEqualTo(0);
-
-        // The size of FavoriteList should be great than 0 and less or equal than pageSize
-        JsonNode favoriteList = result.get("result");
-        assertThat(favoriteList.size()).isGreaterThan(0);
-        assertThat(favoriteList.size()).isLessThanOrEqualTo(pageSize);
     }
 }
