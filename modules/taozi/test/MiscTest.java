@@ -124,51 +124,34 @@ public class MiscTest extends AizouTest {
      * @throws Exception
      */
     @Test
-    @Ignore
     public void testRecommended() throws Exception {
-        Method method = MiscCtrl.class.getDeclaredMethod("recommend", int.class, int.class);
-        method.setAccessible(true);
-        int page = 0;
-        int pageSize = 3;
-        Result res = (Result) method.invoke(MiscCtrl.class, page, pageSize);
-        JSONObject result = new JSONObject(contentAsString(res));
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                int page = 0;
+                int pageSize = 5;
+                HandlerRef<?> handler = routes.ref.MiscCtrl.recommend(page, pageSize);
+                JsonNode node = getResultNode(handler);
 
-        JSONArray resultList = result.getJSONArray("result");
+                assertThat(node.isArray()).isTrue();
+                assertThat(node.size()).isPositive();
 
-        // The return code of result should be 0
-        assertThat(result.getInt("code")).isEqualTo(0);
+                for (JsonNode section : node) {
+                    assertFields(section, "title", "contents");
+                    assertText(section, "title", false);
 
-        // The size of result should be less or equal than pageSize
-        int sizeCount = 0;
-        for (int i = 0; i < resultList.length(); i++) {
-            JSONArray contentList = resultList.getJSONObject(i).getJSONArray("contents");
-            assertThat(contentList.length()).isGreaterThan(0);
-            sizeCount += contentList.length();
-        }
-        assertThat(sizeCount).isLessThanOrEqualTo(pageSize);
+                    JsonNode contents = section.get("contents");
+                    assertThat(contents.isArray()).isTrue();
+                    assertThat(contents.size()).isPositive();
 
-        // Each information of each city should be valid
-        for (int i = 0; i < resultList.length(); i++) {
-            assertThat(resultList.getJSONObject(i).getString("title")).isNotNull();
-            JSONArray contents = resultList.getJSONObject(i).getJSONArray("contents");
-            for (int j = 0; j < contents.length(); j++) {
-                JSONObject city = contents.getJSONObject(j);
-                assertThat(city.getString("enName")).isNotNull();
-                assertThat(city.getString("zhName")).isNotNull();
-                assertThat(city.getString("cover")).isNotNull();
-                assertThat(city.getString("desc")).isNotNull();
-
-                // check linkType and linkUrl
-                int linkType = city.getInt("linkType");
-                if (linkType == 1) {
-                    assertThat(city.getString("linkUrl")).isEqualTo("");
-                } else if (linkType == 2) {
-                    assertThat(city.getString("linkUrl")).isNotEqualTo("");
-                } else {
-                    assertThat(false).isTrue();
+                    for (JsonNode item : contents) {
+                        assertFields(item, "itemId", "title", "itemType", "linkType", "linkUrl", "desc", "cover");
+                        assertText(item, new String[]{"itemId", "title", "itemType", "linkType", "desc", "cover"}, false);
+                        assertText(item, "linkUrl", true);
+                    }
                 }
             }
-        }
+        });
     }
 
     /**
