@@ -35,6 +35,9 @@ public class POITest extends AizouTest {
         app = fakeApplication(config.asMap());
     }
 
+    /**
+     * 查看景点详情
+     */
     @Test
     public void testGetViewSpot() {
         running(app, new Runnable() {
@@ -69,6 +72,33 @@ public class POITest extends AizouTest {
                 assertCoords(node.get("location"));
                 assertThat(node.get("comments").isArray());
                 assertThat(node.get("tel").isArray());
+            }
+        });
+    }
+
+    /**
+     * 获得HTML格式的景点攻略
+     */
+    @Test
+    public void testViewSpotDetails() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String poiId = "547bfe2fb8ce043eb2d89069";
+                for (String key : new String[]{"tips"}) {
+                    HandlerRef<?> handler = routes.ref.POICtrl.getTravelGuide(poiId, key, "vs");
+                    JsonNode node = getResultNode(handler);
+
+                    assertText(node, true, "desc");
+
+                    JsonNode contents = node.get("contents");
+                    assertThat(contents.isArray() && contents.size() > 0).isTrue();
+                    for (JsonNode c : contents) {
+                        assertFields(c, "title", "desc", "images");
+                        assertText(c, false, "title", "desc");
+                        assertImages(c.get("images"), true);
+                    }
+                }
             }
         });
     }
@@ -258,29 +288,42 @@ public class POITest extends AizouTest {
      * 测试根据目的地获得景点、酒店、餐厅信息
      */
     @Test
-    @Ignore
-    public void getPoiListByLocId() {
+    public void testPoiByLoc() {
         running(app, new Runnable() {
             @Override
             public void run() {
-                String locId = "5473ccd7b8ce043a64108c46";
-                List<String> typeList = new ArrayList();
+                String locId = "5473ccd7b8ce043a64108c4d";
+                List<String> typeList = new ArrayList<>();
                 typeList.add("vs");
-                typeList.add("hotel");
+                typeList.add("restaurant");
                 for (String type : typeList) {
-                    HandlerRef<?> handler = routes.ref.POICtrl.viewPoiList(type, locId, "", "rating", "desc", 0, 10, 0, 10);
-                    Result result = callAction(handler);
-                    JsonNode node = Json.parse(contentAsString(result));
-                    assertThat(node.get("code").asInt()).isEqualTo(0);
-                    JsonNode response = node.get("result");
-                    for (JsonNode tmp : response) {
-                        assertText(tmp, false, new String[]{"type", "id", "zhName"});
-                        assertThat(tmp.get("rating").asDouble()).isGreaterThanOrEqualTo(0).isLessThanOrEqualTo(1);
-                        assertThat(tmp.get("images").isArray()).isTrue();
-                        JsonNode coords = tmp.get("location").get("coordinates");
-                        double lng = coords.get(0).asDouble();
-                        double lat = coords.get(1).asDouble();
-                        assertCoords(lng, lat);
+                    HandlerRef<?> handler = routes.ref.POICtrl.viewPoiList(type, locId, "", "rating", "desc",
+                            0, 10, 0, 10);
+                    JsonNode node = getResultNode(handler);
+                    assertThat(node.isArray() && node.size() > 0);
+
+                    for (JsonNode poi : node) {
+                        assertFields(poi, "type", "id", "zhName", "enName", "priceDesc", "images", "rating", "address",
+                                "timeCostDesc", "location", "locality", "rank");
+
+                        assertText(poi, false, "type", "id", "zhName");
+                        assertText(poi, true, "enName", "priceDesc", "address", "timeCostDesc");
+
+                        JsonNode rank = poi.get("rank");
+                        assertThat(rank.isNumber() && rank.asInt() > 0);
+
+                        double rating = poi.get("rating").asDouble();
+                        assertThat(rating >= 0 && rating <= 1).isTrue();
+
+                        assertImages(poi.get("images"), true);
+
+                        assertCoords(poi.get("location"));
+
+                        JsonNode locality = poi.get("locality");
+                        if (!locality.isNull()) {
+                            assertText(locality, false, "id", "zhName");
+                            assertText(locality, true, "enName");
+                        }
                     }
                 }
             }
