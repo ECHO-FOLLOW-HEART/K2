@@ -51,7 +51,7 @@ public class GuideFormatter extends AizouFormatter<Guide> {
                 Guide.fnItineraryDays));
     }
 
-    class GuideSerializer extends AizouSerializer<Guide> {
+    private class GuideSerializer extends AizouSerializer<Guide> {
         @Override
         public void serialize(Guide guide, JsonGenerator jgen, SerializerProvider serializerProvider)
                 throws IOException {
@@ -71,9 +71,9 @@ public class GuideFormatter extends AizouFormatter<Guide> {
             jgen.writeEndArray();
 
             jgen.writeStringField(AbstractGuide.fnTitle, getString(guide.title));
-            jgen.writeNumberField(Guide.fnUserId, getValue(guide.userId));
-            jgen.writeNumberField(Guide.fnItineraryDays, getValue(guide.itineraryDays));
-            jgen.writeNumberField(Guide.fnUpdateTime, getValue(guide.updateTime));
+            jgen.writeNumberField(Guide.fnUserId, getValue(guide.getUserId()));
+            jgen.writeNumberField(Guide.fnItineraryDays, getValue(guide.getItineraryDays()));
+            jgen.writeNumberField(Guide.fnUpdateTime, getValue(guide.getUpdateTime()));
 
             // Locality
             jgen.writeFieldName(Guide.fnLocalities);
@@ -105,11 +105,11 @@ public class GuideFormatter extends AizouFormatter<Guide> {
             //Shopping
             jgen.writeFieldName(Guide.fnShopping);
             jgen.writeStartArray();
-            List<Shopping> shoppings = guide.shopping;
-            if (shoppings != null && !shoppings.isEmpty()) {
-                JsonSerializer<Object> retShoppings = serializerProvider.findValueSerializer(Shopping.class, null);
-                for (Shopping shopping : shoppings) {
-                    retShoppings.serialize(shopping, jgen, serializerProvider);
+            List<Shopping> shoppingList = guide.shopping;
+            if (shoppingList != null && !shoppingList.isEmpty()) {
+                JsonSerializer<Object> retShopping = serializerProvider.findValueSerializer(Shopping.class, null);
+                for (Shopping shopping : shoppingList) {
+                    retShopping.serialize(shopping, jgen, serializerProvider);
                 }
             }
             jgen.writeEndArray();

@@ -1,7 +1,6 @@
 package models.guide;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
-import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
 
@@ -12,8 +11,6 @@ import org.mongodb.morphia.annotations.Transient;
 @Entity
 @JsonFilter("guideFilter")
 public class Guide extends AbstractGuide {
-
-
     @Transient
     public static final String fnUserId = "userId";
 
@@ -29,16 +26,53 @@ public class Guide extends AbstractGuide {
     @Transient
     public static final String fnSummary = "summary";
 
-    public Integer userId;
+    private Integer userId;
 
-    public Integer itineraryDays;
+    private Integer itineraryDays;
 
-    public long updateTime;
+    private Long updateTime;
 
-    @Embedded
-    public Integer dayCnt;
-    @Embedded
-    public String summary;
+    private Integer dayCnt;
 
+    private String summary;
 
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public Integer getItineraryDays() {
+        return itineraryDays;
+    }
+
+    public void setItineraryDays(Integer itineraryDays) {
+        this.itineraryDays = itineraryDays;
+    }
+
+    public Long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Long updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public Integer getDayCnt() {
+        return dayCnt;
+    }
+
+    public void setDayCnt(Integer dayCnt) {
+        this.dayCnt = dayCnt;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
 }

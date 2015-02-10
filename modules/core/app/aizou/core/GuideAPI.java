@@ -87,13 +87,13 @@ public class GuideAPI {
 
         List<Locality> destinations = queryDes.asList();
         Guide ugcGuide = new Guide();
-        ugcGuide.userId = userId;
+        ugcGuide.setUserId(userId);
         ugcGuide.localities = destinations;
-        ugcGuide.updateTime = System.currentTimeMillis();
+        ugcGuide.setUpdateTime(System.currentTimeMillis());
         ugcGuide.itinerary = new ArrayList<>();
         ugcGuide.shopping = new ArrayList<>();
         ugcGuide.restaurant = new ArrayList<>();
-        ugcGuide.itineraryDays = 0;
+        ugcGuide.setItineraryDays(0);
         if (destinations != null && destinations.get(0) != null && destinations.get(0).getImages() != null)
             ugcGuide.images = TaoziDataFilter.getOneImage(destinations.get(0).getImages());
         ugcGuide.title = getUgcGuideTitle(destinations);
@@ -156,9 +156,9 @@ public class GuideAPI {
     private static Guide constituteUgcGuide(List<GuideTemplate> guideTemplates, List<Locality> destinations, Integer userId) {
         Guide ugcGuide = new Guide();
         ugcGuide.setId(new ObjectId());
-        ugcGuide.userId = userId;
+        ugcGuide.setUserId(userId);
         ugcGuide.localities = destinations;
-        ugcGuide.updateTime = System.currentTimeMillis();
+        ugcGuide.setUpdateTime(System.currentTimeMillis());
 
         // 生成攻略标题
         ugcGuide.title = getUgcGuideTitle(destinations);
@@ -168,7 +168,7 @@ public class GuideAPI {
             ugcGuide.itinerary = new ArrayList<>();
             ugcGuide.shopping = new ArrayList<>();
             ugcGuide.restaurant = new ArrayList<>();
-            ugcGuide.itineraryDays = 0;
+            ugcGuide.setItineraryDays(0);
             ugcGuide.images = destinations.get(0).getImages();
             return ugcGuide;
         }
@@ -210,7 +210,7 @@ public class GuideAPI {
         ugcGuide.itinerary = itineraries;
         ugcGuide.shopping = shoppingList;
         ugcGuide.restaurant = restaurants;
-        ugcGuide.itineraryDays = itineraryDaysCnt + 1;
+        ugcGuide.setItineraryDays(itineraryDaysCnt + 1);
         //取第一个目的地的图片
         if (guideTemplates != null && guideTemplates.get(0) != null)
             ugcGuide.images = guideTemplates.get(0).images;
@@ -288,8 +288,8 @@ public class GuideAPI {
                 fillPOIType(guide.itinerary);
                 update.set(AbstractGuide.fnItinerary, guide.itinerary);
             }
-            if (guide.itineraryDays != null)
-                update.set(Guide.fnItineraryDays, guide.itineraryDays);
+            if (guide.getItineraryDays() != null)
+                update.set(Guide.fnItineraryDays, guide.getItineraryDays());
             if (guide.shopping != null)
                 update.set(AbstractGuide.fnShopping, guide.shopping);
             if (guide.restaurant != null)
@@ -368,8 +368,8 @@ public class GuideAPI {
     public static void saveGuideByUser(Guide guide, Integer userId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         guide.setId(new ObjectId());
-        guide.userId = userId;
-        guide.updateTime = System.currentTimeMillis();
+        guide.setUserId(userId);
+        guide.setUpdateTime(System.currentTimeMillis());
         ds.save(guide);
     }
 
