@@ -16,7 +16,7 @@ import formatter.taozi.misc.SuggestionFormatter;
 import formatter.taozi.misc.WeatherFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.recom.RecomFormatter;
-import formatter.taozi.user.SelfFavoriteFormatter;
+import formatter.taozi.user.FavoriteFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
@@ -198,6 +198,11 @@ public class MiscCtrl extends Controller {
     public static Result getFavorite(String faType, int page, int pageSize) {
 
         try {
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             Integer userId = Integer.parseInt(request().getHeader("UserId"));
             Query<Favorite> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).createQuery(Favorite.class);
             query.field("userId").equal(userId);
@@ -298,11 +303,12 @@ public class MiscCtrl extends Controller {
                     return arg0.createTime.getTime() - arg1.createTime.getTime() > 0 ? -1 : 1;
                 }
             });
-            List<ObjectNode> nodes = new ArrayList<>();
-            for (Favorite fa : faShowList)
-                nodes.add((ObjectNode) new SelfFavoriteFormatter(fa.type).format(fa));
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodes));
-        } catch (NullPointerException | IllegalArgumentException | AizouException e) {
+            FavoriteFormatter favoriteFormatter = FormatterFactory.getInstance(FavoriteFormatter.class, imgWidth);
+
+//            for (Favorite fa : faShowList)
+//                nodes.add((ObjectNode) new SelfFavoriteFormatterOld(fa.type).format(fa));
+            return Utils.createResponse(ErrorCode.NORMAL, favoriteFormatter.formatNode(faShowList));
+        } catch (NullPointerException | IllegalArgumentException | AizouException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getLocalizedMessage());
         }
     }
@@ -348,11 +354,10 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result putPolicy(String scenario) {
-
         Configuration config = Configuration.root();
         try {
             String userId = request().getHeader("UserId");
-            String picName = getPicName(userId);
+            String picName = getPicName(Integer.parseInt(request().getHeader("UserId")));
             Map qiniu = (Map) config.getObject("qiniu");
             String secretKey = qiniu.get("secertKey").toString();
             String accessKey = qiniu.get("accessKey").toString();
@@ -442,9 +447,9 @@ public class MiscCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static String getPicName(String userId) {
+    public static String getPicName(long userId) {
         Date date = new Date();
-        return "avt_" + userId + date.getTime() + ".jpg";
+        return String.format("avt_%d_%d.jpg", userId, date.getTime());
     }
 
     /**

@@ -2,6 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.ImageItem;
@@ -18,7 +19,6 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import play.Configuration;
 
@@ -52,7 +52,7 @@ public class TravelNoteAPI {
         List<TravelNote> results = new ArrayList<>();
         try {
             Configuration config = Configuration.root().getConfig("solr");
-            String host = config.getString("host", "localhost");
+            String host = config.getString("host", "http://api.lvxingpai.cn");
             Integer port = config.getInt("port", 8983);
             String url = String.format("http://%s:%d/solr", host, port);
             /*
@@ -212,14 +212,12 @@ public class TravelNoteAPI {
      * @throws AizouException
      */
     public static List<TravelNote> getNotesByIdList(List<ObjectId> idList, List<String> fields) throws AizouException {
+        if (idList.size() == 0)
+            return new ArrayList<>();
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
         Query<TravelNote> query = ds.createQuery(TravelNote.class);
-        List<CriteriaContainerImpl> criList = new ArrayList<>();
-        for (ObjectId tempId : idList) {
-            criList.add(query.criteria("id").equal(tempId));
-        }
-        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+        query.field(AizouBaseEntity.FD_ID).in(idList);
         if (fields != null && !fields.isEmpty())
             query.retrievedFields(true, fields.toArray(new String[fields.size()]));
         return query.asList();

@@ -1,5 +1,3 @@
-package taozi.test;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import play.libs.Json;

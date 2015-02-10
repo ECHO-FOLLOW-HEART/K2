@@ -61,8 +61,6 @@ POST          /misc/feedback                                     controllers.tao
 GET           /misc/put-policy/:scenario                         controllers.taozi.MiscCtrl.putPolicy(scenario:String)
 #处理资源上传的回调
 POST          /misc/upload-callback                              controllers.taozi.MiscCtrl.getCallback()
-#游记
-#GET           /misc/travel-notes/search                          controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyWord: String?="",locId: String?="",page: Int?=0,pageSize: Int?=10)
 #推荐
 GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #搜索

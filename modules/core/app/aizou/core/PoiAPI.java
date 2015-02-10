@@ -879,7 +879,7 @@ public class PoiAPI {
      * @param pageSize    @return
      * @throws AizouException
      */
-    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, double lng, double lat,
+    public static Iterator<? extends AbstractPOI>   getPOINearBy(POIType poiType, double lng, double lat,
                                                                double maxDistance, int page, int pageSize)
             throws AizouException {
         Class<? extends AbstractPOI> poiClass;
