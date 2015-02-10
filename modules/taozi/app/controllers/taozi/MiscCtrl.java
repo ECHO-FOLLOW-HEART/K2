@@ -608,12 +608,15 @@ public class MiscCtrl extends Controller {
 
                 Locality locality;
                 List<Locality> retLocList = new ArrayList<>();
-                it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize);
+
+                LocalityFormatter localityFormatter = FormatterFactory.getInstance(LocalityFormatter.class, imgWidth);
+                it = GeoAPI.searchLocalities(keyWord, true, null, page, pageSize,
+                        localityFormatter.getFilteredFields());
                 while (it.hasNext()) {
                     locality = it.next();
                     retLocList.add(locality);
                 }
-                LocalityFormatter localityFormatter = FormatterFactory.getInstance(LocalityFormatter.class, imgWidth);
+
                 results.put("locality", localityFormatter.formatNode(retLocList));
             }
 
