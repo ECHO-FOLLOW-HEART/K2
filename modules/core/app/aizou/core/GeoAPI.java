@@ -12,6 +12,7 @@ import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -70,7 +71,13 @@ public class GeoAPI {
      * @param page     分页偏移量。
      * @param pageSize 页面大小。
      */
-    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, ObjectId countryId, int page, int pageSize)
+    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, ObjectId countryId,
+                                                                int page, int pageSize) throws AizouException {
+        return searchLocalities(keyword, prefix, countryId, page, pageSize, null);
+    }
+
+    public static java.util.Iterator<Locality> searchLocalities(String keyword, boolean prefix, ObjectId countryId,
+                                                                int page, int pageSize, Collection<String> fields)
             throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
         Query<Locality> query = ds.createQuery(Locality.class);
@@ -80,6 +87,9 @@ public class GeoAPI {
         if (countryId != null)
             query.field(String.format("%s.id", Locality.fnCountry)).equal(countryId);
         query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
+
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
         return query.order(String.format("-%s", Locality.fnHotness))
                 .offset(page * pageSize).limit(pageSize).iterator();
     }

@@ -52,7 +52,7 @@ public class TravelNoteAPI {
         List<TravelNote> results = new ArrayList<>();
         try {
             Configuration config = Configuration.root().getConfig("solr");
-            String host = config.getString("host", "localhost");
+            String host = config.getString("host", "http://api.lvxingpai.cn");
             Integer port = config.getInt("port", 8983);
             String url = String.format("http://%s:%d/solr", host, port);
             /*

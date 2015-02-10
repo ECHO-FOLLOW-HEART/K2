@@ -12,9 +12,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.taozi.guide.GuideFormatter;
-import formatter.taozi.guide.GuideFormatterOld;
 import formatter.taozi.guide.SimpleGuideFormatter;
-import formatter.taozi.user.ContactFormatter;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
@@ -27,7 +25,6 @@ import utils.LogUtils;
 import utils.TaoziDataFilter;
 import utils.Utils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 /**
@@ -76,7 +73,7 @@ public class GuideCtrl extends Controller {
             node.put("detailUrl", GUIDE_DETAIL_URL + result.getId());
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
-        } catch (AizouException | JsonProcessingException | InstantiationException | IllegalAccessException e) {
+        } catch (AizouException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, node);
@@ -130,16 +127,15 @@ public class GuideCtrl extends Controller {
             List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle, Guide.fnUpdateTime,
                     Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays);
             List<Guide> guides = GuideAPI.getGuideByUser(selfId, fields, page, pageSize);
-            List<JsonNode> result = new ArrayList<>();
-            ObjectNode node;
+            List<Guide> result = new ArrayList<>();
             for (Guide guide : guides) {
                 guide.images = TaoziDataFilter.getOneImage(guide.images);
-                node = (ObjectNode) new SimpleGuideFormatter().setImageWidth(imgWidth).format(guide);
-                addGuideInfoToNode(guide, node);
-                result.add(node);
+                addGuideInfoToNode(guide);
+                result.add(guide);
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-        } catch (IllegalArgumentException | NullPointerException e) {
+            SimpleGuideFormatter simpleGuideFormatter = FormatterFactory.getInstance(SimpleGuideFormatter.class, imgWidth);
+            return Utils.createResponse(ErrorCode.NORMAL, simpleGuideFormatter.formatNode(result));
+        } catch (IllegalArgumentException | NullPointerException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -150,16 +146,15 @@ public class GuideCtrl extends Controller {
      * 添加攻略列表中需要额外展示的字段
      *
      * @param guide 攻略实体
-     * @param node  攻略JSON内容
      */
-    private static void addGuideInfoToNode(Guide guide, ObjectNode node) {
+    private static void addGuideInfoToNode(Guide guide) {
         // 添加攻略天数
-        node.put("dayCnt", guide.itineraryDays);
+        guide.dayCnt = guide.itineraryDays;
 
         // 添加攻略摘要
         List<Locality> dests = guide.localities;
         if (dests == null) {
-            node.put("summary", "");
+            guide.summary = "";
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -172,7 +167,7 @@ public class GuideCtrl extends Controller {
                 images.addAll(des.getImages());
         }
         String summary = sb.toString();
-        node.put("summary", summary.substring(0, summary.length() - 1));
+        guide.summary = summary.substring(0, summary.length() - 1);
 
     }
 
@@ -219,14 +214,13 @@ public class GuideCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Guide ID is invalid. ID:" + id);
             // 填充攻略信息
             GuideAPI.fillGuideInfo(guide);
-            // ObjectNode node = (ObjectNode) new GuideFormatterOld().setImageWidth(imgWidth).format(guide);
             GuideFormatter formatter = FormatterFactory.getInstance(GuideFormatter.class, imgWidth);
             ObjectNode node = (ObjectNode) formatter.formatNode(guide);
             node.put("detailUrl", GUIDE_DETAIL_URL + guide.getId());
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
-        } catch (IllegalArgumentException | JsonProcessingException | InstantiationException | IllegalAccessException e) {
+        } catch (IllegalArgumentException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
     }

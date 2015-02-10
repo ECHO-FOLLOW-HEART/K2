@@ -10,6 +10,7 @@ import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
+import formatter.taozi.geo.DetailsEntryFormatter;
 import formatter.taozi.poi.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
@@ -42,6 +43,8 @@ public class POICtrl extends Controller {
         if (poiInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI ID: %s.", spotId));
 
+        // 处理价格
+        poiInfo.priceDesc = TaoziDataFilter.getPriceDesc(poiInfo);
         //是否被收藏
         MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.format(poiInfo);
@@ -51,16 +54,13 @@ public class POICtrl extends Controller {
         POIRmdFormatter formatter = FormatterFactory.getInstance(POIRmdFormatter.class);
         JsonNode recommends = formatter.formatNode(rmdEntities);
 
-        /*
-           不要评论了 20150204
-         */
         // 取得评论
-//        List<Comment> commentsEntities = PoiAPI.getPOIComment(spotId, commentPage, commentPageSize);
-//        CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
-//        JsonNode comments = comformatter.formatNode(commentsEntities);
+        List<Comment> commentsEntities = MiscAPI.displayCommentApi(new ObjectId(spotId), null, null, 0, commentPage, commentPageSize);
+        CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
+        JsonNode comments = comformatter.formatNode(commentsEntities);
 
         ObjectNode ret = (ObjectNode) info;
-//        ret.put("comments", comments);
+        ret.put("comments", comments);
         int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
         ret.put("commentCnt", commCnt);
 
@@ -440,12 +440,17 @@ public class POICtrl extends Controller {
                     destKeyList.add(AbstractPOI.FD_VISITGUIDE);
                     break;
             }
-
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(locId), poiClass, destKeyList);
             ObjectNode result = Json.newObject();
             if (field.equals("tips")) {
                 result.put("desc", "");
-                result.put("contents", Json.toJson(GeoCtrl.contentsToList(poiInfo.getTips())));
+                DetailsEntryFormatter detailsEntryFormatter = FormatterFactory.getInstance(DetailsEntryFormatter.class, imgWidth);
+                result.put("contents", poiInfo.getTips() == null ? Json.toJson(new ArrayList<>()) : detailsEntryFormatter.formatNode(poiInfo.getTips()));
             } else if (field.equals("trafficInfo")) {
                 result.put("contents", Json.toJson(poiInfo.getTrafficInfo()));
             } else if (field.equals("visitGuide")) {
@@ -453,8 +458,10 @@ public class POICtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (AizouException | NullPointerException | NumberFormatException e) {
+        } catch (AizouException | NullPointerException | NumberFormatException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
 }
+
+

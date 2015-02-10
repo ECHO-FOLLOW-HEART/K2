@@ -3,6 +3,7 @@ package controllers.taozi;
 import aizou.core.GeoAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
+import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -11,13 +12,14 @@ import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
-import formatter.taozi.geo.DetailedLocalityFormatter;
 import formatter.taozi.geo.DetailsEntryFormatter;
+import formatter.taozi.geo.LocalityFormatter;
 import formatter.taozi.geo.SimpleCountryFormatter;
 import formatter.taozi.geo.SimpleLocalityFormatter;
 import models.geo.Country;
 import models.geo.DetailsEntry;
 import models.geo.Locality;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
@@ -25,6 +27,7 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.text.ParseException;
@@ -59,14 +62,18 @@ public class GeoCtrl extends Controller {
             Locality locality = GeoAPI.locDetails(id);
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
+            locality.setDesc(StringUtils.abbreviate(locality.getDesc(), Constants.ABBREVIATE_LEN));
+            locality.setImages(TaoziDataFilter.getOneImage(locality.getImages()));
             //是否被收藏
             MiscAPI.isFavorite(locality, userId);
-            ObjectNode response = (ObjectNode) new DetailedLocalityFormatter().setImageWidth(imgWidth).format(locality);
+
+            LocalityFormatter localityFormatter = FormatterFactory.getInstance(LocalityFormatter.class, imgWidth);
+            ObjectNode response = (ObjectNode) localityFormatter.formatNode(locality);
             // 显示图集的数量
             response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
             response.put("playGuide", "http://h5.taozilvxing.com/play.php?tid=" + id);
             return Utils.createResponse(ErrorCode.NORMAL, response);
-        } catch (AizouException e) {
+        } catch (AizouException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
@@ -196,6 +203,12 @@ public class GeoCtrl extends Controller {
         try {
             if (field == null || field.isEmpty())
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
+
             List<String> fieldList = new ArrayList<>();
             switch (field) {
                 case "remoteTraffic":
@@ -232,49 +245,52 @@ public class GeoCtrl extends Controller {
             if (locality == null)
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality is not exist.ID:" + locId);
             ObjectNode result = Json.newObject();
+
+            DetailsEntryFormatter detailsEntryFormatter = FormatterFactory.getInstance(DetailsEntryFormatter.class, imgWidth);
             if (field.equals("remoteTraffic")) {
                 result.put("desc", "");
-                result.put("contents", Json.toJson(contentsToList(locality.getRemoteTraffic())));
+                result.put("contents", detailsEntryFormatter.formatNode(locality.getRemoteTraffic()));
             } else if (field.equals("localTraffic")) {
                 result.put("desc", "");
-                result.put("contents", Json.toJson(contentsToList(locality.getLocalTraffic())));
+                result.put("contents", detailsEntryFormatter.formatNode(locality.getLocalTraffic()));
             } else if (field.equals("activities")) {
                 result.put("desc", locality.getActivityIntro());
-                result.put("contents", Json.toJson(contentsToList(locality.getActivities())));
+                result.put("contents", detailsEntryFormatter.formatNode(locality.getActivities()));
             } else if (field.equals("tips")) {
                 result.put("desc", "");
-                result.put("contents", Json.toJson(contentsToList(locality.getTips())));
+                result.put("contents", detailsEntryFormatter.formatNode(locality.getTips()));
             } else if (field.equals("geoHistory")) {
                 result.put("desc", "");
-                result.put("contents", Json.toJson(contentsToList(locality.getGeoHistory())));
+                result.put("contents", detailsEntryFormatter.formatNode(locality.getGeoHistory()));
             } else if (field.equals("specials")) {
                 result.put("desc", "");
-                result.put("contents", Json.toJson(contentsToList(locality.getSpecials())));
+                result.put("contents", detailsEntryFormatter.formatNode(locality.getSpecials()));
             } else if (field.equals("desc")) {
                 result.put("desc", locality.getDesc());
                 result.put("contents", Json.toJson(new ArrayList<>()));
             } else if (field.equals("dining")) {
                 result.put("desc", locality.getDiningIntro());
-                result.put("contents", Json.toJson(contentsToList(locality.getCuisines())));
+                result.put("contents", detailsEntryFormatter.formatNode(locality.getCuisines()));
             } else if (field.equals("shopping")) {
                 result.put("desc", locality.getShoppingIntro());
-                result.put("contents", Json.toJson(contentsToList(locality.getCommodities())));
+                result.put("contents", detailsEntryFormatter.formatNode(locality.getCommodities()));
             }
             return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (AizouException | NullPointerException | NumberFormatException e) {
+        } catch (AizouException | NullPointerException | NumberFormatException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
 
-    public static List<ObjectNode> contentsToList(List<DetailsEntry> entries) {
-        if (entries == null)
-            return new ArrayList<>();
-        List<ObjectNode> objs = new ArrayList<>();
-        for (DetailsEntry entry : entries) {
-            objs.add((ObjectNode) new DetailsEntryFormatter().format(entry));
-        }
-        return objs;
-    }
+//    public static List<ObjectNode> contentsToList(List<DetailsEntry> entries) {
+//        if (entries == null)
+//            return new ArrayList<>();
+//
+//        List<ObjectNode> objs = new ArrayList<>();
+//        for (DetailsEntry entry : entries) {
+//            objs.add((ObjectNode) new DetailsEntryFormatter().format(entry));
+//        }
+//        return objs;
+//    }
 
     /**
      * 游玩攻略概览-H5
