@@ -10,18 +10,19 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.taozi.geo.LocalityFormatter;
+import formatter.taozi.geo.SimpleLocalityFormatter;
 import formatter.taozi.misc.ColumnFormatter;
 import formatter.taozi.misc.CommentFormatter;
-import formatter.taozi.misc.SuggestionFormatter;
-import formatter.taozi.misc.WeatherFormatter;
+import formatter.taozi.poi.BriefPOIFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
-import formatter.taozi.recom.RecomFormatter;
+import formatter.taozi.misc.RecomFormatter;
 import formatter.taozi.user.FavoriteFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
 import models.poi.AbstractPOI;
 import models.poi.Comment;
+import models.poi.Restaurant;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
@@ -331,21 +332,21 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
 
-    /**
-     * 通过城市id获得天气情况
-     *
-     * @param id
-     * @return
-     * @throws exception.AizouException
-     */
-    public static Result getWeatherDetail(String id) {
-        try {
-            YahooWeather weather = WeatherAPI.weatherDetails(new ObjectId(id));
-            return Utils.createResponse(ErrorCode.NORMAL, new WeatherFormatter().format(weather));
-        } catch (NullPointerException | AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
-    }
+//    /**
+//     * 通过城市id获得天气情况
+//     *
+//     * @param id
+//     * @return
+//     * @throws exception.AizouException
+//     */
+//    public static Result getWeatherDetail(String id) {
+//        try {
+//            YahooWeather weather = WeatherAPI.weatherDetails(new ObjectId(id));
+//            return Utils.createResponse(ErrorCode.NORMAL, new WeatherFormatter().format(weather));
+//        } catch (NullPointerException | AizouException e) {
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+//        }
+//    }
 
     /**
      * 获得资源上传凭证
@@ -675,59 +676,58 @@ public class MiscCtrl extends Controller {
         try {
             return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant, shopping,
                     pageSize));
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (AizouException | InstantiationException | IllegalAccessException | JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
     }
 
     public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant, boolean shopping,
-                                              int pageSize) throws AizouException {
+                                              int pageSize) throws AizouException, IllegalAccessException, InstantiationException, JsonProcessingException {
         ObjectNode ret = Json.newObject();
 
-        List<JsonNode> locList = new ArrayList<>();
+        List<Locality> locList = new ArrayList<>();
+        JsonNode node = Json.newObject();
         if (loc) {
             for (Iterator<Locality> it = GeoAPI.searchLocalities(word, true, null, 0, pageSize); it.hasNext(); ) {
-                Locality item = it.next();
-                locList.add(new SuggestionFormatter().format(item));
+                locList.add(it.next());
             }
+            SimpleLocalityFormatter simpleLocalityFormatter = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
+            node = simpleLocalityFormatter.formatNode(locList);
         }
-        ret.put("locality", Json.toJson(locList.isEmpty() ? new ArrayList<>() : locList));
+        ret.put("locality", locList.isEmpty() ? Json.toJson(new ArrayList<>()) : node);
 
-
-        List<JsonNode> vsList = new ArrayList<>();
+        BriefPOIFormatter briefPOIFormatter = FormatterFactory.getInstance(BriefPOIFormatter.class);
+        List<AbstractPOI> vsList = new ArrayList<>();
         if (vs) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.VIEW_SPOT, word, pageSize);
                  it.hasNext(); )
-                vsList.add(new SuggestionFormatter().format(it.next()));
+                vsList.add(it.next());
         }
-        ret.put("vs", Json.toJson(vsList.isEmpty() ? new ArrayList<>() : vsList));
+        ret.put("vs", vsList.isEmpty() ? Json.toJson(new ArrayList<>()) : briefPOIFormatter.formatNode(vsList));
 
-        List<JsonNode> hotelList = new ArrayList<>();
+        List<AbstractPOI> hotelList = new ArrayList<>();
         if (hotel) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.HOTEL, word, pageSize);
                  it.hasNext(); )
-                hotelList.add(new SuggestionFormatter().format(it.next()));
+                hotelList.add(it.next());
         }
+        ret.put("hotel", hotelList.isEmpty() ? Json.toJson(new ArrayList<>()) : briefPOIFormatter.formatNode(hotelList));
 
-        ret.put("hotel", Json.toJson(hotelList.isEmpty() ? new ArrayList<>() : hotelList));
-
-        List<JsonNode> restaurantList = new ArrayList<>();
+        List<AbstractPOI> restaurantList = new ArrayList<>();
         if (restaurant) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.RESTAURANT, word, pageSize);
                  it.hasNext(); )
-                restaurantList.add(new SuggestionFormatter().format(it.next()));
+                restaurantList.add(it.next());
         }
+        ret.put("restaurant", restaurantList.isEmpty() ? Json.toJson(new ArrayList<>()) : briefPOIFormatter.formatNode(restaurantList));
 
-        ret.put("restaurant", Json.toJson(restaurantList.isEmpty() ? new ArrayList<>() : restaurantList));
-
-        List<JsonNode> shoppingList = new ArrayList<>();
+        List<AbstractPOI> shoppingList = new ArrayList<>();
         if (shopping) {
             for (Iterator<? extends AbstractPOI> it = PoiAPI.getSuggestions(PoiAPI.POIType.SHOPPING, word, pageSize);
                  it.hasNext(); )
-                shoppingList.add(new SuggestionFormatter().format(it.next()));
+                shoppingList.add(it.next());
         }
-
-        ret.put("shopping", Json.toJson(shoppingList.isEmpty() ? new ArrayList<>() : shoppingList));
+        ret.put("shopping", shoppingList.isEmpty() ? Json.toJson(new ArrayList<>()) : briefPOIFormatter.formatNode(shoppingList));
 
         return ret;
     }
