@@ -2,10 +2,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
+import exception.ErrorCode;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import play.Configuration;
 import play.api.mvc.HandlerRef;
+import play.libs.Json;
+import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.FakeRequest;
 import utils.validator.DoubleValidator;
@@ -14,6 +17,7 @@ import utils.validator.PositiveValidator;
 import utils.validator.RangeValidator;
 
 import java.io.File;
+import java.util.Objects;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static play.test.Helpers.*;
@@ -137,6 +141,8 @@ public class GuideTest {
                     }
 
                     switch (part) {
+                        case "all":
+                            checkIter(node.get("itinerary"));
                         case "itinerary":
                             checkIter(node.get("itinerary"));
                             break;
@@ -144,6 +150,34 @@ public class GuideTest {
                             break;
                     }
                 }
+            }
+        });
+    }
+
+    /**
+     * 修改行程计划
+     */
+    @Test
+    public void testEditGuide() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String guideId = "54d3130b1bf8a9acce393a6d";
+                HandlerRef<?> handler = routes.ref.GuideCtrl.setGuideTitle(guideId);
+                for (Long userId : new Long[]{100000L, selfId}) {
+                    FakeRequest req = fakeRequest(routes.GuideCtrl.setGuideTitle(guideId));
+                    req.withHeader("UserId", userId.toString());
+                    req.withJsonBody(Json.parse("{ \"title\": \"新的一天\" }"));
+
+                    if (Objects.equals(userId, selfId)) {
+                        getResultNode(handler, req);
+                    } else {
+                        Result results = callAction(handler, req);
+                        JsonNode node = Json.parse(contentAsString(results));
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
+                    }
+                }
+
             }
         });
     }
