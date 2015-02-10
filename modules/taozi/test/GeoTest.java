@@ -3,6 +3,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import play.Configuration;
 import play.api.mvc.HandlerRef;
@@ -21,8 +22,6 @@ import static utils.TestHelpers.*;
 public class GeoTest extends AizouTest {
 
     private static FakeApplication app;
-
-    private static Long selfId = 100027L;
 
     @BeforeClass
     public static void setup() {
@@ -120,11 +119,11 @@ public class GeoTest extends AizouTest {
      * 查看图集
      */
     @Test
-    public void getAlbums() {
+    public void testLocalityAlbum() {
         running(app, new Runnable() {
             @Override
             public void run() {
-                String locId = "547aebffb8ce043deccfed0b";
+                String locId = "5473ccd7b8ce043a64108c46";
                 int page = 0;
                 int pageSize = 50;
                 HandlerRef<?> handler = routes.ref.GeoCtrl.getLocalityAlbums(locId, page, pageSize);
@@ -138,6 +137,59 @@ public class GeoTest extends AizouTest {
                 assertThat(album.isArray() && album.size() > 0).isTrue();
                 for (JsonNode image : album)
                     assertText(image, false, "url", "originUrl");
+            }
+        });
+    }
+
+    /**
+     * 获得目的地深度介绍的大纲
+     */
+    @Test
+    public void testLocalityOutline() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String locId = "547aebffb8ce043deccfed0b";
+                HandlerRef<?> handler = routes.ref.GeoCtrl.getTravelGuideOutLine(locId);
+                JsonNode node = getResultNode(handler);
+
+                assertThat(node.isArray() && node.size() > 0).isTrue();
+
+                for (JsonNode section : node) {
+                    assertFields(section, "title", "fields");
+                    assertText(section, false, "title");
+
+                    JsonNode fields = section.get("fields");
+                    for (JsonNode f : fields)
+                        assertThat(f.asText().trim().isEmpty()).isFalse();
+                }
+            }
+        });
+    }
+
+    /**
+     * 获得目的地深度介绍
+     */
+    @Test
+    public void testLocalityGuide() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                String locId = "5473ccd7b8ce043a64108c46";
+                for (String key : new String[]{"localTraffic", "remoteTraffic", "activities", "tips", "geoHistory"}) {
+                    HandlerRef<?> handler = routes.ref.GeoCtrl.getTravelGuide(locId, key);
+                    JsonNode node = getResultNode(handler);
+
+                    assertText(node, true, "desc");
+
+                    JsonNode contents = node.get("contents");
+                    assertThat(contents.isArray() && contents.size() > 0).isTrue();
+                    for (JsonNode c : contents) {
+                        assertFields(c, "title", "desc", "images");
+                        assertText(c, false, "title", "desc");
+                        assertImages(c.get("images"), true);
+                    }
+                }
             }
         });
     }
