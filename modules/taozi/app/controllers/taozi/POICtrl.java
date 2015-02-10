@@ -10,6 +10,7 @@ import controllers.UsingCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
+import formatter.taozi.geo.DetailsEntryFormatter;
 import formatter.taozi.poi.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
@@ -439,12 +440,17 @@ public class POICtrl extends Controller {
                     destKeyList.add(AbstractPOI.FD_VISITGUIDE);
                     break;
             }
-
+            // 获取图片宽度
+            String imgWidthStr = request().getQueryString("imgWidth");
+            int imgWidth = 0;
+            if (imgWidthStr != null)
+                imgWidth = Integer.valueOf(imgWidthStr);
             AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(locId), poiClass, destKeyList);
             ObjectNode result = Json.newObject();
             if (field.equals("tips")) {
                 result.put("desc", "");
-                result.put("contents", Json.toJson(GeoCtrl.contentsToList(poiInfo.getTips())));
+                DetailsEntryFormatter detailsEntryFormatter = FormatterFactory.getInstance(DetailsEntryFormatter.class, imgWidth);
+                result.put("contents", poiInfo.getTips() == null ? Json.toJson(new ArrayList<>()) : detailsEntryFormatter.formatNode(poiInfo.getTips()));
             } else if (field.equals("trafficInfo")) {
                 result.put("contents", Json.toJson(poiInfo.getTrafficInfo()));
             } else if (field.equals("visitGuide")) {
@@ -452,8 +458,10 @@ public class POICtrl extends Controller {
             }
 
             return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (AizouException | NullPointerException | NumberFormatException e) {
+        } catch (AizouException | NullPointerException | NumberFormatException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
     }
 }
+
+

@@ -38,9 +38,7 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
         return (val != null) ? val : 0;
     }
 
-    protected Boolean getValue(Boolean val) {
-        return val;
-    }
+    protected Boolean getValue(Boolean val) { return (val != null) ? val : false; }
 
     /**
      * 写入ObjectId

@@ -97,7 +97,8 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
             jsonGenerator.writeEndArray();
 
         }
-
+        // Rank
+        jsonGenerator.writeNumberField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
         // Targets
         jsonGenerator.writeFieldName(AbstractPOI.detTargets);
         List<ObjectId> targets = abstractPOI.targets;
