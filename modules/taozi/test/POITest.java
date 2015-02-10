@@ -1,14 +1,17 @@
 import com.fasterxml.jackson.databind.JsonNode;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-import play.GlobalSettings;
+import play.Configuration;
 import play.api.mvc.HandlerRef;
 import play.libs.Json;
 import play.mvc.Result;
 import play.test.FakeApplication;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,26 +24,65 @@ import static utils.TestHelpers.*;
 /**
  * Created by zephyre on 12/8/14.
  */
-@Ignore
 public class POITest extends AizouTest {
 
     private static FakeApplication app;
 
     @BeforeClass
     public static void setup() {
-//        Config c = ConfigFactory.parseFile(new File("./conf/application.conf"));
-//        Configuration config = new Configuration(c);
-        app = fakeApplication(new GlobalSettings());
+        Config c = ConfigFactory.parseFile(new File("../../conf/application.conf"));
+        Configuration config = new Configuration(c);
+        app = fakeApplication(config.asMap());
+    }
+
+    @Test
+    public void testGetViewSpot() {
+        running(app, new Runnable() {
+            @Override
+            public void run() {
+                HandlerRef<?> handler = routes.ref.POICtrl.viewPOIInfo("vs", "547bfe2fb8ce043eb2d89069", 0, 20, 0, 10);
+                JsonNode node = getResultNode(handler);
+
+                assertFields(node, "type", "id", "isFavorite", "zhName", "enName", "price", "priceDesc", "desc",
+                        "openTime", "images", "rating", "address", "timeCostDesc", "location", "tipsUrl",
+                        "visitGuideUrl", "trafficInfoUrl", "rank", "travelMonth", "tel", "comments", "commentCnt");
+
+                assertText(node, false, "type", "id", "zhName", "desc");
+                assertText(node, true, "enName", "priceDesc", "desc", "openTime", "address", "timeCostDesc",
+                        "tipsUrl", "visitGuideUrl", "trafficInfoUrl", "travelMonth");
+                assertThat(node.get("isFavorite").isBoolean());
+
+                JsonNode price = node.get("price");
+                if (!price.isNull())
+                    assertThat(price.isNumber() && price.asInt() >= 0).isTrue();
+
+                double rating = node.get("rating").asDouble();
+                assertThat(rating >= 0 && rating <= 1);
+
+                JsonNode rank = node.get("rank");
+                assertThat(rank.isNumber() && rank.asInt() >= 0).isTrue();
+
+                JsonNode cnt = node.get("commentCnt");
+                assertThat(cnt.isNumber() && cnt.asInt() >= 0).isTrue();
+
+                assertImages(node.get("images"), false);
+                assertCoords(node.get("location"));
+                assertThat(node.get("comments").isArray());
+                assertThat(node.get("tel").isArray());
+            }
+        });
     }
 
     /**
      * 测试查看某个地点周围的POI的功能
      */
     @Test
+    @Ignore
     public void getNear() {
         running(app, new PoiNearCheck());
     }
 
+    @Ignore
     public class PoiNearCheck implements Runnable {
 
         @Override
@@ -108,6 +150,7 @@ public class POITest extends AizouTest {
      */
     //TODO 餐厅数据
     @Test
+    @Ignore
     public void getPoiById() {
         running(app, new Runnable() {
             @Override
@@ -215,6 +258,7 @@ public class POITest extends AizouTest {
      * 测试根据目的地获得景点、酒店、餐厅信息
      */
     @Test
+    @Ignore
     public void getPoiListByLocId() {
         running(app, new Runnable() {
             @Override
