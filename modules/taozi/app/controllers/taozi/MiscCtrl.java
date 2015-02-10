@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
-import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
@@ -202,18 +201,12 @@ public class MiscCtrl extends Controller {
             Integer userId = Integer.parseInt(request().getHeader("UserId"));
             Query<Favorite> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).createQuery(Favorite.class);
             query.field("userId").equal(userId);
-            if (faType.equals("all") || faType.equals("")) {
-                List<CriteriaContainerImpl> criList = new ArrayList<>();
-                List<String> allTypes = Arrays.asList(Favorite.TYPE_VS, Favorite.TYPE_HOTEL, Favorite.TYPE_TRAVELNOTE, Favorite.TYPE_SHOPPING
-                        , Favorite.TYPE_RESTAURANT, Favorite.TYPE_LOCALITY, Favorite.TYPE_ENTERTAINMENT);
-                for (String fd : allTypes)
-                    criList.add(query.criteria("type").equal(fd));
-                query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
-            } else {
-                query.field("type").equal(faType);
-            }
+
+            if (faType != null && !faType.equals("all") && !faType.equals(""))
+                query.field(Favorite.fnType).equal(faType);
+
             query.offset(page * pageSize).limit(pageSize);
-            query.order("-" + "createTime");
+            query.order(String.format("-%s", Favorite.fnCreateTime));
 
             List<Favorite> faList = query.asList();
             if (faList == null || faList.isEmpty())
