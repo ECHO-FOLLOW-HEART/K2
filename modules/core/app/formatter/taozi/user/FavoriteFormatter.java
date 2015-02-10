@@ -102,7 +102,7 @@ public class FavoriteFormatter extends AizouFormatter<Favorite> {
             jgen.writeEndArray();
 
             // Locality
-            jgen.writeFieldName(Guide.fnLocalities);
+            jgen.writeFieldName(Favorite.fnLocality);
             Locality locality = favorite.locality;
             if (locality != null) {
                 JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(Locality.class, null);
