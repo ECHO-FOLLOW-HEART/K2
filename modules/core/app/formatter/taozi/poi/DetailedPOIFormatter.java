@@ -1,32 +1,17 @@
 package formatter.taozi.poi;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
+
 import formatter.AizouFormatter;
-import formatter.AizouSerializer;
 import formatter.taozi.GeoJsonPointSerializer;
 import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.ImageItemSerializerOld;
-import formatter.taozi.TaoziBaseFormatter;
 import formatter.taozi.geo.LocalitySerializer;
 import formatter.taozi.guide.ItinerItemSerializer;
 import models.AizouBaseEntity;
-import models.geo.Country;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
-import models.guide.Guide;
 import models.guide.ItinerItem;
 import models.misc.ImageItem;
 import models.poi.*;
-import org.bson.types.ObjectId;
 
 import java.io.IOException;
 import java.util.*;
@@ -40,7 +25,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends AizouFormatter<
 
     public Set<String> getFilteredFields(Class<? extends AbstractPOI> cls) {
 
-        if (cls.equals(ViewSpot.class)) {
+        if (cls == ViewSpot.class) {
             String[] keyList = new String[]{
                     ViewSpot.FD_OPEN_TIME, ViewSpot.FD_TIME_COST_DESC, ViewSpot.FD_TRAVEL_MONTH,
                     ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_VISITGUIDE_URL, ViewSpot.FD_TIPS_URL
@@ -78,8 +63,6 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends AizouFormatter<
                 AbstractPOI.FD_RANK
         );
     }
-
-
 
 
 }
