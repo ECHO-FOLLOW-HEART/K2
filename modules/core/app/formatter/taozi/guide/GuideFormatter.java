@@ -71,9 +71,9 @@ public class GuideFormatter extends AizouFormatter<Guide> {
             jgen.writeEndArray();
 
             jgen.writeStringField(AbstractGuide.fnTitle, getString(guide.title));
-            jgen.writeNumberField(Guide.fnUserId, getValue(guide.getUserId()));
-            jgen.writeNumberField(Guide.fnItineraryDays, getValue(guide.getItineraryDays()));
-            jgen.writeNumberField(Guide.fnUpdateTime, getValue(guide.getUpdateTime()));
+            jgen.writeObjectField(Guide.fnUserId, getValue(guide.getUserId()));
+            jgen.writeObjectField(Guide.fnItineraryDays, getValue(guide.getItineraryDays()));
+            jgen.writeObjectField(Guide.fnUpdateTime, getValue(guide.getUpdateTime()));
 
             // Locality
             jgen.writeFieldName(Guide.fnLocalities);

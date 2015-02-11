@@ -614,6 +614,12 @@ public class PoiAPI {
                 .iterator();
     }
 
+    public static LyMapping getTongChenPOI(ObjectId poiId) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<LyMapping> query = ds.createQuery(LyMapping.class);
+        query.field("itemId").equal(poiId);
+        return query.get();
+    }
 //    /**
 //     * 发现POI。
 //     *

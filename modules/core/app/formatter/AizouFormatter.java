@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
@@ -13,6 +14,7 @@ import formatter.taozi.ObjectIdSerializer;
 import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.misc.ImageItem;
+import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
 
 import java.util.*;

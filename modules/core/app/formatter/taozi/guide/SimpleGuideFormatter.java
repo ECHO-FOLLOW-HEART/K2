@@ -56,8 +56,8 @@ public class SimpleGuideFormatter extends AizouFormatter<Guide> {
             jgen.writeEndArray();
 
             jgen.writeStringField(Guide.fnTitle, getString(guide.title));
-            jgen.writeNumberField(Guide.fnUpdateTime, getValue(guide.getUpdateTime()));
-            jgen.writeNumberField(Guide.fnDayCnt, getValue(guide.getDayCnt()));
+            jgen.writeObjectField(Guide.fnUpdateTime, getValue(guide.getUpdateTime()));
+            jgen.writeObjectField(Guide.fnDayCnt, getValue(guide.getDayCnt()));
             jgen.writeStringField(Guide.fnSummary, getString(guide.getSummary()));
 
             jgen.writeEndObject();

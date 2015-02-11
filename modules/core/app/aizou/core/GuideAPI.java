@@ -451,16 +451,16 @@ public class GuideAPI {
         List<String> hotelFields = new ArrayList<>();
         Collections.addAll(vsFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_RANK);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_RANK, AbstractPOI.FD_PRICE, AbstractPOI.FD_PRICE_DESC);
         Collections.addAll(restFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK, AbstractPOI.FD_PRICE, AbstractPOI.FD_PRICE_DESC);
         Collections.addAll(shopFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK, AbstractPOI.FD_PRICE, AbstractPOI.FD_PRICE_DESC);
         Collections.addAll(hotelFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK, AbstractPOI.FD_PRICE, AbstractPOI.FD_PRICE_DESC);
 
         // 按类型查询POI，并放入Map中
         List<ViewSpot> vsTempList = (List<ViewSpot>) PoiAPI.getPOIInfoList(vsIdList, "vs", vsFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);

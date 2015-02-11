@@ -15,7 +15,7 @@ import formatter.taozi.misc.ColumnFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.misc.RecomFormatter;
 import formatter.taozi.poi.BriefPOIFormatter;
-import formatter.taozi.poi.DetailedPOIFormatter;
+import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
@@ -51,7 +51,7 @@ import java.util.*;
 public class MiscCtrl extends Controller {
 
     public static String UPLOAD_URL = "url";
-
+    public static String UPLOAD_URL_SMALL = "urlSmall";
     public static String UPLOAD_UID = "userId";
 
     /**
@@ -396,8 +396,19 @@ public class MiscCtrl extends Controller {
      * @return
      */
     private static String getCallBackBody(Integer userId) {
+        StringBuilder callbackBody = new StringBuilder(10);
+        callbackBody.append("name=$(fname)");
+        callbackBody.append("&size=$(fsize)");
+        callbackBody.append("&h=$(imageInfo.height)");
+        callbackBody.append("&w=$(imageInfo.width)");
+        callbackBody.append("&w=$(imageInfo.width)");
+        callbackBody.append("&hash=$(etag)");
+        callbackBody.append("&bucket=$(bucket)");
         String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
         // 定义图片的URL
+        callbackBody.append("&").append(UPLOAD_URL).append("=").append(url);
+        callbackBody.append("&").append(UPLOAD_URL_SMALL).append("=").append(url).append("?imageView2/2/w/200");
+
         // 定义用户ID
         return "name=$(fname)" + "&size=$(fsize)" + "&h=$(imageInfo.height)" + "&w=$(imageInfo.width)" +
                 "&w=$(imageInfo.width)" + "&hash=$(etag)" + "&bucket=$(bucket)" + "&" + UPLOAD_URL +
@@ -434,6 +445,7 @@ public class MiscCtrl extends Controller {
         Map<String, String[]> fav = request().body().asFormUrlEncoded();
         ObjectNode ret = Json.newObject();
         String url = null;
+//        String urlSmall = null;
         String userId = null;
         for (Map.Entry<String, String[]> entry : fav.entrySet()) {
             String key = entry.getKey();
@@ -443,7 +455,10 @@ public class MiscCtrl extends Controller {
                 url = value[0];
             if (key.equals(UPLOAD_UID))
                 userId = value[0];
+//            if (key.equals(UPLOAD_URL_SMALL))
+//                urlSmall = value[0];
             ret.put(key, value[0]);
+//            LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
         }
         ret.put("success", true);
 
@@ -453,7 +468,10 @@ public class MiscCtrl extends Controller {
 
         return ok(ret);
     }
-
+//
+//    private static String delSpe(String str){
+//        return str.replaceAll("\\\\", "");
+//    }
 
     /**
      * 旅行专栏
@@ -605,6 +623,8 @@ public class MiscCtrl extends Controller {
                 put(PoiAPI.POIType.SHOPPING, "shopping");
             }
         };
+
+        SimplePOIFormatter<? extends AbstractPOI> poiFormatter;
         for (PoiAPI.POIType poiType : poiKeyList) {
             ObjectId oid = locId.equals("") ? null : new ObjectId(locId);
             // 发现POI
@@ -613,10 +633,9 @@ public class MiscCtrl extends Controller {
             for (AbstractPOI poi : itPoi) {
                 poi.images = TaoziDataFilter.getOneImage(poi.images);
                 poi.desc = StringUtils.abbreviate(poi.desc, Constants.ABBREVIATE_LEN);
-                retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
-
+                poiFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
+                retPoiList.add(poiFormatter.formatNode(poi));
             }
-
             results.put(poiMap.get(poiType), Json.toJson(retPoiList));
         }
 

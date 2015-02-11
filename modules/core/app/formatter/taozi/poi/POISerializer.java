@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
+import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
@@ -12,6 +13,7 @@ import models.poi.Restaurant;
 import models.poi.Shopping;
 import models.poi.ViewSpot;
 import org.bson.types.ObjectId;
+import utils.TaoziDataFilter;
 
 import java.io.IOException;
 import java.util.List;
@@ -46,7 +48,6 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
         jsonGenerator.writeNumberField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
         jsonGenerator.writeStringField(AbstractPOI.FD_ADDRESS, getString(abstractPOI.address));
-
 
         jsonGenerator.writeFieldName("images");
         List<ImageItem> images = abstractPOI.getImages();
@@ -114,7 +115,6 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
             retObjectId.serialize(targets, jsonGenerator, serializerProvider);
         }
 
-
         // Locality
         jsonGenerator.writeFieldName(AbstractPOI.FD_LOCALITY);
         Locality localities = abstractPOI.getLocality();
@@ -139,6 +139,26 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
             retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
         }
 
+        if (level.equals(Level.DETAILED)) {
+            String id = abstractPOI.getId().toString();
+            jsonGenerator.writeBooleanField(AizouBaseEntity.FD_IS_FAVORITE, getValue(abstractPOI.getIsFavorite()));
+            jsonGenerator.writeStringField(AbstractPOI.FD_PRICE_DESC, getString(TaoziDataFilter.getPriceDesc(abstractPOI)));
+
+            if (abstractPOI.getTrafficInfo() == null || abstractPOI.getTrafficInfo().equals(""))
+                jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "");
+            else
+                jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "http://h5.taozilvxing.com/poi_traffic.php?tid=" + id);
+
+            if (abstractPOI.getVisitGuide() == null || abstractPOI.getVisitGuide().equals(""))
+                jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "");
+            else
+                jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://h5.taozilvxing.com/poi_play.php?tid=" + id);
+
+            if (abstractPOI.getTips() == null || abstractPOI.getTips().equals(""))
+                jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "");
+            else
+                jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL,"http://h5.taozilvxing.com/poi_tips.php?tid="+id);
+        }
         jsonGenerator.writeEndObject();
     }
 }
