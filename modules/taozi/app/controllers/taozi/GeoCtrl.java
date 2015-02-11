@@ -86,7 +86,7 @@ public class GeoCtrl extends Controller {
     @UsingOcsCache(key = "getLocalityAlbums({id},{page},{pageSize})", expireTime = 3600)
     public static Result getLocalityAlbums(@Key(tag = "id") String id,
                                            @Key(tag = "page") int page,
-                                           @Key(tag = "pageSize") int pageSize) {
+                                           @Key(tag = "pageSize") int pageSize) throws AizouException {
         return MiscCtrl.getAlbums(id, page, pageSize);
     }
 
