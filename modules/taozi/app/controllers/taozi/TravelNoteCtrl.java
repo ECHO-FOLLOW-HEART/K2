@@ -4,8 +4,8 @@ import aizou.core.MiscAPI;
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.CacheKey;
-import controllers.UsingCache;
+import controllers.Key;
+import controllers.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -35,10 +35,10 @@ public class TravelNoteCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
-    public static Result searchTravelNotes(@CacheKey(tag = "keyword") String keyWord,
-                                           @CacheKey(tag = "locId") String locId,
-                                           @CacheKey(tag = "page") int page, @CacheKey(tag = "pageSize") int pageSize) {
+    @UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
+    public static Result searchTravelNotes(@Key(tag = "keyword") String keyWord,
+                                           @Key(tag = "locId") String locId,
+                                           @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize) {
         List<TravelNote> noteList;
         JsonNode result;
         JsonNode note;
@@ -81,8 +81,8 @@ public class TravelNoteCtrl extends Controller {
      * @param noteId
      * @return
      */
-    @UsingCache(key = "travelNoteDetails({noteId})")
-    public static Result travelNoteDetail(@CacheKey(tag = "noteId") String noteId) {
+    @UsingOcsCache(key = "travelNoteDetails({noteId})")
+    public static Result travelNoteDetail(@Key(tag = "noteId") String noteId) {
         try {
             // 获取图片宽度
             String imgWidthStr = request().getQueryString("imgWidth");

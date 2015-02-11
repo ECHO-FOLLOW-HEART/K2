@@ -5,8 +5,8 @@ import aizou.core.PoiAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.CacheKey;
-import controllers.UsingCache;
+import controllers.Key;
+import controllers.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -80,13 +80,13 @@ public class POICtrl extends Controller {
      *                entertainment:美食
      * @param spotId  POI的ID。
      */
-    @UsingCache(key = "poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize}", expireTime = 3600)
+    @UsingOcsCache(key="poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize}", expireTime = 3600)
     public static Result viewPOIInfo(String poiDesc,
-                                     @CacheKey(tag = "poiId") String spotId,
-                                     @CacheKey(tag = "cmtPage") int commentPage,
-                                     @CacheKey(tag = "cmtPageSize") int commentPageSize,
-                                     @CacheKey(tag = "rmdPage") int rmdPage,
-                                     @CacheKey(tag = "rmdPageSize") int rmdPageSize) {
+                                     @Key(tag="poiId") String spotId,
+                                     @Key(tag="cmtPage") int commentPage,
+                                     @Key(tag="cmtPageSize")int commentPageSize,
+                                     @Key(tag="rmdPage")int rmdPage,
+                                     @Key(tag="rmdPageSize")int rmdPageSize) {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
@@ -209,15 +209,15 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "poiList({type},{loc},{sortField},{sortType},{page},{pageSize},{cmtPage},{cmtPageSize}",
+    @UsingOcsCache(key="poiList({type},{loc},{sortField},{sortType},{page},{pageSize},{cmtPage},{cmtPageSize}",
             expireTime = 3600)
-    public static Result viewPoiList(@CacheKey(tag = "type") String poiType,
-                                     @CacheKey(tag = "loc") String locId, String tagFilter,
-                                     @CacheKey(tag = "sortField") String sortField,
-                                     @CacheKey(tag = "sortType") String sortType,
-                                     @CacheKey(tag = "page") int page, @CacheKey(tag = "pageSize") int pageSize,
-                                     @CacheKey(tag = "cmtPage") int commentPage,
-                                     @CacheKey(tag = "cmtPageSize") int commentPageSize) {
+    public static Result viewPoiList(@Key(tag="type") String poiType,
+                                     @Key(tag="loc") String locId, String tagFilter,
+                                     @Key(tag="sortField") String sortField,
+                                     @Key(tag="sortType") String sortType,
+                                     @Key(tag="page") int page, @Key(tag="pageSize") int pageSize,
+                                     @Key(tag="cmtPage") int commentPage,
+                                     @Key(tag="cmtPageSize") int commentPageSize) {
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":

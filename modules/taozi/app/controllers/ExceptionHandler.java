@@ -1,13 +1,13 @@
 package controllers;
 
+import exception.AizouException;
 import exception.ErrorCode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
+import play.Configuration;
 import play.mvc.Result;
 import utils.Utils;
 
@@ -18,10 +18,24 @@ import utils.Utils;
 public class ExceptionHandler {
     private Log logger = LogFactory.getLog(this.getClass());
 
+    private boolean debug;
+
+    public ExceptionHandler() {
+        String runLevel = Configuration.root().getString("runlevel");
+        debug = (runLevel != null && runLevel.toLowerCase().equals("debug"));
+
+        logger.info(String.format("Exception handler init: %s", debug));
+    }
+
     @Around("execution(public play.mvc.Result controllers.taozi..*(..))")
     public Result catchException(ProceedingJoinPoint pjp) {
         try {
             return (Result) pjp.proceed();
+        } catch (AizouException e) {
+            if (debug)
+                return Utils.createResponse(e.getErrCode(), e.getMessage());
+            else
+                return Utils.createResponse(e.getErrCode(), (String) null);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
             logger.info("An unhandled Exception was caught by ExceptionHandler");

@@ -3,12 +3,12 @@ package controllers.taozi;
 import aizou.core.GeoAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
-import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.CacheKey;
-import controllers.UsingCache;
+import controllers.Key;
+import controllers.UsingLocalCache;
+import controllers.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -17,20 +17,17 @@ import formatter.taozi.geo.LocalityFormatter;
 import formatter.taozi.geo.SimpleCountryFormatter;
 import formatter.taozi.geo.SimpleLocalityFormatter;
 import models.geo.Country;
-import models.geo.DetailsEntry;
 import models.geo.Locality;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
-import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
 
-import java.text.ParseException;
 import java.util.*;
 
 
@@ -46,8 +43,8 @@ public class GeoCtrl extends Controller {
      * @param id 城市ID
      * @return
      */
-    @UsingCache(key = "getLocality({id})", expireTime = 3600)
-    public static Result getLocality(@CacheKey(tag = "id") String id) {
+    @UsingOcsCache(key = "getLocality({id})", expireTime = 3600)
+    public static Result getLocality(@Key(tag="id") String id) {
         try {
             // 获取图片宽度
             String imgWidthStr = request().getQueryString("imgWidth");
@@ -86,11 +83,16 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "getLocalityAlbums({id},{page},{pageSize})", expireTime = 3600)
-    public static Result getLocalityAlbums(@CacheKey(tag = "id") String id,
-                                           @CacheKey(tag = "page") int page,
-                                           @CacheKey(tag = "pageSize") int pageSize) {
+    @UsingOcsCache(key = "getLocalityAlbums({id},{page},{pageSize})", expireTime = 3600)
+    public static Result getLocalityAlbums(@Key(tag = "id") String id,
+                                           @Key(tag = "page") int page,
+                                           @Key(tag = "pageSize") int pageSize) {
         return MiscCtrl.getAlbums(id, page, pageSize);
+    }
+
+    @UsingOcsCache(key = "getLMD()", expireTime = 30)
+    public static long getLMD(boolean abroad, int page) {
+        return System.currentTimeMillis()-3600;
     }
 
     /**
@@ -101,12 +103,15 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key = "destinations(abroad={abroad})", expireTime = 3600)
-    public static Result exploreDestinations(@CacheKey(tag = "abroad") boolean abroad, int page, int pageSize) {
+    @UsingOcsCache(key = "destinations(abroad={abroad})", expireTime = 3600)
+    @UsingLocalCache(callback = "getLMD", args = "{abroad}|{page}")
+    public static Result exploreDestinations(@Key(tag = "abroad") boolean abroad,
+                                             @Key(tag = "page")int page,
+                                             int pageSize) {
         try {
-            long t0 = System.currentTimeMillis();
-            Http.Request req = request();
-            Http.Response rsp = response();
+//            long t0 = System.currentTimeMillis();
+//            Http.Request req = request();
+//            Http.Response rsp = response();
             // 获取图片宽度
             String imgWidthStr = request().getQueryString("imgWidth");
             int imgWidth = 0;
@@ -114,11 +119,12 @@ public class GeoCtrl extends Controller {
                 imgWidth = Integer.valueOf(imgWidthStr);
             Configuration config = Configuration.root();
             Map destnations = (Map) config.getObject("destinations");
-            String lastModify = destnations.get("lastModify").toString();
-            // 添加缓存用的相应头
-            Utils.addCacheResponseHeader(rsp, lastModify);
-            if (Utils.useCache(req, lastModify))
-                return status(304, "Content not modified, dude.");
+            //TODO 禁用了这里的304机制，统一由ModifiedHandler处理
+//            String lastModify = destnations.get("lastModify").toString();
+//            添加缓存用的相应头
+//            Utils.addCacheResponseHeader(rsp, lastModify);
+//            if (Utils.useCache(req, lastModify))
+//                return status(304, "Content not modified, dude.");
 
             List<ObjectNode> objs = new ArrayList<>();
 
@@ -165,10 +171,10 @@ public class GeoCtrl extends Controller {
                     node.put("pinyin", pinyin);
                     objs.add(node);
                 }
-
-                return Utils.createResponse(rsp, lastModify, ErrorCode.NORMAL, Json.toJson(objs));
+                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
+//                return Utils.createResponse(rsp, lastModify, ErrorCode.NORMAL, Json.toJson(objs));
             }
-        } catch (AizouException | ParseException e) {
+        } catch (AizouException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (ReflectiveOperationException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.UNKOWN_ERROR, e.getMessage());
@@ -302,7 +308,7 @@ public class GeoCtrl extends Controller {
         Locality loc = null;
         try {
             loc = GeoAPI.locDetails(new ObjectId(locId), Arrays.asList("zhName"));
-        } catch (AizouException e) {
+        } catch (AizouException ignored) {
         }
 
         ObjectNode node;
