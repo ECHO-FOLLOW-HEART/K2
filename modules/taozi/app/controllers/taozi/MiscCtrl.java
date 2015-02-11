@@ -16,6 +16,7 @@ import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.poi.BriefPOIFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.misc.RecomFormatter;
+import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
@@ -642,6 +643,8 @@ public class MiscCtrl extends Controller {
                     put(PoiAPI.POIType.SHOPPING, "shopping");
                 }
             };
+
+            SimplePOIFormatter<? extends AbstractPOI> poiFormatter;
             for (PoiAPI.POIType poiType : poiKeyList) {
                 ObjectId oid = locId.equals("") ? null : new ObjectId(locId);
                 // 发现POI
@@ -650,10 +653,9 @@ public class MiscCtrl extends Controller {
                 for (AbstractPOI poi : itPoi) {
                     poi.images = TaoziDataFilter.getOneImage(poi.images);
                     poi.desc = StringUtils.abbreviate(poi.desc, Constants.ABBREVIATE_LEN);
-                    retPoiList.add(new DetailedPOIFormatter<>(poi.getClass()).format(poi));
-
+                    poiFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
+                    retPoiList.add(poiFormatter.formatNode(poi));
                 }
-
                 results.put(poiMap.get(poiType), Json.toJson(retPoiList));
             }
         } catch (AizouException | NullPointerException | SolrServerException | JsonProcessingException e) {

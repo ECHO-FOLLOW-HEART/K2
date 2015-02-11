@@ -120,7 +120,7 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public static String FD_VISITGUIDE_URL = "visitGuideUrl";
 
     @Transient
-    public static String FD_COMMENTS = "comments";
+    public static String FD_TIPS_URL = "tipsUrl";
 
     @Transient
     public static String FD_RANK = "rank";
@@ -286,6 +286,19 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      * @return
      */
     private String trafficInfo;
+
+    public void setTrafficInfo(String trafficInfo) {
+        this.trafficInfo = trafficInfo;
+    }
+
+    public void setVisitGuide(String visitGuide) {
+        this.visitGuide = visitGuide;
+    }
+
+    public void setTips(List<DetailsEntry> tips) {
+        this.tips = tips;
+    }
+
     /**
      * 交通信息URL
      */

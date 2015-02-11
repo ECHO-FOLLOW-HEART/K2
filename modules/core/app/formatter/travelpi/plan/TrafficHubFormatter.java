@@ -1,4 +1,4 @@
-package formatter.taozi.poi;
+package formatter.travelpi.plan;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
