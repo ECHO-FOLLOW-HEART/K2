@@ -35,6 +35,8 @@
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${application.home}/logs/access/accesslog-%d.log</fileNamePattern>
         </rollingPolicy>
+        <Version>1.0</Version>
+        <Fields>date time c-version c-platform c-userid c-ip cs-method cs-uri sc-status s-code bytes</Fields>
         <encoder>
             <pattern>%msg %n</pattern>
             <charset>UTF-8</charset>

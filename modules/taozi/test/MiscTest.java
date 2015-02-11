@@ -15,10 +15,13 @@ import play.libs.Json;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.FakeRequest;
+import utils.validator.SimpleRestaurantValidator;
+import utils.validator.SimpleViewSpotValidator;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -143,23 +146,19 @@ public class MiscTest extends AizouTest {
                 for (JsonNode loc : locList)
                     checkLocality(loc);
 
-//                for (String key : new String[]{"vs", "restaurant"}) {
                 JsonNode poiList = node.get("vs");
                 assertThat(poiList.isArray() && poiList.size() > 0).isTrue();
                 for (JsonNode poi : poiList) {
-                    checkVs(poi);
+                    new SimpleViewSpotValidator(Arrays.asList("type"), null).validate(poi);
                     assertThat(poi.get("type").asText()).isEqualTo("vs");
                 }
 
                 poiList = node.get("restaurant");
                 assertThat(poiList.isArray() && poiList.size() > 0).isTrue();
                 for (JsonNode poi : poiList) {
-                    checkRestaurant(poi);
+                    new SimpleRestaurantValidator(Arrays.asList("type"), null).validate(poi);
                     assertThat(poi.get("type").asText()).isEqualTo("restaurant");
                 }
-
-
-//                }
             }
         });
     }
@@ -168,7 +167,6 @@ public class MiscTest extends AizouTest {
      * 测试搜索联想功能
      */
     @Test
-    @Ignore
     public void testSuggestions() throws Exception {
         Method method = MiscCtrl.class.getDeclaredMethod("getSuggestions",
                 String.class, boolean.class, boolean.class, boolean.class, boolean.class, int.class);

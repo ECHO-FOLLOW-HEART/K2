@@ -3,22 +3,18 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import play.Configuration;
 import play.api.mvc.HandlerRef;
-import play.libs.Json;
-import play.mvc.Result;
 import play.test.FakeApplication;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.test.Helpers.*;
+import static play.test.Helpers.fakeApplication;
+import static play.test.Helpers.running;
 import static utils.TestHelpers.*;
 
 /**
@@ -69,7 +65,8 @@ public class POITest extends AizouTest {
         running(app, new Runnable() {
             @Override
             public void run() {
-                HandlerRef<?> handler = routes.ref.POICtrl.viewPOIInfo("vs", "547bfe2fb8ce043eb2d89069", 0, 20, 0, 10);
+                HandlerRef<?> handler = routes.ref.POICtrl.viewPOIInfo("vs", "547bfe2fb8ce043eb2d89069", 0, 20,
+                        0, 10, false);
                 JsonNode node = getResultNode(handler);
 
                 assertFields(node, "type", "id", "isFavorite", "zhName", "enName", "price", "priceDesc", "desc",
