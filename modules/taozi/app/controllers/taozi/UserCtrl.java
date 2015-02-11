@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -66,7 +66,7 @@ public class UserCtrl extends Controller {
             //验证用户是否存在
             if (UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber(),
                     Arrays.asList(UserInfo.fnUserId)) != null) {
-                return Utils.createResponse(ErrorCode.USER_EXIST);
+                return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
             }
 
             UserInfo userInfo;
@@ -76,7 +76,7 @@ public class UserCtrl extends Controller {
                 // 生成用户
                 userInfo = UserAPI.regByTel(telEntry.getPhoneNumber(), telEntry.getDialCode(), pwd);
             } else
-                return Utils.createResponse(ErrorCode.CAPTCHA_ERROR);
+                return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
             ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
 
