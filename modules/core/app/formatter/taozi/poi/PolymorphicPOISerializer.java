@@ -266,8 +266,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         if (level.equals(Level.DETAILED)) {
             String id = abstractPOI.getId().toString();
             jsonGenerator.writeBooleanField(AizouBaseEntity.FD_IS_FAVORITE, getValue(abstractPOI.getIsFavorite()));
-            jsonGenerator.writeStringField(AbstractPOI.FD_DESC, getString(StringUtils.abbreviate(abstractPOI.desc, Constants.ABBREVIATE_LEN)));
-
+            jsonGenerator.writeStringField(AbstractPOI.FD_DESC, getString(abstractPOI.desc));
 
             if (abstractPOI instanceof ViewSpot) {
                 jsonGenerator.writeStringField(ViewSpot.FD_OPEN_TIME, getString(abstractPOI.openTime));

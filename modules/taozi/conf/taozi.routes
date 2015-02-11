@@ -72,15 +72,17 @@ GET           /misc/updates                                      controllers.tao
 #----------POI接口----------
 #查看POI详情
 # 景点详情
-GET           /poi/vs/$spotId<[0-9a-f]{24}>                      controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/vs/$spotId<[0-9a-f]{24}>                      controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=false)
+# 景点详情(H5)
+GET           /poi/vs/$spotId<[0-9a-f]{24}>/description          controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=true)
 #获取景点的深度介绍(H5)
 GET           /poi/vs/$id<[0-9a-f]{24}>/details                  controllers.taozi.POICtrl.getTravelGuide(id: String, field: String,poiDesc: String="vs")
 # 酒店详情
-GET           /poi/hotel/$spotId<[0-9a-f]{24}>                   controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/hotel/$spotId<[0-9a-f]{24}>                   controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=false)
 #美食详情
-GET           /poi/restaurant/:spotId                            controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="restaurant", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/restaurant/:spotId                            controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="restaurant", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=false)
 #购物详情
-GET           /poi/shopping/:spotId                              controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/shopping/:spotId                              controllers.taozi.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=false)
 # POI的搜索
 GET           /poi/search                                        controllers.taozi.POICtrl.poiSearch(poiType: String,tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="hotness", sort: String?="desc",hotelType: String?="")
 # 酒店列表

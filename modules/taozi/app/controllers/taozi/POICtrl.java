@@ -16,6 +16,7 @@ import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import models.poi.*;
+import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
@@ -34,7 +35,7 @@ public class POICtrl extends Controller {
 
     public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
                                            int commentPage, int commentPageSize, Long userId,
-                                           int rmdPage, int rmdPageSize, int imgWidth) throws AizouException, JsonProcessingException, IllegalAccessException, InstantiationException {
+                                           int rmdPage, int rmdPageSize, int imgWidth, boolean isWeb) throws AizouException, JsonProcessingException, IllegalAccessException, InstantiationException {
         DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = FormatterFactory.getInstance(DetailedPOIFormatter.class, imgWidth);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields(poiClass));
         if (poiInfo == null)
@@ -42,6 +43,8 @@ public class POICtrl extends Controller {
 
         // 处理价格
         //poiInfo.priceDesc = TaoziDataFilter.getPriceDesc(poiInfo);
+        if (!isWeb)
+            poiInfo.desc = StringUtils.abbreviate(poiInfo.desc, Constants.ABBREVIATE_LEN);
         //是否被收藏
         MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.formatNode(poiInfo);
@@ -87,13 +90,14 @@ public class POICtrl extends Controller {
      *                entertainment:美食
      * @param spotId  POI的ID。
      */
-    @UsingCache(key = "poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize}", expireTime = 3600)
+    @UsingCache(key = "poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize},{isWeb}", expireTime = 3600)
     public static Result viewPOIInfo(String poiDesc,
                                      @CacheKey(tag = "poiId") String spotId,
                                      @CacheKey(tag = "cmtPage") int commentPage,
                                      @CacheKey(tag = "cmtPageSize") int commentPageSize,
                                      @CacheKey(tag = "rmdPage") int rmdPage,
-                                     @CacheKey(tag = "rmdPageSize") int rmdPageSize) {
+                                     @CacheKey(tag = "rmdPageSize") int rmdPageSize,
+                                     @CacheKey(tag = "isWeb") boolean isWeb) {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
@@ -123,7 +127,7 @@ public class POICtrl extends Controller {
                 userId = Long.parseLong(request().getHeader("UserId"));
             else
                 userId = null;
-            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth);
+            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth, isWeb);
             return Utils.createResponse(ErrorCode.NORMAL, ret);
         } catch (AizouException | JsonProcessingException | InstantiationException | IllegalAccessException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
