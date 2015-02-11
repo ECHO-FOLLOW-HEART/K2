@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
-import controllers.CacheKey;
-import controllers.RemoveCache;
-import controllers.UsingCache;
+import controllers.Key;
+import controllers.RemoveOcsCache;
+import controllers.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -686,8 +686,8 @@ public class UserCtrl extends Controller {
         return addContactImpl(userId, contactId);
     }
 
-    @RemoveCache(keyList = "getContactList({userA})|getContactList({userB})")
-    public static Result addContactImpl(@CacheKey(tag = "userA") long userId, @CacheKey(tag = "userB") long contactId) {
+    @RemoveOcsCache(keyList = "getContactList({userA})|getContactList({userB})")
+    public static Result addContactImpl(@Key(tag = "userA") long userId, @Key(tag = "userB") long contactId) {
         try {
             UserAPI.addContact(userId, contactId);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
@@ -713,8 +713,8 @@ public class UserCtrl extends Controller {
         return delContactImpl(userId, id);
     }
 
-    @RemoveCache(keyList = "getContactList({userA})|getContactList({userB})")
-    public static Result delContactImpl(@CacheKey(tag = "userA") long userA, @CacheKey(tag = "userB") long userB) {
+    @RemoveOcsCache(keyList = "getContactList({userA})|getContactList({userB})")
+    public static Result delContactImpl(@Key(tag = "userA") long userA, @Key(tag = "userB") long userB) {
         try {
             UserAPI.delContact(userA, userB);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
@@ -738,8 +738,8 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    @UsingCache(key = "getContactList({id})", expireTime = 300)
-    public static Result getContactListImpl(@CacheKey(tag = "id") long userId) {
+    @UsingOcsCache(key = "getContactList({id})", expireTime = 300)
+    public static Result getContactListImpl(@Key(tag = "id") long userId) {
         try {
             List<UserInfo> list = UserAPI.getContactList(userId);
             if (list == null)

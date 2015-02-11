@@ -10,6 +10,7 @@ import org.aspectj.lang.annotation.DeclarePrecedence;
 @DeclarePrecedence(
         "controllers.AccessLogger," +
         "controllers.ExceptionHandler," +
+        "controllers.ModifyHandler," +
         "controllers.CacheHandler"
 )
 public class PrecedenceDeclaration {
