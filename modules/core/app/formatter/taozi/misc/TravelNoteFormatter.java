@@ -85,13 +85,13 @@ public class TravelNoteFormatter extends AizouFormatter<TravelNote> {
             if (travelNote.publishTime == null)
                 jgen.writeNullField(TravelNote.fnPublishTime);
             else
-                jgen.writeNumberField(TravelNote.fnPublishTime, travelNote.publishTime == null ? null : getValue(travelNote.publishTime));
+                jgen.writeObjectField(TravelNote.fnPublishTime, travelNote.publishTime == null ? null : getValue(travelNote.publishTime));
 
             // travelTime
             if (travelNote.travelTime == null)
                 jgen.writeNullField(TravelNote.fnTravelTime);
             else
-                jgen.writeNumberField(TravelNote.fnTravelTime, getValue(travelNote.travelTime));
+                jgen.writeObjectField(TravelNote.fnTravelTime, getValue(travelNote.travelTime));
 
             // Images
             jgen.writeFieldName("images");
@@ -105,20 +105,20 @@ public class TravelNoteFormatter extends AizouFormatter<TravelNote> {
             jgen.writeEndArray();
 
             if (level.equals(Level.DETAILED)) {
-                jgen.writeNumberField(TravelNote.fnRating, getValue(travelNote.rating));
+                jgen.writeObjectField(TravelNote.fnRating, getValue(travelNote.rating));
 
                 if (travelNote.upperCost == null)
                     jgen.writeNullField(TravelNote.fnUpperCost);
                 else
-                    jgen.writeNumberField(TravelNote.fnUpperCost, getValue(travelNote.upperCost));
+                    jgen.writeObjectField(TravelNote.fnUpperCost, getValue(travelNote.upperCost));
                 if (travelNote.lowerCost == null)
                     jgen.writeNullField(TravelNote.fnLowerCost);
                 else
-                    jgen.writeNumberField(TravelNote.fnLowerCost, getValue(travelNote.lowerCost));
+                    jgen.writeObjectField(TravelNote.fnLowerCost, getValue(travelNote.lowerCost));
 
-                jgen.writeNumberField(TravelNote.fnCommentCnt, getValue(travelNote.commentCnt));
-                jgen.writeNumberField(TravelNote.fnViewCnt, getValue(travelNote.viewCnt));
-                jgen.writeNumberField(TravelNote.fnFavorCnt, getValue(travelNote.favorCnt));
+                jgen.writeObjectField(TravelNote.fnCommentCnt, getValue(travelNote.commentCnt));
+                jgen.writeObjectField(TravelNote.fnViewCnt, getValue(travelNote.viewCnt));
+                jgen.writeObjectField(TravelNote.fnFavorCnt, getValue(travelNote.favorCnt));
 
                 // contents
                 jgen.writeFieldName(TravelNote.fnNoteContents);

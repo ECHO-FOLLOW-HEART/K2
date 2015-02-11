@@ -52,7 +52,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         writeObjectId(abstractPOI, jsonGenerator, serializerProvider);
         jsonGenerator.writeStringField(AbstractPOI.FD_ZH_NAME, getString(abstractPOI.zhName));
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
-        jsonGenerator.writeNumberField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
         jsonGenerator.writeStringField(AbstractPOI.FD_ADDRESS, getString(abstractPOI.address));
 
 
@@ -83,7 +83,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
 
             // PriceDesc
             jsonGenerator.writeStringField(AbstractPOI.FD_PRICE_DESC, getString(TaoziDataFilter.getPriceDesc(abstractPOI)));
-            jsonGenerator.writeNumberField(AbstractPOI.FD_PRICE, getValue(abstractPOI.price));
+            jsonGenerator.writeObjectField(AbstractPOI.FD_PRICE, getValue(abstractPOI.price));
 
         } else if (abstractPOI instanceof Shopping) {
             // Type use for serialize
@@ -91,7 +91,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         }
 
         // Rank
-        jsonGenerator.writeNumberField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
 
         // Locality
         jsonGenerator.writeFieldName(AbstractPOI.FD_LOCALITY);
@@ -167,7 +167,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         writeObjectId(abstractPOI, jsonGenerator, serializerProvider);
         jsonGenerator.writeStringField(AbstractPOI.FD_ZH_NAME, getString(abstractPOI.zhName));
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
-        jsonGenerator.writeNumberField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
         jsonGenerator.writeStringField(AbstractPOI.FD_ADDRESS, getString(abstractPOI.address));
 
 
@@ -198,7 +198,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
 
             // PriceDesc TaoziDataFilter.getPriceDesc(poiInfo)
             jsonGenerator.writeStringField(AbstractPOI.FD_PRICE_DESC, getString(TaoziDataFilter.getPriceDesc(abstractPOI)));
-            jsonGenerator.writeNumberField(AbstractPOI.FD_PRICE, getValue(abstractPOI.price));
+            jsonGenerator.writeObjectField(AbstractPOI.FD_PRICE, getValue(abstractPOI.price));
             // Tel
             List<String> tels = abstractPOI.tel;
             jsonGenerator.writeFieldName(AbstractPOI.FD_TELEPHONE);
@@ -223,7 +223,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
 
         }
         // Rank
-        jsonGenerator.writeNumberField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
         // Targets
 //        jsonGenerator.writeFieldName(AbstractPOI.detTargets);
 //        List<ObjectId> targets = abstractPOI.targets;
