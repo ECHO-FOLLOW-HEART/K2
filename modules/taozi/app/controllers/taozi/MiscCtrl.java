@@ -14,7 +14,6 @@ import formatter.taozi.geo.SimpleLocalityFormatter;
 import formatter.taozi.misc.ColumnFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.poi.BriefPOIFormatter;
-import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.misc.RecomFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
@@ -54,7 +53,7 @@ import java.util.*;
 public class MiscCtrl extends Controller {
 
     public static String UPLOAD_URL = "url";
-
+    public static String UPLOAD_URL_SMALL = "urlSmall";
     public static String UPLOAD_UID = "userId";
 
     /**
@@ -427,6 +426,7 @@ public class MiscCtrl extends Controller {
         String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
         // 定义图片的URL
         callbackBody.append("&" + UPLOAD_URL + "=" + url);
+        callbackBody.append("&" + UPLOAD_URL_SMALL + "=" + url + "?imageView2/2/w/200");
         // 定义用户ID
         callbackBody.append("&" + UPLOAD_UID + "=" + userId);
         return callbackBody.toString();
@@ -462,6 +462,7 @@ public class MiscCtrl extends Controller {
         Map<String, String[]> fav = request().body().asFormUrlEncoded();
         ObjectNode ret = Json.newObject();
         String url = null;
+//        String urlSmall = null;
         String userId = null;
         for (Map.Entry<String, String[]> entry : fav.entrySet()) {
             String key = entry.getKey();
@@ -471,7 +472,10 @@ public class MiscCtrl extends Controller {
                 url = value[0];
             if (key.equals(UPLOAD_UID))
                 userId = value[0];
+//            if (key.equals(UPLOAD_URL_SMALL))
+//                urlSmall = value[0];
             ret.put(key, value[0]);
+//            LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
         }
         ret.put("success", true);
         try {
@@ -481,7 +485,10 @@ public class MiscCtrl extends Controller {
         }
         return ok(ret);
     }
-
+//
+//    private static String delSpe(String str){
+//        return str.replaceAll("\\\\", "");
+//    }
 
     /**
      * 旅行专栏
