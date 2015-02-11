@@ -61,10 +61,17 @@ public class POICtrl extends Controller {
         int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
         ret.put("commentCnt", commCnt);
 
+
         if (poiClass == Shopping.class || poiClass == Restaurant.class) {
             // 添加H5接口 更多评论
             ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
             ret.put("recommends", recommends);
+        } else if (poiClass == ViewSpot.class) {
+            LyMapping lyMapping = PoiAPI.getTongChenPOI(poiInfo.getId());
+            if (lyMapping == null)
+                ret.put("tcPOIUrl", "");
+            else
+                ret.put("tcPOIUrl", String.format("http://m.ly.com/scenery/scenerydetail_%s_0_0.html", lyMapping.getLyId()));
         }
         return ret;
     }
