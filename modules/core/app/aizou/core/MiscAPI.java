@@ -58,7 +58,8 @@ public class MiscAPI {
      * @param comment
      * @throws exception.AizouException
      */
-    public static JsonNode saveComment(Comment comment) throws AizouException, IllegalAccessException, InstantiationException, JsonProcessingException {
+    public static JsonNode saveComment(Comment comment)
+            throws AizouException, ReflectiveOperationException, JsonProcessingException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         comment.setId(new ObjectId());
         ds.save(comment);
