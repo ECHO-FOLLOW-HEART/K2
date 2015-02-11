@@ -15,10 +15,12 @@ import play.libs.Json;
 import play.mvc.Result;
 import play.test.FakeApplication;
 import play.test.FakeRequest;
+import utils.validator.SimplePoiValidator;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -147,7 +149,7 @@ public class MiscTest extends AizouTest {
                 JsonNode poiList = node.get("vs");
                 assertThat(poiList.isArray() && poiList.size() > 0).isTrue();
                 for (JsonNode poi : poiList) {
-                    checkVs(poi);
+                    new SimplePoiValidator(Arrays.asList("type"), null).validate(poi);
                     assertThat(poi.get("type").asText()).isEqualTo("vs");
                 }
 
