@@ -1,7 +1,9 @@
 package aizou.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
+import formatter.FormatterFactory;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
 import models.AizouBaseItem;
@@ -56,13 +58,13 @@ public class MiscAPI {
      * @param comment
      * @throws exception.AizouException
      */
-    public static JsonNode saveComment(Comment comment) throws AizouException {
+    public static JsonNode saveComment(Comment comment) throws AizouException, IllegalAccessException, InstantiationException, JsonProcessingException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         comment.setId(new ObjectId());
         ds.save(comment);
 
-        CommentFormatter formatter = new CommentFormatter();
-        return formatter.format(comment);
+        CommentFormatter formatter = FormatterFactory.getInstance(CommentFormatter.class);
+        return formatter.formatNode(comment);
     }
 
     /**
@@ -88,7 +90,7 @@ public class MiscAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower, Double upper, long lastUpdate, int pageSize)
+    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower, Double upper, long lastUpdate, int page, int pageSize)
             throws AizouException {
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);

@@ -87,13 +87,13 @@ public class GuideAPI {
 
         List<Locality> destinations = queryDes.asList();
         Guide ugcGuide = new Guide();
-        ugcGuide.userId = userId;
+        ugcGuide.setUserId(userId);
         ugcGuide.localities = destinations;
-        ugcGuide.updateTime = System.currentTimeMillis();
+        ugcGuide.setUpdateTime(System.currentTimeMillis());
         ugcGuide.itinerary = new ArrayList<>();
         ugcGuide.shopping = new ArrayList<>();
         ugcGuide.restaurant = new ArrayList<>();
-        ugcGuide.itineraryDays = 0;
+        ugcGuide.setItineraryDays(0);
         if (destinations != null && destinations.get(0) != null && destinations.get(0).getImages() != null)
             ugcGuide.images = TaoziDataFilter.getOneImage(destinations.get(0).getImages());
         ugcGuide.title = getUgcGuideTitle(destinations);
@@ -156,9 +156,9 @@ public class GuideAPI {
     private static Guide constituteUgcGuide(List<GuideTemplate> guideTemplates, List<Locality> destinations, Integer userId) {
         Guide ugcGuide = new Guide();
         ugcGuide.setId(new ObjectId());
-        ugcGuide.userId = userId;
+        ugcGuide.setUserId(userId);
         ugcGuide.localities = destinations;
-        ugcGuide.updateTime = System.currentTimeMillis();
+        ugcGuide.setUpdateTime(System.currentTimeMillis());
 
         // 生成攻略标题
         ugcGuide.title = getUgcGuideTitle(destinations);
@@ -168,7 +168,7 @@ public class GuideAPI {
             ugcGuide.itinerary = new ArrayList<>();
             ugcGuide.shopping = new ArrayList<>();
             ugcGuide.restaurant = new ArrayList<>();
-            ugcGuide.itineraryDays = 0;
+            ugcGuide.setItineraryDays(0);
             ugcGuide.images = destinations.get(0).getImages();
             return ugcGuide;
         }
@@ -210,7 +210,7 @@ public class GuideAPI {
         ugcGuide.itinerary = itineraries;
         ugcGuide.shopping = shoppingList;
         ugcGuide.restaurant = restaurants;
-        ugcGuide.itineraryDays = itineraryDaysCnt + 1;
+        ugcGuide.setItineraryDays(itineraryDaysCnt + 1);
         //取第一个目的地的图片
         if (guideTemplates != null && guideTemplates.get(0) != null)
             ugcGuide.images = guideTemplates.get(0).images;
@@ -288,8 +288,8 @@ public class GuideAPI {
                 fillPOIType(guide.itinerary);
                 update.set(AbstractGuide.fnItinerary, guide.itinerary);
             }
-            if (guide.itineraryDays != null)
-                update.set(Guide.fnItineraryDays, guide.itineraryDays);
+            if (guide.getItineraryDays() != null)
+                update.set(Guide.fnItineraryDays, guide.getItineraryDays());
             if (guide.shopping != null)
                 update.set(AbstractGuide.fnShopping, guide.shopping);
             if (guide.restaurant != null)
@@ -350,14 +350,25 @@ public class GuideAPI {
      *
      * @param id
      * @param title
+     * @param userId
      * @throws exception.AizouException
      */
-    public static void saveGuideTitle(ObjectId id, String title) throws AizouException {
+    public static void saveGuideTitle(ObjectId id, String title, Long userId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+
+        Query<Guide> query = ds.createQuery(Guide.class)
+                .field("_id").equal(id)
+                .field(Guide.fnUserId).equal(userId)
+                .retrievedFields(true, AizouBaseEntity.FD_ID);
+
         UpdateOperations<Guide> uo = ds.createUpdateOperations(Guide.class);
         uo.set(Guide.fnTitle, title);
         uo.set(Guide.fnUpdateTime, System.currentTimeMillis());
-        ds.update(ds.createQuery(Guide.class).field("_id").equal(id), uo);
+
+        Guide ret = ds.findAndModify(query, uo);
+        if (ret == null)
+            // 说明没有操作者没有修改guide的权限
+            throw new AizouException(ErrorCode.AUTH_ERROR);
     }
 
     /**
@@ -368,8 +379,8 @@ public class GuideAPI {
     public static void saveGuideByUser(Guide guide, Integer userId) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         guide.setId(new ObjectId());
-        guide.userId = userId;
-        guide.updateTime = System.currentTimeMillis();
+        guide.setUserId(userId);
+        guide.setUpdateTime(System.currentTimeMillis());
         ds.save(guide);
     }
 
@@ -440,16 +451,16 @@ public class GuideAPI {
         List<String> hotelFields = new ArrayList<>();
         Collections.addAll(vsFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_RANK);
         Collections.addAll(restFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
         Collections.addAll(shopFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
         Collections.addAll(hotelFields, AizouBaseEntity.FD_ID, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_IMAGES, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RATING, AbstractPOI.FD_ADDRESS,
-                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE);
+                AbstractPOI.detTargets, AbstractPOI.FD_TIMECOSTDESC, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_RANK);
 
         // 按类型查询POI，并放入Map中
         List<ViewSpot> vsTempList = (List<ViewSpot>) PoiAPI.getPOIInfoList(vsIdList, "vs", vsFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
@@ -457,14 +468,17 @@ public class GuideAPI {
         List<Shopping> shopTempList = (List<Shopping>) PoiAPI.getPOIInfoList(shoppingIdList, "shopping", shopFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
         List<Hotel> hotelTempList = (List<Hotel>) PoiAPI.getPOIInfoList(hotelIdList, "hotel", hotelFields, Constants.ZERO_COUNT, Constants.MAX_COUNT);
 
+        /*
+            不显示评论
+         */
         // 查询行程单中所有poi的评论
-        List<ObjectId> poiIdList = new ArrayList<>();
-        poiIdList.addAll(vsIdList);
-        poiIdList.addAll(hotelIdList);
-        poiIdList.addAll(restaurantIdList);
-        poiIdList.addAll(shoppingIdList);
-        List<Comment> commentsEntities = PoiAPI.getPOICommentByList(poiIdList, 0, 1);
-        transformCommetnListToMap(commentsEntities, vsTempList, resTempList, shopTempList, hotelTempList);
+//        List<ObjectId> poiIdList = new ArrayList<>();
+//        poiIdList.addAll(vsIdList);
+//        poiIdList.addAll(hotelIdList);
+//        poiIdList.addAll(restaurantIdList);
+//        poiIdList.addAll(shoppingIdList);
+//        List<Comment> commentsEntities = PoiAPI.getPOICommentByList(poiIdList, 0, 1);
+//        transformCommetnListToMap(commentsEntities, vsTempList, resTempList, shopTempList, hotelTempList);
 
         //取得行程单中的ID-Entity Map
         Map<ObjectId, ViewSpot> vsMap = (Map<ObjectId, ViewSpot>) transformPoiListToMap(vsTempList);
@@ -517,9 +531,11 @@ public class GuideAPI {
                 ids.add(temp.getId());
             }
             List<Shopping> shop = (List<Shopping>) PoiAPI.getPOIInfoList(ids, "shopping", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-
-            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
-            transformCommetnListToMap(commentsEntitiesSh, shop);
+               /*
+                不显示评论 20150202
+               */
+//            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
+//            transformCommetnListToMap(commentsEntitiesSh, shop);
 
             Map<ObjectId, Shopping> shopMap = new HashMap<>();
             for (Shopping temp : shop) {
@@ -547,9 +563,11 @@ public class GuideAPI {
                 ids.add(temp.getId());
             }
             List<Restaurant> res = (List<Restaurant>) PoiAPI.getPOIInfoList(ids, "restaurant", null, Constants.ZERO_COUNT, Constants.MAX_COUNT);
-
-            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
-            transformCommetnListToMap(commentsEntitiesSh, res);
+              /*
+                不显示评论 20150202
+               */
+//            List<Comment> commentsEntitiesSh = PoiAPI.getPOICommentByList(ids, 0, 1);
+//            transformCommetnListToMap(commentsEntitiesSh, res);
 
             Map<ObjectId, Restaurant> resMap = new HashMap<>();
             for (Restaurant temp : res) {
@@ -569,6 +587,8 @@ public class GuideAPI {
             guide.restaurant = newRes;
         } else
             guide.restaurant = new ArrayList<>();
+
+        guide.images = TaoziDataFilter.getOneImage(guide.images);
         return guide;
     }
 

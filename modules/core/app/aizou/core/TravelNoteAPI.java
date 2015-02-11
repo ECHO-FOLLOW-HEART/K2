@@ -2,6 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.ImageItem;
@@ -51,7 +52,7 @@ public class TravelNoteAPI {
         List<TravelNote> results = new ArrayList<>();
         try {
             Configuration config = Configuration.root().getConfig("solr");
-            String host = config.getString("host", "localhost");
+            String host = config.getString("host", "http://api.lvxingpai.cn");
             Integer port = config.getInt("port", 8983);
             String url = String.format("http://%s:%d/solr", host, port);
             /*
@@ -210,17 +211,16 @@ public class TravelNoteAPI {
      * @return
      * @throws AizouException
      */
-    public static List<TravelNote> getNotesById(List<String> idList, List<String> fields) throws AizouException {
-        List<TravelNote> noteList = new ArrayList<>();
-        ObjectId oid;
-        TravelNote travelNote;
-        for (String id : idList) {
-            oid = new ObjectId(id);
-            travelNote = getNoteById(oid, fields);
-            noteList.add(travelNote);
-        }
+    public static List<TravelNote> getNotesByIdList(List<ObjectId> idList, List<String> fields) throws AizouException {
+        if (idList.size() == 0)
+            return new ArrayList<>();
 
-        return noteList;
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
+        Query<TravelNote> query = ds.createQuery(TravelNote.class);
+        query.field(AizouBaseEntity.FD_ID).in(idList);
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
+        return query.asList();
     }
 
     /**

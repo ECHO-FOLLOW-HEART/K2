@@ -1,61 +1,66 @@
 package formatter.taozi.guide;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import formatter.taozi.ImageItemSerializerOld;
-import formatter.taozi.TaoziBaseFormatter;
-import models.AizouBaseEntity;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import formatter.AizouFormatter;
+import formatter.AizouSerializer;
+import formatter.taozi.ImageItemSerializer;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
 import models.misc.ImageItem;
-import models.poi.AbstractPOI;
 
+import java.io.IOException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 
 /**
  * 返回攻略的摘要
  * <p>
  * Created by topy on 2014/11/07.
  */
-public class SimpleGuideFormatter extends TaoziBaseFormatter {
+public class SimpleGuideFormatter extends AizouFormatter<Guide> {
 
-    public SimpleGuideFormatter() {
+    public SimpleGuideFormatter(int imgWidth) {
+        registerSerializer(Guide.class, new SimpleGuideSerializer());
+        registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
+        initObjectMapper(null);
+
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
                 AbstractGuide.fdId,
                 AbstractGuide.fnTitle,
                 Guide.fnUpdateTime,
-                AbstractPOI.FD_IMAGES,
-                AbstractPOI.FD_LOCATION,
-                AbstractPOI.FD_RATING
+                AbstractGuide.fnImages
         );
     }
 
-    public SimpleGuideFormatter setImageWidth(int width) {
-        imageWidth = width;
-        return this;
-    }
+    private class SimpleGuideSerializer extends AizouSerializer<Guide> {
+        @Override
+        public void serialize(Guide guide, JsonGenerator jgen, SerializerProvider serializerProvider)
+                throws IOException {
+            jgen.writeStartObject();
 
-    @Override
-    public JsonNode format(AizouBaseEntity item) {
+            writeObjectId(guide, jgen, serializerProvider);
 
-        item.fillNullMembers(filteredFields);
+            // Images
+            jgen.writeFieldName("images");
+            List<ImageItem> images = guide.getImages();
+            jgen.writeStartArray();
+            if (images != null && !images.isEmpty()) {
+                JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ImageItem.class, null);
+                for (ImageItem image : images)
+                    ret.serialize(image, jgen, serializerProvider);
+            }
+            jgen.writeEndArray();
 
-        Map<String, PropertyFilter> filterMap = new HashMap<>();
-        filterMap.put("guideFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
-        ObjectMapper mapper = getObjectMapper(filterMap, null);
+            jgen.writeStringField(Guide.fnTitle, getString(guide.title));
+            jgen.writeNumberField(Guide.fnUpdateTime, getValue(guide.getUpdateTime()));
+            jgen.writeNumberField(Guide.fnDayCnt, getValue(guide.getDayCnt()));
+            jgen.writeStringField(Guide.fnSummary, getString(guide.getSummary()));
 
-        SimpleModule imageItemModule = new SimpleModule();
-        imageItemModule.addSerializer(ImageItem.class,
-                new ImageItemSerializerOld(imageWidth));
-        mapper.registerModule(imageItemModule);
-
-        return mapper.valueToTree(item);
+            jgen.writeEndObject();
+        }
     }
 }

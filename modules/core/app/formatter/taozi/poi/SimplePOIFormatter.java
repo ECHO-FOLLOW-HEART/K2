@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
+import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 
@@ -37,18 +38,21 @@ public class SimplePOIFormatter extends TaoziBaseFormatter {
                 AizouBaseEntity.FD_ID,
                 AbstractPOI.FD_EN_NAME,
                 AbstractPOI.FD_ZH_NAME,
-                AbstractPOI.FD_DESC,
+                // AbstractPOI.FD_DESC,
                 AbstractPOI.FD_IMAGES,
                 AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RATING,
                 AbstractPOI.FD_PRICE_DESC,
                 AbstractPOI.FD_ADDRESS,
-                AbstractPOI.FD_TIMECOSTDESC
+                AbstractPOI.FD_TIMECOSTDESC,
+                AbstractPOI.FD_RANK,
+                AbstractPOI.FD_LOCALITY
 
         );
         item.fillNullMembers(filteredFields);
         Map<String, PropertyFilter> filterMap = new HashMap<>();
         filterMap.put("abstractPOIFilter", SimpleBeanPropertyFilter.filterOutAllExcept(filteredFields));
+        filterMap.put("localityFilter", SimpleBeanPropertyFilter.filterOutAllExcept(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME));
 
         Map<Class<? extends ImageItem>, JsonSerializer<ImageItem>> serializerMap = new HashMap<>();
         serializerMap.put(ImageItem.class, new ImageItemSerializerOld(imageWidth));

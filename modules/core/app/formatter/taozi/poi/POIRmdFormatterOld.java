@@ -1,4 +1,4 @@
-package formatter.taozi.geo;
+package formatter.taozi.poi;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -10,25 +10,25 @@ import formatter.taozi.ImageItemSerializerOld;
 import formatter.taozi.TaoziBaseFormatter;
 import models.AizouBaseEntity;
 import models.misc.ImageItem;
-import models.poi.AbstractPOI;
-
-import java.util.Arrays;
+import models.poi.POIRmd;
 
 /**
- * Created by lxf on 14-11-12.
+ * 返回POI的推荐
+ * <p/>
+ * Created by zephyre on 10/28/14.
  */
-public class SimpleLocalityFormatterOld extends TaoziBaseFormatter {
+public class POIRmdFormatterOld extends TaoziBaseFormatter {
 
     @Override
     public JsonNode format(AizouBaseEntity item) {
         ObjectMapper mapper = getObjectMapper();
 
-        ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider())
-                .addFilter("localityFilter",
+        SimpleFilterProvider simpleFilterProvider = ((SimpleFilterProvider) mapper.getSerializationConfig().getFilterProvider());
+        simpleFilterProvider.addFilter("poiRmdFilter",
                         SimpleBeanPropertyFilter.filterOutAllExcept(
-                                AizouBaseEntity.FD_ID,
-                                AbstractPOI.FD_EN_NAME,
-                                AbstractPOI.FD_ZH_NAME
+                                POIRmd.fnTitle,
+                                POIRmd.fnImages,
+                                POIRmd.fnRating
 
                         ));
 
@@ -39,8 +39,7 @@ public class SimpleLocalityFormatterOld extends TaoziBaseFormatter {
 
         ObjectNode result = mapper.valueToTree(item);
 
-        stringFields.addAll(Arrays.asList(AbstractPOI.FD_EN_NAME, AbstractPOI.FD_ZH_NAME, AizouBaseEntity.FD_ID));
-
         return postProcess(result);
     }
+
 }

@@ -2,6 +2,7 @@ package controllers.taozi;
 
 import aizou.core.GeoAPI;
 import aizou.core.GuideAPI;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -9,6 +10,7 @@ import controllers.Key;
 import controllers.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.FormatterFactory;
 import formatter.taozi.guide.GuideFormatter;
 import formatter.taozi.guide.SimpleGuideFormatter;
 import models.geo.Locality;
@@ -20,6 +22,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.LogUtils;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.util.*;
@@ -65,12 +68,13 @@ public class GuideCtrl extends Controller {
             } else
                 result = GuideAPI.getEmptyGuide(ids, selfId);
 
-            node = (ObjectNode) new GuideFormatter().setImageWidth(imgWidth).format(result);
+            GuideFormatter formatter = FormatterFactory.getInstance(GuideFormatter.class, imgWidth);
+            node = (ObjectNode) formatter.formatNode(result);
             node.put("detailUrl", GUIDE_DETAIL_URL + result.getId());
         } catch (NullPointerException | IllegalArgumentException e) {
             return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, "Date error.");
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        } catch (AizouException | JsonProcessingException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         }
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
@@ -123,15 +127,15 @@ public class GuideCtrl extends Controller {
             List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle, Guide.fnUpdateTime,
                     Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays);
             List<Guide> guides = GuideAPI.getGuideByUser(selfId, fields, page, pageSize);
-            List<JsonNode> result = new ArrayList<>();
-            ObjectNode node;
+            List<Guide> result = new ArrayList<>();
             for (Guide guide : guides) {
-                node = (ObjectNode) new SimpleGuideFormatter().setImageWidth(imgWidth).format(guide);
-                addGuideInfoToNode(guide, node);
-                result.add(node);
+                guide.images = TaoziDataFilter.getOneImage(guide.images);
+                addGuideInfoToNode(guide);
+                result.add(guide);
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
-        } catch (IllegalArgumentException | NullPointerException e) {
+            SimpleGuideFormatter simpleGuideFormatter = FormatterFactory.getInstance(SimpleGuideFormatter.class, imgWidth);
+            return Utils.createResponse(ErrorCode.NORMAL, simpleGuideFormatter.formatNode(result));
+        } catch (IllegalArgumentException | NullPointerException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -142,16 +146,15 @@ public class GuideCtrl extends Controller {
      * 添加攻略列表中需要额外展示的字段
      *
      * @param guide 攻略实体
-     * @param node  攻略JSON内容
      */
-    private static void addGuideInfoToNode(Guide guide, ObjectNode node) {
+    private static void addGuideInfoToNode(Guide guide) {
         // 添加攻略天数
-        node.put("dayCnt", guide.itineraryDays);
+        guide.setDayCnt(guide.getItineraryDays());
 
         // 添加攻略摘要
         List<Locality> dests = guide.localities;
         if (dests == null) {
-            node.put("summary", "");
+            guide.setSummary("");
             return;
         }
         StringBuilder sb = new StringBuilder();
@@ -164,7 +167,7 @@ public class GuideCtrl extends Controller {
                 images.addAll(des.getImages());
         }
         String summary = sb.toString();
-        node.put("summary", summary.substring(0, summary.length() - 1));
+        guide.setSummary(summary.substring(0, summary.length() - 1));
 
     }
 
@@ -211,15 +214,15 @@ public class GuideCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Guide ID is invalid. ID:" + id);
             // 填充攻略信息
             GuideAPI.fillGuideInfo(guide);
-            ObjectNode node = (ObjectNode) new GuideFormatter().setImageWidth(imgWidth).format(guide);
+            GuideFormatter formatter = FormatterFactory.getInstance(GuideFormatter.class, imgWidth);
+            ObjectNode node = (ObjectNode) formatter.formatNode(guide);
             node.put("detailUrl", GUIDE_DETAIL_URL + guide.getId());
             return Utils.createResponse(ErrorCode.NORMAL, node);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | JsonProcessingException e) {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "");
         }
-
     }
 
     /**
@@ -252,10 +255,13 @@ public class GuideCtrl extends Controller {
         try {
             JsonNode req = request().body().asJson();
             String title = req.get("title").asText();
-            GuideAPI.saveGuideTitle(new ObjectId(id), title);
+            Long userId = Long.parseLong(request().getHeader("UserId"));
+            GuideAPI.saveGuideTitle(new ObjectId(id), title, userId);
             return Utils.createResponse(ErrorCode.NORMAL, "Success.");
-        } catch (AizouException | NullPointerException | IllegalArgumentException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT".toLowerCase());
+        } catch (NullPointerException | IllegalArgumentException e) {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT);
+        } catch (AizouException e) {
+            return Utils.createResponse(e.getErrCode(), e.getMessage());
         }
 
     }

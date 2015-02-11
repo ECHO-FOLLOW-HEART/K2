@@ -11,8 +11,6 @@ import org.mongodb.morphia.annotations.Transient;
 @Entity
 @JsonFilter("guideFilter")
 public class Guide extends AbstractGuide {
-
-
     @Transient
     public static final String fnUserId = "userId";
 
@@ -22,11 +20,59 @@ public class Guide extends AbstractGuide {
     @Transient
     public static final String fnUpdateTime = "updateTime";
 
-    public Integer userId;
+    @Transient
+    public static final String fnDayCnt = "dayCnt";
 
-    public Integer itineraryDays;
+    @Transient
+    public static final String fnSummary = "summary";
 
-    public long updateTime;
+    private Integer userId;
 
+    private Integer itineraryDays;
 
+    private Long updateTime;
+
+    private Integer dayCnt;
+
+    private String summary;
+
+    public Integer getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Integer userId) {
+        this.userId = userId;
+    }
+
+    public Integer getItineraryDays() {
+        return itineraryDays;
+    }
+
+    public void setItineraryDays(Integer itineraryDays) {
+        this.itineraryDays = itineraryDays;
+    }
+
+    public Long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(Long updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public Integer getDayCnt() {
+        return dayCnt;
+    }
+
+    public void setDayCnt(Integer dayCnt) {
+        this.dayCnt = dayCnt;
+    }
+
+    public String getSummary() {
+        return summary;
+    }
+
+    public void setSummary(String summary) {
+        this.summary = summary;
+    }
 }

@@ -1,6 +1,7 @@
 package models.guide;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import models.AizouBaseEntity;
 import models.AizouBaseItem;
 import models.poi.AbstractPOI;
 import org.mongodb.morphia.annotations.Embedded;
@@ -11,7 +12,7 @@ import org.mongodb.morphia.annotations.Transient;
  */
 @Embedded
 @JsonFilter("itinerItemFilter")
-public class ItinerItem extends AizouBaseItem {
+public class ItinerItem extends AizouBaseEntity {
 
     @Transient
     public static String fdDayIndex = "dayIndex";

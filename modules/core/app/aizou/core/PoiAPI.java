@@ -879,7 +879,7 @@ public class PoiAPI {
      * @param pageSize    @return
      * @throws AizouException
      */
-    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, double lng, double lat,
+    public static Iterator<? extends AbstractPOI>   getPOINearBy(POIType poiType, double lng, double lat,
                                                                double maxDistance, int page, int pageSize)
             throws AizouException {
         Class<? extends AbstractPOI> poiClass;
@@ -905,7 +905,7 @@ public class PoiAPI {
         query.field(AbstractPOI.FD_LOCATION).near(lng, lat, maxDistance, true).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         query.retrievedFields(true, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.FD_IMAGES,
                 AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION, AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_ADDRESS);
+                AbstractPOI.FD_ADDRESS, AbstractPOI.FD_RANK);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }
@@ -993,7 +993,7 @@ public class PoiAPI {
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
         Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images", "hotness",
-                "desc", "location", "priceDesc", "address", "tags", "price");
+                "desc", "location", "locality", "priceDesc", "address", "tags", "price", "rank");
         switch (poiType) {
             case VIEW_SPOT:
                 fieldList.add("timeCostDesc");
@@ -1054,7 +1054,7 @@ public class PoiAPI {
         switch (poiType) {
             case VIEW_SPOT:
                 poiClass = ViewSpot.class;
-                poiList = poiSearch(keyword, page, pageSize);
+                poiList = poiSolrSearch(keyword, page, pageSize);
                 break;
             case HOTEL:
                 poiClass = Hotel.class;
@@ -1078,8 +1078,9 @@ public class PoiAPI {
                 poiIdList.add(aPoi.getId());
 
             if (!poiIdList.isEmpty()) {
-                query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness))
-                        .offset(page * pageSize).limit(pageSize);
+                query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness));
+                // TODO 需要限制查找的字段，加快速度
+                // .offset(page * pageSize).limit(pageSize);
                 return query.asList();
             } else
                 return new ArrayList<>();
@@ -1097,7 +1098,7 @@ public class PoiAPI {
         return query.asList();
     }
 
-    public static List<? extends AbstractPOI> poiSearch(String keyword, int page, int pageSize) throws SolrServerException {
+    public static List<? extends AbstractPOI> poiSolrSearch(String keyword, int page, int pageSize) throws SolrServerException {
         List<AbstractPOI> poiList = new ArrayList<>();
 
         SolrServer server = SolrServerFactory.getSolrInstance("viewspot");
@@ -1108,8 +1109,9 @@ public class PoiAPI {
         query.setStart(page * pageSize).setRows(pageSize);
         query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
         query.addFilterQuery("taoziEna:true");
+        query.setFields(AizouBaseEntity.FD_ID);
         SolrDocumentList vsDocs = server.query(query).getResults();
-        
+
         //TODO 不查询数据库
         Object tmp;
         for (SolrDocument doc : vsDocs) {
