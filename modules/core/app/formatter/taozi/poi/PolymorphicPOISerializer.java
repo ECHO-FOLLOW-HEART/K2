@@ -58,7 +58,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
 
         jsonGenerator.writeFieldName("images");
         List<ImageItem> images = abstractPOI.getImages();
-        if(level.equals(Level.SIMPLE))
+        if (level.equals(Level.SIMPLE))
             images = TaoziDataFilter.getOneImage(images);
         jsonGenerator.writeStartArray();
         if (images != null && !images.isEmpty()) {
@@ -268,6 +268,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
             jsonGenerator.writeBooleanField(AizouBaseEntity.FD_IS_FAVORITE, getValue(abstractPOI.getIsFavorite()));
             jsonGenerator.writeStringField(AbstractPOI.FD_DESC, getString(StringUtils.abbreviate(abstractPOI.desc, Constants.ABBREVIATE_LEN)));
 
+
             if (abstractPOI instanceof ViewSpot) {
                 jsonGenerator.writeStringField(ViewSpot.FD_OPEN_TIME, getString(abstractPOI.openTime));
                 jsonGenerator.writeStringField(ViewSpot.FD_TIME_COST_DESC, getString(((ViewSpot) abstractPOI).getTimeCostDesc()));
@@ -286,6 +287,11 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
                     jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "");
                 else
                     jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "http://h5.taozilvxing.com/poi_tips.php?tid=" + id);
+
+                if (abstractPOI.getDesc() == null || abstractPOI.getDesc().equals(""))
+                    jsonGenerator.writeStringField("descUrl", "");
+                else
+                    jsonGenerator.writeStringField("descUrl", "http://h5.taozilvxing.com/poi_desc.php?tid=" + id);
             }
         }
         jsonGenerator.writeEndObject();
