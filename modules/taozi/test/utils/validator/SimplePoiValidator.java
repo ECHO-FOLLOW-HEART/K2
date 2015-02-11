@@ -13,9 +13,9 @@ import static utils.TestHelpers.*;
  * Created by zephyre on 2/11/15.
  */
 public abstract class SimplePoiValidator implements AbstractValidator {
-    private Collection<String> addedFields;
-    private Collection<String> removedFields;
-    private AbstractValidator validator;
+    protected Collection<String> addedFields;
+    protected Collection<String> removedFields;
+    protected AbstractValidator validator;
 
     public SimplePoiValidator(AbstractValidator validator,
                               Collection<String> addedFields, Collection<String> removedFields) {
@@ -35,7 +35,8 @@ public abstract class SimplePoiValidator implements AbstractValidator {
      */
     protected Collection<String> getBaseFields() {
         Set<String> fields = new HashSet<>();
-        fields.addAll(Arrays.asList("id", "zhName", "enName", "rating", "address", "images", "rank", "location"));
+        fields.addAll(Arrays.asList("id", "zhName", "enName", "rating", "address", "images", "rank", "location",
+                "type"));
 
         return modifyFields(fields);
     }
@@ -65,10 +66,10 @@ public abstract class SimplePoiValidator implements AbstractValidator {
         if (addedFields != null)
             fields.addAll(addedFields);
         if (removedFields != null)
-            fields.addAll(removedFields);
+            fields.removeAll(removedFields);
         assertFields(item, fields.toArray(new String[fields.size()]));
 
-        assertText(item, false, "id", "zhName");
+        assertText(item, false, "id", "zhName", "type");
         assertText(item, true, "enName", "address");
 
         assertImages(item.get("images"), true);
@@ -78,7 +79,8 @@ public abstract class SimplePoiValidator implements AbstractValidator {
         assertNumber(item.get("rating"), false, new RangeValidator(new DoubleValidator(), 0.0, 1.0, null));
         assertNumber(item.get("rank"), true, new PositiveValidator(new IntegerValidator(), true));
 
-        postValidate(item);
+        // TODO 适当的时候启用postValidate
+//        postValidate(item);
 
         if (validator != null)
             validator.validate(item);

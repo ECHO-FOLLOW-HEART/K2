@@ -17,6 +17,10 @@ public class SimpleViewSpotValidator extends SimplePoiValidator {
         super(validator, addedFields, removedFields);
     }
 
+    public SimpleViewSpotValidator() {
+        this(null, null);
+    }
+
     public SimpleViewSpotValidator(Collection<String> addedFields, Collection<String> removedFields) {
         this(null, addedFields, removedFields);
     }

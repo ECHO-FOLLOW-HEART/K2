@@ -70,11 +70,12 @@ public class POICtrl extends Controller {
             ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
             ret.put("recommends", recommends);
         } else if (poiClass == ViewSpot.class) {
+            // 获得同城的销售数据
             LyMapping lyMapping = PoiAPI.getTongChenPOI(poiInfo.getId());
             if (lyMapping == null)
-                ret.put("tcPOIUrl", "");
+                ret.put("lyPoiUrl", "");
             else
-                ret.put("tcPOIUrl", String.format("http://m.ly.com/scenery/scenerydetail_%s_0_0.html", lyMapping.getLyId()));
+                ret.put("lyPoiUrl", String.format("http://m.ly.com/scenery/scenerydetail_%s_0_0.html", lyMapping.getLyId()));
         }
         return ret;
     }

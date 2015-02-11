@@ -5,8 +5,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
-import static org.fest.assertions.Assertions.assertThat;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static utils.TestHelpers.assertNumber;
 import static utils.TestHelpers.assertText;
 
@@ -21,6 +21,10 @@ public class SimpleRestaurantValidator extends SimplePoiValidator {
 
     public SimpleRestaurantValidator(Collection<String> addedFields, Collection<String> removedFields) {
         this(null, addedFields, removedFields);
+    }
+
+    public SimpleRestaurantValidator() {
+        this(null, null);
     }
 
     @Override

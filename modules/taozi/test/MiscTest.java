@@ -111,14 +111,14 @@ public class MiscTest extends AizouTest {
                 JsonNode poiList = node.get("vs");
                 assertThat(poiList.isArray() && poiList.size() > 0).isTrue();
                 for (JsonNode poi : poiList) {
-                    new SimpleViewSpotValidator(Arrays.asList("type"), null).validate(poi);
+                    new SimpleViewSpotValidator().validate(poi);
                     assertThat(poi.get("type").asText()).isEqualTo("vs");
                 }
 
                 poiList = node.get("restaurant");
                 assertThat(poiList.isArray() && poiList.size() > 0).isTrue();
                 for (JsonNode poi : poiList) {
-                    new SimpleRestaurantValidator(Arrays.asList("type"), null).validate(poi);
+                    new SimpleRestaurantValidator().validate(poi);
                     assertThat(poi.get("type").asText()).isEqualTo("restaurant");
                 }
             }

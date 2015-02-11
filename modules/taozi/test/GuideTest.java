@@ -130,7 +130,7 @@ public class GuideTest {
                     assertNumber(node.get("userId"), false, new PositiveValidator(new IntegerValidator(), true));
                     assertNumber(node.get("updateTime"), false,
                             new RangeValidator(new IntegerValidator(), 1e12, null, null));
-                    assertNumber(node.get("itineraryDays"), false,
+                    assertNumber(node.get("itineraryDays"), true,
                             new PositiveValidator(new IntegerValidator(), false));
 
                     JsonNode locList = node.get("localities");
