@@ -1,4 +1,4 @@
-package controllers;
+package controllers.aspectj;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;

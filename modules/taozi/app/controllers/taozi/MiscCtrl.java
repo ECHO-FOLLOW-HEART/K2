@@ -4,8 +4,9 @@ import aizou.core.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.Key;
-import controllers.UsingOcsCache;
+import controllers.aspectj.CatchException;
+import controllers.aspectj.Key;
+import controllers.aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -64,56 +65,49 @@ public class MiscCtrl extends Controller {
      */
     @UsingOcsCache(key = "appHomeImage,{w},{h},{q},{fmt}", expireTime = 3600)
     public static F.Promise<Result> appHomeImage(@Key(tag = "w") final int width, @Key(tag = "h") final int height,
-                                                 @Key(tag = "q") final int quality, @Key(tag = "fmt") final String format,
-                                                 final int interlace)
+                                                  @Key(tag = "q") final int quality, @Key(tag = "fmt") final String format,
+                                                  final int interlace)
             throws AizouException {
 
-        F.Promise<MiscInfo> promiseOfInfo = F.Promise.promise(
-                new F.Function0<MiscInfo>() {
+        F.Promise<F.Either<MiscInfo, Throwable>> promiseOfInfo = F.Promise.promise(
+                new F.Function0<F.Either<MiscInfo, Throwable>>() {
                     @Override
-                    public MiscInfo apply() throws Throwable {
-                        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-                        return ds.createQuery(MiscInfo.class).field("key")
-                                .equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
+                    public F.Either<MiscInfo, Throwable> apply() throws Throwable {
+                        try {
+                            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+                            return F.Either.Left(ds.createQuery(MiscInfo.class).field("key")
+                                    .equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get());
+                        } catch (Throwable e) {
+                            return F.Either.Right(e);
+                        }
                     }
                 }
         );
 
-        return promiseOfInfo.map(
-                new F.Function<MiscInfo, Result>() {
-                    @Override
-                    public Result apply(MiscInfo info) throws Throwable {
-                        ObjectNode node = Json.newObject();
-                        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-                        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,
-                                width, height, quality, format, interlace);
+        return promiseOfInfo.map(new F.Function<F.Either<MiscInfo, Throwable>, Result>() {
+            @Override
+            @CatchException
+            public Result apply(F.Either<MiscInfo, Throwable> miscInfoThrowableEither) throws Throwable {
+                if (miscInfoThrowableEither.left != null && miscInfoThrowableEither.left.isDefined()) {
+                    MiscInfo info = miscInfoThrowableEither.left.get();
+                    ObjectNode node = Json.newObject();
+                    // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
+                    String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,
+                            width, height, quality, format, interlace);
 
-                        node.put("image", url);
-                        node.put("width", width);
-                        node.put("height", height);
-                        node.put("fmt", format);
-                        node.put("quality", quality);
+                    node.put("image", url);
+                    node.put("width", width);
+                    node.put("height", height);
+                    node.put("fmt", format);
+                    node.put("quality", quality);
 
-                        return Utils.createResponse(ErrorCode.NORMAL, node);
-                    }
-                }
-        );
-
-//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-//        MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
-//        if (info == null)
-//            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
-//        ObjectNode node = Json.newObject();
-//        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-//        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,
-//                width, height, quality, format, interlace);
-//
-//        node.put("image", url);
-//        node.put("width", width);
-//        node.put("height", height);
-//        node.put("fmt", format);
-//        node.put("quality", quality);
-//        return Utils.createResponse(ErrorCode.NORMAL, node);
+                    return Utils.createResponse(ErrorCode.NORMAL, node);
+                } else if (miscInfoThrowableEither.right != null && miscInfoThrowableEither.right.isDefined()) {
+                    throw miscInfoThrowableEither.right.get();
+                } else
+                    throw new AizouException(ErrorCode.ILLEGAL_STATE);
+            }
+        });
     }
 
     public static Result postFeedback() throws AizouException {

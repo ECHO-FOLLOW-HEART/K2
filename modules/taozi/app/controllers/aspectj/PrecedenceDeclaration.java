@@ -1,4 +1,4 @@
-package controllers;
+package controllers.aspectj;
 
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.DeclarePrecedence;
@@ -8,11 +8,11 @@ import org.aspectj.lang.annotation.DeclarePrecedence;
  */
 @Aspect
 @DeclarePrecedence(
-        "controllers.AccessLogger," +
-        "controllers.ExceptionHandler," +
-        "controllers.UserCheckHandler," +
-        "controllers.ModifyHandler," +
-        "controllers.CacheHandler"
+        "controllers.aspectj.AccessLogger," +
+        "controllers.aspectj.ExceptionHandler," +
+        "controllers.aspectj.UserCheckHandler," +
+        "controllers.aspectj.ModifyHandler," +
+        "controllers.aspectj.CacheHandler"
 )
 public class PrecedenceDeclaration {
     /**

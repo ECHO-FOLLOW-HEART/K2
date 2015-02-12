@@ -1,4 +1,4 @@
-package controllers;
+package controllers.aspectj;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -31,7 +31,7 @@ public class ModifyHandler {
     Log logger = LogFactory.getLog(this.getClass());
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
-            "&&@annotation(controllers.UsingLocalCache)")
+            "&&@annotation(controllers.aspectj.UsingLocalCache)")
     public Result checkLastModify(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
