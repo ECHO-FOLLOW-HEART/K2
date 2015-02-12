@@ -7,7 +7,6 @@ import static org.fest.assertions.Assertions.assertThat;
 /**
  * Created by zephyre on 12/9/14.
  */
-@Ignore
 public abstract class AizouTest {
 
 //    protected void assertText(JsonNode node, String field, boolean allowEmpty) {

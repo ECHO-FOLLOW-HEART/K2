@@ -4,17 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.NamedType;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.PropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.ObjectIdSerializer;
 import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
-import models.misc.ImageItem;
-import models.poi.AbstractPOI;
 import org.bson.types.ObjectId;
 
 import java.util.*;
@@ -24,19 +20,27 @@ import java.util.*;
  */
 public abstract class AizouFormatter<T extends AizouBaseEntity> {
 
-    public String format(List<T> itemList) throws JsonProcessingException {
-        return mapper.writeValueAsString(itemList);
+    public String format(List<T> itemList) {
+        try {
+            return mapper.writeValueAsString(itemList);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
     }
 
-    public String format(T item) throws JsonProcessingException {
-        return mapper.writeValueAsString(item);
+    public String format(T item) {
+        try {
+            return mapper.writeValueAsString(item);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
     }
 
-    public JsonNode formatNode(List<T> itemList) throws JsonProcessingException {
+    public JsonNode formatNode(List<T> itemList) {
         return mapper.valueToTree(itemList);
     }
 
-    public JsonNode formatNode(T item) throws JsonProcessingException {
+    public JsonNode formatNode(T item) {
         return mapper.valueToTree(item);
     }
 
@@ -53,7 +57,7 @@ public abstract class AizouFormatter<T extends AizouBaseEntity> {
         return filteredFields;
     }
 
-    public <T2> void registerSerializer(Class<? extends T2> cls, JsonSerializer<T2> serializer){
+    public <T2> void registerSerializer(Class<? extends T2> cls, JsonSerializer<T2> serializer) {
         module.addSerializer(cls, serializer);
     }
 

@@ -24,7 +24,7 @@ import static utils.TestHelpers.*;
 /**
  * Created by zephyre on 12/8/14.
  */
-public class POITest extends AizouTest {
+public class PoiTest extends AizouTest {
 
     private static FakeApplication app;
 

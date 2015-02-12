@@ -31,7 +31,7 @@ public class SimplePOIFormatter<T extends AbstractPOI> extends AizouFormatter<Ab
         return filteredFields;
     }
 
-    public SimplePOIFormatter(int imgWidth) {
+    public SimplePOIFormatter(Integer imgWidth) {
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         registerSerializer(Locality.class, new LocalitySerializer());
         registerSerializer(GeoJsonPoint.class, new GeoJsonPointSerializer());

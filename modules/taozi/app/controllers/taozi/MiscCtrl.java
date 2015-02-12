@@ -480,7 +480,7 @@ public class MiscCtrl extends Controller {
      */
     @UsingOcsCache(key = "getColumns({type},{id})", expireTime = 86400)
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
-            throws AizouException, ReflectiveOperationException, JsonProcessingException {
+            throws AizouException {
 
         String url;
         Configuration config = Configuration.root();
@@ -502,7 +502,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result saveComment(String poiId)
-            throws AizouException, ReflectiveOperationException, JsonProcessingException {
+            throws AizouException {
         Comment comment = new Comment();
 
         JsonNode req = request().body().asJson();
@@ -533,7 +533,7 @@ public class MiscCtrl extends Controller {
     }
 
     private static JsonNode getCommentsImpl(String poiId, double lower, double upper, long lastUpdate, int pageSize)
-            throws AizouException, IllegalAccessException, InstantiationException, JsonProcessingException {
+            throws AizouException {
         CommentFormatter formatter = FormatterFactory.getInstance(CommentFormatter.class);
         List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, 0, pageSize);
 
@@ -549,7 +549,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result displayComment(String poiId, double lower, double upper, long lastUpdate, int pageSize)
-            throws AizouException, JsonProcessingException, ReflectiveOperationException {
+            throws AizouException {
         JsonNode results = getCommentsImpl(poiId, lower, upper, lastUpdate, pageSize);
         return Utils.createResponse(ErrorCode.NORMAL, results);
     }
@@ -580,7 +580,7 @@ public class MiscCtrl extends Controller {
                                 @Key(tag = "shopping") boolean shopping,
                                 @Key(tag = "p") int page,
                                 @Key(tag = "ps") int pageSize)
-            throws SolrServerException, AizouException, JsonProcessingException {
+            throws SolrServerException, AizouException {
         ObjectNode results = Json.newObject();
 
         // 获取图片宽度
@@ -651,14 +651,14 @@ public class MiscCtrl extends Controller {
      */
     public static Result getSuggestions(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
                                         boolean shopping, int pageSize)
-            throws AizouException, JsonProcessingException, ReflectiveOperationException {
+            throws AizouException {
         return Utils.createResponse(ErrorCode.NORMAL, getSuggestionsImpl(word, loc, vs, hotel, restaurant, shopping,
                 pageSize));
     }
 
     public static JsonNode getSuggestionsImpl(String word, boolean loc, boolean vs, boolean hotel, boolean restaurant,
                                               boolean shopping, int pageSize)
-            throws AizouException, ReflectiveOperationException, JsonProcessingException {
+            throws AizouException {
         ObjectNode ret = Json.newObject();
 
         List<Locality> locList = new ArrayList<>();

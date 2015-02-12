@@ -2,7 +2,6 @@ package controllers.taozi;
 
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.Key;
@@ -22,11 +21,13 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
-import utils.DataFilter;
 import utils.TaoziDataFilter;
 import utils.Utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by topy on 2014/11/1.
@@ -35,7 +36,8 @@ public class POICtrl extends Controller {
 
     public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
                                            int commentPage, int commentPageSize, Long userId,
-                                           int rmdPage, int rmdPageSize, int imgWidth, boolean isWeb) throws AizouException, JsonProcessingException, IllegalAccessException, InstantiationException {
+                                           int rmdPage, int rmdPageSize, int imgWidth, boolean isWeb)
+            throws AizouException {
         DetailedPOIFormatter<? extends AbstractPOI> poiFormatter = FormatterFactory.getInstance(DetailedPOIFormatter.class, imgWidth);
         AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(spotId), poiClass, poiFormatter.getFilteredFields(poiClass));
         if (poiInfo == null)
@@ -91,14 +93,14 @@ public class POICtrl extends Controller {
      *                entertainment:美食
      * @param spotId  POI的ID。
      */
-    @UsingOcsCache(key="poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize},{isWeb}", expireTime = 3600)
+    @UsingOcsCache(key = "poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize},{isWeb}", expireTime = 3600)
     public static Result viewPOIInfo(String poiDesc,
-                                     @Key(tag="poiId") String spotId,
-                                     @Key(tag="cmtPage") int commentPage,
-                                     @Key(tag="cmtPageSize")int commentPageSize,
-                                     @Key(tag="rmdPage")int rmdPage,
-                                     @Key(tag="rmdPageSize")int rmdPageSize,
-                                     @Key(tag="isWeb") boolean isWeb) {
+                                     @Key(tag = "poiId") String spotId,
+                                     @Key(tag = "cmtPage") int commentPage,
+                                     @Key(tag = "cmtPageSize") int commentPageSize,
+                                     @Key(tag = "rmdPage") int rmdPage,
+                                     @Key(tag = "rmdPageSize") int rmdPageSize,
+                                     @Key(tag = "isWeb") boolean isWeb) throws AizouException {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
@@ -122,17 +124,14 @@ public class POICtrl extends Controller {
             default:
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
         }
-        try {
-            Long userId;
-            if (request().hasHeader("UserId"))
-                userId = Long.parseLong(request().getHeader("UserId"));
-            else
-                userId = null;
-            JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth, isWeb);
-            return Utils.createResponse(ErrorCode.NORMAL, ret);
-        } catch (AizouException | JsonProcessingException | InstantiationException | IllegalAccessException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
-        }
+
+        Long userId;
+        if (request().hasHeader("UserId"))
+            userId = Long.parseLong(request().getHeader("UserId"));
+        else
+            userId = null;
+        JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth, isWeb);
+        return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
     /**
@@ -148,7 +147,8 @@ public class POICtrl extends Controller {
      * @param hotelTypeStr
      * @return
      */
-    public static Result poiSearch(String poiType, String tag, String keyword, int page, int pageSize, String sortField, String sortType, String hotelTypeStr) {
+    public static Result poiSearch(String poiType, String tag, String keyword, int page, int pageSize,
+                                   String sortField, String sortType, String hotelTypeStr) throws AizouException {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
@@ -206,15 +206,12 @@ public class POICtrl extends Controller {
 
         List<AbstractPOI> results = new ArrayList<>();
         Iterator<? extends AbstractPOI> it = null;
-        try {
-            it = PoiAPI.poiSearch(type, tag, keyword, sf, sort, page, pageSize, true, hotelType);
-            while (it.hasNext())
-                results.add(it.next());
-            SimplePOIFormatter<? extends AbstractPOI> simplePOIFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
-            return Utils.createResponse(ErrorCode.NORMAL, simplePOIFormatter.formatNode(results));
-        } catch (AizouException | NullPointerException | JsonProcessingException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
-        }
+
+        it = PoiAPI.poiSearch(type, tag, keyword, sf, sort, page, pageSize, true, hotelType);
+        while (it.hasNext())
+            results.add(it.next());
+        SimplePOIFormatter<? extends AbstractPOI> simplePOIFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
+        return Utils.createResponse(ErrorCode.NORMAL, simplePOIFormatter.formatNode(results));
     }
 
     /**
@@ -228,15 +225,15 @@ public class POICtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingOcsCache(key="poiList({type},{loc},{sortField},{sortType},{page},{pageSize},{cmtPage},{cmtPageSize}",
+    @UsingOcsCache(key = "poiList({type},{loc},{sortField},{sortType},{page},{pageSize},{cmtPage},{cmtPageSize}",
             expireTime = 3600)
-    public static Result viewPoiList(@Key(tag="type") String poiType,
-                                     @Key(tag="loc") String locId, String tagFilter,
-                                     @Key(tag="sortField") String sortField,
-                                     @Key(tag="sortType") String sortType,
-                                     @Key(tag="page") int page, @Key(tag="pageSize") int pageSize,
-                                     @Key(tag="cmtPage") int commentPage,
-                                     @Key(tag="cmtPageSize") int commentPageSize) {
+    public static Result viewPoiList(@Key(tag = "type") String poiType,
+                                     @Key(tag = "loc") String locId, String tagFilter,
+                                     @Key(tag = "sortField") String sortField,
+                                     @Key(tag = "sortType") String sortType,
+                                     @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize,
+                                     @Key(tag = "cmtPage") int commentPage,
+                                     @Key(tag = "cmtPageSize") int commentPageSize) throws AizouException {
         PoiAPI.POIType type = null;
         switch (poiType) {
             case "vs":
@@ -279,12 +276,12 @@ public class POICtrl extends Controller {
         int imgWidth = 0;
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
-        try {
-            it = PoiAPI.viewPoiList(type, new ObjectId(locId), sf, sort, page, pageSize);
-            for (AbstractPOI temp : it) {
-                temp.images = TaoziDataFilter.getOneImage(temp.images);
-                temp.priceDesc = TaoziDataFilter.getPriceDesc(temp);
-                //temp.desc = StringUtils.abbreviate(temp.desc, Constants.ABBREVIATE_LEN);
+
+        it = PoiAPI.viewPoiList(type, new ObjectId(locId), sf, sort, page, pageSize);
+        for (AbstractPOI temp : it) {
+            temp.images = TaoziDataFilter.getOneImage(temp.images);
+            temp.priceDesc = TaoziDataFilter.getPriceDesc(temp);
+            //temp.desc = StringUtils.abbreviate(temp.desc, Constants.ABBREVIATE_LEN);
                 /*
                   Poi列表去掉评论和评论数 20150202
                  */
@@ -299,14 +296,11 @@ public class POICtrl extends Controller {
 //                    ret.put("comments", Json.toJson(comments));
 //                    ret.put("commentCnt", commCnt);
 //                }
-                results.add(temp);
+            results.add(temp);
 
-            }
-            SimplePOIFormatter simplePOIFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
-            return Utils.createResponse(ErrorCode.NORMAL, simplePOIFormatter.formatNode(results));
-        } catch (AizouException | NullPointerException | JsonProcessingException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson(e.getMessage()));
         }
+        SimplePOIFormatter simplePOIFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
+        return Utils.createResponse(ErrorCode.NORMAL, simplePOIFormatter.formatNode(results));
     }
 
     /**
@@ -317,22 +311,21 @@ public class POICtrl extends Controller {
      * @return
      */
     public static Result getPoiNear(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                    boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize) {
-        try {
-            // 获取图片宽度
-            String imgWidthStr = request().getQueryString("imgWidth");
-            int imgWidth = 0;
-            if (imgWidthStr != null)
-                imgWidth = Integer.valueOf(imgWidthStr);
-            ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, shopping, page, pageSize, commentPage, commentPageSize, imgWidth);
-            return Utils.createResponse(ErrorCode.NORMAL, results);
-        } catch (AizouException | JsonProcessingException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
+                                    boolean restaurant, boolean shopping, int page, int pageSize,
+                                    int commentPage, int commentPageSize) throws AizouException {
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+        ObjectNode results = getPoiNearImpl(lng, lat, maxDist, spot, hotel, restaurant, shopping, page, pageSize, commentPage, commentPageSize, imgWidth);
+        return Utils.createResponse(ErrorCode.NORMAL, results);
     }
 
     private static ObjectNode getPoiNearImpl(double lng, double lat, double maxDist, boolean spot, boolean hotel,
-                                             boolean restaurant, boolean shopping, int page, int pageSize, int commentPage, int commentPageSize, int imgWidth) throws AizouException, JsonProcessingException {
+                                             boolean restaurant, boolean shopping, int page, int pageSize,
+                                             int commentPage, int commentPageSize, int imgWidth)
+            throws AizouException {
         ObjectNode results = Json.newObject();
         Class<? extends AbstractPOI> poiClass = null;
         //发现poi
@@ -404,60 +397,60 @@ public class POICtrl extends Controller {
      * @param field
      * @return
      */
-    public static Result getTravelGuide(String locId, String field, String poiDesc) {
-        try {
-            List<String> destKeyList = new ArrayList<>();
+    public static Result getTravelGuide(String locId, String field, String poiDesc) throws AizouException {
+        List<String> destKeyList = new ArrayList<>();
 
-            Class<? extends AbstractPOI> poiClass;
-            switch (poiDesc) {
-                case "vs":
-                    poiClass = ViewSpot.class;
-                    break;
-                case "hotel":
-                    poiClass = Hotel.class;
-                    break;
-                case "restaurant":
-                    poiClass = Restaurant.class;
-                    break;
-                case "shopping":
-                    poiClass = Shopping.class;
-                    break;
-                default:
-                    return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
-            }
+        Class<? extends AbstractPOI> poiClass;
+        switch (poiDesc) {
+            case "vs":
+                poiClass = ViewSpot.class;
+                break;
+            case "hotel":
+                poiClass = Hotel.class;
+                break;
+            case "restaurant":
+                poiClass = Restaurant.class;
+                break;
+            case "shopping":
+                poiClass = Shopping.class;
+                break;
+            default:
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc));
+        }
 
-            switch (field) {
-                case "tips":
-                    destKeyList.add(AbstractPOI.FD_TIPS);
-                    break;
-                case "trafficInfo":
-                    destKeyList.add(AbstractPOI.FD_TRAFFICINFO);
-                    break;
-                case "visitGuide":
-                    destKeyList.add(AbstractPOI.FD_VISITGUIDE);
-                    break;
-            }
-            // 获取图片宽度
-            String imgWidthStr = request().getQueryString("imgWidth");
-            int imgWidth = 0;
-            if (imgWidthStr != null)
-                imgWidth = Integer.valueOf(imgWidthStr);
-            AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(locId), poiClass, destKeyList);
-            ObjectNode result = Json.newObject();
-            if (field.equals("tips")) {
+        switch (field) {
+            case "tips":
+                destKeyList.add(AbstractPOI.FD_TIPS);
+                break;
+            case "trafficInfo":
+                destKeyList.add(AbstractPOI.FD_TRAFFICINFO);
+                break;
+            case "visitGuide":
+                destKeyList.add(AbstractPOI.FD_VISITGUIDE);
+                break;
+        }
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+        AbstractPOI poiInfo = PoiAPI.getPOIInfo(new ObjectId(locId), poiClass, destKeyList);
+        ObjectNode result = Json.newObject();
+        switch (field) {
+            case "tips":
                 result.put("desc", "");
                 DetailsEntryFormatter detailsEntryFormatter = FormatterFactory.getInstance(DetailsEntryFormatter.class, imgWidth);
                 result.put("contents", poiInfo.getTips() == null ? Json.toJson(new ArrayList<>()) : detailsEntryFormatter.formatNode(poiInfo.getTips()));
-            } else if (field.equals("trafficInfo")) {
+                break;
+            case "trafficInfo":
                 result.put("contents", Json.toJson(poiInfo.getTrafficInfo()));
-            } else if (field.equals("visitGuide")) {
+                break;
+            case "visitGuide":
                 result.put("contents", Json.toJson(poiInfo.getVisitGuide()));
-            }
-
-            return Utils.createResponse(ErrorCode.NORMAL, result);
-        } catch (AizouException | NullPointerException | NumberFormatException | JsonProcessingException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
+                break;
         }
+
+        return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 }
 

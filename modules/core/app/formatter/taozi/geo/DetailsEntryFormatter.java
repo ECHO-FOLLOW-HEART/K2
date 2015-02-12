@@ -25,7 +25,7 @@ import java.util.*;
  */
 public class DetailsEntryFormatter extends AizouFormatter<DetailsEntry> {
 
-    public DetailsEntryFormatter(int imgWidth) {
+    public DetailsEntryFormatter(Integer imgWidth) {
         registerSerializer(DetailsEntry.class, new DetailsEntrySerializer());
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         initObjectMapper(null);

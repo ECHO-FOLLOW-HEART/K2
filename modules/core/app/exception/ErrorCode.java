@@ -25,9 +25,14 @@ public class ErrorCode {
     public static int INVALID_CONFARG = 130;
 
     /**
+     * 通用IO错误
+     */
+    public static final int IO_ERROR = 200;
+
+    /**
      * 数据库错误
      */
-    public static int DATABASE_ERROR = 200;
+    public static int DATABASE_ERROR = 201;
 
     /**
      *
@@ -80,5 +85,10 @@ public class ErrorCode {
      * 无效的短信操作码
      */
     public static int SMS_INVALID_ACTION = 501;
+
+    /**
+     * 搜索引擎通用错误
+     */
+    public static final int SEARCH_ENGINE_ERROR = 600;
 
 }

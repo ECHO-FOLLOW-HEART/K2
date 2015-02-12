@@ -2,7 +2,6 @@ package controllers.taozi;
 
 import aizou.core.MiscAPI;
 import aizou.core.TravelNoteAPI;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import controllers.Key;
 import controllers.UsingOcsCache;
@@ -38,24 +37,26 @@ public class TravelNoteCtrl extends Controller {
     @UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
     public static Result searchTravelNotes(@Key(tag = "keyword") String keyWord,
                                            @Key(tag = "locId") String locId,
-                                           @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize) {
+                                           @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)
+            throws AizouException {
         List<TravelNote> noteList;
         JsonNode result;
         JsonNode note;
         String url = "http://h5.taozilvxing.com/dayDetail.php?id=";
+
         //通过关键字查询游记
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+
+        TravelNoteFormatter travelNoteFormatter = FormatterFactory.getInstance(TravelNoteFormatter.class, imgWidth);
+        travelNoteFormatter.setLevel(TravelNoteFormatter.Level.SIMPLE);
+        Long userId = null;
+        if (request().hasHeader("UserId"))
+            userId = Long.parseLong(request().getHeader("UserId"));
+
         try {
-            String imgWidthStr = request().getQueryString("imgWidth");
-            int imgWidth = 0;
-            if (imgWidthStr != null)
-                imgWidth = Integer.valueOf(imgWidthStr);
-
-            TravelNoteFormatter travelNoteFormatter = FormatterFactory.getInstance(TravelNoteFormatter.class, imgWidth);
-            travelNoteFormatter.setLevel(TravelNoteFormatter.Level.SIMPLE);
-            Long userId = null;
-            if (request().hasHeader("UserId"))
-                userId = Long.parseLong(request().getHeader("UserId"));
-
             if (!keyWord.isEmpty()) {
                 noteList = TravelNoteAPI.searchNotesByWord(keyWord, page, pageSize);
                 // 判断是否被收藏
@@ -70,8 +71,8 @@ public class TravelNoteCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.NORMAL, result);
             } else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "fail");
-        } catch (SolrServerException | AizouException | JsonProcessingException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        } catch (SolrServerException e) {
+            throw new AizouException(ErrorCode.SEARCH_ENGINE_ERROR, "", e);
         }
     }
 
@@ -82,23 +83,19 @@ public class TravelNoteCtrl extends Controller {
      * @return
      */
     @UsingOcsCache(key = "travelNoteDetails({noteId})")
-    public static Result travelNoteDetail(@Key(tag = "noteId") String noteId) {
-        try {
-            // 获取图片宽度
-            String imgWidthStr = request().getQueryString("imgWidth");
-            int imgWidth = 0;
-            if (imgWidthStr != null)
-                imgWidth = Integer.valueOf(imgWidthStr);
-            TravelNote travelNote = TravelNoteAPI.getNoteById(new ObjectId(noteId));
-            if (travelNote == null)
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "TravelNote is null.Id:" + noteId);
+    public static Result travelNoteDetail(@Key(tag = "noteId") String noteId) throws AizouException {
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+        TravelNote travelNote = TravelNoteAPI.getNoteById(new ObjectId(noteId));
+        if (travelNote == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "TravelNote is null.Id:" + noteId);
 
-            TravelNoteFormatter travelNoteFormatter = FormatterFactory.getInstance(TravelNoteFormatter.class, imgWidth);
-            travelNoteFormatter.setLevel(TravelNoteFormatter.Level.DETAILED);
-            return Utils.createResponse(ErrorCode.NORMAL, travelNoteFormatter.formatNode(travelNote));
-        } catch (AizouException | JsonProcessingException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
+        TravelNoteFormatter travelNoteFormatter = FormatterFactory.getInstance(TravelNoteFormatter.class, imgWidth);
+        travelNoteFormatter.setLevel(TravelNoteFormatter.Level.DETAILED);
+        return Utils.createResponse(ErrorCode.NORMAL, travelNoteFormatter.formatNode(travelNote));
     }
 }
 

@@ -1,7 +1,6 @@
 package formatter;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.Hashtable;
 import java.util.Map;
 
@@ -15,23 +14,23 @@ public class FormatterFactory {
     private FormatterFactory() {
     }
 
-
-    @SuppressWarnings("unchecked")
-    public static <T extends AizouFormatter> T getInstance(Class<T> classOf)
-            throws InstantiationException, IllegalAccessException {
-
-        if (!instance.mapHolder.containsKey(classOf.toString())) {
-            synchronized (instance) {
-                if (!instance.mapHolder.containsKey(classOf.toString())) {
-                    T obj = classOf.newInstance();
-
-                    instance.mapHolder.put(classOf.toString(), obj);
-                }
-            }
-        }
-
-        return (T) instance.mapHolder.get(classOf.toString());
-    }
+//
+//    @SuppressWarnings("unchecked")
+//    public static <T extends AizouFormatter> T getInstance(Class<T> classOf)
+//            throws InstantiationException, IllegalAccessException {
+//
+//        if (!instance.mapHolder.containsKey(classOf.toString())) {
+//            synchronized (instance) {
+//                if (!instance.mapHolder.containsKey(classOf.toString())) {
+//                    T obj = classOf.newInstance();
+//
+//                    instance.mapHolder.put(classOf.toString(), obj);
+//                }
+//            }
+//        }
+//
+//        return (T) instance.mapHolder.get(classOf.toString());
+//    }
 
     @SuppressWarnings("unchecked")
     public static <T extends AizouFormatter> T getInstance(Class<T> classOf, Object... args) {
@@ -44,19 +43,17 @@ public class FormatterFactory {
             if (!instance.mapHolder.containsKey(key)) {
                 synchronized (instance) {
                     if (!instance.mapHolder.containsKey(key)) {
-                        Constructor constructor = classOf.getConstructor(int.class);
+                        Class<?>[] signature = new Class<?>[args.length];
+                        for (int i = 0; i < args.length; i++) {
+                            signature[i] = args[i].getClass();
+                        }
+                        Constructor constructor = classOf.getConstructor(signature);
                         T obj = (T) constructor.newInstance(args);
                         instance.mapHolder.put(key, obj);
                     }
                 }
             }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
+        } catch (ReflectiveOperationException e) {
             e.printStackTrace();
         }
         return (T) instance.mapHolder.get(key);

@@ -22,7 +22,7 @@ import java.util.List;
  */
 public class SimpleGuideFormatter extends AizouFormatter<Guide> {
 
-    public SimpleGuideFormatter(int imgWidth) {
+    public SimpleGuideFormatter(Integer imgWidth) {
         registerSerializer(Guide.class, new SimpleGuideSerializer());
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         initObjectMapper(null);

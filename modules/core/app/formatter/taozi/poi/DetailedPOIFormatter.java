@@ -35,7 +35,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends AizouFormatter<
         return filteredFields;
     }
 
-    public DetailedPOIFormatter(int imgWidth) {
+    public DetailedPOIFormatter(Integer imgWidth) {
         registerSerializer(AbstractPOI.class, new PolymorphicPOISerializer(PolymorphicPOISerializer.Level.DETAILED));
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         registerSerializer(Locality.class, new LocalitySerializer());

@@ -34,7 +34,7 @@ public class TravelNoteFormatter extends AizouFormatter<TravelNote> {
         this(640);
     }
 
-    public TravelNoteFormatter(int imgWidth) {
+    public TravelNoteFormatter(Integer imgWidth) {
         imageWidth = imgWidth;
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         registerSerializer(TravelNote.class, new TravelNoteSerializer());
