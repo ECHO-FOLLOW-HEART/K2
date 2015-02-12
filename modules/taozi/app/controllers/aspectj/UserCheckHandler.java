@@ -1,4 +1,4 @@
-package controllers;
+package controllers.aspectj;
 
 import aizou.core.UserAPI;
 import exception.AizouException;
@@ -19,7 +19,7 @@ import static play.mvc.Controller.request;
  */
 @Aspect
 public class UserCheckHandler {
-    @Before("execution(public play.mvc.Result controllers.taozi..*(..)) && @annotation(controllers.CheckUser)")
+    @Before("execution(public play.mvc.Result controllers.taozi..*(..)) && @annotation(controllers.aspectj.CheckUser)")
     public void checkUser(JoinPoint pjp) throws AizouException {
         long userId;
         String userIdVal = request().getHeader("UserId");

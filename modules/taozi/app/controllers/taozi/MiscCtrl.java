@@ -4,8 +4,8 @@ import aizou.core.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.Key;
-import controllers.UsingOcsCache;
+import controllers.aspectj.Key;
+import controllers.aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -65,9 +65,6 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height,
                                       @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
             throws AizouException {
-
-        Configuration config = Configuration.root();
-
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).asList();
         if (infos == null)

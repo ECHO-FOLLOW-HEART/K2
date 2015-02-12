@@ -44,6 +44,8 @@ public class ErrorCode {
      */
     public static int UNKOWN_ERROR = 900;
 
+    public static final int ILLEGAL_STATE = 905;
+
     /**
      * 数据已存在的错误
      */

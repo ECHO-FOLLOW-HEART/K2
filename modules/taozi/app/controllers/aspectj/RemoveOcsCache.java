@@ -1,4 +1,4 @@
-package controllers;
+package controllers.aspectj;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -10,8 +10,6 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface UsingLocalCache {
-    String callback();
-    String args();
-    boolean withPublic() default false; //Cache-Control字段，默认为private
+public @interface RemoveOcsCache {
+    String keyList();
 }

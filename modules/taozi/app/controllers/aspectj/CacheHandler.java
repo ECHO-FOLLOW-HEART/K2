@@ -1,4 +1,4 @@
-package controllers;
+package controllers.aspectj;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.ErrorCode;
@@ -45,7 +45,7 @@ public class CacheHandler {
     }
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
-            "&&@annotation(controllers.RemoveOcsCache)")
+            "&&@annotation(controllers.aspectj.RemoveOcsCache)")
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
         if (cacheEnabled) {
             MethodSignature ms = (MethodSignature) pjp.getSignature();
@@ -63,7 +63,7 @@ public class CacheHandler {
     }
 
     @Around(value = "execution(* controllers.taozi..*(..))" +
-            "&&@annotation(controllers.UsingOcsCache)")
+            "&&@annotation(controllers.aspectj.UsingOcsCache)")
     public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
         if (!cacheEnabled) {
             return pjp.proceed();
