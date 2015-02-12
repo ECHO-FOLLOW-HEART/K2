@@ -42,7 +42,7 @@ public class GeoCtrl extends Controller {
      * @param id 城市ID
      * @return
      */
-    @UsingOcsCache(key = "getLocality({id})", expireTime = 3600)
+    //@UsingOcsCache(key = "getLocality({id})", expireTime = 3600)
     public static Result getLocality(@Key(tag = "id") String id) throws AizouException {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
