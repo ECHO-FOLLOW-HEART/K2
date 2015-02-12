@@ -73,6 +73,23 @@ public class UserAPI {
     }
 
     /**
+     * 获得用户的ObjectId
+     * <p/>
+     * 该方法的主要用途是：提供一个UserId，检查该用户是否存在。以此作为和用户相关的接口的预先验证。
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    public static String getUserObjectId(Long id) throws AizouException {
+        UserInfo info = getUserInfo(id, Arrays.asList("_id"));
+        if (info != null)
+            return info.getId().toString();
+        else
+            return null;
+    }
+
+    /**
      * 获取用户信息（添加fieldList限定）
      *
      * @throws exception.AizouException
