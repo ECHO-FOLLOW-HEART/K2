@@ -34,7 +34,7 @@ public class TravelNoteCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
+    //@UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
     public static Result searchTravelNotes(@Key(tag = "keyword") String keyWord,
                                            @Key(tag = "locId") String locId,
                                            @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)

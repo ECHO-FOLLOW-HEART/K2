@@ -4,10 +4,8 @@ import aizou.core.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.AsyncExecutor;
-import controllers.aspectj.CatchException;
-import controllers.aspectj.Key;
-import controllers.aspectj.UsingOcsCache;
+import controllers.Key;
+import controllers.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -34,7 +32,6 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
-import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -65,35 +62,40 @@ public class MiscCtrl extends Controller {
      * @return
      */
     @UsingOcsCache(key = "appHomeImage,{w},{h},{q},{fmt}", expireTime = 3600)
-    public static F.Promise<Result> appHomeImage(@Key(tag = "w") final int width, @Key(tag = "h") final int height,
-                                                  @Key(tag = "q") final int quality, @Key(tag = "fmt") final String format,
-                                                  final int interlace) {
-        return AsyncExecutor.execute(
-                new F.Function0<MiscInfo>() {
-                    @Override
-                    public MiscInfo apply() throws Throwable {
-                        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-                        return ds.createQuery(MiscInfo.class).field("key")
-                                .equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
-                    }
-                },
-                new F.Function<MiscInfo, Result>() {
-                    @Override
-                    public Result apply(MiscInfo info) throws Throwable {
-                        ObjectNode node = Json.newObject();
-                        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,
-                                width, height, quality, format, interlace);
+    public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height,
+                                      @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
+            throws AizouException {
 
-                        node.put("image", url);
-                        node.put("width", width);
-                        node.put("height", height);
-                        node.put("fmt", format);
-                        node.put("quality", quality);
+        Configuration config = Configuration.root();
 
-                        return Utils.createResponse(ErrorCode.NORMAL, node);
-                    }
-                }
-        );
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).asList();
+        if (infos == null)
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
+
+        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
+        //String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,width, height, quality, format, interlace);
+        double appRatio = height / width;
+        double ratio;
+        double suitDif = 10;
+        double dif;
+        String suitImg = "";
+        for (MiscInfo info : infos) {
+            ratio = Double.valueOf(info.viceKey);
+            dif = Math.abs(appRatio - ratio);
+            if (dif < suitDif) {
+                suitDif = dif;
+                suitImg = info.value;
+            }
+        }
+        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", suitImg, width, height, quality, format, interlace);
+        ObjectNode node = Json.newObject();
+        node.put("image", url);
+        node.put("width", width);
+        node.put("height", height);
+        node.put("fmt", format);
+        node.put("quality", quality);
+        return Utils.createResponse(ErrorCode.NORMAL, node);
     }
 
     public static Result postFeedback() throws AizouException {

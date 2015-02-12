@@ -93,7 +93,7 @@ public class POICtrl extends Controller {
      *                entertainment:美食
      * @param spotId  POI的ID。
      */
-    @UsingOcsCache(key = "poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize},{isWeb}", expireTime = 3600)
+    //@UsingOcsCache(key = "poiInfo({poiId},{cmtPage},{cmtPageSize},{rmdPage},{rmdPageSize},{isWeb}", expireTime = 3600)
     public static Result viewPOIInfo(String poiDesc,
                                      @Key(tag = "poiId") String spotId,
                                      @Key(tag = "cmtPage") int commentPage,
