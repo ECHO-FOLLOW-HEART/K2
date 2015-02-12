@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
+import controllers.CheckUser;
 import controllers.Key;
 import controllers.RemoveOcsCache;
 import controllers.UsingOcsCache;
@@ -493,6 +494,7 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
+    @CheckUser(nullable = true)
     public static Result getUserProfileById(long userId) throws AizouException {
         String tmp = request().getHeader("UserId");
         Long selfId = null;
