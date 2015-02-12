@@ -28,8 +28,6 @@ public class ExceptionHandler {
         logger.info(String.format("Exception handler init: %s", debug));
     }
 
-
-
     @Around("execution(public play.mvc.Result controllers.taozi..*(..)) || @annotation(controllers.aspectj.CatchException)")
     public Result catchException(ProceedingJoinPoint pjp) {
         try {
