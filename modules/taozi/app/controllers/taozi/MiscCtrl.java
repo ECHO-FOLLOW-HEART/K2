@@ -411,11 +411,9 @@ public class MiscCtrl extends Controller {
         // 定义图片的URL
         callbackBody.append("&").append(UPLOAD_URL).append("=").append(url);
         callbackBody.append("&").append(UPLOAD_URL_SMALL).append("=").append(url).append("?imageView2/2/w/200");
-
         // 定义用户ID
-        return "name=$(fname)" + "&size=$(fsize)" + "&h=$(imageInfo.height)" + "&w=$(imageInfo.width)" +
-                "&w=$(imageInfo.width)" + "&hash=$(etag)" + "&bucket=$(bucket)" + "&" + UPLOAD_URL +
-                "=" + url + "&" + UPLOAD_UID + "=" + userId;
+        callbackBody.append("&").append(UPLOAD_UID).append("=").append(userId);
+        return callbackBody.toString();
     }
 
     private static String getReturnBody() {
