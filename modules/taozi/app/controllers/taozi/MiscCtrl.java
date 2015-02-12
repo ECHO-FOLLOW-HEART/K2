@@ -65,6 +65,9 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height,
                                       @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
             throws AizouException {
+
+        Configuration config = Configuration.root();
+
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
         if (info == null)
