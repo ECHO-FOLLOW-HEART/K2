@@ -69,14 +69,27 @@ public class MiscCtrl extends Controller {
         Configuration config = Configuration.root();
 
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).get();
-        if (info == null)
+        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).asList();
+        if (infos == null)
             return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
-        ObjectNode node = Json.newObject();
-        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,
-                width, height, quality, format, interlace);
 
+        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
+        //String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,width, height, quality, format, interlace);
+        double appRatio = height / width;
+        double ratio;
+        double suitDif = 10;
+        double dif;
+        String suitImg = "";
+        for (MiscInfo info : infos) {
+            ratio = Double.valueOf(info.viceKey);
+            dif = Math.abs(appRatio - ratio);
+            if (dif < suitDif) {
+                suitDif = dif;
+                suitImg = info.value;
+            }
+        }
+        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", suitImg, width, height, quality, format, interlace);
+        ObjectNode node = Json.newObject();
         node.put("image", url);
         node.put("width", width);
         node.put("height", height);
