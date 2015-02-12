@@ -509,7 +509,7 @@ public class UserCtrl extends Controller {
         if (result == null)
             return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
 
-        String ret = FormatterFactory.getInstance(UserInfoFormatter.class).format(result);
+        String ret = formatter.format(result);
 
         return Utils.status(ret);
     }
