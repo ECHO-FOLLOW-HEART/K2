@@ -38,9 +38,9 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
+import utils.results.SceneID;
 import utils.results.TaoziResBuilder;
 import utils.results.TaoziSceneText;
-import utils.results.SceneID;
 
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
@@ -509,14 +509,13 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingOcsCache(key = "getColumns({type},{id})", expireTime = 86400)
+    @UsingOcsCache(key = "getColumns({type},{id})", expireTime = 86400, serializer = "WrappedResult")
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
-        String url;
         Configuration config = Configuration.root();
         Map h5 = (Map) config.getObject("h5");
-        url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
+        String url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
 
         List<Column> columnList = MiscAPI.getColumns(type, id);
         for (Column c : columnList) {
