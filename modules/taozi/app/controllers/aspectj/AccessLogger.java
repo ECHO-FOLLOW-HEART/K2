@@ -35,7 +35,7 @@ public class AccessLogger {
         }
         ResponseHeader s = (ResponseHeader) result.toScala().productElement(0);
         int status = s.status();
-        int code = body.get("code") == null ? 0 : body.get("code").asInt(ErrorCode.UNKOWN_ERROR);
+        int code = body.get("code") == null ? 0 : body.get("code").asInt(ErrorCode.UNKOWN_ERROR.getVal());
         String logLine = getLogLine(code, status, body);
         logger.info(logLine);
     }

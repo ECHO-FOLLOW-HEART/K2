@@ -212,7 +212,7 @@ public class UserTest extends AizouTest {
                     if (passwd.equals("fake")) {
                         Result result = callAction(handler, req);
                         JsonNode node = Json.parse(contentAsString(result));
-                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR.getVal());
                         assertThat(node.get("result")).isEqualTo(null);
                     } else {
                         JsonNode node = getResultNode(handler, req);
@@ -310,9 +310,9 @@ public class UserTest extends AizouTest {
                     JsonNode node = Json.parse(contentAsString(result));
 
                     if (d[0].equals(magicTel))
-                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.USER_EXIST);
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.USER_EXIST.getVal());
                     else if (!d[1].equals(magicVal))
-                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.CAPTCHA_ERROR);
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.CAPTCHA_ERROR.getVal());
                     else {
                         assertThat(node.get("code").asInt()).isEqualTo(0);
                         node = node.get("result");
@@ -369,7 +369,7 @@ public class UserTest extends AizouTest {
                         if (selfId == 0) {
                             Result result = callAction(handler, req);
                             JsonNode node = Json.parse(contentAsString(result));
-                            assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
+                            assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR.getVal());
                         } else {
                             getResultNode(handler, req);
                         }
