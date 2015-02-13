@@ -66,7 +66,7 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    @UsingOcsCache(key = "appHomeImage,{w},{h},{q},{fmt}", expireTime = 3600)
+    @UsingOcsCache(key = "appHomeImage|{w}|{h}|{q}|{fmt}", expireTime = 86400)
     public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height,
                                       @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
             throws AizouException {
@@ -135,8 +135,8 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingOcsCache(key = "recommend", expireTime = 3600)
-    public static Result recommend(int page, int pageSize)
+    @UsingOcsCache(key = "recommend|{page}|{pageSize}", expireTime = 3600)
+    public static Result recommend(@Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)
             throws JsonProcessingException, ReflectiveOperationException, AizouException {
 
         List<ObjectNode> retNodeList = new ArrayList<>();
@@ -446,16 +446,6 @@ public class MiscCtrl extends Controller {
         return callbackBody.toString();
     }
 
-    private static String getReturnBody() {
-        ObjectNode info = Json.newObject();
-        info.put("name", "$(fname)");
-        info.put("size", "$(fsize)");
-        info.put("w", "$(imageInfo.width)");
-        info.put("h", "$(imageInfo.height)");
-        info.put("hash", "$(etag)");
-        return info.toString();
-    }
-
     /**
      * 取得文件名
      *
@@ -509,7 +499,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingOcsCache(key = "getColumns({type},{id})", expireTime = 86400, serializer = "WrappedResult")
+    @UsingOcsCache(key = "getColumns|{type}|{id}", expireTime = 86400, serializer = "WrappedResult")
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
@@ -598,8 +588,8 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingOcsCache(key = "search(keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel}," +
-            "restaurant={restaurant},shopping={shopping},page={p},pageSize={ps})",
+    @UsingOcsCache(key = "search|{keyWord}|{locId}|{loc}|{vs}|{hotel}|" +
+            "{restaurant}|{shopping}|{p}|{ps})",
             expireTime = 300)
     public static Result search(@Key(tag = "keyWord") String keyWord,
                                 @Key(tag = "locId") String locId,

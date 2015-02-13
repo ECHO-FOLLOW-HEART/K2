@@ -5,7 +5,6 @@ import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.reflect.MethodSignature;
 import play.Configuration;
 import play.cache.Cache;
@@ -13,12 +12,10 @@ import play.mvc.Http;
 import play.mvc.Result;
 import serialization.ParserFactory;
 import serialization.SerializeParser;
-import utils.WrappedStatus;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Created by Heaven on 2015/1/22.
@@ -64,9 +61,6 @@ public class CacheHandler {
 
     @Around(value = "execution(* controllers.taozi..*(..)) && @annotation(controllers.aspectj.UsingOcsCache)")
     public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
-        logger = LogFactory.getLog(this.getClass());
-        logger.info(String.format("TRY CACHE: %d", new Random().nextInt()));
-
         if (!cacheEnabled) {
             return pjp.proceed();
         }
@@ -90,7 +84,7 @@ public class CacheHandler {
             if (Result.class.isAssignableFrom(returnType)) {
                 // 返回的是WrappedStatus类型，默认采用ResultSerializer
                 serializerName = "WrappedResult";
-            }else if(String.class.isAssignableFrom(returnType)){
+            } else if (String.class.isAssignableFrom(returnType)) {
                 // 采用StringSerializer
                 serializerName = "String";
             }
