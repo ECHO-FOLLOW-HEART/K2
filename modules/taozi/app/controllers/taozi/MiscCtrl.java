@@ -39,8 +39,10 @@ import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
 
+import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -72,11 +74,18 @@ public class MiscCtrl extends Controller {
 
         // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
         //String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,width, height, quality, format, interlace);
-        double appRatio = height / width;
+        //double appRatio = (Math.round(height / width)*100 / 100.0);
+        DecimalFormat df = new DecimalFormat("###.0000");
+        BigDecimal b1 = new BigDecimal(df.format(height));
+        BigDecimal b2 = new BigDecimal(df.format(width));
+        // 取得app屏幕的高宽比
+        double appRatio = b1.divide(b2, 4).doubleValue();
         double ratio;
+        // 初始值取一个较大的数
         double suitDif = 10;
         double dif;
         String suitImg = "";
+        // 取数据库中最接近app高宽比的图片
         for (MiscInfo info : infos) {
             ratio = Double.valueOf(info.viceKey);
             dif = Math.abs(appRatio - ratio);
