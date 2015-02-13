@@ -52,7 +52,7 @@ GET           /misc/favorites                                    controllers.tao
 #删除收藏
 DELETE        /misc/favorites/:id                                controllers.taozi.MiscCtrl.delFavorite(id: String)
 #获得封面故事
-GET           /misc/cover-stories                                controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
+GET           /misc/cover-stories                                controllers.taozi.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="png", interlace: Int?=1)
 #反馈
 POST          /misc/feedback                                     controllers.taozi.MiscCtrl.postFeedback()
 #天气

@@ -3,8 +3,8 @@ package controllers.taozi;
 import aizou.core.MiscAPI;
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
-import controllers.Key;
-import controllers.UsingOcsCache;
+import controllers.aspectj.Key;
+import controllers.aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -34,7 +34,7 @@ public class TravelNoteCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
+    //@UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
     public static Result searchTravelNotes(@Key(tag = "keyword") String keyWord,
                                            @Key(tag = "locId") String locId,
                                            @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)

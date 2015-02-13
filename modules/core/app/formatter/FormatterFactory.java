@@ -34,29 +34,41 @@ public class FormatterFactory {
 
     @SuppressWarnings("unchecked")
     public static <T extends AizouFormatter> T getInstance(Class<T> classOf, Object... args) {
-        StringBuilder argsKey = new StringBuilder();
-        for (Object ob : args)
-            argsKey.append(ob);
-        String key = classOf.toString() + argsKey.toString();
-        try {
 
-            if (!instance.mapHolder.containsKey(key)) {
-                synchronized (instance) {
-                    if (!instance.mapHolder.containsKey(key)) {
-                        Class<?>[] signature = new Class<?>[args.length];
-                        for (int i = 0; i < args.length; i++) {
-                            signature[i] = args[i].getClass();
-                        }
-                        Constructor constructor = classOf.getConstructor(signature);
-                        T obj = (T) constructor.newInstance(args);
-                        instance.mapHolder.put(key, obj);
-                    }
-                }
+        try {
+            Class<?>[] signature = new Class<?>[args.length];
+            for (int i = 0; i < args.length; i++) {
+                signature[i] = args[i].getClass();
             }
+            Constructor constructor = classOf.getConstructor(signature);
+            return (T) constructor.newInstance(args);
         } catch (ReflectiveOperationException e) {
-            e.printStackTrace();
+            return null;
         }
-        return (T) instance.mapHolder.get(key);
+//
+//        StringBuilder argsKey = new StringBuilder();
+//        for (Object ob : args)
+//            argsKey.append(ob);
+//        String key = classOf.toString() + argsKey.toString();
+//        try {
+//
+//            if (!instance.mapHolder.containsKey(key)) {
+//                synchronized (instance) {
+//                    if (!instance.mapHolder.containsKey(key)) {
+//                        Class<?>[] signature = new Class<?>[args.length];
+//                        for (int i = 0; i < args.length; i++) {
+//                            signature[i] = args[i].getClass();
+//                        }
+//                        Constructor constructor = classOf.getConstructor(signature);
+//                        T obj = (T) constructor.newInstance(args);
+//                        instance.mapHolder.put(key, obj);
+//                    }
+//                }
+//            }
+//        } catch (ReflectiveOperationException e) {
+//            e.printStackTrace();
+//        }
+//        return (T) instance.mapHolder.get(key);
     }
 
     public Object clone() throws CloneNotSupportedException {

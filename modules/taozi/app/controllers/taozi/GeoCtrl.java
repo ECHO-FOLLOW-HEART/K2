@@ -5,9 +5,9 @@ import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.Key;
-import controllers.UsingLocalCache;
-import controllers.UsingOcsCache;
+import controllers.aspectj.Key;
+import controllers.aspectj.UsingLocalCache;
+import controllers.aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -42,7 +42,7 @@ public class GeoCtrl extends Controller {
      * @param id 城市ID
      * @return
      */
-    @UsingOcsCache(key = "getLocality({id})", expireTime = 3600)
+    //@UsingOcsCache(key = "getLocality({id})", expireTime = 3600)
     public static Result getLocality(@Key(tag = "id") String id) throws AizouException {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");

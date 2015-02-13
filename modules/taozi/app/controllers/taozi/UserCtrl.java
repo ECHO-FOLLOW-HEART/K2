@@ -5,10 +5,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
-import controllers.CheckUser;
-import controllers.Key;
-import controllers.RemoveOcsCache;
-import controllers.UsingOcsCache;
+import controllers.AsyncExecutor;
+import controllers.aspectj.CheckUser;
+import controllers.aspectj.Key;
+import controllers.aspectj.RemoveOcsCache;
+import controllers.aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -24,6 +25,7 @@ import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
+import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -509,7 +511,7 @@ public class UserCtrl extends Controller {
         if (result == null)
             return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
 
-        String ret = FormatterFactory.getInstance(UserInfoFormatter.class).format(result);
+        String ret = formatter.format(result);
 
         return Utils.status(ret);
     }
@@ -618,7 +620,7 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result addContact() throws AizouException {
+    public static F.Promise<Result> addContact() throws AizouException {
         long userId, contactId;
 
         userId = Integer.parseInt(request().getHeader("UserId"));
@@ -627,10 +629,24 @@ public class UserCtrl extends Controller {
     }
 
     @RemoveOcsCache(keyList = "getContactList({userA})|getContactList({userB})")
-    public static Result addContactImpl(@Key(tag = "userA") long userId, @Key(tag = "userB") long contactId)
+    public static F.Promise<Result> addContactImpl(@Key(tag = "userA") final long userId,
+                                                   @Key(tag = "userB") final long contactId)
             throws AizouException {
-        UserAPI.addContact(userId, contactId);
-        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+        return AsyncExecutor.execute(
+                new F.Function0<Object>() {
+                    @Override
+                    public Object apply() throws Throwable {
+                        UserAPI.addContact(userId, contactId);
+                        return null;
+                    }
+                },
+                new F.Function<Object, Result>() {
+                    @Override
+                    public Result apply(Object o) throws Throwable {
+                        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+                    }
+                }
+        );
     }
 
     /**
@@ -670,6 +686,7 @@ public class UserCtrl extends Controller {
         if (list == null)
             list = new ArrayList<>();
 
+        // TODO 需要启用新的formatter
         List<JsonNode> nodelist = new ArrayList<>();
         for (UserInfo userInfo : list) {
             nodelist.add(new UserFormatterOld(false).format(userInfo));
