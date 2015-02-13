@@ -174,7 +174,7 @@ public class GuideTest {
                     } else {
                         Result results = callAction(handler, req);
                         JsonNode node = Json.parse(contentAsString(results));
-                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR.getVal());
                     }
                 }
 

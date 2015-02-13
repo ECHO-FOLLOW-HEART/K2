@@ -38,6 +38,9 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
+import utils.results.TaoziResBuilder;
+import utils.results.TaoziSceneText;
+import utils.results.SceneID;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -66,12 +69,13 @@ public class MiscCtrl extends Controller {
                                       @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
             throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).asList();
+        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE)
+                .asList();
         if (infos == null)
-            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
+            return new TaoziResBuilder().setCode(ErrorCode.UNKOWN_ERROR)
+                    .setMessage(TaoziSceneText.instance().text(SceneID.ERR_APP_HOME_IMAGE))
+                    .build();
 
-        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-        //String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,width, height, quality, format, interlace);
         double appRatio = height / width;
         double ratio;
         double suitDif = 10;
@@ -92,7 +96,8 @@ public class MiscCtrl extends Controller {
         node.put("height", height);
         node.put("fmt", format);
         node.put("quality", quality);
-        return Utils.createResponse(ErrorCode.NORMAL, node);
+
+        return new TaoziResBuilder().setBody(node).build();
     }
 
     public static Result postFeedback() throws AizouException {
@@ -157,7 +162,7 @@ public class MiscCtrl extends Controller {
             retNodeList.add(tempNode);
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(retNodeList));
+        return new TaoziResBuilder().setBody(Json.toJson(retNodeList)).build();
     }
 
     /**
@@ -372,7 +377,10 @@ public class MiscCtrl extends Controller {
             callbackUrl = qiniu.get("callbackUrl").toString();
             callbackUrl = "http://" + callbackUrl;
         } else
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid scenario.");
+            return new TaoziResBuilder().setCode(ErrorCode.INVALID_ARGUMENT)
+                    .setMessage(TaoziSceneText.instance().text(SceneID.INVALID_UPLOAD_SCENE))
+                    .build();
+
         //取得上传策略
         ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId));
         // UrlBase64编码
@@ -385,7 +393,8 @@ public class MiscCtrl extends Controller {
         ObjectNode ret = Json.newObject();
         ret.put("uploadToken", accessKey + ":" + encodedSign + ":" + encodedPutPolicy);
         ret.put("key", picName);
-        return Utils.createResponse(ErrorCode.NORMAL, ret);
+
+        return new TaoziResBuilder().setBody(ret).build();
     }
 
     /**
