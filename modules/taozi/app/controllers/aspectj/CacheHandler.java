@@ -115,7 +115,7 @@ public class CacheHandler {
         if (returnType.equals(play.mvc.Result.class)) {
             JsonNode body = ((WrappedStatus) res).getJsonBody();
 //            ((WrappedStatus) res).as("application/json;charset=utf-8");
-            if (body != null && body.get("code").asInt(ErrorCode.UNKOWN_ERROR) == ErrorCode.NORMAL) {
+            if (body != null && body.get("code").asInt(ErrorCode.UNKOWN_ERROR.getVal()) == ErrorCode.NORMAL.getVal()) {
                 safeCaching(key, serializeParser.Serializing(res), annotation.expireTime());
             }
         } else {
