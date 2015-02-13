@@ -4,6 +4,7 @@ import aizou.core.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import controllers.aspectj.CheckUser;
 import controllers.aspectj.Key;
 import controllers.aspectj.UsingOcsCache;
 import exception.AizouException;
@@ -358,6 +359,7 @@ public class MiscCtrl extends Controller {
      * @param scenario 上传场景: PORTRAIT-上传头像
      * @return
      */
+    @CheckUser
     public static Result putPolicy(String scenario) throws InvalidKeyException, NoSuchAlgorithmException {
         Configuration config = Configuration.root();
 
@@ -504,7 +506,7 @@ public class MiscCtrl extends Controller {
         }
         ColumnFormatter columnFormatter = FormatterFactory.getInstance(ColumnFormatter.class);
 
-        return Utils.createResponse(ErrorCode.NORMAL, columnFormatter.formatNode(columnList));
+        return new TaoziResBuilder().setBody(columnFormatter.formatNode(columnList)).build();
     }
 
     /**
