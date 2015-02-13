@@ -24,7 +24,7 @@ public class UserFormatterOld extends TaoziBaseFormatter {
     public UserFormatterOld(boolean self) {
         selfFormatter = self;
 
-        stringFields.addAll(Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar, UserInfo.fnGender,
+        stringFields.addAll(Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar,UserInfo.fnAvatarSmall, UserInfo.fnGender,
                 UserInfo.fnSignature, UserInfo.fnEasemobUser));
 
         if (self)

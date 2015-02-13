@@ -6,23 +6,23 @@ package exception;
  * @author Zephyre
  */
 public class AizouException extends Exception {
-    protected final int errCode;
+    protected final ErrorCode errCode;
 
-    public AizouException(int code, String msg, Throwable cause) {
+    public AizouException(ErrorCode code, String msg, Throwable cause) {
         super(msg, cause);
         errCode = code;
     }
 
-    public AizouException(int code, String msg) {
+    public AizouException(ErrorCode code, String msg) {
         super(msg);
         errCode = code;
     }
 
-    public AizouException(int code) {
+    public AizouException(ErrorCode code) {
         errCode = code;
     }
 
-    public int getErrCode() {
+    public ErrorCode getErrCode() {
         return errCode;
     }
 

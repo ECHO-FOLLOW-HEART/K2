@@ -3,6 +3,7 @@ package models.misc;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
+import models.AizouBaseEntity;
 import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import org.apache.commons.lang3.StringUtils;
@@ -18,7 +19,7 @@ import play.libs.Json;
  */
 @JsonFilter("simpleRefFilter")
 @Embedded
-public class SimpleRef extends AizouBaseItem implements ITravelPiFormatter {
+public class SimpleRef extends AizouBaseEntity implements ITravelPiFormatter {
     @Transient
     public static String simpID = "id";
     @Transient
@@ -51,14 +52,6 @@ public class SimpleRef extends AizouBaseItem implements ITravelPiFormatter {
 
     public void setZhName(String zhName) {
         this.zhName = zhName;
-    }
-
-    public String getId() {
-        return id.toString();
-    }
-
-    public void setId(ObjectId id) {
-        this.id = id;
     }
 
     @Override

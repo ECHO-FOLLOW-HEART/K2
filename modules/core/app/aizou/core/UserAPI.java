@@ -25,6 +25,7 @@ import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
+import play.libs.F;
 import play.libs.Json;
 import play.mvc.Http;
 import utils.Constants;
@@ -70,6 +71,23 @@ public class UserAPI {
      */
     public static UserInfo getUserInfo(Long id) throws AizouException {
         return getUserInfo(id, null);
+    }
+
+    /**
+     * 获得用户的ObjectId
+     * <p/>
+     * 该方法的主要用途是：提供一个UserId，检查该用户是否存在。以此作为和用户相关的接口的预先验证。
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    public static String getUserObjectId(Long id) throws AizouException {
+        UserInfo info = getUserInfo(id, Arrays.asList("_id"));
+        if (info != null)
+            return info.getId().toString();
+        else
+            return null;
     }
 
     /**
@@ -1039,31 +1057,67 @@ public class UserAPI {
      * @param targetId
      * @throws exception.AizouException
      */
-    public static void addContact(Long selfId, Long targetId) throws AizouException {
+    public static void addContact(final Long selfId, final Long targetId) throws AizouException {
         if (selfId.equals(targetId))
             return;
         //取得自己的实体
-        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnNickName,
+        final UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser, UserInfo.fnSignature));  //取得用户实体
         //取得对方的实体
-        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnNickName,
+        final UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnGender, UserInfo.fnUserId, UserInfo.fnEasemobUser, UserInfo.fnSignature));
 
         if (selfInfo == null || targetInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
+        List<F.Promise<Object>> promiseList2 = new ArrayList<>();
+
         //环信注册
-        modEaseMobContacts(selfId, targetId, true);
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                modEaseMobContacts(selfId, targetId, true);
+                return null;
+            }
+        }));
 
         // 互相删除环信黑名单
-        delEaseMobBlocks(selfId, targetId);
-        delEaseMobBlocks(targetId, selfId);
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                delEaseMobBlocks(selfId, targetId);
+                return null;
+            }
+        }));
+
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                delEaseMobBlocks(targetId, selfId);
+                return null;
+            }
+        }));
 
         //在关系表添加好友
-        addFriends(selfId, targetId);
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                addFriends(selfId, targetId);
+                return null;
+            }
+        }));
 
         // 向加友请求发起的客户端发消息
-        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND, null);
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND, null);
+                return null;
+            }
+        }));
+
+        // 默认超时时间：10秒
+        F.Promise.sequence(promiseList2).get(10000);
     }
 
 
@@ -1073,28 +1127,64 @@ public class UserAPI {
      * @param selfId
      * @param targetId
      */
-    public static void delContact(Long selfId, Long targetId) throws AizouException {
+    public static void delContact(final Long selfId, final Long targetId) throws AizouException {
         if (selfId.equals(targetId))
             return;
 
         //取得用户实体
-        UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
-        UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
+        final UserInfo selfInfo = getUserInfo(selfId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
+        final UserInfo targetInfo = getUserInfo(targetId, Arrays.asList(UserInfo.fnContacts, UserInfo.fnUserId, UserInfo.fnEasemobUser));
         if (selfInfo == null || targetInfo == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid user id.");
 
+        List<F.Promise<Object>> promiseList2 = new ArrayList<>();
+
         //向环信注册
-        modEaseMobContacts(selfId, targetId, false);
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                modEaseMobContacts(selfId, targetId, false);
+                return null;
+            }
+        }));
 
         //需要互添加环信黑名单，防止继续发送消息
-        addEaseMobBlocks(selfId, Arrays.asList(targetId));
-        addEaseMobBlocks(targetId, Arrays.asList(selfId));
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                addEaseMobBlocks(selfId, Arrays.asList(targetId));
+                return null;
+            }
+        }));
+
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                addEaseMobBlocks(targetId, Arrays.asList(selfId));
+                return null;
+            }
+        }));
 
         // 关系表删除好友
-        delFriends(selfId, targetId);
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                delFriends(selfId, targetId);
+                return null;
+            }
+        }));
 
         // 向删友请求发起的客户端发消息
-        unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND, null);
+        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+            @Override
+            public Object apply() throws Throwable {
+                unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND, null);
+                return null;
+            }
+        }));
+
+        // 默认超时时间：10秒
+        F.Promise.sequence(promiseList2).get(10000);
     }
 
 

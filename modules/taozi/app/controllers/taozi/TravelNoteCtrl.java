@@ -1,29 +1,21 @@
 package controllers.taozi;
 
-import aizou.core.LocalityAPI;
 import aizou.core.MiscAPI;
-import aizou.core.PoiAPI;
 import aizou.core.TravelNoteAPI;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.CacheKey;
-import controllers.UsingCache;
+import controllers.aspectj.Key;
+import controllers.aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.TravelNote.DetailTravelNoteFormatter;
-import formatter.taozi.TravelNote.SimpTravelNoteFormatter;
-import models.AizouBaseEntity;
-import models.geo.Locality;
+import formatter.FormatterFactory;
+import formatter.taozi.misc.TravelNoteFormatter;
 import models.misc.TravelNote;
-import models.poi.ViewSpot;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
-import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,45 +34,45 @@ public class TravelNoteCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingCache(key="searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
-    public static Result searchTravelNotes(@CacheKey(tag="keyword") String keyWord,
-                                           @CacheKey(tag="locId") String locId,
-                                           @CacheKey(tag="page") int page, @CacheKey(tag="pageSize") int pageSize) {
+    //@UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
+    public static Result searchTravelNotes(@Key(tag = "keyword") String keyWord,
+                                           @Key(tag = "locId") String locId,
+                                           @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)
+            throws AizouException {
         List<TravelNote> noteList;
-        List<JsonNode> result = new ArrayList<>();
+        JsonNode result;
         JsonNode note;
         String url = "http://h5.taozilvxing.com/dayDetail.php?id=";
-        //通过关键字查询游记
-        try {
-            Long userId = null;
-            if (request().hasHeader("UserId"))
-                userId = Long.parseLong(request().getHeader("UserId"));
 
+        //通过关键字查询游记
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+
+        TravelNoteFormatter travelNoteFormatter = FormatterFactory.getInstance(TravelNoteFormatter.class, imgWidth);
+        travelNoteFormatter.setLevel(TravelNoteFormatter.Level.SIMPLE);
+        Long userId = null;
+        if (request().hasHeader("UserId"))
+            userId = Long.parseLong(request().getHeader("UserId"));
+
+        try {
             if (!keyWord.isEmpty()) {
                 noteList = TravelNoteAPI.searchNotesByWord(keyWord, page, pageSize);
                 // 判断是否被收藏
                 MiscAPI.isFavorite(noteList, userId);
-                for (TravelNote travelNote : noteList) {
-                    note = new SimpTravelNoteFormatter().format(travelNote);
-                    ((ObjectNode) note).put("detailUrl", url + travelNote.getId());
-                    result.add(note);
-                }
-
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+                result = travelNoteFormatter.formatNode(noteList);
+                return Utils.createResponse(ErrorCode.NORMAL, result);
             } else if (locId != null && !locId.isEmpty()) {
                 noteList = TravelNoteAPI.searchNoteByLocId(locId, page, pageSize);
                 // 判断是否被收藏
                 MiscAPI.isFavorite(noteList, userId);
-                for (TravelNote travelNote : noteList) {
-                    note = new SimpTravelNoteFormatter().format(travelNote);
-                    ((ObjectNode) note).put("detailUrl", url + travelNote.getId());
-                    result.add(note);
-                }
-                return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
+                result = travelNoteFormatter.formatNode(noteList);
+                return Utils.createResponse(ErrorCode.NORMAL, result);
             } else
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "fail");
-        } catch (SolrServerException | AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, e.getMessage());
+        } catch (SolrServerException e) {
+            throw new AizouException(ErrorCode.SEARCH_ENGINE_ERROR, "", e);
         }
     }
 
@@ -90,21 +82,20 @@ public class TravelNoteCtrl extends Controller {
      * @param noteId
      * @return
      */
-    @UsingCache(key="travelNoteDetails({noteId})")
-    public static Result travelNoteDetail(@CacheKey(tag="noteId") String noteId) {
-        try {
-            // 获取图片宽度
-            String imgWidthStr = request().getQueryString("imgWidth");
-            int imgWidth = 0;
-            if (imgWidthStr != null)
-                imgWidth = Integer.valueOf(imgWidthStr);
-            TravelNote travelNote = TravelNoteAPI.getNoteById(new ObjectId(noteId));
-            if (travelNote == null)
-                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "TravelNote is null.Id:" + noteId);
-            return Utils.createResponse(ErrorCode.NORMAL, new DetailTravelNoteFormatter().setImageWidth(imgWidth).format(travelNote));
-        } catch (AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-        }
+    @UsingOcsCache(key = "travelNoteDetails({noteId})")
+    public static Result travelNoteDetail(@Key(tag = "noteId") String noteId) throws AizouException {
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+        TravelNote travelNote = TravelNoteAPI.getNoteById(new ObjectId(noteId));
+        if (travelNote == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "TravelNote is null.Id:" + noteId);
+
+        TravelNoteFormatter travelNoteFormatter = FormatterFactory.getInstance(TravelNoteFormatter.class, imgWidth);
+        travelNoteFormatter.setLevel(TravelNoteFormatter.Level.DETAILED);
+        return Utils.createResponse(ErrorCode.NORMAL, travelNoteFormatter.formatNode(travelNote));
     }
 }
 

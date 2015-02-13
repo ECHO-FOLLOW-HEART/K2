@@ -73,6 +73,8 @@ public class MiscInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     public String key;
 
+    public String viceKey;
+
     public String value;
 
     @Override
