@@ -1,30 +1,24 @@
-package controllers.aspectj;
+package aspectj;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import exception.ErrorCode;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import play.Configuration;
 import play.cache.Cache;
 import play.mvc.Http;
 import play.mvc.Result;
-import utils.ParserFactory;
-import utils.SerializeParser;
-import utils.WrappedStatus;
+import serialization.ParserFactory;
+import serialization.SerializeParser;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
- * Created by Heaven on 2015/1/22.
+ * Created by zephyre on 2/14/15.
  */
-@Aspect
-public class CacheHandler {
+public class OcsCacheHandler {
     private static final java.lang.String SEPARATOR = "\\|";
     public static int MAX_KEY_LENGTH = 1000;        //1KB
     public static int MAX_VALUE_LENGTH = 1000000;   //1MB
@@ -32,7 +26,7 @@ public class CacheHandler {
 
     private boolean cacheEnabled;
 
-    public CacheHandler() {
+    public OcsCacheHandler() {
         cacheEnabled = false;
 
         Map<String, Object> config = Configuration.root().asMap();
@@ -44,8 +38,6 @@ public class CacheHandler {
         logger.info(String.format("Memcached set to %s", cacheEnabled));
     }
 
-    @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
-            "&&@annotation(controllers.aspectj.RemoveOcsCache)")
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
         if (cacheEnabled) {
             MethodSignature ms = (MethodSignature) pjp.getSignature();
@@ -62,8 +54,6 @@ public class CacheHandler {
         return (Result) pjp.proceed();
     }
 
-    @Around(value = "execution(* controllers.taozi..*(..))" +
-            "&&@annotation(controllers.aspectj.UsingOcsCache)")
     public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
         if (!cacheEnabled) {
             return pjp.proceed();
@@ -75,19 +65,36 @@ public class CacheHandler {
         String[] tmp = context.request().queryString().get("cachePolicy");
         String cachePolicy = (tmp != null && tmp.length >= 1) ? tmp[0] : "";
 
-        if (cachePolicy.equals("none")) {
-            return pjp.proceed();
-        }
-
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();
         UsingOcsCache annotation = method.getAnnotation(UsingOcsCache.class);
+
+        // 获得序列化器名称
+        String serializerName = annotation.serializer();
+
+        // 获得默认的serializer
+        if (serializerName.equals("")) {
+            Class<?> returnType = method.getReturnType();
+            if (Result.class.isAssignableFrom(returnType)) {
+                // 返回的是WrappedStatus类型，默认采用ResultSerializer
+                serializerName = "WrappedResult";
+            } else if (String.class.isAssignableFrom(returnType)) {
+                // 采用StringSerializer
+                serializerName = "String";
+            }
+        }
+
+        // 缓存策略为none，或者没有指定序列化器的名称，则不启用缓存
+        if (cachePolicy.equals("none") || serializerName.equals("")) {
+            return pjp.proceed();
+        }
+
         String key = getCacheKey(annotation.key(), method.getParameterAnnotations(), pjp.getArgs());
 
         if (cachePolicy.equals("refresh")) {
             // 强制刷新缓存
             synchronized (key.intern()) {
-                return fetchAndRefreshCache(pjp, key, annotation, method.getReturnType());
+                return fetchAndRefreshCache(pjp, key, annotation, serializerName);
             }
         }
 
@@ -98,28 +105,31 @@ public class CacheHandler {
                 //再次尝试从缓存中获取值
                 jsonStr = (String) Cache.get(key);
                 if (jsonStr == null || jsonStr.isEmpty()) {
-                    return fetchAndRefreshCache(pjp, key, annotation, method.getReturnType());
+                    return fetchAndRefreshCache(pjp, key, annotation, serializerName);
                 }
             }
         }
         logger.info(String.format("Cache hit: %s", key));
-        return ParserFactory.getInstance().getSerializeParser(method.getReturnType()).dSerializing(jsonStr);
+
+        // 调用反序列化器
+        SerializeParser s = ParserFactory.getInstance().create(serializerName);
+        if (s == null)
+            // 默认情况下，返回字符串
+            return jsonStr;
+        else
+            return s.deserialize(jsonStr);
     }
 
-    private Object fetchAndRefreshCache(ProceedingJoinPoint pjp, String key, UsingOcsCache annotation, Class<?> returnType) throws Throwable {
+    @SuppressWarnings("unchecked")
+    private Object fetchAndRefreshCache(ProceedingJoinPoint pjp, String key, UsingOcsCache annotation,
+                                        String serializerName) throws Throwable {
         //若未命中，则代表是第一次访问，从数据库读取
-        SerializeParser serializeParser = ParserFactory.getInstance().getSerializeParser(returnType);
-
         Object res = pjp.proceed();
 
-        if (returnType.equals(play.mvc.Result.class)) {
-            JsonNode body = ((WrappedStatus) res).getJsonBody();
-//            ((WrappedStatus) res).as("application/json;charset=utf-8");
-            if (body != null && body.get("code").asInt(ErrorCode.UNKOWN_ERROR.getVal()) == ErrorCode.NORMAL.getVal()) {
-                safeCaching(key, serializeParser.Serializing(res), annotation.expireTime());
-            }
-        } else {
-            safeCaching(key, serializeParser.Serializing(res), annotation.expireTime());
+        SerializeParser s = ParserFactory.getInstance().create(serializerName);
+        if (s != null && res != null) {
+            String contents = s.serialize(res);
+            safeCaching(key, contents, annotation.expireTime());
         }
 
         return res;

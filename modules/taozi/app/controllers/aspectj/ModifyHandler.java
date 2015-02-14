@@ -1,5 +1,6 @@
 package controllers.aspectj;
 
+import aspectj.Key;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
@@ -22,7 +23,7 @@ import static utils.WrappedStatus.MiscWrappedStatus;
 /**
  * Created by Heaven on 2015/1/29.
  */
-@Aspect
+//@Aspect
 public class ModifyHandler {
     private static final java.lang.String SEPARATOR = "\\|";
     public static final String hCACHE_CONTROL = "Cache-Control";

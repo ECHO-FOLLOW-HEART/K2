@@ -1,11 +1,12 @@
 package controllers.taozi;
 
 import aizou.core.*;
+import aspectj.CheckUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.aspectj.Key;
-import controllers.aspectj.UsingOcsCache;
+import aspectj.Key;
+import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -38,9 +39,9 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
+import utils.results.SceneID;
 import utils.results.TaoziResBuilder;
 import utils.results.TaoziSceneText;
-import utils.results.SceneID;
 
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
@@ -66,7 +67,7 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    @UsingOcsCache(key = "appHomeImage,{w},{h},{q},{fmt}", expireTime = 3600)
+    @UsingOcsCache(key = "appHomeImage|{w}|{h}|{q}|{fmt}", expireTime = 86400)
     public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height,
                                       @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
             throws AizouException {
@@ -135,8 +136,8 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingOcsCache(key = "recommend", expireTime = 3600)
-    public static Result recommend(int page, int pageSize)
+    @UsingOcsCache(key = "recommend|{page}|{pageSize}", expireTime = 3600)
+    public static Result recommend(@Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)
             throws JsonProcessingException, ReflectiveOperationException, AizouException {
 
         List<ObjectNode> retNodeList = new ArrayList<>();
@@ -374,6 +375,7 @@ public class MiscCtrl extends Controller {
      * @param scenario 上传场景: PORTRAIT-上传头像
      * @return
      */
+    @CheckUser
     public static Result putPolicy(String scenario) throws InvalidKeyException, NoSuchAlgorithmException {
         Configuration config = Configuration.root();
 
@@ -446,16 +448,6 @@ public class MiscCtrl extends Controller {
         return callbackBody.toString();
     }
 
-    private static String getReturnBody() {
-        ObjectNode info = Json.newObject();
-        info.put("name", "$(fname)");
-        info.put("size", "$(fsize)");
-        info.put("w", "$(imageInfo.width)");
-        info.put("h", "$(imageInfo.height)");
-        info.put("hash", "$(etag)");
-        return info.toString();
-    }
-
     /**
      * 取得文件名
      *
@@ -509,14 +501,13 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingOcsCache(key = "getColumns({type},{id})", expireTime = 86400)
+    @UsingOcsCache(key = "getColumns|{type}|{id}", expireTime = 86400, serializer = "WrappedResult")
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
-        String url;
         Configuration config = Configuration.root();
         Map h5 = (Map) config.getObject("h5");
-        url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
+        String url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
 
         List<Column> columnList = MiscAPI.getColumns(type, id);
         for (Column c : columnList) {
@@ -524,7 +515,7 @@ public class MiscCtrl extends Controller {
         }
         ColumnFormatter columnFormatter = FormatterFactory.getInstance(ColumnFormatter.class);
 
-        return Utils.createResponse(ErrorCode.NORMAL, columnFormatter.formatNode(columnList));
+        return new TaoziResBuilder().setBody(columnFormatter.formatNode(columnList)).build();
     }
 
     /**
@@ -599,8 +590,8 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingOcsCache(key = "search(keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel}," +
-            "restaurant={restaurant},shopping={shopping},page={p},pageSize={ps})",
+    @UsingOcsCache(key = "search|{keyWord}|{locId}|{loc}|{vs}|{hotel}|" +
+            "{restaurant}|{shopping}|{p}|{ps})",
             expireTime = 300)
     public static Result search(@Key(tag = "keyWord") String keyWord,
                                 @Key(tag = "locId") String locId,

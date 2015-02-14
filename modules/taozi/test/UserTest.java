@@ -369,7 +369,7 @@ public class UserTest extends AizouTest {
                         if (selfId == 0) {
                             Result result = callAction(handler, req);
                             JsonNode node = Json.parse(contentAsString(result));
-                            assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR.getVal());
+                            assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.USER_NOT_EXIST.getVal());
                         } else {
                             getResultNode(handler, req);
                         }

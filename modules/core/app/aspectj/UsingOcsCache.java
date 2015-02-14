@@ -1,4 +1,4 @@
-package controllers.aspectj;
+package aspectj;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -11,7 +11,19 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface UsingOcsCache {
-    // default expire time unit is seconds
+
+    /**
+     * 缓存的key（模板）
+     */
     String key();
+
+    /**
+     * 序列化器
+     */
+    String serializer() default "";
+
+    /**
+     * 缓存的过期时间。单位是秒。
+     */
     int expireTime() default 600;
 }

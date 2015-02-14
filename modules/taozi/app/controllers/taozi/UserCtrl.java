@@ -1,15 +1,15 @@
 package controllers.taozi;
 
 import aizou.core.UserAPI;
+import aspectj.CheckUser;
+import aspectj.Key;
+import aspectj.RemoveOcsCache;
+import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import controllers.AsyncExecutor;
-import controllers.aspectj.CheckUser;
-import controllers.aspectj.Key;
-import controllers.aspectj.RemoveOcsCache;
-import controllers.aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -551,16 +551,11 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
-    public static Result editorUserInfo(Long userId) throws AizouException {
+    @CheckUser
+    public static Result editorUserInfo(@CheckUser Long userId) throws AizouException {
         JsonNode req = request().body().asJson();
-        String tmp = request().getHeader("UserId");
-        Long selfId = null;
-        if (tmp != null)
-            selfId = Long.parseLong(tmp);
         if (userId == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalide UserId");
-        if (!userId.equals(selfId))
-            return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
 
         // TODO 这里的做法是：将用户信息整体读出，修改，然后save。这种做法的效率较低。
         UserInfo userInfor = UserAPI.getUserInfo(userId);

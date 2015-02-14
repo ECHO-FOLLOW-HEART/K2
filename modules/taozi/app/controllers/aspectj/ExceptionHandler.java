@@ -11,6 +11,8 @@ import org.aspectj.lang.annotation.Aspect;
 import play.Configuration;
 import play.mvc.Result;
 import utils.Utils;
+import utils.results.ResultBuilder;
+import utils.results.TaoziResBuilder;
 
 /**
  * Created by Heaven on 2014/12/30.
@@ -33,16 +35,20 @@ public class ExceptionHandler {
         try {
             return (Result) pjp.proceed();
         } catch (AizouException e) {
+            ResultBuilder builder = new TaoziResBuilder().setCode(e.getErrCode());
             if (debug)
-                return Utils.createResponse(e.getErrCode(), e.getMessage());
-            else
-                return Utils.createResponse(e.getErrCode(), (String) null);
+                builder.setDebugInfo(e.getMessage());
+            return builder.build();
         } catch (Throwable throwable) {
             throwable.printStackTrace();
             logger.info("An unhandled Exception was caught by ExceptionHandler");
             logger.info("Action name:     " + pjp.getSignature());
             logger.info("CaughtException: " + throwable.toString());
-            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, throwable.toString());
+
+            ResultBuilder builder = new TaoziResBuilder().setCode(ErrorCode.UNKOWN_ERROR);
+            if (debug)
+                builder.setDebugInfo(throwable.toString());
+            return builder.build();
         }
     }
 }
