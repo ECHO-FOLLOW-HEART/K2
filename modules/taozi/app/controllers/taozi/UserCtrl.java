@@ -1,15 +1,15 @@
 package controllers.taozi;
 
 import aizou.core.UserAPI;
+import aspectj.CheckUser;
+import aspectj.Key;
+import aspectj.RemoveOcsCache;
+import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import controllers.AsyncExecutor;
-import aspectj.CheckUser;
-import aspectj.Key;
-import aspectj.RemoveOcsCache;
-import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -552,7 +552,7 @@ public class UserCtrl extends Controller {
      * @return
      */
     @CheckUser
-    public static Result editorUserInfo(Long userId) throws AizouException {
+    public static Result editorUserInfo(@CheckUser Long userId) throws AizouException {
         JsonNode req = request().body().asJson();
         if (userId == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalide UserId");

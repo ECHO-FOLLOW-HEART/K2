@@ -6,6 +6,7 @@ import exception.ErrorCode;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import static play.mvc.Controller.request;
@@ -15,16 +16,26 @@ import static play.mvc.Controller.request;
  */
 public class UserCheckHandler {
     public void checkUser(JoinPoint pjp) throws AizouException {
+        // 检查header中的UserId
+        Method method = ((MethodSignature) pjp.getSignature()).getMethod();
+        checkIndividual(pjp, request().getHeader("UserId"), method.getAnnotation(CheckUser.class).nullable());
+
+        // 检查参数中的UserId
+        Object[] args = pjp.getArgs();
+        Annotation[][] paramAnno = method.getParameterAnnotations();
+        for (int i = 0; i < args.length; i++) {
+            Object arg = args[i];
+            Annotation[] annoList = paramAnno[i];
+            for (Annotation annotation : annoList) {
+                if (annotation != null && annotation instanceof CheckUser)
+                    checkIndividual(pjp, arg, ((CheckUser) annotation).nullable());
+            }
+        }
+    }
+
+    private void checkIndividual(JoinPoint pjp, Object userIdVal, boolean nullable) throws AizouException {
         long userId;
-        String userIdVal = request().getHeader("UserId");
-
         if (userIdVal == null) {
-            // 检查是否nullable
-            MethodSignature ms = (MethodSignature) pjp.getSignature();
-            Method method = ms.getMethod();
-            CheckUser annotation = method.getAnnotation(CheckUser.class);
-            boolean nullable = annotation.nullable();
-
             if (nullable)
                 return;
             else
@@ -32,7 +43,7 @@ public class UserCheckHandler {
         }
 
         try {
-            userId = Long.parseLong(userIdVal);
+            userId = Long.parseLong(userIdVal.toString());
         } catch (NumberFormatException e) {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT);
         }

@@ -9,8 +9,7 @@ import java.lang.annotation.Target;
  * Created by zephyre on 2/12/15.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-@Target(ElementType.PARAMETER)
+@Target({ElementType.METHOD, ElementType.PARAMETER})
 public @interface CheckUser {
     boolean nullable() default false;
 }
