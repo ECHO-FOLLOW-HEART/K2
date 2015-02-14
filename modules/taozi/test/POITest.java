@@ -3,28 +3,28 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import play.Configuration;
 import play.api.mvc.HandlerRef;
-import play.libs.Json;
-import play.mvc.Result;
 import play.test.FakeApplication;
+import utils.validator.DetailedViewSpotValidator;
+import utils.validator.SimpleRestaurantValidator;
+import utils.validator.SimpleViewSpotValidator;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static play.test.Helpers.*;
+import static play.test.Helpers.fakeApplication;
+import static play.test.Helpers.running;
 import static utils.TestHelpers.*;
 
 /**
  * Created by zephyre on 12/8/14.
  */
-public class POITest extends AizouTest {
+public class PoiTest extends AizouTest {
 
     private static FakeApplication app;
 
@@ -35,32 +35,6 @@ public class POITest extends AizouTest {
         app = fakeApplication(config.asMap());
     }
 
-    private void checkGeneralPoi(JsonNode poi) {
-        assertFields(poi, "type", "id", "zhName", "enName", "priceDesc", "images", "rating", "address",
-                "timeCostDesc", "location", "locality", "rank");
-
-        assertText(poi, false, "type", "id", "zhName");
-        assertText(poi, true, "enName", "priceDesc", "address", "timeCostDesc");
-
-        JsonNode rank = poi.get("rank");
-        assertThat(rank.isNumber() && rank.asInt() > 0);
-
-        double rating = poi.get("rating").asDouble();
-        assertThat(rating >= 0 && rating <= 1).isTrue();
-
-        assertImages(poi.get("images"), true);
-
-        assertCoords(poi.get("location"));
-
-        JsonNode locality = poi.get("locality");
-        // TODO 今后下面这条语句需要取消注释
-//        assertThat(locality.isNull()).isFalse();
-        if (locality.size() > 0) {
-            assertText(locality, false, "id", "zhName");
-            assertText(locality, true, "enName");
-        }
-    }
-
     /**
      * 查看景点详情
      */
@@ -69,35 +43,11 @@ public class POITest extends AizouTest {
         running(app, new Runnable() {
             @Override
             public void run() {
-                HandlerRef<?> handler = routes.ref.POICtrl.viewPOIInfo("vs", "547bfe2fb8ce043eb2d89069", 0, 20, 0, 10);
+                HandlerRef<?> handler = routes.ref.POICtrl.viewPOIInfo("vs", "547bfe2fb8ce043eb2d89069", 0, 20,
+                        0, 10, false);
                 JsonNode node = getResultNode(handler);
 
-                assertFields(node, "type", "id", "isFavorite", "zhName", "enName", "price", "priceDesc", "desc",
-                        "openTime", "images", "rating", "address", "timeCostDesc", "location", "tipsUrl",
-                        "visitGuideUrl", "trafficInfoUrl", "rank", "travelMonth", "tel", "comments", "commentCnt");
-
-                assertText(node, false, "type", "id", "zhName", "desc");
-                assertText(node, true, "enName", "priceDesc", "desc", "openTime", "address", "timeCostDesc",
-                        "tipsUrl", "visitGuideUrl", "trafficInfoUrl", "travelMonth");
-                assertThat(node.get("isFavorite").isBoolean());
-
-                JsonNode price = node.get("price");
-                if (!price.isNull())
-                    assertThat(price.isNumber() && price.asInt() >= 0).isTrue();
-
-                double rating = node.get("rating").asDouble();
-                assertThat(rating >= 0 && rating <= 1);
-
-                JsonNode rank = node.get("rank");
-                assertThat(rank.isNumber() && rank.asInt() >= 0).isTrue();
-
-                JsonNode cnt = node.get("commentCnt");
-                assertThat(cnt.isNumber() && cnt.asInt() >= 0).isTrue();
-
-                assertImages(node.get("images"), false);
-                assertCoords(node.get("location"));
-                assertThat(node.get("comments").isArray());
-                assertThat(node.get("tel").isArray());
+                new DetailedViewSpotValidator().validate(node);
             }
         });
     }
@@ -145,8 +95,19 @@ public class POITest extends AizouTest {
                 for (String key : new String[]{"vs", "restaurant", "shopping", "hotel"}) {
                     JsonNode poiList = node.get(key);
                     assertThat(poiList.isArray());
-                    for (JsonNode poi : poiList)
-                        checkGeneralPoi(poi);
+                    for (JsonNode poi : poiList) {
+                        switch (key) {
+                            case "vs":
+                                new SimpleViewSpotValidator(Arrays.asList("locality"), null).validate(poi);
+                                break;
+                            case "restaurant":
+                                new SimpleRestaurantValidator(Arrays.asList("locality"),
+                                        Arrays.asList("tel")).validate(poi);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 }
             }
         });
@@ -208,8 +169,19 @@ public class POITest extends AizouTest {
                     JsonNode node = getResultNode(handler);
                     assertThat(node.isArray() && node.size() > 0);
 
-                    for (JsonNode poi : node)
-                        checkGeneralPoi(poi);
+                    for (JsonNode poi : node) {
+                        switch (type) {
+                            case "vs":
+                                new SimpleViewSpotValidator(Arrays.asList("locality"), null).validate(poi);
+                                break;
+                            case "restaurant":
+                                new SimpleRestaurantValidator(Arrays.asList("locality"), Arrays.asList("tel"))
+                                        .validate(poi);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 }
             }
         });

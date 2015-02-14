@@ -1,5 +1,7 @@
 package utils;
 
+import serialization.SerializeParser;
+
 /**
  * Created by Heaven on 2015/1/31.
  */
@@ -12,7 +14,7 @@ public class SimpleParser implements SerializeParser {
     }
 
     @Override
-    public Object dSerializing(String inputStr) {
+    public Object deserialize(String inputStr) {
         if (parserClass.equals(Integer.class) || parserClass.equals(int.class)) {
             return Integer.parseInt(inputStr);
         } else if (parserClass.equals(Long.class) || parserClass.equals(long.class)) {
@@ -26,7 +28,7 @@ public class SimpleParser implements SerializeParser {
     }
 
     @Override
-    public String Serializing(Object inputObj) {
+    public String serialize(Object inputObj) {
         return inputObj.toString();
     }
 }

@@ -76,8 +76,8 @@ public class CommentFormatter extends AizouFormatter<Comment> {
             jgen.writeStringField(Comment.FD_AVATAR, getString(comment.getAuthorAvatar()));
             jgen.writeStringField(Comment.FD_AUTHOR_NAME, getString(comment.getAuthorName()));
             jgen.writeStringField(Comment.FD_CONTENTS, getString(comment.getContents()));
-            jgen.writeNumberField(Comment.FD_RATING, getValue(comment.getRating()));
-            jgen.writeNumberField(Comment.FD_PUBLISHTIME, getValue(comment.getPublishTime()));
+            jgen.writeObjectField(Comment.FD_RATING, getValue(comment.getRating()));
+            jgen.writeObjectField(Comment.FD_PUBLISHTIME, getValue(comment.getPublishTime()));
 
             jgen.writeEndObject();
         }

@@ -26,7 +26,7 @@ import java.util.Arrays;
  */
 public class LocalityFormatter extends AizouFormatter<Locality> {
 
-    public LocalityFormatter(int imgWidth){
+    public LocalityFormatter(Integer imgWidth){
         registerSerializer(Locality.class,new LocalitySerializer(LocalitySerializer.Level.DETAILED));
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
 

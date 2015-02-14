@@ -1,5 +1,6 @@
-package controllers;
+package controllers.aspectj;
 
+import aspectj.Key;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.JoinPoint;
@@ -22,7 +23,7 @@ import static utils.WrappedStatus.MiscWrappedStatus;
 /**
  * Created by Heaven on 2015/1/29.
  */
-@Aspect
+//@Aspect
 public class ModifyHandler {
     private static final java.lang.String SEPARATOR = "\\|";
     public static final String hCACHE_CONTROL = "Cache-Control";
@@ -31,7 +32,7 @@ public class ModifyHandler {
     Log logger = LogFactory.getLog(this.getClass());
 
     @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
-            "&&@annotation(controllers.UsingLocalCache)")
+            "&&@annotation(controllers.aspectj.UsingLocalCache)")
     public Result checkLastModify(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
         Method method = ms.getMethod();

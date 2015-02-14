@@ -35,7 +35,7 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
     }
 
     protected Integer getValue(Integer val) {
-        return (val != null) ? val : 0;
+        return (val != null) ? val : null;
     }
 
     protected Boolean getValue(Boolean val) { return (val != null) ? val : false; }
@@ -68,4 +68,6 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
     public void setDateFormat(DateFormat dateFormat) {
         this.dateFormat = dateFormat;
     }
+
+
 }

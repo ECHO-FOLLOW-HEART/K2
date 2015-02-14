@@ -1,12 +1,10 @@
 package aizou.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
 import formatter.FormatterFactory;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
-import models.AizouBaseItem;
 import models.MorphiaFactory;
 import models.misc.Column;
 import models.misc.Images;
@@ -59,7 +57,7 @@ public class MiscAPI {
      * @throws exception.AizouException
      */
     public static JsonNode saveComment(Comment comment)
-            throws AizouException, ReflectiveOperationException, JsonProcessingException {
+            throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         comment.setId(new ObjectId());
         ds.save(comment);

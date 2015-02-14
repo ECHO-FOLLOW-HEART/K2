@@ -10,7 +10,6 @@ import play.mvc.Results;
  * Created by Heaven on 2015/1/28.
  */
 public class WrappedStatus extends Results.Status {
-    private JsonNode jsonBody = null;
     private String stringBody = null;
 
     /**
@@ -21,7 +20,6 @@ public class WrappedStatus extends Results.Status {
     public static WrappedStatus WrappedOk(JsonNode jsonNode) {
         String msg = jsonNode.toString();
         WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
-        ret.jsonBody = jsonNode;
         ret.stringBody = msg;
         return (WrappedStatus) ret.as("application/json;charset=utf-8");
     }
@@ -34,7 +32,6 @@ public class WrappedStatus extends Results.Status {
      */
     public static WrappedStatus WrappedOk(String msg) {
         WrappedStatus ret = new WrappedStatus(JavaResults.Ok(), msg, Codec.javaSupported("utf-8"));
-        ret.jsonBody = Json.toJson(msg);
         ret.stringBody = msg;
         return (WrappedStatus) ret.as("application/json;charset=utf-8");
     }
@@ -58,10 +55,6 @@ public class WrappedStatus extends Results.Status {
 
     private WrappedStatus(play.api.mvc.Results.Status status, String msg, Codec codec) {
         super(status, msg, codec);
-    }
-
-    public JsonNode getJsonBody() {
-        return jsonBody;
     }
 
     public String getStringBody() {

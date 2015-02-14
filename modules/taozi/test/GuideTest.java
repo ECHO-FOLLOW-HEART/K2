@@ -130,7 +130,7 @@ public class GuideTest {
                     assertNumber(node.get("userId"), false, new PositiveValidator(new IntegerValidator(), true));
                     assertNumber(node.get("updateTime"), false,
                             new RangeValidator(new IntegerValidator(), 1e12, null, null));
-                    assertNumber(node.get("itineraryDays"), false,
+                    assertNumber(node.get("itineraryDays"), true,
                             new PositiveValidator(new IntegerValidator(), false));
 
                     JsonNode locList = node.get("localities");
@@ -174,7 +174,7 @@ public class GuideTest {
                     } else {
                         Result results = callAction(handler, req);
                         JsonNode node = Json.parse(contentAsString(results));
-                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR);
+                        assertThat(node.get("code").asInt()).isEqualTo(ErrorCode.AUTH_ERROR.getVal());
                     }
                 }
 

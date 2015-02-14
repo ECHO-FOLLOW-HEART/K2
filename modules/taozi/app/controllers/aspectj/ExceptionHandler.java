@@ -1,7 +1,8 @@
-package controllers;
+package controllers.aspectj;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import formatter.taozi.ObjectIdSerializer;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -14,7 +15,7 @@ import utils.Utils;
 /**
  * Created by Heaven on 2014/12/30.
  */
-@Aspect
+//@Aspect
 public class ExceptionHandler {
     private Log logger = LogFactory.getLog(this.getClass());
 
@@ -27,7 +28,7 @@ public class ExceptionHandler {
         logger.info(String.format("Exception handler init: %s", debug));
     }
 
-    @Around("execution(public play.mvc.Result controllers.taozi..*(..))")
+    @Around("execution(public play.mvc.Result controllers.taozi..*(..)) || @annotation(controllers.aspectj.CatchException)")
     public Result catchException(ProceedingJoinPoint pjp) {
         try {
             return (Result) pjp.proceed();

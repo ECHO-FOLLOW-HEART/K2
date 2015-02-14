@@ -3,7 +3,6 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import controllers.taozi.routes;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import play.Configuration;
 import play.api.mvc.HandlerRef;

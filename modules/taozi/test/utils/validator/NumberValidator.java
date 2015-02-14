@@ -7,6 +7,6 @@ import com.fasterxml.jackson.databind.JsonNode;
  *
  * Created by zephyre on 2/10/15.
  */
-public abstract class NumberValidator {
+public abstract class NumberValidator implements AbstractValidator {
     public abstract void validate(JsonNode item);
 }

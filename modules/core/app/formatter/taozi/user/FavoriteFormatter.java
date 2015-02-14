@@ -36,7 +36,7 @@ import java.util.*;
  */
 public class FavoriteFormatter extends AizouFormatter<Favorite> {
 
-    public FavoriteFormatter(int imgWidth) {
+    public FavoriteFormatter(Integer imgWidth) {
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         registerSerializer(Locality.class, new LocalitySerializer());
         registerSerializer(Favorite.class, new FavoriteSerializer());
