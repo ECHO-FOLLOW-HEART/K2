@@ -6,10 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import controllers.AsyncExecutor;
-import controllers.aspectj.CheckUser;
-import controllers.aspectj.Key;
-import controllers.aspectj.RemoveOcsCache;
-import controllers.aspectj.UsingOcsCache;
+import aspectj.CheckUser;
+import aspectj.Key;
+import aspectj.RemoveOcsCache;
+import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -68,7 +68,7 @@ public class UserCtrl extends Controller {
         //验证用户是否存在
         if (UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber(),
                 Arrays.asList(UserInfo.fnUserId)) != null) {
-            return Utils.createResponse(MsgConstants.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
+            return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
         }
 
         UserInfo userInfo;
@@ -78,7 +78,7 @@ public class UserCtrl extends Controller {
             // 生成用户
             userInfo = UserAPI.regByTel(telEntry.getPhoneNumber(), telEntry.getDialCode(), pwd);
         } else
-            return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
+            return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
         ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
 
@@ -120,7 +120,7 @@ public class UserCtrl extends Controller {
             result.put("token", token.value);
             return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(result));
         } else {
-            return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
+            return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
         }
     }
 
@@ -146,7 +146,7 @@ public class UserCtrl extends Controller {
         if (UserAPI.checkToken(token, Integer.valueOf(userId), CAPTCHA_ACTION_BANDTEL)) {
             //如果手机已存在，则绑定无效
             if (UserAPI.getUserByField(UserInfo.fnTel, tel) != null) {
-                return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
+                return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
             }
             userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId, null);
             userInfo.setTel(tel);
@@ -162,7 +162,7 @@ public class UserCtrl extends Controller {
             }
             return Utils.createResponse(ErrorCode.NORMAL, "Success!");
         } else {
-            return Utils.createResponse(MsgConstants.TOKEN_ERROR, MsgConstants.TOKEN_ERROR_MSG, true);
+            return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.TOKEN_ERROR_MSG, true);
         }
     }
 
@@ -180,7 +180,7 @@ public class UserCtrl extends Controller {
         //验证用户是否存在-手机号
         UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
         if (userInfo == null)
-            return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
+            return Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
 
         //验证密码
         if (UserAPI.validCredential(userInfo, oldPwd)) {
@@ -207,7 +207,7 @@ public class UserCtrl extends Controller {
 
         //验证密码格式
         if (!validityPwd(pwd)) {
-            return Utils.createResponse(MsgConstants.PWD_FORMAT_ERROR, MsgConstants.PWD_FORMAT_ERROR_MSG, true);
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, MsgConstants.PWD_FORMAT_ERROR_MSG, true);
         }
         //验证Token
         //忘记密码后重设密码，不需要userId
@@ -230,7 +230,7 @@ public class UserCtrl extends Controller {
 
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } else
-            return Utils.createResponse(MsgConstants.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
+            return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
     }
 
     private static boolean validityPwd(String pwd) {
@@ -258,15 +258,15 @@ public class UserCtrl extends Controller {
         UserInfo us = UserAPI.getUserByField(UserInfo.fnTel, tel);
         if (actionCode == CAPTCHA_ACTION_SIGNUP) {
             if (us != null) {   //us！=null,说明用户存在
-                return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
+                return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
             }
         } else if (actionCode == CAPTCHA_ACTION_MODPWD) {
             if (us == null) {
-                return Utils.createResponse(MsgConstants.USER_TEL_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
+                return Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
             }
         } else if (actionCode == CAPTCHA_ACTION_BANDTEL) {
             if (us != null) {
-                return Utils.createResponse(MsgConstants.USER_TEL_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
+                return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
             }
         }
 
@@ -310,7 +310,7 @@ public class UserCtrl extends Controller {
         Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
                 userFormatter.getFilteredFields(), 0, 1);
         if (!itr.hasNext())
-            return Utils.createResponse(MsgConstants.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
+            return Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
         UserInfo userInfo = itr.next();
 
         //验证密码
@@ -571,13 +571,13 @@ public class UserCtrl extends Controller {
         if (req.has("nickName")) {
             String nickName = req.get("nickName").asText();
             if (Utils.isNumeric(nickName)) {
-                return Utils.createResponse(MsgConstants.NICKNAME_NOT_NUMERIC, MsgConstants.NICKNAME_NOT_NUMERIC_MSG, true);
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, MsgConstants.NICKNAME_NOT_NUMERIC_MSG, true);
             }
             //如果昵称不存在
             if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
                 userInfor.setNickName(nickName);
             else
-                return Utils.createResponse(MsgConstants.NICKNAME_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
+                return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
         }
         //修改签名
         if (req.has("signature"))

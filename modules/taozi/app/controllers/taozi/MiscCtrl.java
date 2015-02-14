@@ -1,12 +1,12 @@
 package controllers.taozi;
 
 import aizou.core.*;
+import aspectj.CheckUser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.aspectj.CheckUser;
-import controllers.aspectj.Key;
-import controllers.aspectj.UsingOcsCache;
+import aspectj.Key;
+import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -39,9 +39,14 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
+import utils.results.SceneID;
+import utils.results.TaoziResBuilder;
+import utils.results.TaoziSceneText;
 
+import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -62,22 +67,32 @@ public class MiscCtrl extends Controller {
      * @param height 指定高度
      * @return
      */
-    @UsingOcsCache(key = "appHomeImage,{w},{h},{q},{fmt}", expireTime = 3600)
+    @UsingOcsCache(key = "appHomeImage|{w}|{h}|{q}|{fmt}", expireTime = 86400)
     public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height,
                                       @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
             throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).asList();
+        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE)
+                .asList();
         if (infos == null)
-            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, Json.newObject());
+            return new TaoziResBuilder().setCode(ErrorCode.UNKOWN_ERROR)
+                    .setMessage(TaoziSceneText.instance().text(SceneID.ERR_APP_HOME_IMAGE))
+                    .build();
 
         // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
         //String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,width, height, quality, format, interlace);
-        double appRatio = height / width;
+        //double appRatio = (Math.round(height / width)*100 / 100.0);
+        DecimalFormat df = new DecimalFormat("###.0000");
+        BigDecimal b1 = new BigDecimal(df.format(height));
+        BigDecimal b2 = new BigDecimal(df.format(width));
+        // 取得app屏幕的高宽比
+        double appRatio = b1.divide(b2, 4).doubleValue();
         double ratio;
+        // 初始值取一个较大的数
         double suitDif = 10;
         double dif;
         String suitImg = "";
+        // 取数据库中最接近app高宽比的图片
         for (MiscInfo info : infos) {
             ratio = Double.valueOf(info.viceKey);
             dif = Math.abs(appRatio - ratio);
@@ -93,7 +108,8 @@ public class MiscCtrl extends Controller {
         node.put("height", height);
         node.put("fmt", format);
         node.put("quality", quality);
-        return Utils.createResponse(ErrorCode.NORMAL, node);
+
+        return new TaoziResBuilder().setBody(node).build();
     }
 
     public static Result postFeedback() throws AizouException {
@@ -120,8 +136,8 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingOcsCache(key = "recommend", expireTime = 3600)
-    public static Result recommend(int page, int pageSize)
+    @UsingOcsCache(key = "recommend|{page}|{pageSize}", expireTime = 3600)
+    public static Result recommend(@Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)
             throws JsonProcessingException, ReflectiveOperationException, AizouException {
 
         List<ObjectNode> retNodeList = new ArrayList<>();
@@ -158,7 +174,7 @@ public class MiscCtrl extends Controller {
             retNodeList.add(tempNode);
         }
 
-        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(retNodeList));
+        return new TaoziResBuilder().setBody(Json.toJson(retNodeList)).build();
     }
 
     /**
@@ -374,7 +390,10 @@ public class MiscCtrl extends Controller {
             callbackUrl = qiniu.get("callbackUrl").toString();
             callbackUrl = "http://" + callbackUrl;
         } else
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid scenario.");
+            return new TaoziResBuilder().setCode(ErrorCode.INVALID_ARGUMENT)
+                    .setMessage(TaoziSceneText.instance().text(SceneID.INVALID_UPLOAD_SCENE))
+                    .build();
+
         //取得上传策略
         ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId));
         // UrlBase64编码
@@ -387,7 +406,8 @@ public class MiscCtrl extends Controller {
         ObjectNode ret = Json.newObject();
         ret.put("uploadToken", accessKey + ":" + encodedSign + ":" + encodedPutPolicy);
         ret.put("key", picName);
-        return Utils.createResponse(ErrorCode.NORMAL, ret);
+
+        return new TaoziResBuilder().setBody(ret).build();
     }
 
     /**
@@ -426,16 +446,6 @@ public class MiscCtrl extends Controller {
         // 定义用户ID
         callbackBody.append("&").append(UPLOAD_UID).append("=").append(userId);
         return callbackBody.toString();
-    }
-
-    private static String getReturnBody() {
-        ObjectNode info = Json.newObject();
-        info.put("name", "$(fname)");
-        info.put("size", "$(fsize)");
-        info.put("w", "$(imageInfo.width)");
-        info.put("h", "$(imageInfo.height)");
-        info.put("hash", "$(etag)");
-        return info.toString();
     }
 
     /**
@@ -491,14 +501,13 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    @UsingOcsCache(key = "getColumns({type},{id})", expireTime = 86400)
+    @UsingOcsCache(key = "getColumns|{type}|{id}", expireTime = 86400, serializer = "WrappedResult")
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
-        String url;
         Configuration config = Configuration.root();
         Map h5 = (Map) config.getObject("h5");
-        url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
+        String url = String.format("http://%s%s?id=", h5.get("host").toString(), h5.get("column").toString());
 
         List<Column> columnList = MiscAPI.getColumns(type, id);
         for (Column c : columnList) {
@@ -581,8 +590,8 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingOcsCache(key = "search(keyWord={keyWord},locId={locId},loc={loc},vs={vs},hotel={hotel}," +
-            "restaurant={restaurant},shopping={shopping},page={p},pageSize={ps})",
+    @UsingOcsCache(key = "search|{keyWord}|{locId}|{loc}|{vs}|{hotel}|" +
+            "{restaurant}|{shopping}|{p}|{ps})",
             expireTime = 300)
     public static Result search(@Key(tag = "keyWord") String keyWord,
                                 @Key(tag = "locId") String locId,

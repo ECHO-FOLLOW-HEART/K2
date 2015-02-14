@@ -1,5 +1,7 @@
 package utils;
 
+import serialization.SerializeParser;
+
 import static utils.WrappedStatus.WrappedOk;
 
 /**
@@ -7,12 +9,12 @@ import static utils.WrappedStatus.WrappedOk;
  */
 public class ResultParser implements SerializeParser {
     @Override
-    public Object dSerializing(String inputStr) {
+    public Object deserialize(String inputStr) {
         return WrappedOk(inputStr);
     }
 
     @Override
-    public String Serializing(Object inputObj) {
+    public String serialize(Object inputObj) {
         if (!(inputObj instanceof WrappedStatus))
             throw new java.lang.IllegalArgumentException(inputObj.getClass().toString());
         return ((WrappedStatus) inputObj).getStringBody();
