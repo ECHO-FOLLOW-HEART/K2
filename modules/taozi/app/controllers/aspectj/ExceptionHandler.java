@@ -15,7 +15,7 @@ import utils.Utils;
 /**
  * Created by Heaven on 2014/12/30.
  */
-@Aspect
+//@Aspect
 public class ExceptionHandler {
     private Log logger = LogFactory.getLog(this.getClass());
 

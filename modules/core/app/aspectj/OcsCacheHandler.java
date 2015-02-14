@@ -1,10 +1,8 @@
-package controllers.aspectj;
+package aspectj;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
 import play.Configuration;
 import play.cache.Cache;
@@ -18,10 +16,9 @@ import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
- * Created by Heaven on 2015/1/22.
+ * Created by zephyre on 2/14/15.
  */
-@Aspect
-public class CacheHandler {
+public class OcsCacheHandler {
     private static final java.lang.String SEPARATOR = "\\|";
     public static int MAX_KEY_LENGTH = 1000;        //1KB
     public static int MAX_VALUE_LENGTH = 1000000;   //1MB
@@ -29,7 +26,7 @@ public class CacheHandler {
 
     private boolean cacheEnabled;
 
-    public CacheHandler() {
+    public OcsCacheHandler() {
         cacheEnabled = false;
 
         Map<String, Object> config = Configuration.root().asMap();
@@ -41,8 +38,6 @@ public class CacheHandler {
         logger.info(String.format("Memcached set to %s", cacheEnabled));
     }
 
-    @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
-            "&&@annotation(controllers.aspectj.RemoveOcsCache)")
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
         if (cacheEnabled) {
             MethodSignature ms = (MethodSignature) pjp.getSignature();
@@ -59,7 +54,6 @@ public class CacheHandler {
         return (Result) pjp.proceed();
     }
 
-    @Around(value = "execution(* controllers.taozi..*(..)) && @annotation(controllers.aspectj.UsingOcsCache)")
     public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
         if (!cacheEnabled) {
             return pjp.proceed();
@@ -133,7 +127,7 @@ public class CacheHandler {
         Object res = pjp.proceed();
 
         SerializeParser s = ParserFactory.getInstance().create(serializerName);
-        if (s != null) {
+        if (s != null && res != null) {
             String contents = s.serialize(res);
             safeCaching(key, contents, annotation.expireTime());
         }

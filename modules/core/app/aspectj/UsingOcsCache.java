@@ -1,4 +1,4 @@
-package controllers.aspectj;
+package aspectj;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

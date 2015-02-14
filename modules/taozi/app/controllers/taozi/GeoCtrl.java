@@ -5,9 +5,8 @@ import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.aspectj.Key;
-import controllers.aspectj.UsingLocalCache;
-import controllers.aspectj.UsingOcsCache;
+import aspectj.Key;
+import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -26,6 +25,7 @@ import play.mvc.Result;
 import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
+import utils.results.TaoziResBuilder;
 
 import java.util.*;
 
@@ -98,11 +98,11 @@ public class GeoCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    @UsingOcsCache(key = "destinations(abroad={abroad})", expireTime = 3600)
-    @UsingLocalCache(callback = "getLMD", args = "{abroad}|{page}")
+    @UsingOcsCache(key = "destinations|{abroad}|{page}|{pageSize}", expireTime = 3600)
+//    @UsingLocalCache(callback = "getLMD", args = "{abroad}|{page}")
     public static Result exploreDestinations(@Key(tag = "abroad") boolean abroad,
                                              @Key(tag = "page") int page,
-                                             int pageSize) throws AizouException {
+                                             @Key(tag = "pageSize") int pageSize) throws AizouException {
 //            long t0 = System.currentTimeMillis();
 //            Http.Request req = request();
 //            Http.Response rsp = response();
@@ -139,7 +139,7 @@ public class GeoCtrl extends Controller {
                 cNode.put("destinations", localities);
             }
 
-            return Utils.createResponse(ErrorCode.NORMAL, destResult);
+            return new TaoziResBuilder().setBody(destResult).build();
         } else {
             Map<String, Object> mapConf = Configuration.root().getConfig("domestic").asMap();
             Map<String, Object> pinyinConf = Configuration.root().getConfig("pinyin").asMap();
@@ -165,8 +165,7 @@ public class GeoCtrl extends Controller {
                 node.put("pinyin", pinyin);
                 objs.add(node);
             }
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(objs));
-//                return Utils.createResponse(rsp, lastModify, ErrorCode.NORMAL, Json.toJson(objs));
+            return new TaoziResBuilder().setBody(Json.toJson(objs)).build();
         }
     }
 

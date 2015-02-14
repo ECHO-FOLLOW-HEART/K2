@@ -1,6 +1,8 @@
 package aizou.core;
 
 import aizou.core.user.ValFormatterFactory;
+import aspectj.Key;
+import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
@@ -19,6 +21,8 @@ import models.user.Relationship;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -82,7 +86,8 @@ public class UserAPI {
      * @return
      * @throws AizouException
      */
-    public static String getUserObjectId(Long id) throws AizouException {
+    @UsingOcsCache(key = "getUserOid|{id}", expireTime = 86400)
+    public static String getUserOid(@Key(tag = "id") Long id) throws AizouException {
         UserInfo info = getUserInfo(id, Arrays.asList("_id"));
         if (info != null)
             return info.getId().toString();

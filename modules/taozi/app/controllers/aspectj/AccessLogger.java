@@ -15,7 +15,7 @@ import java.util.Date;
 /**
  * Created by Heaven on 2015/1/10.
  */
-@Aspect
+//@Aspect
 public class AccessLogger {
     private static final String ACCESS = "access";
     private Log logger = LogFactory.getLog(ACCESS);
