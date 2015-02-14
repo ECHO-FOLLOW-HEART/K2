@@ -551,16 +551,11 @@ public class UserCtrl extends Controller {
      * @param userId
      * @return
      */
+    @CheckUser
     public static Result editorUserInfo(Long userId) throws AizouException {
         JsonNode req = request().body().asJson();
-        String tmp = request().getHeader("UserId");
-        Long selfId = null;
-        if (tmp != null)
-            selfId = Long.parseLong(tmp);
         if (userId == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalide UserId");
-        if (!userId.equals(selfId))
-            return Utils.createResponse(ErrorCode.AUTH_ERROR, "");
 
         // TODO 这里的做法是：将用户信息整体读出，修改，然后save。这种做法的效率较低。
         UserInfo userInfor = UserAPI.getUserInfo(userId);
