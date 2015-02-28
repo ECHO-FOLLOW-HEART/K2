@@ -66,7 +66,7 @@ public class GeoCtrl extends Controller {
         ObjectNode response = (ObjectNode) localityFormatter.formatNode(locality);
         // 显示图集的数量
         response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
-        response.put("playGuide", "http://h5.taozilvxing.com/play.php?tid=" + id);
+        response.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + id);
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
 
@@ -305,7 +305,7 @@ public class GeoCtrl extends Controller {
         ObjectNode node;
         List<ObjectNode> result = new ArrayList<>();
         node = Json.newObject();
-        node.put("title", "如何去" + (loc == null ? "" : loc.getZhName()));
+        node.put("title", "到达" + (loc == null ? "" : loc.getZhName()));
         node.put("fields", Json.toJson(Arrays.asList("remoteTraffic")));
         result.add(node);
 
@@ -320,7 +320,7 @@ public class GeoCtrl extends Controller {
         result.add(node);
 
         node = Json.newObject();
-        node.put("title", "旅行游玩小贴士");
+        node.put("title", "旅行小贴士");
         node.put("fields", Json.toJson(Arrays.asList("tips")));
         result.add(node);
 

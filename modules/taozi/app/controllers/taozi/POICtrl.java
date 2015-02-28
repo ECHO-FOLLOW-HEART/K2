@@ -69,7 +69,7 @@ public class POICtrl extends Controller {
 
         if (poiClass == Shopping.class || poiClass == Restaurant.class) {
             // 添加H5接口 更多评论
-            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/morecomment.php?pid=" + spotId);
+            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/poi/morecomment.php?pid=" + spotId);
             ret.put("recommends", recommends);
         } else if (poiClass == ViewSpot.class) {
             // 获得同城的销售数据

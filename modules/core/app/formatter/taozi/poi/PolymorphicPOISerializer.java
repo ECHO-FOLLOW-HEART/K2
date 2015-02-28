@@ -139,17 +139,17 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
                 if (abstractPOI.getTrafficInfo() == null || abstractPOI.getTrafficInfo().equals(""))
                     jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "");
                 else
-                    jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "http://h5.taozilvxing.com/poi_traffic.php?tid=" + id);
+                    jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "http://h5.taozilvxing.com/poi/traffic.php?tid=" + id);
 
                 if (abstractPOI.getVisitGuide() == null || abstractPOI.getVisitGuide().equals(""))
                     jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "");
                 else
-                    jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://h5.taozilvxing.com/poi_play.php?tid=" + id);
+                    jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://h5.taozilvxing.com/poi/play.php?tid=" + id);
 
                 if (abstractPOI.getTips() == null || abstractPOI.getTips().equals(""))
                     jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "");
                 else
-                    jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "http://h5.taozilvxing.com/poi_tips.php?tid=" + id);
+                    jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "http://h5.taozilvxing.com/poi/tips.php?tid=" + id);
             }
         }
 
@@ -275,17 +275,17 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
                 if (abstractPOI.getTrafficInfo() == null || abstractPOI.getTrafficInfo().equals(""))
                     jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "");
                 else
-                    jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "http://h5.taozilvxing.com/poi_traffic.php?tid=" + id);
+                    jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "http://h5.taozilvxing.com/poi/traffic.php?tid=" + id);
 
                 if (abstractPOI.getVisitGuide() == null || abstractPOI.getVisitGuide().equals(""))
                     jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "");
                 else
-                    jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://h5.taozilvxing.com/poi_play.php?tid=" + id);
+                    jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://h5.taozilvxing.com/poi/play.php?tid=" + id);
 
                 if (abstractPOI.getTips() == null || abstractPOI.getTips().equals(""))
                     jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "");
                 else
-                    jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "http://h5.taozilvxing.com/poi_tips.php?tid=" + id);
+                    jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "http://h5.taozilvxing.com/poi/tips.php?tid=" + id);
 
                 if (abstractPOI.getDesc() == null || abstractPOI.getDesc().equals(""))
                     jsonGenerator.writeStringField("descUrl", "");

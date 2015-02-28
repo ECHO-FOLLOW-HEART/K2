@@ -251,11 +251,11 @@ public class GuideCtrl extends Controller {
         if (guidePart.equals("shopping")) {
             content = locality.getShoppingIntro();
             // 显示城市购物介绍URL
-            result.put("detailUrl", "http://h5.taozilvxing.com/shopping.php?tid=" + id);
+            result.put("detailUrl", "http://h5.taozilvxing.com/city/shopping.php?tid=" + id);
         } else if (guidePart.equals("restaurant")) {
             content = locality.getDiningIntro();
             // 显示城市美食介绍URL
-            result.put("detailUrl", "http://h5.taozilvxing.com/dining.php?tid=" + id);
+            result.put("detailUrl", "http://h5.taozilvxing.com/city/dining.php?tid=" + id);
         }
         result.put("desc", content != null ? removeH5Label(content) : "");
         return Utils.createResponse(ErrorCode.NORMAL, result);
