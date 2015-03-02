@@ -290,7 +290,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
                 if (abstractPOI.getDesc() == null || abstractPOI.getDesc().equals(""))
                     jsonGenerator.writeStringField("descUrl", "");
                 else
-                    jsonGenerator.writeStringField("descUrl", "http://h5.taozilvxing.com/poi_desc.php?tid=" + id);
+                    jsonGenerator.writeStringField("descUrl", "http://h5.taozilvxing.com/poi/desc.php?tid=" + id);
             }
         }
         jsonGenerator.writeEndObject();
