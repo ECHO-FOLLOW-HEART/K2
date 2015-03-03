@@ -4,11 +4,13 @@ import exception.AizouException;
 import exception.ErrorCode;
 import models.MorphiaFactory;
 import models.geo.Locality;
+import models.misc.Description;
 import models.misc.Recommendation;
 import models.plan.AbstractPlan;
 import models.plan.Plan;
 import models.plan.UgcPlan;
 import models.poi.Comment;
+import models.poi.ViewSpot;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -32,9 +34,9 @@ public class Bache extends Controller {
             "西安市", "银川市", "郑州市", "济南市", "太原市", "合肥市", "武汉市", "长沙市",
             "南京市", "成都市", "贵阳市", "昆明市", "南宁市", "拉萨市", "杭州市", "南昌市",
             "广州市", "福州市", "台北市", "海口市"};
-    public static String[] vsList = new String[]{"火石寨", "黄梁梦吕仙祠", "景洪曼听公园", "中国竹艺城", "神木臭柏自然保护区",
-            "寒山寺", "罗锅箐―大羊场", "景洪曼听公园", "大连星海国际会展中心", "兴光朝鲜族民族村", "梅城故城址", "布托湖", "朗豪坊商场", "高岭山", "蒲花暗河景区", "石象寺"};
-    public static String[] plListNew = new String[]{"太原","苏州","香港","福建","丽江","三亚","西安"};
+    public static String[] vsList = new String[]{"西门町", "鼓浪屿", "西湖", "大昭寺", "拉市海", "大雁塔", "熊猫海", "颐和园"};
+    public static String[] citys = new String[]{"上海", "广州", "三亚", "杭州", "北京", "厦门", "西安", "香港"};
+    public static String[] plListNew = new String[]{"太原", "苏州", "香港", "福建", "丽江", "三亚", "西安"};
     public static String[] plListEdit = new String[]{"厦门", "三亚", "海口", "哈尔滨", "大连", "杭州", "苏州", "平遥", "陕西"};
     public static String[] plListMust = new String[]{"北京", "上海", "广州", "深圳", "成都", "桂林", "天津", "西藏"};
     public static String[] plListPopular = new String[]{"张家界", "福建", "新疆", "山东", "成都", "太原"};
@@ -126,9 +128,11 @@ public class Bache extends Controller {
                 rec.editorDate = new Date();
                 rec.planViews = pl.getForkedCnt();
                 rec.setEnabled(true);
+                rec.setId(new ObjectId());
                 recommendList.add(rec);
             }
             Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+
             update.save(recommendList);
         } catch (AizouException e) {
             return Utils.createResponse(e.getErrCode(), e.getMessage());
@@ -454,84 +458,75 @@ public class Bache extends Controller {
 //        return Utils.createResponse(ErrorCode.NORMAL, "Success");
 //    }
 //
-//    /**
-//     * 添加推荐城市
-//     *
-//     * @return
-//     */
-//    public static Result getLocalities() {
-//        List<String> capList = Arrays.asList(cap);
-//        Datastore ds = null;
-//        try {
-//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
-//            Query<Locality> query = ds.createQuery(Locality.class);
-//            query.field("zhName").hasAnyOf(capList).field("level").equal(2).field("enabled").equal(Boolean.TRUE);
-//            List<Recommendation> recommendList = new ArrayList<Recommendation>();
-//            Recommendation rec;
-//            int index = 1;
-//            Description descp = null;
-//            for (Locality locality : query.asList()) {
-//                rec = new Recommendation();
-//                rec.hotCity = index;
-//                index++;
-//                rec.imageList = locality.imageList;
-//                rec.id = locality.id;
-//                rec.name = locality.zhName;
-//                descp = new Description();
-//                descp.desc = locality.desc;
-//                rec.description = descp;
-//                rec.enabled = true;
-//                recommendList.add(rec);
-//            }
-//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-//            update.save(recommendList);
-//
-//
-//        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.getErrCode(), e.getMessage());
-//        }
-//
-//        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
-//    }
-//
-//    /**
-//     * 添加推荐景点
-//     *
-//     * @return
-//     */
-//    public static Result getViewSpot() {
-//        List<String> capList = Arrays.asList(vsList);
-//        Datastore ds = null;
-//        try {
-//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-//            Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
-//            query.field("name").hasAnyOf(capList).field("enabled").equal(Boolean.TRUE);
-//            List<Recommendation> recommendList = new ArrayList<Recommendation>();
-//            Recommendation rec;
-//            int index = 1;
-//            for (ViewSpot vs : query.asList()) {
-//                rec = new Recommendation();
-//                rec.hotVs = index;
-//                index++;
-//                rec.imageList = vs.imageList;
-//                rec.images = vs.images;
-//                rec.id = vs.id;
-//                rec.name = vs.name;
-//                rec.description = vs.description;
-//                rec.enabled = true;
-//                recommendList.add(rec);
-//            }
-//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-//            update.save(recommendList);
-//
-//
-//        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.getErrCode(), e.getMessage());
-//        }
-//
-//        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
-//    }
-//
+
+    /**
+     * 添加推荐城市
+     *
+     * @return
+     */
+    public static Result getLocalities() {
+        List<String> capList = Arrays.asList(citys);
+        Datastore ds;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+            Query<Locality> query = ds.createQuery(Locality.class);
+            query.field("zhName").hasAnyOf(capList);
+            List<Recommendation> recommendList = new ArrayList<>();
+            Recommendation rec;
+            int index = 1;
+            for (Locality locality : query.asList()) {
+                rec = new Recommendation();
+                rec.hotCity = index;
+                index++;
+                rec.images = Arrays.asList(locality.getImages().get(0));
+                rec.setId(locality.getId());
+                rec.name = locality.getZhName();
+                rec.desc = locality.getDesc();
+                rec.setEnabled(true);
+                recommendList.add(rec);
+            }
+            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            update.save(recommendList);
+        } catch (AizouException e) {
+            e.printStackTrace();
+        }
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+    }
+
+    /**
+     * 添加推荐景点
+     *
+     * @return
+     */
+    public static Result getViewSpot() {
+        List<String> capList = Arrays.asList(vsList);
+        Datastore ds = null;
+        try {
+            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+            Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
+            query.field("zhName").hasAnyOf(capList).field("enabled").equal(Boolean.TRUE);
+            List<Recommendation> recommendList = new ArrayList<Recommendation>();
+            Recommendation rec;
+            int index = 1;
+            for (ViewSpot vs : query.asList()) {
+                rec = new Recommendation();
+                rec.hotVs = index;
+                index++;
+                rec.images = Arrays.asList(vs.images.get(0));
+                rec.name = vs.zhName;
+                rec.desc = vs.desc;
+                rec.setEnabled(true);
+                recommendList.add(rec);
+            }
+            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+            update.save(recommendList);
+        } catch (AizouException e) {
+            e.printStackTrace();
+        }
+
+        return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Success");
+    }
+
 
 //
 //    /**

@@ -72,4 +72,6 @@ GET           /recommend/mustgo                           controllers.web.MiscCt
 GET           /recommend/popularity                       controllers.web.MiscCtrl.recommend(sortType: String = "popularityWeight", page: Int?=0, pageSize: Int?=20)
 
 GET           /addRec                                     controllers.web.Bache.addRecPlans(itemType: Int)
+GET           /getViewSpot                                controllers.web.Bache.getViewSpot()
+GET           /getLocalities                              controllers.web.Bache.getLocalities()
 GET           /addRecNew                                  controllers.web.Bache.addRecPlansNew(itemType: Int?=1)
