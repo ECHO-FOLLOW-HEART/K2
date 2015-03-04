@@ -101,7 +101,7 @@ public class MiscAPI {
 
 //        query.field(Comment.FD_RATING).greaterThanOrEq(lower).field(Comment.FD_RATING).lessThanOrEq(upper);
 
-        query.limit(pageSize);
+        query.offset(page * pageSize).limit(pageSize);
 
         return query.asList();
     }

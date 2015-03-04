@@ -554,10 +554,10 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
-    private static JsonNode getCommentsImpl(String poiId, double lower, double upper, long lastUpdate, int pageSize)
+    private static JsonNode getCommentsImpl(String poiId, double lower, double upper, long lastUpdate,int page, int pageSize)
             throws AizouException {
         CommentFormatter formatter = FormatterFactory.getInstance(CommentFormatter.class);
-        List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, 0, pageSize);
+        List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, page, pageSize);
 
         return formatter.formatNode(commentList);
     }
@@ -570,9 +570,9 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result displayComment(String poiId, double lower, double upper, long lastUpdate, int pageSize)
+    public static Result displayComment(String poiId, double lower, double upper, long lastUpdate,int page, int pageSize)
             throws AizouException {
-        JsonNode results = getCommentsImpl(poiId, lower, upper, lastUpdate, pageSize);
+        JsonNode results = getCommentsImpl(poiId, lower, upper, lastUpdate,page, pageSize);
         return Utils.createResponse(ErrorCode.NORMAL, results);
     }
 
