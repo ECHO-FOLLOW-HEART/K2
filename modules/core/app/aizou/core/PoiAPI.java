@@ -139,7 +139,7 @@ public class PoiAPI {
         if (locId != null)
             query.or(query.criteria("targets").equal(locId), query.criteria("addr.loc.id").equal(locId));
         if (searchWord != null && !searchWord.isEmpty())
-            query = query.filter("name", Pattern.compile(searchWord));
+            query = query.filter("zhName", Pattern.compile(searchWord));
         if (tag != null && !tag.isEmpty())
             query = query.field("tags").equal(tag);
         //酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店
