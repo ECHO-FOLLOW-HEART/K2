@@ -128,7 +128,7 @@ public class Bache extends Controller {
                 rec.editorDate = new Date();
                 rec.planViews = pl.getForkedCnt();
                 rec.setEnabled(true);
-                rec.setId(new ObjectId());
+                rec.setId(pl.getId());
                 recommendList.add(rec);
             }
             Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
