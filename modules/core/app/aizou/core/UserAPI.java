@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import com.mongodb.DBObject;
+import asynchronous.AsyncExecutor;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.user.UserFormatterOld;
@@ -21,8 +22,6 @@ import models.user.Relationship;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -79,7 +78,7 @@ public class UserAPI {
 
     /**
      * 获得用户的ObjectId
-     * <p/>
+     * <p>
      * 该方法的主要用途是：提供一个UserId，检查该用户是否存在。以此作为和用户相关的接口的预先验证。
      *
      * @param id
@@ -1077,49 +1076,88 @@ public class UserAPI {
 
         List<F.Promise<Object>> promiseList2 = new ArrayList<>();
 
-        //环信注册
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                modEaseMobContacts(selfId, targetId, true);
-                return null;
-            }
-        }));
-
-        // 互相删除环信黑名单
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                delEaseMobBlocks(selfId, targetId);
-                return null;
-            }
-        }));
-
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                delEaseMobBlocks(targetId, selfId);
-                return null;
-            }
-        }));
-
-        //在关系表添加好友
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                addFriends(selfId, targetId);
-                return null;
-            }
-        }));
-
-        // 向加友请求发起的客户端发消息
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND, null);
-                return null;
-            }
-        }));
+//        //环信注册
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                modEaseMobContacts(selfId, targetId, true);
+//                return null;
+//            }
+//        }));
+//
+//        // 互相删除环信黑名单
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                delEaseMobBlocks(selfId, targetId);
+//                return null;
+//            }
+//        }));
+//
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                delEaseMobBlocks(targetId, selfId);
+//                return null;
+//            }
+//        }));
+//
+//        //在关系表添加好友
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                addFriends(selfId, targetId);
+//                return null;
+//            }
+//        }));
+//
+//        // 向加友请求发起的客户端发消息
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND, null);
+//                return null;
+//            }
+//        }));
+        promiseList2.addAll(
+                AsyncExecutor.creatPromises(
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                modEaseMobContacts(selfId, targetId, true);
+                                return null;
+                            }
+                        },
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                delEaseMobBlocks(selfId, targetId);
+                                return null;
+                            }
+                        },
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                delEaseMobBlocks(targetId, selfId);
+                                return null;
+                            }
+                        },
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                addFriends(selfId, targetId);
+                                return null;
+                            }
+                        },
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_ADD_FRIEND, null);
+                                return null;
+                            }
+                        }
+                )
+        );
 
         // 默认超时时间：10秒
         F.Promise.sequence(promiseList2).get(10000);
@@ -1144,49 +1182,94 @@ public class UserAPI {
 
         List<F.Promise<Object>> promiseList2 = new ArrayList<>();
 
-        //向环信注册
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                modEaseMobContacts(selfId, targetId, false);
-                return null;
-            }
-        }));
+//        //向环信注册
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                modEaseMobContacts(selfId, targetId, false);
+//                return null;
+//            }
+//        }));
+//
+//        //需要互添加环信黑名单，防止继续发送消息
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                addEaseMobBlocks(selfId, Arrays.asList(targetId));
+//                return null;
+//            }
+//        }));
+//
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                addEaseMobBlocks(targetId, Arrays.asList(selfId));
+//                return null;
+//            }
+//        }));
+//
+//        // 关系表删除好友
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                delFriends(selfId, targetId);
+//                return null;
+//            }
+//        }));
+//
+//        // 向删友请求发起的客户端发消息
+//        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
+//            @Override
+//            public Object apply() throws Throwable {
+//                unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND, null);
+//                return null;
+//            }
+//        }));
 
-        //需要互添加环信黑名单，防止继续发送消息
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                addEaseMobBlocks(selfId, Arrays.asList(targetId));
-                return null;
-            }
-        }));
-
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                addEaseMobBlocks(targetId, Arrays.asList(selfId));
-                return null;
-            }
-        }));
-
-        // 关系表删除好友
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                delFriends(selfId, targetId);
-                return null;
-            }
-        }));
-
-        // 向删友请求发起的客户端发消息
-        promiseList2.add(F.Promise.promise(new F.Function0<Object>() {
-            @Override
-            public Object apply() throws Throwable {
-                unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND, null);
-                return null;
-            }
-        }));
+        promiseList2.addAll(
+                AsyncExecutor.creatPromises(
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                //向环信注册
+                                modEaseMobContacts(selfId, targetId, false);
+                                return null;
+                            }
+                        },
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                //需要互添加环信黑名单，防止继续发送消息
+                                addEaseMobBlocks(selfId, Arrays.asList(targetId));
+                                return null;
+                            }
+                        },
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                //需要互添加环信黑名单，防止继续发送消息
+                                addEaseMobBlocks(targetId, Arrays.asList(selfId));
+                                return null;
+                            }
+                        },
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                // 关系表删除好友
+                                delFriends(selfId, targetId);
+                                return null;
+                            }
+                        },
+                        new F.Function0<Object>() {
+                            @Override
+                            public Object apply() throws Throwable {
+                                // 向删友请求发起的客户端发消息
+                                unvarnishedTrans(selfInfo, targetInfo, CMDTYPE_DEL_FRIEND, null);
+                                return null;
+                            }
+                        }
+                )
+        );
 
         // 默认超时时间：10秒
         F.Promise.sequence(promiseList2).get(10000);
@@ -1355,7 +1438,6 @@ public class UserAPI {
         Long userB = selfId > targetId ? selfId : targetId;
 
         query.field("userA").equal(userA).field("userB").equal(userB);
-
         // 如果不存在好友关系，则添加好友
         if (!query.iterator().hasNext()) {
             Relationship relationship = new Relationship();

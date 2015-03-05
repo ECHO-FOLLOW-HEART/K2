@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
-import controllers.AsyncExecutor;
+import asynchronous.AsyncExecutor;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
