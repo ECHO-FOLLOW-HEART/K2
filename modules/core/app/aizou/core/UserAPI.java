@@ -47,7 +47,8 @@ import java.util.*;
  * 用户相关API。
  *
  * @author Zephyre
- */
+ */import utils.LogUtils;
+
 public class UserAPI {
 
     public static int CMDTYPE_REQUEST_FRIEND = 1;
