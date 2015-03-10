@@ -11,10 +11,7 @@ import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
-import models.poi.AbstractPOI;
-import models.poi.Restaurant;
-import models.poi.Shopping;
-import models.poi.ViewSpot;
+import models.poi.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import utils.Constants;
@@ -88,6 +85,8 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         } else if (abstractPOI instanceof Shopping) {
             // Type use for serialize
             jsonGenerator.writeStringField("type", "shopping");
+        } else if (abstractPOI instanceof Hotel) {
+            jsonGenerator.writeStringField("type", "hotel");
         }
 
         // Rank

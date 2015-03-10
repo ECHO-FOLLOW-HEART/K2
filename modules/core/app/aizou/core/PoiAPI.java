@@ -885,7 +885,7 @@ public class PoiAPI {
      * @param pageSize    @return
      * @throws AizouException
      */
-    public static Iterator<? extends AbstractPOI>   getPOINearBy(POIType poiType, double lng, double lat,
+    public static Iterator<? extends AbstractPOI> getPOINearBy(POIType poiType, double lng, double lat,
                                                                double maxDistance, int page, int pageSize)
             throws AizouException {
         Class<? extends AbstractPOI> poiClass;
@@ -909,8 +909,11 @@ public class PoiAPI {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
         Query<? extends AbstractPOI> query = ds.createQuery(poiClass);
         query.field(AbstractPOI.FD_LOCATION).near(lng, lat, maxDistance, true).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
+        query.field(AbstractPOI.FD_IMAGES).notEqual(null)
+                .field(AbstractPOI.FD_IMAGES + ".key").notEqual(null);
+        //query.filter("images size",0).field(AbstractPOI.FD_IMAGES);
         query.retrievedFields(true, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.FD_IMAGES,
-                AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION, AbstractPOI.FD_PRICE_DESC,
+                AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_PRICE_DESC,
                 AbstractPOI.FD_ADDRESS, AbstractPOI.FD_RANK);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();

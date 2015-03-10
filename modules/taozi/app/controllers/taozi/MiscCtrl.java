@@ -646,19 +646,19 @@ public class MiscCtrl extends Controller {
             }
         };
 
-        SimplePOIFormatter<? extends AbstractPOI> poiFormatter;
+        SimplePOIFormatter<? extends AbstractPOI> poiFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
         for (PoiAPI.POIType poiType : poiKeyList) {
             ObjectId oid = locId.equals("") ? null : new ObjectId(locId);
             // 发现POI
-            List<JsonNode> retPoiList = new ArrayList<>();
+            List<AbstractPOI> retPoiList = new ArrayList<>();
             List<? extends AbstractPOI> itPoi = PoiAPI.poiSearchForTaozi(poiType, keyWord, oid, true, page, pageSize);
             for (AbstractPOI poi : itPoi) {
                 poi.images = TaoziDataFilter.getOneImage(poi.images);
                 poi.desc = StringUtils.abbreviate(poi.desc, Constants.ABBREVIATE_LEN);
-                poiFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
-                retPoiList.add(poiFormatter.formatNode(poi));
+                //poiFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
+                retPoiList.add(poi);
             }
-            results.put(poiMap.get(poiType), Json.toJson(retPoiList));
+            results.put(poiMap.get(poiType),  poiFormatter.formatNode(retPoiList));
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));

@@ -21,6 +21,7 @@ import models.guide.Guide;
 import models.misc.ImageItem;
 import models.misc.Recom;
 import models.misc.TravelNote;
+import models.poi.AbstractPOI;
 import models.user.Favorite;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
@@ -123,7 +124,8 @@ public class FavoriteFormatter extends AizouFormatter<Favorite> {
                 jgen.writeNumberField(Favorite.fnRating, getValue(favorite.rating));
             } else if (type.equals("shopping")) {
                 jgen.writeNumberField(Favorite.fnRating, getValue(favorite.rating));
-            }
+            } else if (type.equals("travelNote"))
+                jgen.writeStringField("detailUrl", "http://h5.taozilvxing.com/dayDetail.php?id=" + getString(favorite.itemId.toString()));
 
             jgen.writeEndObject();
         }
