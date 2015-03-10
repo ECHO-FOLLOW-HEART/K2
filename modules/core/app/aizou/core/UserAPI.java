@@ -696,14 +696,15 @@ public class UserAPI {
      * @param expireMs    多少豪秒以后过期
      * @param resendMs    多少毫秒以后可以重新发送验证短信
      */
-    public static void sendValCode(int countryCode, String tel, int actionCode, Integer userId, long expireMs, long resendMs)
+    public static Long sendValCode(int countryCode, String tel, int actionCode, Integer userId, long expireMs, long resendMs)
             throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
 
+        // 如果当前时间小于设置的时间间隔，就返回
         if (valCode != null && System.currentTimeMillis() < valCode.resendTime)
-            throw new AizouException(ErrorCode.SMS_QUOTA_ERROR, "SMS out of quota.");
+            return (valCode.resendTime - System.currentTimeMillis()) / 1000;
 
         ValidationCode oldCode = valCode;
         valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
@@ -719,6 +720,7 @@ public class UserAPI {
         valCode.lastSendTime = System.currentTimeMillis();
         valCode.resendTime = valCode.lastSendTime + resendMs;
         ds.save(valCode);
+        return resendMs/1000;
     }
 
     /**
