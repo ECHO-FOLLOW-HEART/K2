@@ -7,7 +7,7 @@
     <timestamp key="startTime" datePattern="yyyyMMdd'T'HHmmss"/>
 
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${application.home}/logs/coreapi-${date}.log</file>
+        <file>${K2_LOGPATH}/coreapi-${date}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
             <fileNamePattern>${application.home}/logs/coreapi-${startTime}.%i.log.zip</fileNamePattern>
             <minIndex>1</minIndex>
@@ -31,10 +31,12 @@
     </appender>
 
     <appender name="ACCESS_FILE" class="com.aizou.AizouFileAppender">
-        <file>${application.home}/logs/access/accesslog_${date}.log</file>
+        <file>${K2_LOGPATH}/access-${date}.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
             <fileNamePattern>${application.home}/logs/access/accesslog-%d.log</fileNamePattern>
         </rollingPolicy>
+        <Version>1.0</Version>
+        <Fields>date time c-version c-platform userid c-ip cs-method cs-uri sc-status sc-code sc-bytes s-timecost</Fields>
         <encoder>
             <pattern>%msg %n</pattern>
             <charset>UTF-8</charset>
@@ -42,7 +44,7 @@
     </appender>
 
 
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="FILE"/>
         <appender-ref ref="STDOUT"/>
     </root>

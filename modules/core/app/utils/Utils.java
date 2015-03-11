@@ -89,13 +89,13 @@ public class Utils {
         return obj;
     }
 
-    public static Result createResponse(int errCode) {
+    public static Result createResponse(ErrorCode errCode) {
         return createResponse(errCode, "");
     }
 
-    public static Result status(int errCode, String msg) {
+    public static Result status(ErrorCode errCode, String msg) {
         String ret = String.format("{\"lastModified\":%d, \"result\":%s, \"code\":%d}",
-                System.currentTimeMillis() / 1000, msg, errCode);
+                System.currentTimeMillis() / 1000, msg, errCode.getVal());
 //        return ok(ret).as("application/json;charset=utf-8");
         return WrappedOk(ret).as("application/json;charset=utf-8");
     }
@@ -104,22 +104,30 @@ public class Utils {
         return status(ErrorCode.NORMAL, msg);
     }
 
-    public static Result createResponse(int errCode, String msg) {
+    /**
+     * 建立Result对象
+     *
+     * @param errCode
+     * @param debugMessage Debug信息
+     * @return
+     */
+    public static Result createResponse(ErrorCode errCode, String debugMessage) {
         ObjectNode jsonObj = Json.newObject();
-        jsonObj.put("debug", msg);
+        if (debugMessage != null)
+            jsonObj.put("debug", debugMessage);
         return createResponse(errCode, jsonObj);
     }
 
 
-    public static Result createResponse(int errCode, JsonNode result) {
+    public static Result createResponse(ErrorCode errCode, JsonNode result) {
         ObjectNode response = Json.newObject();
         response.put("lastModified", System.currentTimeMillis() / 1000);
-        if (errCode == 0) {
+        if (errCode.getVal() == 0) {
             if (result != null)
                 response.put("result", result);
             response.put("code", 0);
         } else {
-            response.put("code", errCode);
+            response.put("code", errCode.getVal());
             if (result != null)
                 response.put("err", result);
         }
@@ -153,7 +161,7 @@ public class Utils {
      * @param isGotByApp 标识Message是否被手机端直接获得并显示出来
      * @return
      */
-    public static Result createResponse(int errCode, String msg, boolean isGotByApp) {
+    public static Result createResponse(ErrorCode errCode, String msg, boolean isGotByApp) {
         ObjectNode jsonObj = Json.newObject();
         jsonObj.put("message", msg);
         return createResponse(errCode, jsonObj);
@@ -452,7 +460,7 @@ public class Utils {
 
         String cacheControl = request.hasHeader(CACHE_CONTROLKEY) ? request.getHeader(CACHE_CONTROLKEY) : request.getHeader(CACHE_CONTROLKEY.toLowerCase());
         if (cacheControl == null || cacheControl.equals("") || cacheControl.toLowerCase().equals("no-cache"))
-                return false;
+            return false;
         String ifModifiedSince = request.hasHeader(IF_MODIFY_SINCE) ? request.getHeader(IF_MODIFY_SINCE) : request.getHeader(IF_MODIFY_SINCE.toLowerCase());
         if (lastModify == null || ifModifiedSince == null || ifModifiedSince.equals(""))
             return false;

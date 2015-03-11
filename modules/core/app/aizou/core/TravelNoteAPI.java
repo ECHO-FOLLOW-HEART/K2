@@ -2,6 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.ImageItem;
@@ -249,32 +250,107 @@ public class TravelNoteAPI {
     /**
      * 通过id获取全部实体
      *
-     * @param id
+     * @param
      * @return
      * @throws AizouException
      */
-    public static TravelNote getNoteById(ObjectId id) throws AizouException {
+    public static List<TravelNote> solrRequest(String queryString, List<String> fields, int page, int pageSize) throws AizouException {
+        List<TravelNote> results = new ArrayList<>();
+        try {
+            Configuration config = Configuration.root().getConfig("solr");
+            String host = config.getString("host", "http://api.lvxingpai.cn");
+            Integer port = config.getInt("port", 8983);
+            String url = String.format("http://%s:%d/solr", host, port);
+            /*
+            HttpSolrServer is thread-safe and if you are using the following constructor,
+            you *MUST* re-use the same instance for all requests.  If instances are created on
+            the fly, it can cause a connection leak. The recommended practice is to keep a
+            static instance of HttpSolrServer per solr server url and share it for all requests.
+            See https://issues.apache.org/jira/browse/SOLR-861 for more details
+            */
+            SolrServer server = new HttpSolrServer(url);
+            SolrQuery query = new SolrQuery();
+
+            query.setQuery(queryString).setStart(page * pageSize).setRows(pageSize);
+
+            for (String f : fields)
+                query.addField(f);
+
+            SolrDocumentList docs = server.query(query).getResults();
+            Date publishDate;
+            for (SolrDocument doc : docs) {
+                TravelNote note = new TravelNote();
+                note.setId(new ObjectId(doc.get("id").toString()));
+                Object tmp;
+                note.author = (String) doc.get("authorName");
+                note.title = (String) doc.get("title");
+                tmp = doc.get("authorAvatar");
+                note.avatar = (tmp != null ? (String) tmp : "");
+                if (!note.avatar.startsWith("http://"))
+                    note.avatar = "http://" + note.avatar;
+                tmp = doc.get("favorCnt");
+                note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+                note.contentsList = (List) doc.get("contents");
+                note.sourceUrl = (String) doc.get("url");
+                note.source = "baidu";
+                tmp = doc.get("commentCnt");
+                note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+                tmp = doc.get("viewCnt");
+                note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
+                tmp = doc.get("sourceUrl");
+                note.sourceUrl = (tmp != null ? (String) tmp : "");
+                publishDate = ((Date) doc.get("publishDate"));
+                note.publishTime = publishDate == null ? null : publishDate.getTime();
+
+                tmp = doc.get("costUpper");
+                note.costUpper = (tmp != null ? Float.parseFloat(String.valueOf(tmp)) : -1);
+                tmp = doc.get("costLower");
+                note.costLower = (tmp != null ? Float.parseFloat(String.valueOf(tmp)) : -1);
+
+                if (note.contentsList.size() > 1) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 1; i < note.contentsList.size(); i++) {
+                        String c = note.contentsList.get(i);
+                        if (Pattern.matches("^\\s*http.+", c))
+                            continue;
+                        sb.append(c);
+                        sb.append('\n');
+                        if (sb.length() > 200)
+                            break;
+                    }
+                    String summary = sb.toString().trim();
+                    if (summary.length() > 200)
+                        summary = summary.substring(0, 200) + "……";
+                    note.summary = summary;
+                }
+                if (note.contentsList != null)
+                    note.content = procContents(note.contentsList);
+                else
+                    note.content = "";
+                results.add(note);
+            }
+            return results;
+        } catch (SolrServerException e) {
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, e.getMessage());
+        }
+    }
+
+
+    /**
+     * 通过id获取游记
+     *
+     * @param id
+     * @param fields
+     * @return
+     * @throws AizouException
+     */
+    public static TravelNote getNoteById(ObjectId id, List<String> fields) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
         Query<TravelNote> query = ds.createQuery(TravelNote.class).field("_id").equal(id);
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
         return query.get();
     }
-//
-//
-//    /**
-//     * 通过id获取游记
-//     *
-//     * @param id
-//     * @param fields
-//     * @return
-//     * @throws AizouException
-//     */
-//    public static TravelNote getNoteById(ObjectId id, List<String> fields) throws AizouException {
-//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
-//        Query<TravelNote> query = ds.createQuery(TravelNote.class).field("_id").equal(id);
-//        if (fields != null && !fields.isEmpty())
-//            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
-//        return query.get();
-//    }
 
 //
 //    /**
@@ -342,14 +418,24 @@ public class TravelNoteAPI {
     }
 
 
-    private static HttpSolrServer getSolrConnect() throws SolrServerException {
-        //solr连接配置
-        Configuration config = Configuration.root().getConfig("solr");
-        String host = config.getString("host");
-        Integer port = config.getInt("port", 8983);
-        String coreName = config.getString("core", "travelnote");
-        String url = String.format("http://%s:%d/solr/%s", "taozilvxing.com", port, coreName);
-        return new HttpSolrServer(url);
+    /**
+     * 返回游记bean
+     *
+     * @param idList
+     * @param fields
+     * @return
+     * @throws AizouException
+     */
+    public static List<TravelNote> getNotesByIdList(List<ObjectId> idList, List<String> fields) throws AizouException {
+        if (idList.size() == 0)
+            return new ArrayList<>();
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
+        Query<TravelNote> query = ds.createQuery(TravelNote.class);
+        query.field(AizouBaseEntity.FD_ID).in(idList);
+        if (fields != null && !fields.isEmpty())
+            query.retrievedFields(true, fields.toArray(new String[fields.size()]));
+        return query.asList();
     }
 
     /**
@@ -411,6 +497,16 @@ public class TravelNoteAPI {
         }
 
         return noteList;
+    }
+
+    private static HttpSolrServer getSolrConnect() throws SolrServerException {
+        //solr连接配置
+        Configuration config = Configuration.root().getConfig("solr");
+        String host = config.getString("host");
+        Integer port = config.getInt("port", 8983);
+        String coreName = config.getString("core", "travelnote");
+        String url = String.format("http://%s:%d/solr/%s", "taozilvxing.com", port, coreName);
+        return new HttpSolrServer(url);
     }
 
     private static List<ImageItem> transImages(List<String> list) {
@@ -497,90 +593,27 @@ public class TravelNoteAPI {
     }
 
 
-//    /**
-//     * 通过id获取游记
-//     *
-//     * @param id
-//     * @return
-//     * @throws SolrServerException
-//     * @throws ParseException
-//     */
-//    public static List<TravelNote> getTravelNoteDetailApi(String id) throws SolrServerException, ParseException {
-//        SolrDocumentList docs;
-//        List<TravelNote> results = new ArrayList<>();
-//        //配置solr
-//        Configuration config = Configuration.root().getConfig("solr");
-//        String host = config.getString("host", "http://api.lvxingpai.cn");
-//        Integer port = config.getInt("port", 8983);
-//        String url = String.format("http://%s:%d/solr", host, port);
-//        SolrServer server = new HttpSolrServer(url);
-//        SolrQuery query = new SolrQuery();
-//
-//        String queryString = String.format("id:%s", id);
-//        query.setQuery(queryString.trim());
-//                /*.addField("id").addField("author").addField("title")
-//                .addField("avatar").addField("contentsList").addField("cover").addField("elite")
-//                .addField("source").addField("startDate").addField("sourceUrl").addField("toLoc")
-//                .addField("viewCnt").addField("commentCnt");*/
-//
-//        docs = server.query(query).getResults();
-//        TravelNote note;
-//        for (SolrDocument doc : docs) {
-//            Boolean elite = (Boolean) doc.get("elite");
-//                /*if (!elite)
-//                    continue;*/
-//            note = new TravelNote();
-//            Object tmp;
-//            note.author = (String) doc.get("authorName");
-//            note.title = (String) doc.get("title");
-//            tmp = doc.get("authorAvatar");
-//            note.avatar = (tmp != null ? (String) tmp : "");
-//            if (!note.avatar.startsWith("http://"))
-//                note.avatar = "http://" + note.avatar;
-//            tmp = doc.get("favorCnt");
-//            note.favorCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-//            note.contentsList = (List) doc.get("contents");
-//            note.contents = procContents(note.contentsList);
-//            note.sourceUrl = (String) doc.get("url");
-//            note.source = getSource((String) doc.get("source"));
-//            tmp = doc.get("commentCnt");
-//            note.commentCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-//            tmp = doc.get("viewCnt");
-//            note.viewCnt = (tmp != null ? ((Long) tmp).intValue() : 0);
-//            tmp = doc.get("sourceUrl");
-//            note.sourceUrl = (tmp != null ? (String) tmp : "");
-//            tmp = doc.get("costUpper");
-//            note.costUpper = (tmp != null ? Float.parseFloat(String.valueOf(tmp)) : -1);
-//            tmp = doc.get("costLower");
-//            note.costLower = (tmp != null ? Float.parseFloat(String.valueOf(tmp)) : -1);
-//            note.publishTime = ((Date) doc.get("publishDate")).getTime();
-//            results.add(note);
-//        }
-//        return results;
-//
-//    }
-
-//    /**
-//     * 处理游记正文
-//     *
-//     * @param contents
-//     * @return
-//     */
-//    public static String procContents(List<String> contents) {
-//        StringBuilder sb = new StringBuilder();
-//        sb.append("<div>");
-//        for (String line : contents) {
-//            if (line.startsWith("img src")) {
-//                continue; //不添加表情
-//            } else if (line.startsWith("http://")) {
-//                sb.append("<img src=" + line + " />");
-//            } else
-//                sb.append("<p> " + line + "</p>");
-//        }
-//        sb.append("</div>");
-//        /*List<String> list = new ArrayList<>();
-//        list.add(sb.toString().trim());*/
-//        return sb.toString().trim();
-//    }
+    /**
+     * 处理游记正文
+     *
+     * @param contents
+     * @return
+     */
+    public static String procContents(List<String> contents) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("<div>");
+        for (String line : contents) {
+            if (line.startsWith("img src")) {
+                continue; //不添加表情
+            } else if (line.startsWith("http://")) {
+                sb.append("<img src=" + line + " />");
+            } else
+                sb.append("<p> " + line + "</p>");
+        }
+        sb.append("</div>");
+        /*List<String> list = new ArrayList<>();
+        list.add(sb.toString().trim());*/
+        return sb.toString().trim();
+    }
 
 }

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.*;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.poi.TrafficHubFormatter;
+import formatter.travelpi.plan.TrafficHubFormatter;
 import models.traffic.AbstractTrafficHub;
 import models.traffic.AirRoute;
 import models.traffic.RouteIterator;

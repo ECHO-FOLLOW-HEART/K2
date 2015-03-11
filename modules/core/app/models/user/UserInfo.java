@@ -57,6 +57,9 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnOauthId = "oauthList.oauthId";
+
+    @Transient
+    public static String fnAvatarSmall = "avatarSmall";
     /**
      * 昵称
      */
@@ -68,6 +71,13 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
      */
     @JsonProperty("avatar")
     private String avatar;
+
+    /**
+     * 头像小图
+     */
+    @JsonProperty("avatarSmall")
+    private String avatarSmall;
+
     /**
      * 性别： F\M\Both\None
      */
@@ -263,6 +273,19 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     public void setOrigin(String origin) {
         this.origin = origin;
+    }
+
+    public String getAvatarSmall() {
+        if (avatar == null || avatar.equals(""))
+            return "";
+        // 如果是微信登录
+        if (avatar.startsWith("http://wx.qlogo.cn"))
+            return avatar;
+        return String.format("%s?imageView2/2/w/%d", avatar, 200);
+    }
+
+    public void setAvatarSmall(String avatarSmall) {
+        this.avatarSmall = avatarSmall;
     }
 
     @Override

@@ -30,6 +30,7 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
         jgen.writeStringField("easemobUser", getString(userInfo.getEasemobUser()));
         jgen.writeStringField("nickName", getString(userInfo.getNickName()));
         jgen.writeStringField("avatar", getString(userInfo.getAvatar()));
+        jgen.writeStringField("avatarSmall", getString(userInfo.getAvatarSmall()));
         jgen.writeStringField("gender", getString(userInfo.getGender()));
         jgen.writeStringField("signature", getString(userInfo.getSignature()));
         jgen.writeNumberField("userId", userInfo.getUserId());
