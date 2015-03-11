@@ -720,7 +720,7 @@ public class UserAPI {
         valCode.lastSendTime = System.currentTimeMillis();
         valCode.resendTime = valCode.lastSendTime + resendMs;
         ds.save(valCode);
-        return resendMs/1000;
+        return resendMs / 1000;
     }
 
     /**
@@ -1290,7 +1290,8 @@ public class UserAPI {
         info.put("attachMsg", message);
         ObjectNode ext = Json.newObject();
         ext.put("CMDType", cmdType);
-        ext.put("content", info);
+
+        ext.put("content", info.toString());
 
         ObjectNode msg = Json.newObject();
         msg.put("type", "cmd");
@@ -1305,10 +1306,12 @@ public class UserAPI {
         users.add(targetInfo.getEasemobUser());
 
         requestBody.put("target_type", "users");
+
         requestBody.put("target", Json.toJson(users));
         requestBody.put("msg", msg);
         requestBody.put("ext", ext);
         requestBody.put("from", selfInfo.getEasemobUser());
+
 
         // 重新获取token
         Configuration config = Configuration.root().getConfig("easemob");
@@ -1328,6 +1331,7 @@ public class UserAPI {
 
             OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
             out.write(requestBody.toString());
+            LogUtils.info(UserAPI.class, requestBody.toString());
             out.flush();
             out.close();
 
@@ -1335,6 +1339,7 @@ public class UserAPI {
             String body = IOUtils.toString(in, conn.getContentEncoding());
 
             JsonNode tokenData = Json.parse(body);
+            LogUtils.info(UserAPI.class, body.toString());
             if (tokenData.has("error"))
                 throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         } catch (java.io.IOException e) {
