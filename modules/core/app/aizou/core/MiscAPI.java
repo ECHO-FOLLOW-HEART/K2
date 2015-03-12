@@ -83,17 +83,19 @@ public class MiscAPI {
     /**
      * 通过poiId取得评论
      *
+     *
+     * @param cls
      * @param poiId
      * @param lastUpdate
      * @param pageSize
      * @return
      * @throws exception.AizouException
      */
-    public static List<Comment> displayCommentApi(ObjectId poiId, Double lower, Double upper, long lastUpdate, int page, int pageSize)
+    public static <T extends Comment> List<T> getComments(Class<? extends Comment> cls, ObjectId poiId, Double lower, Double upper, long lastUpdate, int page, int pageSize)
             throws AizouException {
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-        Query<Comment> query = ds.createQuery(Comment.class).field(Comment.FD_ITEM_ID).equal(poiId);
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Query<T> query = (Query<T>) ds.createQuery(cls).field(Comment.FD_ITEM_ID).equal(poiId);
         query = query.order("-" + Comment.FD_PUBLISHTIME);
 
         if (lastUpdate != 0)

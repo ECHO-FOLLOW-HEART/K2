@@ -21,8 +21,7 @@ import formatter.taozi.user.FavoriteFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
-import models.poi.AbstractPOI;
-import models.poi.Comment;
+import models.poi.*;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
@@ -554,10 +553,10 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
-    private static JsonNode getCommentsImpl(String poiId, double lower, double upper, long lastUpdate,int page, int pageSize)
+    private static JsonNode getCommentsImpl(Class<? extends Comment> commitClass, String poiId, double lower, double upper, long lastUpdate, int page, int pageSize)
             throws AizouException {
         CommentFormatter formatter = FormatterFactory.getInstance(CommentFormatter.class);
-        List<Comment> commentList = MiscAPI.displayCommentApi(new ObjectId(poiId), lower, upper, lastUpdate, page, pageSize);
+        List<Comment> commentList = MiscAPI.getComments(commitClass, new ObjectId(poiId), lower, upper, lastUpdate, page, pageSize);
 
         return formatter.formatNode(commentList);
     }
@@ -570,9 +569,28 @@ public class MiscCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result displayComment(String poiId, double lower, double upper, long lastUpdate,int page, int pageSize)
+    public static Result displayComment(String poiType, String poiId, double lower, double upper, long lastUpdate, int page, int pageSize)
             throws AizouException {
-        JsonNode results = getCommentsImpl(poiId, lower, upper, lastUpdate,page, pageSize);
+
+        Class<? extends Comment> commentClass = Comment.class;
+        switch (poiType) {
+            case "vs":
+                //commentClass = ViewSpotComment.class;
+                break;
+            case "hotel":
+                //commentClass = HotelComment.class;
+                break;
+            case "restaurant":
+                commentClass = RestaurantComment.class;
+                break;
+            case "shopping":
+                //commentClass = ShoppingComment.class;
+                break;
+            default:
+                return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
+        }
+
+        JsonNode results = getCommentsImpl(commentClass, poiId, lower, upper, lastUpdate, page, pageSize);
         return Utils.createResponse(ErrorCode.NORMAL, results);
     }
 
@@ -658,7 +676,7 @@ public class MiscCtrl extends Controller {
                 //poiFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
                 retPoiList.add(poi);
             }
-            results.put(poiMap.get(poiType),  poiFormatter.formatNode(retPoiList));
+            results.put(poiMap.get(poiType), poiFormatter.formatNode(retPoiList));
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(results));

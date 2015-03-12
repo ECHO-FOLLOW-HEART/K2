@@ -220,6 +220,18 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
             }
             jsonGenerator.writeEndArray();
 
+        } else if (abstractPOI instanceof Hotel) {
+            // Type use for serialize
+            jsonGenerator.writeStringField("type", "hotel");
+            // Tel
+            List<String> tels = abstractPOI.tel;
+            jsonGenerator.writeFieldName(AbstractPOI.FD_TELEPHONE);
+            jsonGenerator.writeStartArray();
+            if (tels != null && (!tels.isEmpty())) {
+                for (String tel : tels)
+                    jsonGenerator.writeString(getString(tel));
+            }
+            jsonGenerator.writeEndArray();
         }
         // Rank
         jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));

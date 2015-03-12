@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class POICtrl extends Controller {
 
-    public static JsonNode viewPOIInfoImpl(Class<? extends AbstractPOI> poiClass, String spotId,
+    public static JsonNode viewPOIInfoImpl(String poiDesc, Class<? extends AbstractPOI> poiClass, Class<? extends Comment> commitClass, String spotId,
                                            int commentPage, int commentPageSize, Long userId,
                                            int rmdPage, int rmdPageSize, int imgWidth, boolean isWeb)
             throws AizouException {
@@ -57,7 +57,8 @@ public class POICtrl extends Controller {
         JsonNode recommends = formatter.formatNode(rmdEntities);
 
         // 取得评论
-        List<Comment> commentsEntities = MiscAPI.displayCommentApi(new ObjectId(spotId), null, null, 0, commentPage, commentPageSize);
+
+        List<Comment> commentsEntities = MiscAPI.getComments(commitClass, new ObjectId(spotId), null, null, 0, commentPage, commentPageSize);
         CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
         JsonNode comments = comformatter.formatNode(commentsEntities);
 
@@ -69,7 +70,7 @@ public class POICtrl extends Controller {
 
         if (poiClass == Shopping.class || poiClass == Restaurant.class) {
             // 添加H5接口 更多评论
-            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/poi/morecomment.php?pid=" + spotId);
+            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/poi/morecomment.php?pid=" + spotId + "&poiType=" + poiDesc);
             ret.put("recommends", recommends);
         } else if (poiClass == ViewSpot.class) {
             // 获得同城的销售数据
@@ -108,6 +109,7 @@ public class POICtrl extends Controller {
             imgWidth = Integer.valueOf(imgWidthStr);
 
         Class<? extends AbstractPOI> poiClass;
+        Class<? extends Comment> commentClass = Comment.class;
         switch (poiDesc) {
             case "vs":
                 poiClass = ViewSpot.class;
@@ -117,6 +119,7 @@ public class POICtrl extends Controller {
                 break;
             case "restaurant":
                 poiClass = Restaurant.class;
+                commentClass = RestaurantComment.class;
                 break;
             case "shopping":
                 poiClass = Shopping.class;
@@ -130,7 +133,7 @@ public class POICtrl extends Controller {
             userId = Long.parseLong(request().getHeader("UserId"));
         else
             userId = null;
-        JsonNode ret = viewPOIInfoImpl(poiClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth, isWeb);
+        JsonNode ret = viewPOIInfoImpl(poiDesc, poiClass, commentClass, spotId, commentPage, commentPageSize, userId, rmdPage, rmdPageSize, imgWidth, isWeb);
         return Utils.createResponse(ErrorCode.NORMAL, ret);
     }
 
