@@ -18,7 +18,10 @@ DELETE        /ugc-plans/:ugcPlanId                       controllers.web.PlanCt
 POST          /plans/optimizers                           controllers.web.PlanCtrl.optimizePlan()
 #路线相关游记
 GET           /misc/notes/search                          controllers.web.TravelNoteCtrl.searchNotes(page: Int?=0,pageSize: Int?= 20)
-
+#更多精选游记
+GET           /travel-notes/search                        controllers.web.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
+#返回单篇游记详情(H5)
+GET           /travel-notes/$id<[0-9a-f]{24}>             controllers.web.TravelNoteCtrl.travelNoteDetail(id:String)
 #----------POI接口----------
 #搜索POI信息：根据位置、标签、关键词
 GET           /poi/view-spots/search                      controllers.web.POICtrl.poiSearch(poiType: String="vs", locId: String?="", tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="hotness", sort: String?="desc",hotelType: String?="")

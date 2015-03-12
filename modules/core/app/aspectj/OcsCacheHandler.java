@@ -5,7 +5,7 @@ import org.apache.commons.logging.LogFactory;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.reflect.MethodSignature;
 import play.Configuration;
-import play.cache.Cache;
+//import play.cache.Cache;
 import play.mvc.Http;
 import play.mvc.Result;
 import serialization.ParserFactory;
@@ -39,17 +39,17 @@ public class OcsCacheHandler {
     }
 
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
-        if (cacheEnabled) {
-            MethodSignature ms = (MethodSignature) pjp.getSignature();
-            Method method = ms.getMethod();
-            RemoveOcsCache annotation = method.getAnnotation(RemoveOcsCache.class);
-            String[] keyList = annotation.keyList().split(SEPARATOR);
-            for (String keyEntry : keyList) {
-                String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
-                logger.debug("Remove key: " + key);
-                Cache.remove(key);
-            }
-        }
+//        if (cacheEnabled) {
+//            MethodSignature ms = (MethodSignature) pjp.getSignature();
+//            Method method = ms.getMethod();
+//            RemoveOcsCache annotation = method.getAnnotation(RemoveOcsCache.class);
+//            String[] keyList = annotation.keyList().split(SEPARATOR);
+//            for (String keyEntry : keyList) {
+//                String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
+//                logger.debug("Remove key: " + key);
+//                Cache.remove(key);
+//            }
+//        }
 
         return (Result) pjp.proceed();
     }
@@ -99,16 +99,18 @@ public class OcsCacheHandler {
         }
 
         // 双重检查锁
-        String jsonStr = (String) Cache.get(key);
-        if (jsonStr == null || jsonStr.isEmpty()) {
-            synchronized (key.intern()) {
-                //再次尝试从缓存中获取值
-                jsonStr = (String) Cache.get(key);
-                if (jsonStr == null || jsonStr.isEmpty()) {
-                    return fetchAndRefreshCache(pjp, key, annotation, serializerName);
-                }
-            }
-        }
+        // TODO
+//        String jsonStr = (String) Cache.get(key);
+        String jsonStr = "";
+//        if (jsonStr == null || jsonStr.isEmpty()) {
+//            synchronized (key.intern()) {
+//                //再次尝试从缓存中获取值
+//                jsonStr = (String) Cache.get(key);
+//                if (jsonStr == null || jsonStr.isEmpty()) {
+//                    return fetchAndRefreshCache(pjp, key, annotation, serializerName);
+//                }
+//            }
+//        }
         logger.info(String.format("Cache hit: %s", key));
 
         // 调用反序列化器
@@ -148,7 +150,7 @@ public class OcsCacheHandler {
         }
         if (cacheValue.length() <= MAX_VALUE_LENGTH) {
             logger.info(String.format("Set to cache: %s", key));
-            Cache.set(key, cacheValue, expireTime);
+//            Cache.set(key, cacheValue, expireTime);
         } else {
             logger.warn("Cannot do caching: data size out of limit (" + MAX_VALUE_LENGTH + " Bytes)");
         }
