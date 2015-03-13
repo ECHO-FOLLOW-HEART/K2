@@ -53,7 +53,12 @@ public class MorphiaFactory {
             } catch (UnknownHostException ignored) {
             }
         }
-
+        servers = new ArrayList<>();
+        try {
+            servers.add(new ServerAddress("182.92.159.203", 31001));
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
         if (servers.isEmpty())
             throw new AizouException(ErrorCode.DATABASE_ERROR, "Invalid database connection settings.");
 
