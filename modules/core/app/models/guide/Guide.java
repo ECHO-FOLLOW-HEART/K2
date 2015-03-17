@@ -36,6 +36,17 @@ public class Guide extends AbstractGuide {
 
     private String summary;
 
+    //TODO 为解决IOS的BUG，不真正解析
+    private String detailUrl;
+
+    public String getDetailUrl() {
+        return detailUrl;
+    }
+
+    public void setDetailUrl(String detailUrl) {
+        this.detailUrl = detailUrl;
+    }
+
     public Integer getUserId() {
         return userId;
     }
