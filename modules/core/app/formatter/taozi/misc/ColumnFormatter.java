@@ -37,6 +37,7 @@ public class ColumnFormatter extends AizouFormatter<Column> {
                 Column.FD_LINK,
                 Column.FD_TITLE,
                 Column.FD_TYPE,
+                Column.FD_CONTENT,
                 Column.FD_ID
         );
     }
@@ -51,6 +52,7 @@ public class ColumnFormatter extends AizouFormatter<Column> {
             jgen.writeStringField(Column.FD_LINK, getString(column.getLink()));
             jgen.writeStringField(Column.FD_TITLE, getString(column.getTitle()));
             jgen.writeStringField(Column.FD_TYPE, getString(column.getType()));
+            jgen.writeStringField(Column.FD_CONTENT, getString(column.getContent()));
             jgen.writeEndObject();
         }
     }

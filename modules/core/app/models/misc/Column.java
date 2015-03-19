@@ -29,6 +29,9 @@ public class Column extends AizouBaseEntity {
     @Transient
     public static final String FD_TYPE = "type";
 
+    @Transient
+    public static final String FD_SORT = "sort";
+
 
     /**
      * 标题
@@ -57,6 +60,15 @@ public class Column extends AizouBaseEntity {
      */
     private String type;
 
+    private int sort;
+
+    public int getSort() {
+        return sort;
+    }
+
+    public void setSort(int sort) {
+        this.sort = sort;
+    }
 
     public String getType() {
         return type;

@@ -33,6 +33,7 @@ public class MiscAPI {
      * @throws exception.AizouException
      */
     public static List<Column> getColumns(String type, String id) throws AizouException {
+
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
         Query<Column> query = ds.createQuery(Column.class);
         if (id.equals("")) {
@@ -41,8 +42,8 @@ public class MiscAPI {
         } else {
             query.field("_id").equal(new ObjectId(id));
         }
+        query.order(Column.FD_SORT);
         return query.asList();
-
     }
 
     public static void saveColumns(Column pageFirst) throws AizouException {
@@ -82,7 +83,6 @@ public class MiscAPI {
 
     /**
      * 通过poiId取得评论
-     *
      *
      * @param cls
      * @param poiId
