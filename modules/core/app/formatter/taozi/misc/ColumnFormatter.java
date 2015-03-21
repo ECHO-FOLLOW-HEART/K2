@@ -52,7 +52,10 @@ public class ColumnFormatter extends AizouFormatter<Column> {
             jgen.writeStringField(Column.FD_LINK, getString(column.getLink()));
             jgen.writeStringField(Column.FD_TITLE, getString(column.getTitle()));
             jgen.writeStringField(Column.FD_TYPE, getString(column.getType()));
-            jgen.writeStringField(Column.FD_CONTENT, getString(column.getContent()));
+            // IOS不支持tp=webp格式的页面
+            String content = getString(column.getContent());
+            content = content.replaceAll("\\?tp=webp&","\\?");
+            jgen.writeStringField(Column.FD_CONTENT, content);
             jgen.writeEndObject();
         }
     }
