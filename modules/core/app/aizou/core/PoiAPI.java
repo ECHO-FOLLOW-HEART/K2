@@ -1117,7 +1117,7 @@ public class PoiAPI {
         String queryString = String.format("alias:%s", keyword);
         query.setQuery(queryString);
         query.setStart(page * pageSize).setRows(pageSize);
-        query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
+        //query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
         //query.addFilterQuery("taoziEna:true");
         query.setFields(AizouBaseEntity.FD_ID);
         SolrDocumentList vsDocs = server.query(query).getResults();
