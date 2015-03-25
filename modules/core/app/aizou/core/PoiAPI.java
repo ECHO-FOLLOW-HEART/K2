@@ -1096,6 +1096,7 @@ public class PoiAPI {
         }
 
         if (keyword != null && !keyword.isEmpty()) {
+            keyword = keyword.toLowerCase();
             query.field("alias").equal(Pattern.compile("^" + keyword));
         }
 
@@ -1117,7 +1118,7 @@ public class PoiAPI {
         query.setQuery(queryString);
         query.setStart(page * pageSize).setRows(pageSize);
         query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
-        query.addFilterQuery("taoziEna:true");
+        //query.addFilterQuery("taoziEna:true");
         query.setFields(AizouBaseEntity.FD_ID);
         SolrDocumentList vsDocs = server.query(query).getResults();
 
