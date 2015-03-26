@@ -12,6 +12,7 @@ import org.mongodb.morphia.annotations.Transient;
 import play.data.validation.Constraints;
 import play.libs.Json;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -60,6 +61,9 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnAvatarSmall = "avatarSmall";
+
+    @Transient
+    public static String fnAlias = "alias";
     /**
      * 昵称
      */
@@ -146,6 +150,11 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
      */
     private String origin;
 
+    /**
+     * 别名
+     */
+    private List<String> alias;
+
     public UserInfo() {
     }
 
@@ -154,6 +163,7 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
         user.setId(new ObjectId());
         user.userId = userId;
         user.nickName = "桃子_" + user.userId;
+        user.alias = Arrays.asList(user.nickName.toLowerCase());
         user.setEnabled(true);
 
         return user;
@@ -286,6 +296,14 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     public void setAvatarSmall(String avatarSmall) {
         this.avatarSmall = avatarSmall;
+    }
+
+    public List<String> getAlias() {
+        return alias;
+    }
+
+    public void setAlias(List<String> alias) {
+        this.alias = alias;
     }
 
     @Override
