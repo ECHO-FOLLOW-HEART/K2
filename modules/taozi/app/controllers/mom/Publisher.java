@@ -32,9 +32,13 @@ public class Publisher {
     }
 
     public void publishTask(Task task) {
+        publishTask(task, "taozi.default.routing");
+    }
+
+    public void close() {
         try {
-            channel.basicPublish(exchangeName, "taozi.default.routing", properties, task.toJsonBytes());
-        } catch (IOException | JSONException e) {
+            if (channel != null)channel.close();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
