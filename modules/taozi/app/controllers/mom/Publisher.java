@@ -2,6 +2,8 @@ package controllers.mom;
 
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONException;
 
 import java.io.IOException;
@@ -13,6 +15,8 @@ public class Publisher {
     private Channel channel = null;
     private String exchangeName = null;
     private AMQP.BasicProperties properties = null;
+
+    private Log logger = LogFactory.getLog(this.getClass());
 
     public Publisher(String exchangeName, Channel channel) {
         this.exchangeName = exchangeName;
@@ -26,6 +30,7 @@ public class Publisher {
     public void publishTask(Task task, String routingKey) {
         try {
             channel.basicPublish(exchangeName, routingKey, properties, task.toJsonBytes());
+            logger.info("task publish: " + exchangeName + " " + routingKey + " " + task.getTaskId() + " " + task.getTaskName());
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
