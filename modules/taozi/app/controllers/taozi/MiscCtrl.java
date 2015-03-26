@@ -7,6 +7,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
+import controllers.mom.Publisher;
+import controllers.mom.PublisherFactory;
+import controllers.mom.SimpleTask;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -503,6 +506,9 @@ public class MiscCtrl extends Controller {
     @UsingOcsCache(key = "getColumns|{type}|{id}", expireTime = 86400, serializer = "WrappedResult")
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
+
+        Publisher publisher = PublisherFactory.getInstance().getPublisher("tasks");
+        publisher.publishTask(SimpleTask.newTask("tasks.add", new Object[]{2, 3}), "task.add");
 
         Configuration config = Configuration.root();
         Map h5 = (Map) config.getObject("h5");

@@ -34,7 +34,7 @@ public class PublisherFactory {
         Channel channel = null;
         try {
             channel = connection.createChannel();
-            channel.exchangeDeclare(exchangeName, "topic");
+            channel.exchangeDeclare(exchangeName, "topic", true);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -49,7 +49,7 @@ public class PublisherFactory {
         if (factory != null)
             return factory;
 
-        synchronized (factory) {
+        synchronized ("factory") {
             if (factory != null)
                 return factory;
             factory = new PublisherFactory();
