@@ -22,14 +22,14 @@ public class SimpleTask implements Task {
     }
 
     public static SimpleTask newTask(String taskName, Object[] args) {
-        String id = taskName + "-" + randomStr(32);
+        String id = taskName + "-" + randomStr(8);
         return new SimpleTask(id, taskName, args);
     }
 
     private static String randomStr(int length) {
         StringBuilder builder = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            builder.append((char) (ThreadLocalRandom.current().nextInt(33, 128)));
+            builder.append((char) (ThreadLocalRandom.current().nextInt('a', 'z')));
         }
         return builder.toString();
     }

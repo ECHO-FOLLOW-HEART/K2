@@ -12,6 +12,8 @@ import java.io.IOException;
  * Created by Heaven on 2015/3/26.
  */
 public class Publisher {
+    public static String DEFAULT_ROUTING = "taozi.default.routing";
+
     private Channel channel = null;
     private String exchangeName = null;
     private AMQP.BasicProperties properties = null;
@@ -27,17 +29,25 @@ public class Publisher {
                 .build();
     }
 
-    public void publishTask(Task task, String routingKey) {
+    public void publish(Message msg, String routingKey) {
         try {
-            channel.basicPublish(exchangeName, routingKey, properties, task.toJsonBytes());
-            logger.info("task publish: " + exchangeName + " " + routingKey + " " + task.getTaskId() + " " + task.getTaskName());
+            channel.basicPublish(exchangeName, routingKey, properties, msg.toJsonBytes());
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
     }
 
+    public void publish(Message msg) {
+        publish(msg, DEFAULT_ROUTING);
+    }
+
+    public void publishTask(Task task, String routingKey) {
+        publish(task, routingKey);
+        logger.info("task publish: " + exchangeName + " " + routingKey + " " + task.getTaskId() + " " + task.getTaskName());
+    }
+
     public void publishTask(Task task) {
-        publishTask(task, "taozi.default.routing");
+        publish(task, DEFAULT_ROUTING);
     }
 
     public void close() {

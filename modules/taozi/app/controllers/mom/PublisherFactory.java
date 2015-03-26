@@ -15,11 +15,20 @@ public class PublisherFactory {
 
     private Connection connection = null;
 
+    private String host = null;
+    private int port = 0;
+    private boolean durable = false;
+    private String exchangeType = null;
+    
     private PublisherFactory() {
+        // 读取配置信息
         Configuration config = Configuration.root().getConfig("mom");
-        String host = config.getString("host", "localhost");
-        int port = config.getInt("port", 5672);
+        host = config.getString("host", "localhost");
+        port = config.getInt("port", 5672);
+        durable = config.getBoolean("durable", false);
+        exchangeType = config.getString("exchangeType", "topic");
 
+        // 创建连接
         ConnectionFactory factory = new ConnectionFactory();
         factory.setHost(host);
         factory.setPort(port);
@@ -30,11 +39,15 @@ public class PublisherFactory {
         }
     }
 
+    /**
+     * 获取制定exchange的publisher
+     * @param exchangeName 对应的exchange名字，默认为taozi.default.exchange
+     */
     public Publisher getPublisher(String exchangeName) {
         Channel channel = null;
         try {
             channel = connection.createChannel();
-            channel.exchangeDeclare(exchangeName, "topic", true);
+            channel.exchangeDeclare(exchangeName, exchangeType, durable);
         } catch (IOException e) {
             e.printStackTrace();
         }
