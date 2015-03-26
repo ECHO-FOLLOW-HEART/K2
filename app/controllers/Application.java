@@ -26,19 +26,19 @@ public class Application extends Controller {
         channel.exchangeDeclare("tasks", "topic", true);
 
         JSONObject json = new JSONObject();
-        json.put("expires", (Object) null);
-        json.put("utc", (Object) null);
+//        json.put("expires", (Object) null);
+//        json.put("utc", (Object) null);
         json.put("args", new JSONArray().put(12).put(10));
-        json.put("chord", (Object) null);
-        json.put("callbacks", (Object) null);
-        json.put("errbacks", (Object) null);
-        json.put("taskset", (Object) null);
+//        json.put("chord", (Object) null);
+//        json.put("callbacks", (Object) null);
+//        json.put("errbacks", (Object) null);
+//        json.put("taskset", (Object) null);
         json.put("id", "test.add.12-10");
-        json.put("retries", 0);
+//        json.put("retries", 0);
         json.put("task", "tasks.add");
-        json.put("timelimit", new JSONArray().put((Object) null).put((Object) null));
-        json.put("eta", (Object) null);
-        json.put("kwargs", new JSONObject());
+//        json.put("timelimit", new JSONArray().put((Object) null).put((Object) null));
+//        json.put("eta", (Object) null);
+//        json.put("kwargs", new JSONObject());
 
         channel.basicPublish("tasks", "task.add",
                 new AMQP.BasicProperties.Builder().contentEncoding("utf-8").contentType("application/json").build(), json.toString().getBytes());
