@@ -22,10 +22,20 @@ public class JsonMessage implements Message {
         return new JsonMessage();
     }
 
+    /**
+     * 生成带时间戳的Message
+     * @return
+     */
     public static JsonMessage obtainWithTimeStamp() {
         return new JsonMessage().with("timeStamp", System.currentTimeMillis());
     }
 
+    /**
+     * 提供Message的组装
+     * @param key
+     * @param value
+     * @return
+     */
     public JsonMessage with(String key, Object value) {
         try {
             this.jsonObject.put(key, value);

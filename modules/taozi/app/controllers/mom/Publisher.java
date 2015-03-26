@@ -35,6 +35,7 @@ public class Publisher {
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }
+        logger.info("msg publish: " + exchangeName + " " + routingKey);
     }
 
     public void publish(Message msg) {
@@ -42,7 +43,11 @@ public class Publisher {
     }
 
     public void publishTask(Task task, String routingKey) {
-        publish(task, routingKey);
+        try {
+            channel.basicPublish(exchangeName, routingKey, properties, task.toJsonBytes());
+        } catch (IOException | JSONException e) {
+            e.printStackTrace();
+        }
         logger.info("task publish: " + exchangeName + " " + routingKey + " " + task.getTaskId() + " " + task.getTaskName());
     }
 
