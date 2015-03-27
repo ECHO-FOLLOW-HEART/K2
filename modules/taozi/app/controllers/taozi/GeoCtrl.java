@@ -10,12 +10,11 @@ import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
-import formatter.taozi.geo.DetailsEntryFormatter;
-import formatter.taozi.geo.LocalityFormatter;
-import formatter.taozi.geo.SimpleCountryFormatter;
-import formatter.taozi.geo.SimpleLocalityFormatter;
+import formatter.taozi.geo.*;
 import models.geo.Country;
 import models.geo.Locality;
+import models.geo.RmdLocality;
+import models.geo.RmdProvince;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.Configuration;
@@ -29,10 +28,12 @@ import utils.results.TaoziResBuilder;
 
 import java.util.*;
 
+import static models.geo.RmdProvince.*;
+
 
 /**
  * 地理相关
- * <p/>
+ * <p>
  * Created by zephyre on 14-6-20.
  */
 public class GeoCtrl extends Controller {
@@ -101,6 +102,7 @@ public class GeoCtrl extends Controller {
     @UsingOcsCache(key = "destinations|{abroad}|{page}|{pageSize}", expireTime = 3600)
 //    @UsingLocalCache(callback = "getLMD", args = "{abroad}|{page}")
     public static Result exploreDestinations(@Key(tag = "abroad") boolean abroad,
+                                             @Key(tag = "groupBy") boolean groupBy,
                                              @Key(tag = "page") int page,
                                              @Key(tag = "pageSize") int pageSize) throws AizouException {
 //            long t0 = System.currentTimeMillis();
@@ -121,7 +123,7 @@ public class GeoCtrl extends Controller {
 //                return status(304, "Content not modified, dude.");
 
         List<ObjectNode> objs = new ArrayList<>();
-
+        // 国外目的地
         if (abroad) {
             String countrysStr = destnations.get("country").toString();
             List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
@@ -141,31 +143,137 @@ public class GeoCtrl extends Controller {
 
             return new TaoziResBuilder().setBody(destResult).build();
         } else {
+            //国内目的地
             Map<String, Object> mapConf = Configuration.root().getConfig("domestic").asMap();
             Map<String, Object> pinyinConf = Configuration.root().getConfig("pinyin").asMap();
+            Map<String, Object> provinceConf = Configuration.root().getConfig("province").asMap();
+            Map<String, Object> sortConf = Configuration.root().getConfig("sort").asMap();
             String k;
-            Object v, pinyinObj;
+            int sort = 0;
+            Object v, pinyinObj, provinceObj, sortObj;
             ObjectNode node;
             String zhName = null;
             String pinyin = null;
-            for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
-                k = entry.getKey();
-                v = entry.getValue();
-                if (v != null)
-                    zhName = v.toString();
+            String province = null;
+            // V 1.0.0
+            if (!groupBy) {
+                for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
+                    k = entry.getKey();
+                    v = entry.getValue();
+                    if (v != null)
+                        zhName = v.toString();
 
-                pinyinObj = pinyinConf.get(k);
-                if (pinyinObj != null)
-                    pinyin = pinyinObj.toString();
+                    pinyinObj = pinyinConf.get(k);
+                    if (pinyinObj != null)
+                        pinyin = pinyinObj.toString();
+                    provinceObj = provinceConf.get(k);
+                    if (provinceObj != null)
+                        province = provinceObj.toString();
 
-                node = Json.newObject();
-                node.put("id", k);
-                node.put("zhName", zhName);
-                node.put("enName", "");
-                node.put("pinyin", pinyin);
-                objs.add(node);
+                    node = Json.newObject();
+                    node.put("id", k);
+                    node.put("zhName", zhName);
+                    node.put("enName", "");
+                    node.put("pinyin", pinyin);
+                    node.put("province", province);
+                    objs.add(node);
+                }
+                return new TaoziResBuilder().setBody(Json.toJson(objs)).build();
+                // V 1.0.1
+            } else {
+
+                RmdLocality locality;
+                RmdProvince rmdProvince;
+                Map<String, List<RmdLocality>> rmdProvinceMap = new HashMap<>();
+                List<RmdLocality> localityList;
+                List<RmdProvince> rmdProvinceList = new ArrayList<>();
+
+                Map<String, Object> provincePinyinConf = Configuration.root().getConfig("provincePinyin").asMap();
+                //取出配置文件中的数据,并转换为Entity
+                for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
+                    k = entry.getKey();
+                    v = entry.getValue();
+                    if (v != null)
+                        zhName = v.toString();
+
+                    pinyinObj = pinyinConf.get(k);
+                    if (pinyinObj != null)
+                        pinyin = pinyinObj.toString();
+                    provinceObj = provinceConf.get(k);
+                    if (provinceObj != null)
+                        province = provinceObj.toString();
+
+                    sortObj = sortConf.get(k);
+                    if (sortObj != null)
+                        sort = Integer.valueOf(sortObj.toString());
+                    locality = new RmdLocality();
+                    locality.setId(new ObjectId(k));
+                    locality.setZhName(zhName);
+                    locality.setEnName("");
+                    locality.setPinyin(pinyin);
+                    locality.setProvince(province);
+                    locality.setSort(sort);
+
+                    localityList = rmdProvinceMap.get(province);
+                    if (localityList == null)
+                        localityList = new ArrayList<>();
+                    localityList.add(locality);
+                    rmdProvinceMap.put(province, localityList);
+                }
+                String proZhName;
+                String proPinyin = null;
+                // 把目的地按照省份分组
+                for (Map.Entry<String, List<RmdLocality>> entry : rmdProvinceMap.entrySet()) {
+                    rmdProvince = new RmdProvince();
+                    proZhName = entry.getKey().toString();
+                    if (provincePinyinConf.get(proZhName) != null)
+                        proPinyin = provincePinyinConf.get(proZhName).toString();
+                    rmdProvince.setPinyin(proPinyin);
+                    rmdProvince.setId(new ObjectId());
+                    rmdProvince.setZhName(entry.getKey());
+                    rmdProvince.setDestinations(entry.getValue());
+                    rmdProvinceList.add(rmdProvince);
+                }
+                // 排序
+                sortByPinyin(rmdProvinceList);
+                sortLocalityByPinyin(rmdProvinceList);
+                RmdProvinceFormatter formatter = new RmdProvinceFormatter();
+
+                JsonNode jsonNode = formatter.formatNode(rmdProvinceList);
+                return new TaoziResBuilder().setBody(jsonNode).build();
             }
-            return new TaoziResBuilder().setBody(Json.toJson(objs)).build();
+        }
+    }
+
+    /**
+     * 推荐目的地的省份按拼音排序
+     *
+     * @param rmdProvinceList
+     */
+    private static void sortByPinyin(List<RmdProvince> rmdProvinceList) {
+
+        Collections.sort(rmdProvinceList, new Comparator<RmdProvince>() {
+            public int compare(RmdProvince arg0, RmdProvince arg1) {
+                return arg0.getPinyin().compareTo(arg1.getPinyin());
+            }
+        });
+    }
+
+    /**
+     * 推荐目的地按拼音排序
+     *
+     * @param rmdProvinceList
+     */
+    private static void sortLocalityByPinyin(List<RmdProvince> rmdProvinceList) {
+        for (RmdProvince rmdProvince : rmdProvinceList) {
+            List<RmdLocality> destinations = rmdProvince.getDestinations();
+            Collections.sort(destinations, new Comparator<RmdLocality>() {
+                public int compare(RmdLocality arg0, RmdLocality arg1) {
+                    if (arg0.getSort() <= 0 || arg1.getSort() <= 0)
+                        return 0;
+                    return arg0.getSort() - arg1.getSort() > 0 ? 1 : -1;
+                }
+            });
         }
     }
 

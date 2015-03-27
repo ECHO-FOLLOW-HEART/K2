@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 
 /**
  * 用户相关的Controller。
- * <p/>
+ * <p>
  * Created by topy on 2014/10/10.
  */
 public class UserCtrl extends Controller {
@@ -569,9 +569,10 @@ public class UserCtrl extends Controller {
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, MsgConstants.NICKNAME_NOT_NUMERIC_MSG, true);
             }
             //如果昵称不存在
-            if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
+            if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null) {
                 userInfor.setNickName(nickName);
-            else
+                userInfor.setAlias(Arrays.asList(nickName.toLowerCase()));
+            } else
                 return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
         }
         //修改签名

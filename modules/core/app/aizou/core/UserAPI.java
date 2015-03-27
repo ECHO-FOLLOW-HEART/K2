@@ -112,7 +112,7 @@ public class UserAPI {
 //    /**
 //     * 修改用户备注
 //     *
-//     * @param selfId
+//     * @param
 //     * @param id
 //     * @param memo
 //     * @throws TravelPiException
@@ -371,6 +371,11 @@ public class UserAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
         List<CriteriaContainerImpl> criList = new ArrayList<>();
         for (String fd : fieldDesc) {
+            // 为了达到忽略大小写的效果，用户名用别名搜索
+            if (fd.equals(UserInfo.fnNickName)) {
+                fd = UserInfo.fnAlias;
+                valueList = phraseUserAlias(valueList);
+            }
             if (fd.equals(UserInfo.fnUserId) && Utils.isNumeric(valueList))
                 valueList = phraseUserIdType(valueList);
             if (valueList.size() == 1) {
@@ -392,6 +397,14 @@ public class UserAPI {
         List<Long> result = new ArrayList<>();
         for (Object temp : list) {
             result.add(Long.valueOf(temp.toString()));
+        }
+        return result;
+    }
+
+    private static List<String> phraseUserAlias(Collection<?> list) {
+        List<String> result = new ArrayList<>();
+        for (Object temp : list) {
+            result.add(temp.toString().toLowerCase());
         }
         return result;
     }

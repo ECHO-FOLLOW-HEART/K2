@@ -94,7 +94,7 @@ GET           /poi/shopping/localities/:locId                    controllers.tao
 # 景点列表
 GET           /poi/vs/localities/:locId                          controllers.taozi.POICtrl.viewPoiList(poiDesc: String="vs",locId: String, tagFilter: String?="", sortFilter: String?="hotness", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
 #获得景点周边的POI列表
-GET           /poi/nearby                                        controllers.taozi.POICtrl.getPoiNear(lng: Double, lat: Double, maxDist: Double?=2000, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false,shopping: Boolean?=false, page: Int?=0, pageSize: Int?=10,commentPage: Int?=0, commentPageSize: Int?=10)
+GET           /poi/nearby                                        controllers.taozi.POICtrl.getPoiNear(lng: Double, lat: Double, maxDist: Double?=50, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false,shopping: Boolean?=false, page: Int?=0, pageSize: Int?=10,commentPage: Int?=0, commentPageSize: Int?=10)
 
 #----------攻略接口----------
 #根据目的地获得攻略
@@ -132,9 +132,9 @@ POST          /im/chatgroups/detail/groupId                      controllers.tao
 #----------地理信息接口----------
 # 搜索城市
 #展示国内目的地
-GET           /geo/localities/domestic                           controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean=false, page:Int?=0, pageSize:Int?=10)
+GET           /geo/localities/domestic                           controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
 #展示国外目的地
-GET           /geo/localities/abroad                             controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean=true, page:Int?=0, pageSize:Int?=10)
+GET           /geo/localities/abroad                             controllers.taozi.GeoCtrl.exploreDestinations(abroad: Boolean=true,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
 #查看目的地详情
 GET           /geo/localities/:id                                controllers.taozi.GeoCtrl.getLocality(id: String)
 #查看目的地详情图集
@@ -152,7 +152,7 @@ GET           /poi/view-spots/$id<[0-9a-f]{24}>/comments         controllers.tao
 #查看餐厅的评价(H5)
 GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments        controllers.taozi.MiscCtrl.displayComment(poiType: String="restaurant",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 #查看餐厅的评价(H5)
-GET           /poi/shoppings/$id<[0-9a-f]{24}>/comments           controllers.taozi.MiscCtrl.displayComment(poiType: String="shopping",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+GET           /poi/shoppings/$id<[0-9a-f]{24}>/comments          controllers.taozi.MiscCtrl.displayComment(poiType: String="shopping",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 
 #特定地区的美食、购物发现
 #GET           /poi/$id<[0-9a-f]{24}>/details                     controllers.taozi.POICtrl.getDinShop(id:String, dinning: Boolean?=true, shopping: Boolean?=true, page: Int?=0, pageSize: Int?=15)
