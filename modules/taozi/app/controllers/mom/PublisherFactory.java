@@ -39,23 +39,41 @@ public class PublisherFactory {
         }
     }
 
-    /**
-     * 获取制定exchange的publisher
-     * @param exchangeName 对应的exchange名字，默认为taozi.default.exchange
-     */
-    public Publisher getPublisher(String exchangeName) {
+    public Publisher getPublisher(String exchangeName, String exchangeType, boolean exchangeDurable) {
         Channel channel = null;
         try {
             channel = connection.createChannel();
-            channel.exchangeDeclare(exchangeName, exchangeType, durable);
+            channel.exchangeDeclare(exchangeName, exchangeType, exchangeDurable);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new Publisher(exchangeName, channel);
+        return new MessagePublisher(exchangeName, channel);
     }
 
-    public Publisher getPublisher() {
-        return getPublisher("taozi.default.exchange");
+    public MessagePublisher getMessagePublisher(String exchangeName) {
+        Channel channel = null;
+        try {
+            channel = connection.createChannel();
+            channel.exchangeDeclare(exchangeName, this.exchangeType, this.durable);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new MessagePublisher(exchangeName, channel);
+    }
+
+    public MessagePublisher getMessagePublisher() {
+        return getMessagePublisher("taozi.default.exchange");
+    }
+
+    public TaskPublisher getTaskPublisher(String exchangeName) {
+        Channel channel = null;
+        try {
+            channel = connection.createChannel();
+            channel.exchangeDeclare(exchangeName, "topic", true);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new TaskPublisher(exchangeName, channel);
     }
 
     public static PublisherFactory getInstance() {

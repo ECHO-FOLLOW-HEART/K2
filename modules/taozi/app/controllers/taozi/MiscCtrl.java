@@ -8,7 +8,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.mom.JsonMessage;
-import controllers.mom.Publisher;
+import controllers.mom.MessagePublisher;
 import controllers.mom.PublisherFactory;
 import exception.AizouException;
 import exception.ErrorCode;
@@ -509,7 +509,7 @@ public class MiscCtrl extends Controller {
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
-        Publisher publisher = PublisherFactory.getInstance().getPublisher();
+        MessagePublisher publisher = PublisherFactory.getInstance().getMessagePublisher();
         publisher.publish(JsonMessage.obtainWithTimeStamp().with("title", "this is title"));
         publisher.close();
 
