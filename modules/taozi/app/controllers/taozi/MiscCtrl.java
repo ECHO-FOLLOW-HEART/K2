@@ -31,6 +31,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
+import org.json.JSONObject;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
@@ -45,6 +46,7 @@ import utils.results.SceneID;
 import utils.results.TaoziResBuilder;
 import utils.results.TaoziSceneText;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -513,17 +515,15 @@ public class MiscCtrl extends Controller {
 
         Task something = SimpleTask.newTask("tasks.add", new Object[]{3, 4});
         TaskPublisher taskPublisher = PublisherFactory.getInstance().getTaskPublisher("celery");
-        taskPublisher.publishTask(something, "celery");
+        TaskPublisher.ResultCollector collector = taskPublisher.publishWithResult(something, "celery");
+        JSONObject result = null;
+        try {
+            result = collector.getJsonResult();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        play.Logger.info("get result: " + result.toString());
         taskPublisher.close();
-
-//        ResultCollector resultCollector = new ResultCollector(something);
-//        int res = 0;
-//        try {
-//            res = (int) resultCollector.getResult();
-//        } catch (IOException | InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        play.Logger.info("get result: " + res);
 
 
         Configuration config = Configuration.root();

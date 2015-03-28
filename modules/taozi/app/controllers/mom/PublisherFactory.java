@@ -55,7 +55,7 @@ public class PublisherFactory {
         try {
             channel = connection.createChannel();
             // Celery 中对exchangeType  和 durable 都有限定，因此不使用默认配置
-            channel.exchangeDeclare(exchangeName, "topic", true);
+            channel.exchangeDeclare(exchangeName, "direct", true);
         } catch (IOException e) {
             e.printStackTrace();
         }
