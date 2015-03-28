@@ -47,7 +47,7 @@ public class MessagePublisher implements Publisher {
     @Override
     public void publish(Message msg, String routingKey) {
         try {
-            channel.basicPublish(exchangeName, routingKey, properties, msg.toJsonBytes());
+            channel.basicPublish(exchangeName, routingKey, properties, msg.toBytes());
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }

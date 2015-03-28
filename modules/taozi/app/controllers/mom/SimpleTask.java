@@ -50,7 +50,7 @@ public class SimpleTask implements Task {
     }
 
     @Override
-    public byte[] toJsonBytes() throws JSONException {
+    public byte[] toBytes() throws JSONException {
         // TODO 此处可优化为直接的字符串拼接
         JSONObject json = new JSONObject();
         json.put("id", taskId);

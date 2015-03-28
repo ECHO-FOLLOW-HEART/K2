@@ -45,7 +45,7 @@ public class JsonMessage implements Message {
     }
 
     @Override
-    public byte[] toJsonBytes() throws JSONException {
+    public byte[] toBytes() throws JSONException {
         return jsonObject.toString().getBytes();
     }
 }

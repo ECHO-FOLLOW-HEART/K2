@@ -11,7 +11,7 @@ import java.io.IOException;
 /**
  * Created by Heaven on 2015/3/27.
  */
-public class SimpleTaskPublisher implements Publisher {
+public class TaskPublisher implements Publisher {
     public static String DEFAULT_ROUTING = "taozi.default.routing";
 
     private Channel channel = null;
@@ -20,7 +20,7 @@ public class SimpleTaskPublisher implements Publisher {
 
     private Log logger = LogFactory.getLog(this.getClass());
 
-    public SimpleTaskPublisher(String exchangeName, Channel channel) {
+    public TaskPublisher(String exchangeName, Channel channel) {
         this.exchangeName = exchangeName;
         this.channel = channel;
         this.properties = new AMQP.BasicProperties.Builder()
@@ -39,7 +39,7 @@ public class SimpleTaskPublisher implements Publisher {
 
     public void publishTask(Task task, String routingKey) {
         try {
-            channel.basicPublish(exchangeName, routingKey, properties, task.toJsonBytes());
+            channel.basicPublish(exchangeName, routingKey, properties, task.toBytes());
         } catch (IOException | JSONException e) {
             e.printStackTrace();
         }

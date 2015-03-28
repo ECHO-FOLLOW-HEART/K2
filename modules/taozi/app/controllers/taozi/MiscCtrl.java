@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import controllers.mom.JsonMessage;
 import controllers.mom.MessagePublisher;
-import controllers.mom.PublisherFactory;
+import controllers.mom.MessageFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -509,7 +509,7 @@ public class MiscCtrl extends Controller {
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
-        MessagePublisher publisher = PublisherFactory.getInstance().getMessagePublisher();
+        MessagePublisher publisher = MessageFactory.getInstance().getMessagePublisher();
         publisher.publish(JsonMessage.obtainWithTimeStamp().with("title", "this is title"));
         publisher.close();
 

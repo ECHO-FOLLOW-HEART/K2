@@ -10,8 +10,8 @@ import java.io.IOException;
 /**
  * Created by Heaven on 2015/3/26.
  */
-public class PublisherFactory {
-    private static PublisherFactory factory = null;
+public class MessageFactory {
+    private static MessageFactory factory = null;
 
     private Connection connection = null;
 
@@ -20,7 +20,7 @@ public class PublisherFactory {
     private boolean durable = false;
     private String exchangeType = null;
     
-    private PublisherFactory() {
+    private MessageFactory() {
         // 读取配置信息
         Configuration config = Configuration.root().getConfig("mom");
         host = config.getString("host", "localhost");
@@ -39,17 +39,6 @@ public class PublisherFactory {
         }
     }
 
-    public Publisher getPublisher(String exchangeName, String exchangeType, boolean exchangeDurable) {
-        Channel channel = null;
-        try {
-            channel = connection.createChannel();
-            channel.exchangeDeclare(exchangeName, exchangeType, exchangeDurable);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new MessagePublisher(exchangeName, channel);
-    }
-
     public MessagePublisher getMessagePublisher(String exchangeName) {
         Channel channel = null;
         try {
@@ -61,29 +50,26 @@ public class PublisherFactory {
         return new MessagePublisher(exchangeName, channel);
     }
 
-    public MessagePublisher getMessagePublisher() {
-        return getMessagePublisher("taozi.default.exchange");
-    }
-
-    public SimpleTaskPublisher getSimpleTaskPublisher(String exchangeName) {
+    public TaskPublisher getTaskPublisher(String exchangeName) {
         Channel channel = null;
         try {
             channel = connection.createChannel();
+            // Celery 中对exchangeType  和 durable 都有限定，因此不使用默认配置
             channel.exchangeDeclare(exchangeName, "topic", true);
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new SimpleTaskPublisher(exchangeName, channel);
+        return new TaskPublisher(exchangeName, channel);
     }
 
-    public static PublisherFactory getInstance() {
+    public static MessageFactory getInstance() {
         if (factory != null)
             return factory;
 
         synchronized ("factory") {
             if (factory != null)
                 return factory;
-            factory = new PublisherFactory();
+            factory = new MessageFactory();
         }
         return factory;
     }
