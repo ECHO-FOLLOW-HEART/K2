@@ -27,7 +27,7 @@ public class JsonMessage implements Message {
      * @return
      */
     public static JsonMessage obtainWithTimeStamp() {
-        return new JsonMessage().with("timeStamp", System.currentTimeMillis());
+        return new JsonMessage().with("ts", System.currentTimeMillis());
     }
 
     /**

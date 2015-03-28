@@ -65,7 +65,7 @@ public class PublisherFactory {
         return getMessagePublisher("taozi.default.exchange");
     }
 
-    public TaskPublisher getTaskPublisher(String exchangeName) {
+    public SimpleTaskPublisher getSimpleTaskPublisher(String exchangeName) {
         Channel channel = null;
         try {
             channel = connection.createChannel();
@@ -73,7 +73,7 @@ public class PublisherFactory {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return new TaskPublisher(exchangeName, channel);
+        return new SimpleTaskPublisher(exchangeName, channel);
     }
 
     public static PublisherFactory getInstance() {

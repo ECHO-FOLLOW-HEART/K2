@@ -11,7 +11,7 @@ import java.io.IOException;
 /**
  * Created by Heaven on 2015/3/27.
  */
-public class TaskPublisher implements Publisher {
+public class SimpleTaskPublisher implements Publisher {
     public static String DEFAULT_ROUTING = "taozi.default.routing";
 
     private Channel channel = null;
@@ -20,7 +20,7 @@ public class TaskPublisher implements Publisher {
 
     private Log logger = LogFactory.getLog(this.getClass());
 
-    public TaskPublisher(String exchangeName, Channel channel) {
+    public SimpleTaskPublisher(String exchangeName, Channel channel) {
         this.exchangeName = exchangeName;
         this.channel = channel;
         this.properties = new AMQP.BasicProperties.Builder()
@@ -31,6 +31,9 @@ public class TaskPublisher implements Publisher {
 
     @Override
     public void publish(Message msg, String routingKey) {
+        if (!(msg instanceof Task)) {
+            throw new IllegalArgumentException("A TaskPublisher can only publish Task");
+        }
         publishTask((Task) msg, routingKey);
     }
 
