@@ -10,8 +10,8 @@ import java.io.IOException;
 /**
  * Created by Heaven on 2015/3/26.
  */
-public class MessageFactory {
-    private static MessageFactory factory = null;
+public class PublisherFactory {
+    private static PublisherFactory factory = null;
 
     private Connection connection = null;
 
@@ -20,7 +20,7 @@ public class MessageFactory {
     private boolean durable = false;
     private String exchangeType = null;
     
-    private MessageFactory() {
+    private PublisherFactory() {
         // 读取配置信息
         Configuration config = Configuration.root().getConfig("mom");
         host = config.getString("host", "localhost");
@@ -62,14 +62,14 @@ public class MessageFactory {
         return new TaskPublisher(exchangeName, channel);
     }
 
-    public static MessageFactory getInstance() {
+    public static PublisherFactory getInstance() {
         if (factory != null)
             return factory;
 
         synchronized ("factory") {
             if (factory != null)
                 return factory;
-            factory = new MessageFactory();
+            factory = new PublisherFactory();
         }
         return factory;
     }

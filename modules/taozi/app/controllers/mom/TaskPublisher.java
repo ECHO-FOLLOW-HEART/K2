@@ -49,4 +49,12 @@ public class TaskPublisher implements Publisher {
     public void publishTask(Task task) {
         publishTask(task, DEFAULT_ROUTING);
     }
+
+    public void close() {
+        try {
+            channel.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

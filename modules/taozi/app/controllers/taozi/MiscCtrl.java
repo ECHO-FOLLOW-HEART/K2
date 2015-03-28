@@ -7,9 +7,7 @@ import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.mom.JsonMessage;
-import controllers.mom.MessagePublisher;
-import controllers.mom.MessageFactory;
+import controllers.mom.*;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -509,9 +507,24 @@ public class MiscCtrl extends Controller {
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
-        MessagePublisher publisher = MessageFactory.getInstance().getMessagePublisher();
+        MessagePublisher publisher = PublisherFactory.getInstance().getMessagePublisher("taozi.default.exchange");
         publisher.publish(JsonMessage.obtainWithTimeStamp().with("title", "this is title"));
         publisher.close();
+
+        Task something = SimpleTask.newTask("tasks.add", new Object[]{3, 4});
+        TaskPublisher taskPublisher = PublisherFactory.getInstance().getTaskPublisher("celery");
+        taskPublisher.publishTask(something, "celery");
+        taskPublisher.close();
+
+//        ResultCollector resultCollector = new ResultCollector(something);
+//        int res = 0;
+//        try {
+//            res = (int) resultCollector.getResult();
+//        } catch (IOException | InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        play.Logger.info("get result: " + res);
+
 
         Configuration config = Configuration.root();
         Map h5 = (Map) config.getObject("h5");
