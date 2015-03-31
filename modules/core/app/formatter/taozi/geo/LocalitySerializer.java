@@ -30,7 +30,8 @@ public class LocalitySerializer extends AizouSerializer<Locality> {
 
     public enum Level {
         SIMPLE,
-        DETAILED
+        DETAILED,
+        FORTRACKS
     }
 
     @Override
@@ -40,6 +41,20 @@ public class LocalitySerializer extends AizouSerializer<Locality> {
         writeObjectId(locality, jsonGenerator, serializerProvider);
         jsonGenerator.writeStringField("zhName", getString(locality.getZhName()));
         jsonGenerator.writeStringField("enName", getString(locality.getEnName()));
+
+        if(level.equals(Level.FORTRACKS)){
+            // Location
+            jsonGenerator.writeFieldName(Locality.fnLocation);
+            GeoJsonPoint geoJsonPoint = locality.getLocation();
+            JsonSerializer<Object> retLocalition;
+            if (geoJsonPoint != null) {
+                retLocalition = serializerProvider.findValueSerializer(GeoJsonPoint.class, null);
+                retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
+            } else {
+                retLocalition = serializerProvider.findNullValueSerializer(null);
+                retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
+            }
+        }
         if (level.equals(Level.DETAILED)) {
             jsonGenerator.writeBooleanField(Locality.FD_IS_FAVORITE, getValue(locality.getIsFavorite()));
             jsonGenerator.writeStringField(Locality.fnDesc, getString(locality.getDesc()));

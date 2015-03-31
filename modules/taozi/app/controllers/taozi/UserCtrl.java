@@ -1,5 +1,6 @@
 package controllers.taozi;
 
+import aizou.core.LocalityAPI;
 import aizou.core.UserAPI;
 import aspectj.CheckUser;
 import aspectj.Key;
@@ -18,11 +19,14 @@ import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatterOld;
 import formatter.taozi.user.UserInfoFormatter;
 import models.MorphiaFactory;
+import models.geo.Locality;
 import models.misc.Token;
 import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
+import org.apache.bcel.Constants;
 import org.apache.commons.io.IOUtils;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.F;
@@ -30,6 +34,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.MsgConstants;
+import utils.TaoziDataFilter;
 import utils.Utils;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParser;
@@ -37,6 +42,8 @@ import utils.phone.PhoneParserFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -425,6 +432,7 @@ public class UserCtrl extends Controller {
                 //如果第三方昵称为纯数字，则添加后缀
                 if (Utils.isNumeric(us.getNickName())) {
                     us.setNickName(us.getNickName() + "_桃子");
+                    us.setAlias(Arrays.asList(us.getNickName().toLowerCase()));
                 }
                 //如果第三方昵称已被其他用户使用，则添加后缀
                 nickDuplicateRemoval(us);
@@ -463,6 +471,7 @@ public class UserCtrl extends Controller {
         int size = uidStr.length();
         String doc = uidStr.substring(size - 4, size - 1);
         u.setNickName(u.getNickName() + "_" + doc);
+        u.setAlias(Arrays.asList(u.getNickName().toLowerCase()));
     }
 
     private static String getAccessUrl(String urlDomain, String urlAccess, String appid, String secret, String code) {
@@ -538,10 +547,14 @@ public class UserCtrl extends Controller {
         formatter.setSelfView(false);
 
         List<UserInfo> result = new ArrayList<>();
+        UserInfo user;
         for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,
                 UserInfo.fnUserId), valueList, formatter.getFilteredFields(), 0, 20); itr.hasNext(); ) {
-            result.add(itr.next());
+            user = itr.next();
+            UserAPI.fillUserInfo(user);
+            result.add(user);
         }
+
         return Utils.status(formatter.format(result));
     }
 
@@ -552,44 +565,50 @@ public class UserCtrl extends Controller {
      * @return
      */
     @CheckUser
-    public static Result editorUserInfo(@CheckUser Long userId) throws AizouException {
+    public static Result editorUserInfo(@CheckUser Long userId) throws AizouException, IOException, ParseException {
         JsonNode req = request().body().asJson();
         if (userId == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalide UserId");
 
-        // TODO 这里的做法是：将用户信息整体读出，修改，然后save。这种做法的效率较低。
-        UserInfo userInfor = UserAPI.getUserInfo(userId);
-        if (userInfor == null) {
-            return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %d.", userId));
-        }
+        Map<String, Object> reqMap = new HashMap<>();
+
+        reqMap.put(UserInfo.fnUserId, userId);
         //修改昵称
         if (req.has("nickName")) {
             String nickName = req.get("nickName").asText();
-            if (Utils.isNumeric(nickName)) {
+            if (Utils.isNumeric(nickName))
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, MsgConstants.NICKNAME_NOT_NUMERIC_MSG, true);
-            }
             //如果昵称不存在
-            if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null) {
-                userInfor.setNickName(nickName);
-                userInfor.setAlias(Arrays.asList(nickName.toLowerCase()));
-            } else
+            if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
                 return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
+            reqMap.put(UserInfo.fnNickName, nickName);
+            reqMap.put(UserInfo.fnAlias, nickName.toLowerCase());
         }
-        //修改签名
+        SimpleDateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd");
+        //签名
         if (req.has("signature"))
-            userInfor.setSignature(req.get("signature").asText());
-        //修改性别
-        if (req.has("gender")) {
-            String genderStr = req.get("gender").asText();
-            if ((!genderStr.equals("F")) && (!genderStr.equals("M"))) {
-                Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid gender");
-            }
-            userInfor.setGender(genderStr);
-        }
-        //修改头像
+            reqMap.put(UserInfo.fnSignature, req.get("signature").asText());
+        //性别
+        if (req.has("gender"))
+            reqMap.put(UserInfo.fnGender, req.get("gender").asText());
+        //头像
         if (req.has("avatar"))
-            userInfor.setAvatar(req.get("avatar").asText());
-        UserAPI.saveUserInfo(userInfor);
+            reqMap.put(UserInfo.fnAvatar, req.get("avatar").asText());
+        //旅行状态
+        if (req.has("travelStatus"))
+            reqMap.put(UserInfo.fnTravelStatus, req.get("travelStatus").asText());
+        if (req.has("birthday"))
+            reqMap.put(UserInfo.fnBirthday, timeFmt.parse(req.get("birthday").asText()));
+        if (req.has("zodiac"))
+            reqMap.put(UserInfo.fnZodiac, TaoziDataFilter.getZodiac(req.get("zodiac").asText()));
+        if (req.has("residence"))
+            reqMap.put(UserInfo.fnResidence, req.get("residence").asText());
+        // 足迹
+        if (req.has("tracks"))
+            reqMap.put(UserInfo.fnTracks, req.get("tracks").elements());
+        if (req.has("travelNotes"))
+            reqMap.put(UserInfo.fnTravelNotes, req.get("travelNotes").elements());
+        UserAPI.updateUserInfo(reqMap);
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
