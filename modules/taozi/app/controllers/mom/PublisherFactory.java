@@ -3,6 +3,8 @@ package controllers.mom;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import play.Configuration;
 
 import java.io.IOException;
@@ -13,13 +15,15 @@ import java.io.IOException;
 public class PublisherFactory {
     private static PublisherFactory factory = null;
 
+    Log logger = LogFactory.getLog(this.getClass());
+
     private Connection connection = null;
 
     private String host = null;
     private int port = 0;
     private boolean durable = false;
     private String exchangeType = null;
-    
+
     private PublisherFactory() {
         // 读取配置信息
         Configuration config = Configuration.root().getConfig("mom");
@@ -35,7 +39,8 @@ public class PublisherFactory {
         try {
             connection = factory.newConnection();
         } catch (IOException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            logger.error(this.getClass().getSimpleName() + " can not connect to " + host + ":" + port);
         }
     }
 
@@ -44,8 +49,8 @@ public class PublisherFactory {
         try {
             channel = connection.createChannel();
             channel.exchangeDeclare(exchangeName, this.exchangeType, this.durable);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("error curried when creating MessagePublisher");
         }
         return new MessagePublisher(exchangeName, channel);
     }
@@ -56,8 +61,8 @@ public class PublisherFactory {
             channel = connection.createChannel();
             // Celery 中对exchangeType  和 durable 都有限定，因此不使用默认配置
             channel.exchangeDeclare(exchangeName, "direct", true);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            logger.error("error curried when creating TaskPublisher");
         }
         return new TaskPublisher(exchangeName, channel);
     }

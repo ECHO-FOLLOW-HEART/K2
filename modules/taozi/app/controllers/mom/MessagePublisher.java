@@ -4,7 +4,6 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.json.JSONException;
 
 import java.io.IOException;
 
@@ -35,10 +34,9 @@ public class MessagePublisher implements Publisher {
     }
 
 
-
     public void close() {
         try {
-            if (channel != null)channel.close();
+            if (channel != null) channel.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -48,9 +46,10 @@ public class MessagePublisher implements Publisher {
     public void publish(Message msg, String routingKey) {
         try {
             channel.basicPublish(exchangeName, routingKey, properties, msg.toBytes());
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
+            logger.info("msg publishMessage: " + exchangeName + " " + routingKey);
+
+        } catch (Exception e) {
+            logger.error("error curried while publishing message {exchangeName=" + exchangeName + ",routingKey=" + routingKey + "}");
         }
-        logger.info("msg publishMessage: " + exchangeName + " " + routingKey);
     }
 }

@@ -45,10 +45,11 @@ public class TaskPublisher implements Publisher {
     public void publishTask(Task task, String routingKey) {
         try {
             channel.basicPublish(exchangeName, routingKey, properties, task.toBytes());
-        } catch (IOException | JSONException e) {
-            e.printStackTrace();
+            logger.info("task publishMessage: " + exchangeName + " " + routingKey + " " + task.getTaskId() + " " + task.getTaskName());
+
+        } catch (Exception e) {
+            logger.error("error curried while publishing message {exchangeName=" + exchangeName + ",routingKey=" + routingKey + "}");
         }
-        logger.info("task publishMessage: " + exchangeName + " " + routingKey + " " + task.getTaskId() + " " + task.getTaskName());
     }
 
     public void publishTask(Task task) {
@@ -63,7 +64,8 @@ public class TaskPublisher implements Publisher {
 
     public void close() {
         try {
-            channel.close();
+            if (channel != null)
+                channel.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -117,8 +119,8 @@ public class TaskPublisher implements Publisher {
 
                 consumer = new QueueingConsumer(channel);
                 channel.basicConsume(this.task.getTaskId(), AUTO_ACK, consumer);
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                logger.error("error curried init " + this.getClass().getSimpleName());
             }
         }
 
@@ -128,6 +130,11 @@ public class TaskPublisher implements Publisher {
          * @return
          */
         public byte[] get() throws InterruptedException, IOException {
+            if (consumer == null) {
+                logger.error(this.getClass().getSimpleName() + " can not get anything because of init error");
+                return "{}".getBytes();
+            }
+
             delivery = consumer.nextDelivery();
             channel.close();
             return delivery.getBody();

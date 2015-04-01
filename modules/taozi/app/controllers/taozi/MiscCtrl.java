@@ -522,7 +522,6 @@ public class MiscCtrl extends Controller {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-        play.Logger.info("get result: " + result.toString());
         taskPublisher.close();
 
 
