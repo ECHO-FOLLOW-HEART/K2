@@ -22,8 +22,6 @@ public class TaskPublisher implements Publisher {
     private String exchangeName = null;
     private AMQP.BasicProperties properties = null;
 
-    private ResultCollector collector = null;
-
     private Log logger = LogFactory.getLog(this.getClass());
 
     public TaskPublisher(String exchangeName, Channel channel) {
@@ -43,6 +41,11 @@ public class TaskPublisher implements Publisher {
         publishTask((Task) msg, routingKey);
     }
 
+    /**
+     * 向celery发布任务，但是不关心任务执行的结果
+     * @param task 需要发布的任务
+     * @param routingKey 任务对应的路由信息，用于worker的识别和筛选
+     */
     public void publishTask(Task task, String routingKey) {
         try {
             channel.basicPublish(exchangeName, routingKey, properties, task.toBytes());
@@ -57,10 +60,16 @@ public class TaskPublisher implements Publisher {
         publishTask(task, DEFAULT_ROUTING);
     }
 
+    /**
+     * 向celery发布任务，并希望获取任务的结果
+     * @param task 需要发布的任务
+     * @param routingKey 任务对应的路由信息，用于worker的识别和筛选
+     * @return 返回对应的ResultCollector，用于在一段时间后收集结果
+     */
     public ResultCollector publishWithResult(Task task, String routingKey) {
-        this.collector = new ResultCollector(task);
+        ResultCollector collector = new ResultCollector(task);
         publishTask(task, routingKey);
-        return this.collector;
+        return collector;
     }
 
     public void close() {
@@ -72,13 +81,8 @@ public class TaskPublisher implements Publisher {
         }
     }
 
-    public ResultCollector getCollector() {
-        return collector;
-    }
-
-
     /**
-     * 负责回收result
+     * 负责从celery的worker回收result
      */
     public class ResultCollector {
 
@@ -86,15 +90,13 @@ public class TaskPublisher implements Publisher {
         private static final boolean DRUBLE = true;
         private static final boolean EXCLUSIVE = false;
         private static final boolean DISABLE_AUTO_DELETE = true;
-        private static final java.lang.String EXCHANGE_TYPE = "direct";
+        private static final String EXCHANGE_TYPE = "direct";
         private static final boolean AUTO_ACK = true;
 
         private Task task = null;
         private QueueingConsumer consumer = null;
         private QueueingConsumer.Delivery delivery;
         private Channel channel = null;
-        private JSONObject jsonObject = null;
-
 
         private ResultCollector(Task task){
             this.task = task;
@@ -106,12 +108,13 @@ public class TaskPublisher implements Publisher {
             int expires = config.getInt("expires", 86400000);
 
             try {
+                //建立与broker的连接
                 ConnectionFactory factory = new ConnectionFactory();
                 factory.setHost(host);
                 factory.setPort(port);
                 Connection connection = factory.newConnection();
 
-
+                //创建通道
                 channel = connection.createChannel();
                 channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE, DRUBLE);
                 Map<String, Object> map = new HashMap<>();
@@ -141,6 +144,12 @@ public class TaskPublisher implements Publisher {
             return delivery.getBody();
         }
 
+        /**
+         * 从celery的worker获取具体的byte[]信息
+         * @param timeout 超时，单位为毫秒
+         * @return 返回信息的byte数组
+         * @throws TimeoutException
+         */
         public byte[] get(long timeout) throws TimeoutException {
             final byte[][] ret = {null};
             Thread gettingThread = new Thread(){
@@ -166,21 +175,32 @@ public class TaskPublisher implements Publisher {
             return ret[0];
         }
 
-        public JSONObject getJsonResult() throws TimeoutException {
-            if (jsonObject != null) {
-                return jsonObject;
-            }
+        /**
+         * 从celery的worker中获取对应的json格式的信息
+         * @param timeout 超时时间，单位为毫秒
+         * @return 对应的Json对象
+         * @throws TimeoutException
+         */
+        public JSONObject getJsonResult(long timeout) throws TimeoutException {
+            JSONObject jsonObject = new JSONObject();
             try {
-                jsonObject = new JSONObject(new String(this.get(3000)));
+                jsonObject = new JSONObject(new String(this.get(timeout)));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
             return jsonObject;
         }
 
-        public Object getResult() throws TimeoutException {
+        /**
+         * 获取任务的结果
+         * 该函数先调用`getJsonResult()`函数获取Json对象，然后从其中获取对应的result
+         * @param timeout 超时时间，单位为毫秒
+         * @return 返回Object像，具体类型由实际调用的任务来决定
+         * @throws TimeoutException
+         */
+        public Object getTaskResult(long timeout) throws TimeoutException {
             try {
-                return getJsonResult().get("result");
+                return getJsonResult(timeout).get("result");
             } catch (JSONException ignored) {
             }
             return null;

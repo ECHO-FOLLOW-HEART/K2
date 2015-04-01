@@ -509,16 +509,18 @@ public class MiscCtrl extends Controller {
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
+        // 通过消息队列发送消息
         MessagePublisher publisher = PublisherFactory.getInstance().getMessagePublisher("taozi.default.exchange");
         publisher.publish(JsonMessage.obtainWithTimeStamp().with("title", "this is title"));
         publisher.close();
 
+        //通过任务队列发布任务
         Task something = SimpleTask.newTask("tasks.add", new Object[]{3, 4});
         TaskPublisher taskPublisher = PublisherFactory.getInstance().getTaskPublisher("celery");
         TaskPublisher.ResultCollector collector = taskPublisher.publishWithResult(something, "celery");
         JSONObject result = null;
         try {
-            result = collector.getJsonResult();
+            result = collector.getJsonResult(3000);
         } catch (TimeoutException e) {
             play.Logger.info("timeout");
         }
