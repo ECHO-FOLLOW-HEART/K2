@@ -19,16 +19,11 @@ public class PublisherFactory {
 
     private Connection connection = null;
 
-    private boolean durable = false;
-    private String exchangeType = null;
-
     private PublisherFactory() {
         // 读取配置信息
         Configuration config = Configuration.root().getConfig("mom");
         String host = config.getString("host", "localhost");
         int port = config.getInt("port", 5672);
-        durable = config.getBoolean("durable", false);
-        exchangeType = config.getString("exchangeType", "topic");
 
         // 创建连接
         ConnectionFactory factory = new ConnectionFactory();
@@ -42,10 +37,14 @@ public class PublisherFactory {
     }
 
     public MessagePublisher getMessagePublisher(String exchangeName) {
+        return getMessagePublisher(exchangeName, "topic", false);
+    }
+
+    public MessagePublisher getMessagePublisher(String exchangeName, String exchangeType, boolean durable) {
         Channel channel = null;
         try {
             channel = connection.createChannel();
-            channel.exchangeDeclare(exchangeName, this.exchangeType, this.durable);
+            channel.exchangeDeclare(exchangeName, exchangeType, durable);
         } catch (Exception e) {
             logger.error("error curried when creating MessagePublisher");
             resetFactory();
@@ -54,11 +53,15 @@ public class PublisherFactory {
     }
 
     public TaskPublisher getTaskPublisher(String exchangeName) {
+        return getTaskPublisher(exchangeName, "direct", true);
+    }
+
+    public TaskPublisher getTaskPublisher(String exchangeName, String exchangeType, boolean durable) {
         Channel channel = null;
         try {
             channel = connection.createChannel();
-            // Celery 中对exchangeType  和 durable 都有限定，因此不使用默认配置
-            channel.exchangeDeclare(exchangeName, "direct", true);
+            // Celery 中对exchangeType 和 default_durable 都有限定，因此不使用默认配置
+            channel.exchangeDeclare(exchangeName, exchangeType, durable);
         } catch (Exception e) {
             logger.error("error curried when creating TaskPublisher");
             resetFactory();
