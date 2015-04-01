@@ -50,6 +50,7 @@ public class PublisherFactory {
             channel.exchangeDeclare(exchangeName, this.exchangeType, this.durable);
         } catch (Exception e) {
             logger.error("error curried when creating MessagePublisher");
+            resetFactory();
         }
         return new MessagePublisher(exchangeName, channel);
     }
@@ -62,8 +63,14 @@ public class PublisherFactory {
             channel.exchangeDeclare(exchangeName, "direct", true);
         } catch (Exception e) {
             logger.error("error curried when creating TaskPublisher");
+            resetFactory();
         }
         return new TaskPublisher(exchangeName, channel);
+    }
+
+    private static void resetFactory() {
+        factory.connection = null;
+        factory = null;
     }
 
     public static PublisherFactory getInstance() {
