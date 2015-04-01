@@ -46,7 +46,6 @@ import utils.results.SceneID;
 import utils.results.TaoziResBuilder;
 import utils.results.TaoziSceneText;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -520,8 +519,6 @@ public class MiscCtrl extends Controller {
         JSONObject result = null;
         try {
             result = collector.getJsonResult();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
         } catch (TimeoutException e) {
             play.Logger.info("timeout");
         }

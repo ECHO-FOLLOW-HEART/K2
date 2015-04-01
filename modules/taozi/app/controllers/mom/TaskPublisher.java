@@ -166,7 +166,7 @@ public class TaskPublisher implements Publisher {
             return ret[0];
         }
 
-        public JSONObject getJsonResult() throws IOException, InterruptedException, TimeoutException {
+        public JSONObject getJsonResult() throws TimeoutException {
             if (jsonObject != null) {
                 return jsonObject;
             }
@@ -178,7 +178,7 @@ public class TaskPublisher implements Publisher {
             return jsonObject;
         }
 
-        public Object getResult() throws IOException, InterruptedException, TimeoutException {
+        public Object getResult() throws TimeoutException {
             try {
                 return getJsonResult().get("result");
             } catch (JSONException ignored) {
