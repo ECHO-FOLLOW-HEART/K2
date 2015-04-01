@@ -95,7 +95,6 @@ public class TaskPublisher implements Publisher {
 
         private Task task = null;
         private QueueingConsumer consumer = null;
-        private QueueingConsumer.Delivery delivery;
         private Channel channel = null;
 
         private ResultCollector(Task task){
@@ -129,19 +128,22 @@ public class TaskPublisher implements Publisher {
         }
 
         /**
-         * 返回Celery的result的byte[]数据,然后close channel
-         * 注：一个ResultCollector应该只负责一个taskid的result收集, 因为Celery的amqp result回收机制比较蛋疼。。。
+         * 返回Celery的result的byte[]数据
+         * 注：一个ResultCollector应该只负责一个taskid的result收集
          * @return
          */
-        public byte[] get() throws InterruptedException, IOException {
+        public byte[] get(){
             if (consumer == null) {
                 logger.error(this.getClass().getSimpleName() + " can not get anything because of init error");
                 return "{}".getBytes();
             }
 
-            delivery = consumer.nextDelivery();
-            channel.close();
-            return delivery.getBody();
+            try {
+                return consumer.nextDelivery().getBody();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return new byte[0];
         }
 
         /**
@@ -151,28 +153,18 @@ public class TaskPublisher implements Publisher {
          * @throws TimeoutException
          */
         public byte[] get(long timeout) throws TimeoutException {
-            final byte[][] ret = {null};
-            Thread gettingThread = new Thread(){
-                @Override
-                public void run() {
-                    try {
-                        ret[0] = get();
-                    } catch (InterruptedException | IOException ignored) {
-                    }
-                }
-            };
-
-            try {
-                gettingThread.start();
-                while (gettingThread.isAlive() && timeout > 0) {
-                    Thread.sleep(1);
-                    timeout--;
-                }
-                if (gettingThread.isAlive())
-                    throw new TimeoutException("timeout while getting result");
-            } catch (InterruptedException ignored) {
+            if (consumer == null) {
+                logger.error(this.getClass().getSimpleName() + " can not get anything because of init error");
+                return "{}".getBytes();
             }
-            return ret[0];
+            try {
+                return consumer.nextDelivery(timeout).getBody();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (NullPointerException e) {
+                throw new TimeoutException();
+            }
+            return new byte[0];
         }
 
         /**
