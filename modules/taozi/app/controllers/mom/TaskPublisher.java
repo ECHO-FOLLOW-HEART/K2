@@ -89,7 +89,7 @@ public class TaskPublisher implements Publisher {
         private static final String EXCHANGE_NAME = "celeryresults";
         private static final boolean DRUBLE = true;
         private static final boolean EXCLUSIVE = false;
-        private static final boolean DISABLE_AUTO_DELETE = true;
+        private static final boolean AUTO_DELETE = true;
         private static final String EXCHANGE_TYPE = "direct";
         private static final boolean AUTO_ACK = true;
 
@@ -119,7 +119,7 @@ public class TaskPublisher implements Publisher {
                 channel.exchangeDeclare(EXCHANGE_NAME, EXCHANGE_TYPE, DRUBLE);
                 Map<String, Object> map = new HashMap<>();
                 map.put("x-expires", expires);
-                channel.queueDeclare(this.task.getTaskId(), DRUBLE, EXCLUSIVE, DISABLE_AUTO_DELETE, map);
+                channel.queueDeclare(this.task.getTaskId(), DRUBLE, EXCLUSIVE, AUTO_DELETE, map);
 
                 consumer = new QueueingConsumer(channel);
                 channel.basicConsume(this.task.getTaskId(), AUTO_ACK, consumer);
