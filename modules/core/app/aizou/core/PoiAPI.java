@@ -1088,7 +1088,8 @@ public class PoiAPI {
 
             if (!poiIdList.isEmpty()) {
                 query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness));
-                // TODO 需要限制查找的字段，加快速度
+                query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
+                // 分页已在poiSolrSearch中完成
                 // .offset(page * pageSize).limit(pageSize);
                 return query.asList();
             } else
