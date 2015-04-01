@@ -15,7 +15,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * Created by Heaven on 2015/3/27.
  */
-public class TaskPublisher implements Publisher {
+public class TaskPublisher implements Publisher<Task> {
     public static String DEFAULT_ROUTING = "taozi.default.routing";
 
     private Channel channel = null;
@@ -34,11 +34,8 @@ public class TaskPublisher implements Publisher {
     }
 
     @Override
-    public void publish(Message msg, String routingKey) {
-        if (!(msg instanceof Task)) {
-            throw new IllegalArgumentException("A TaskPublisher can only publish Task");
-        }
-        publishTask((Task) msg, routingKey);
+    public void publish(Task msg, String routingKey) {
+        publishTask(msg, routingKey);
     }
 
     /**

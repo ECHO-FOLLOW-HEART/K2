@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * Created by Heaven on 2015/3/26.
  */
-public class MessagePublisher implements Publisher {
+public class MessagePublisher implements Publisher<Message> {
     public static String DEFAULT_ROUTING = "taozi.default.routing";
 
     private Channel channel = null;

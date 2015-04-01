@@ -19,16 +19,14 @@ public class PublisherFactory {
 
     private Connection connection = null;
 
-    private String host = null;
-    private int port = 0;
     private boolean durable = false;
     private String exchangeType = null;
 
     private PublisherFactory() {
         // 读取配置信息
         Configuration config = Configuration.root().getConfig("mom");
-        host = config.getString("host", "localhost");
-        port = config.getInt("port", 5672);
+        String host = config.getString("host", "localhost");
+        int port = config.getInt("port", 5672);
         durable = config.getBoolean("durable", false);
         exchangeType = config.getString("exchangeType", "topic");
 
