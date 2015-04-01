@@ -10,6 +10,7 @@ import play.Configuration;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by Heaven on 2015/3/27.
@@ -140,19 +141,44 @@ public class TaskPublisher implements Publisher {
             return delivery.getBody();
         }
 
-        public JSONObject getJsonResult() throws IOException, InterruptedException {
+        public byte[] get(long timeout) throws TimeoutException {
+            final byte[][] ret = {null};
+            Thread gettingThread = new Thread(){
+                @Override
+                public void run() {
+                    try {
+                        ret[0] = get();
+                    } catch (InterruptedException | IOException ignored) {
+                    }
+                }
+            };
+
+            try {
+                gettingThread.start();
+                while (gettingThread.isAlive() && timeout > 0) {
+                    Thread.sleep(1);
+                    timeout--;
+                }
+                if (gettingThread.isAlive())
+                    throw new TimeoutException("timeout while getting result");
+            } catch (InterruptedException ignored) {
+            }
+            return ret[0];
+        }
+
+        public JSONObject getJsonResult() throws IOException, InterruptedException, TimeoutException {
             if (jsonObject != null) {
                 return jsonObject;
             }
             try {
-                jsonObject = new JSONObject(new String(this.get()));
+                jsonObject = new JSONObject(new String(this.get(3000)));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
             return jsonObject;
         }
 
-        public Object getResult() throws IOException, InterruptedException {
+        public Object getResult() throws IOException, InterruptedException, TimeoutException {
             try {
                 return getJsonResult().get("result");
             } catch (JSONException ignored) {

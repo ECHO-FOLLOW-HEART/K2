@@ -52,6 +52,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.concurrent.TimeoutException;
 
 /**
  * 其它
@@ -521,6 +522,8 @@ public class MiscCtrl extends Controller {
             result = collector.getJsonResult();
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
+        } catch (TimeoutException e) {
+            play.Logger.info("timeout");
         }
         taskPublisher.close();
 

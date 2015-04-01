@@ -47,9 +47,8 @@ public class MessagePublisher implements Publisher {
         try {
             channel.basicPublish(exchangeName, routingKey, properties, msg.toBytes());
             logger.info("msg publishMessage: " + exchangeName + " " + routingKey);
-
         } catch (Exception e) {
-            logger.error("error curried while publishing message {exchangeName=" + exchangeName + ",routingKey=" + routingKey + "}");
+            logger.error("error curried while publishing message");
         }
     }
 }

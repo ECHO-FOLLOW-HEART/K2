@@ -39,7 +39,6 @@ public class PublisherFactory {
         try {
             connection = factory.newConnection();
         } catch (IOException e) {
-//            e.printStackTrace();
             logger.error(this.getClass().getSimpleName() + " can not connect to " + host + ":" + port);
         }
     }
@@ -68,11 +67,11 @@ public class PublisherFactory {
     }
 
     public static PublisherFactory getInstance() {
-        if (factory != null)
+        if (factory != null && factory.connection != null)
             return factory;
 
         synchronized ("factory") {
-            if (factory != null)
+            if (factory != null && factory.connection != null)
                 return factory;
             factory = new PublisherFactory();
         }
