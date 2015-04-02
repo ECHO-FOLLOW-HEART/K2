@@ -39,7 +39,7 @@ DELETE        /users/contacts/$id<[0-9]+>                        controllers.tao
 #获得好友列表
 GET           /users/contacts                                    controllers.taozi.UserCtrl.getContactList()
 #设置备注信息
-#POST          /users/:id/memo                                controllers.taozi.UserCtrl.setUserMemo(id:Integer)
+POST          /users/:id/memo                                    controllers.taozi.UserCtrl.setUserMemo(id:Integer)
 #添加/删除用户到好友列表
 #POST          /users/blacklist                               controllers.taozi.UserCtrl.setUserBlacklist()
 

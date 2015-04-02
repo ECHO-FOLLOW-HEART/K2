@@ -701,10 +701,14 @@ public class UserCtrl extends Controller {
         if (list == null)
             list = new ArrayList<>();
 
-        // TODO 需要启用新的formatter
+        // 查询备注信息
+        list = UserAPI.addUserMemo(userId, list);
+        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+        formatter.setSelfView(false);
+
         List<JsonNode> nodelist = new ArrayList<>();
         for (UserInfo userInfo : list) {
-            nodelist.add(new UserFormatterOld(false).format(userInfo));
+            nodelist.add(formatter.formatNode(userInfo));
         }
 
         ObjectNode node = Json.newObject();
@@ -721,6 +725,7 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
         JsonNode emList;
         List<String> emNameList = new ArrayList<>();
+        long selfId = Integer.parseInt(request().getHeader("UserId"));
 
         emList = req.get("easemob");
         if (null != emList && emList.isArray() && emList.findValues("easemob") != null) {
@@ -731,6 +736,8 @@ public class UserCtrl extends Controller {
         List<String> fieldList = Arrays.asList(UserInfo.fnUserId, UserInfo.fnNickName, UserInfo.fnAvatar,
                 UserInfo.fnGender, UserInfo.fnEasemobUser, UserInfo.fnSignature);
         List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
+
+        list = UserAPI.addUserMemo(selfId, list);
         List<JsonNode> nodeList = new ArrayList<>();
         for (UserInfo userInfo : list) {
             nodeList.add(new UserFormatterOld(false).format(userInfo));
@@ -799,36 +806,21 @@ public class UserCtrl extends Controller {
         return Utils.status(formatter.format(contacts));
     }
 
-    private static boolean isFriend(Long aFriend, List<UserInfo> friends) {
-        if (friends == null)
-            return false;
-        for (UserInfo userInfo : friends) {
-            if (userInfo.getUserId().equals(aFriend))
-                return true;
-        }
-        return false;
+    /**
+     * 添加用户的备注信息
+     *
+     * @param id
+     * @return
+     * @throws
+     */
+    public static Result setUserMemo(Integer id) throws AizouException {
+
+        String selfId = request().getHeader("userId");
+        String memo = request().body().asJson().get("memo").asText();
+        UserAPI.setUserMemo(Long.parseLong(selfId), Long.valueOf(id), memo);
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
+
     }
-
-
-//    /**
-//     * 添加用户的备注信息
-//     *
-//     * @param id
-//     * @return
-//     * @throws TravelPiException
-//     */
-//    public static Result setUserMemo(Integer id) throws TravelPiException {
-//        try {
-//            String selfId = request().getHeader("userId");
-//            String memo = request().body().asJson().get("memo").asText();
-//            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-//        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.getErrCode(), Json.toJson(e.getMessage()));
-//        } catch (NullPointerException | NumberFormatException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-//        }
-//    }
 
 //    /**
 //     * 获得用户的黑名单列表

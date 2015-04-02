@@ -111,25 +111,96 @@ public class UserAPI {
         return query.get();
     }
 
-//    /**
-//     * 修改用户备注
-//     *
-//     * @param
-//     * @param id
-//     * @param memo
-//     * @throws TravelPiException
-//     */
-//    public static void setUserMemo(Integer selfId, Integer id, String memo) throws TravelPiException {
-//        UserInfo userInfo = getUserInfo(selfId);
-////        Map<Integer, UserInfo> friends = userInfo.friends;
-////        boolean flag = friends.containsKey(id);   //查看是否存在好友
-//
-//        Map<Integer, String> friendRemark = userInfo.remark;
-//        friendRemark.put(id, memo);
-//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-//        ds.save(userInfo);
-//
-//    }
+    /**
+     * 修改用户备注
+     *
+     * @param
+     * @param
+     * @param memo
+     * @throws
+     */
+    public static void setUserMemo(Long selfId, Long targetId, String memo) throws AizouException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Relationship> query = ds.createQuery(Relationship.class);
+        String memoTarget;
+        Long userA;
+        Long userB;
+        if (selfId > targetId) {
+            userA = targetId;
+            userB = selfId;
+            memoTarget = Relationship.FD_MemoA;
+        } else {
+            userA = selfId;
+            userB = targetId;
+            memoTarget = Relationship.FD_MemoB;
+        }
+        query.field("userA").equal(userA).field("userB").equal(userB);
+        UpdateOperations<Relationship> ops = ds.createUpdateOperations(Relationship.class);
+        ops.set(memoTarget, memo);
+        ds.update(query, ops);
+    }
+
+    public static List<UserInfo> addUserMemo(Long selfId, List<UserInfo> friends) throws AizouException {
+        List<UserInfo> result = new ArrayList<>();
+        Long friendId;
+        // UserId比自己大的用户列表
+        List<Long> bigUserIds = new ArrayList<>();
+        List<UserInfo> bigUsers = new ArrayList<>();
+        // UserId比自己小的用户列表
+        List<Long> smallUserIds = new ArrayList<>();
+        List<UserInfo> smallUsers = new ArrayList<>();
+        for (UserInfo userInfo : friends) {
+            friendId = userInfo.getUserId();
+            if (selfId < friendId) {
+                bigUserIds.add(userInfo.getUserId());
+                bigUsers.add(userInfo);
+            } else {
+                smallUserIds.add(userInfo.getUserId());
+                smallUsers.add(userInfo);
+            }
+        }
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Relationship> query;
+        if (bigUserIds != null && !bigUserIds.isEmpty()) {
+            query = ds.createQuery(Relationship.class);
+            query.field(Relationship.FD_UserA).equal(selfId).field(Relationship.FD_UserB).in(bigUserIds);
+            List<Relationship> bigUserRs = query.asList();
+            // 比我的userId大的用户，备注取memoB
+            setMomeByDifUser(bigUserRs, bigUsers, Relationship.FD_MemoB);
+        }
+
+        if (smallUserIds != null && !smallUserIds.isEmpty()) {
+            query = ds.createQuery(Relationship.class);
+            query.field(Relationship.FD_UserB).equal(selfId).field(Relationship.FD_UserA).in(smallUserIds);
+            List<Relationship> smallUserRs = query.asList();
+            // 比我的userId小的用户，备注取memoA
+            setMomeByDifUser(smallUserRs, smallUsers, Relationship.FD_MemoA);
+        }
+
+        result.addAll(bigUsers);
+        result.addAll(smallUsers);
+        return result;
+    }
+
+    private static void setMomeByDifUser(List<Relationship> rs, List<UserInfo> friends, String momeTarget) {
+        Map<Long, String> userMemo = new HashMap<>();
+        for (Relationship temp : rs) {
+            if (momeTarget.equals(Relationship.FD_MemoB))
+                userMemo.put(temp.getUserB(), temp.getMemoB());
+            else if (momeTarget.equals(Relationship.FD_MemoA))
+                userMemo.put(temp.getUserA(), temp.getMemoA());
+        }
+        Long userId;
+        for (UserInfo user : friends) {
+            userId = user.getUserId();
+            if (userMemo.get(userId) != null)
+                user.setMemo(userMemo.get(userId));
+        }
+    }
+
+
 //
 //    /**
 //     * 检查用户是否在黑名单中
@@ -1528,13 +1599,13 @@ public class UserAPI {
             userInfo.setTracks(completeTracks);
         }
 
-        List<TravelNote> travelNoteList= userInfo.getTravelNotes();
+        List<TravelNote> travelNoteList = userInfo.getTravelNotes();
         if (travelNoteList != null) {
             List<ObjectId> travelNotesIds = new ArrayList<>();
             for (TravelNote travelNote : travelNoteList)
                 travelNotesIds.add(travelNote.getId());
             List<TravelNote> completeTravelNotes = TravelNoteAPI.getNotesByIdList(travelNotesIds, Arrays.asList(TravelNote.FD_ID,
-                    TravelNote.fnTitle, TravelNote.fnImages,TravelNote.fnSummary));
+                    TravelNote.fnTitle, TravelNote.fnImages, TravelNote.fnSummary));
             userInfo.setTravelNotes(completeTravelNotes);
         }
     }
