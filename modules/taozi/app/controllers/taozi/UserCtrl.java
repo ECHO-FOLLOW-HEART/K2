@@ -829,9 +829,13 @@ public class UserCtrl extends Controller {
      */
     @CheckUser
     public static Result getUserAlbums(@CheckUser Long id) throws AizouException {
-
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
         List<Album> albums = UserAPI.getUserAlbums(id);
-        AlbumFormatter formatter = FormatterFactory.getInstance(AlbumFormatter.class);
+        AlbumFormatter formatter = FormatterFactory.getInstance(AlbumFormatter.class, imgWidth);
         return Utils.status(formatter.format(albums));
     }
 

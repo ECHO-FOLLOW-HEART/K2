@@ -20,18 +20,6 @@ import java.util.Map;
  */
 public class AlbumFormatter extends AizouFormatter<Album> {
 
-    private Level level;
-
-    public AlbumFormatter setLevel(Level level) {
-        this.level = level;
-        return this;
-    }
-
-    public enum Level {
-        SIMPLE,
-        DETAILED
-    }
-
     public AlbumFormatter() {
         this(640);
     }
@@ -63,6 +51,11 @@ public class AlbumFormatter extends AizouFormatter<Album> {
                     ret.serialize(image, jgen, serializerProvider);
             }
             jgen.writeEndArray();
+
+//            if (images != null && !images.isEmpty())
+//                jgen.writeStringField("imageUrl", getString(images.get(0).getFullUrl()));
+//            else
+//                jgen.writeNullField("imageUrl");
             //jgen.writeNumberField(Album.FD_USERID, getValue(album.getUserId()));
             jgen.writeNumberField(Album.FD_CTIME, getValue(album.getcTime()));
 
