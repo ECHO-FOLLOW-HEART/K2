@@ -1,32 +1,30 @@
 package controllers.taozi;
 
-import aizou.core.LocalityAPI;
 import aizou.core.UserAPI;
 import aspectj.CheckUser;
 import aspectj.Key;
 import aspectj.RemoveOcsCache;
 import aspectj.UsingOcsCache;
+import asynchronous.AsyncExecutor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
-import asynchronous.AsyncExecutor;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
+import formatter.taozi.misc.AlbumFormatter;
 import formatter.taozi.user.ContactFormatter;
 import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatterOld;
 import formatter.taozi.user.UserInfoFormatter;
 import models.MorphiaFactory;
-import models.geo.Locality;
+import models.misc.Album;
 import models.misc.Token;
 import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
-import org.apache.bcel.Constants;
 import org.apache.commons.io.IOUtils;
-import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.F;
@@ -813,14 +811,44 @@ public class UserCtrl extends Controller {
      * @return
      * @throws
      */
-    public static Result setUserMemo(Integer id) throws AizouException {
+    public static Result setUserMemo(Long id) throws AizouException {
 
         String selfId = request().getHeader("userId");
         String memo = request().body().asJson().get("memo").asText();
-        UserAPI.setUserMemo(Long.parseLong(selfId), Long.valueOf(id), memo);
+        UserAPI.setUserMemo(Long.parseLong(selfId), id, memo);
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
 
     }
+
+    /**
+     * 取得用户的相册
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    @CheckUser
+    public static Result getUserAlbums(@CheckUser Long id) throws AizouException {
+
+        List<Album> albums = UserAPI.getUserAlbums(id);
+        AlbumFormatter formatter = FormatterFactory.getInstance(AlbumFormatter.class);
+        return Utils.status(formatter.format(albums));
+    }
+
+    /**
+     * 应用图片为头像
+     *
+     * @return
+     * @throws AizouException
+     */
+//    public static Result setAlbumsToAvatar() throws AizouException {
+//        String action = request().body().asJson().get("action").asText();
+//        String selfId = request().getHeader("userId");
+//        String url = request().body().asJson().get("url").asText();
+//        UserAPI.setAlbumsToAvatar(Long.parseLong(selfId), url);
+//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
+//    }
+
 
 //    /**
 //     * 获得用户的黑名单列表

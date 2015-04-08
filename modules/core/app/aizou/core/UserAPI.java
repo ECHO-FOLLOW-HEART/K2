@@ -26,6 +26,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.QueryImpl;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.F;
@@ -1527,7 +1528,7 @@ public class UserAPI {
         }
     }
 
-    public static void resetAvater(Integer userId, String avater) throws AizouException {
+    public static void resetAvater(Long userId, String avater) throws AizouException {
         Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
         ops.set("avatar", avater);
@@ -1609,6 +1610,57 @@ public class UserAPI {
             userInfo.setTravelNotes(completeTravelNotes);
         }
     }
+
+    /**
+     * 添加一张用户上传的图片
+     *
+     * @param userId
+     * @param imageItem
+     * @throws AizouException
+     */
+    public static void addUserAlbum(Long userId, ImageItem imageItem) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+
+        Album entity = new Album();
+        entity.setcTime(System.currentTimeMillis());
+        entity.setImage(imageItem);
+        entity.setUserId(userId);
+        entity.setTaoziEna(true);
+        LogUtils.info(UserAPI.class, "Test Upload CallBack.addUserAlbum", "imageItem" + imageItem.getUrl() + imageItem.getKey());
+        dsUser.save(entity);
+    }
+
+    /**
+     * 取得用户相册的图片
+     *
+     * @param userId
+     * @return
+     * @throws AizouException
+     */
+    public static List<Album> getUserAlbums(Long userId) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Query<Album> query = dsUser.createQuery(Album.class);
+        query.field(Album.FD_USERID).equal(userId).field(Album.FD_TAOZIENA).equal(true);
+        return query.asList();
+    }
+
+    /**
+     * 应用图片为头像
+     *
+     * @param userId
+     * @param url
+     * @throws AizouException
+     */
+//    public static void setAlbumsToAvatar(Long userId, String url) throws AizouException {
+//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+//        Query<UserInfo> query = ds.createQuery(UserInfo.class);
+//        query.field(UserInfo.fnUserId).equal(userId);
+//
+//        UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
+//        ops.set(UserInfo.fnAvatar, url);
+//        ds.update(query, ops);
+//
+//    }
 
 
 }

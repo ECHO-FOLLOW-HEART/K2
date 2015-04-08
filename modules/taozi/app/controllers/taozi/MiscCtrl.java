@@ -36,6 +36,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
+import utils.LogUtils;
 import utils.TaoziDataFilter;
 import utils.Utils;
 import utils.results.SceneID;
@@ -58,6 +59,7 @@ public class MiscCtrl extends Controller {
     public static String UPLOAD_URL = "url";
     public static String UPLOAD_URL_SMALL = "urlSmall";
     public static String UPLOAD_UID = "userId";
+    public static String UPLOAD_SCENARIO = "scenario";
 
     /**
      * 封面故事,获取App首页的图像。
@@ -384,17 +386,25 @@ public class MiscCtrl extends Controller {
         String secretKey = qiniu.get("secertKey").toString();
         String accessKey = qiniu.get("accessKey").toString();
         String scope, callbackUrl;
-        if (scenario.equals("portrait")) {
+        StringBuilder stringBuilder = new StringBuilder();
+        LogUtils.info(MiscCtrl.class, "Test Upload CallBack.scenario:" + scenario);
+        if (scenario.equals("portrait") || scenario.equals("album")) {
             scope = qiniu.get("taoziAvaterScope").toString();
             callbackUrl = qiniu.get("callbackUrl").toString();
-            callbackUrl = "http://" + callbackUrl;
+            stringBuilder.append("http://");
+            stringBuilder.append("api.taozilvxing.cn/taozi/misc/upload-callback");
+//            stringBuilder.append("?");
+//            stringBuilder.append("scenario=");
+//            stringBuilder.append(scenario);
+            callbackUrl = stringBuilder.toString();
+            LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);
         } else
             return new TaoziResBuilder().setCode(ErrorCode.INVALID_ARGUMENT)
                     .setMessage(TaoziSceneText.instance().text(SceneID.INVALID_UPLOAD_SCENE))
                     .build();
 
         //取得上传策略
-        ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId));
+        ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId), scenario);
         // UrlBase64编码
         String encodedPutPolicy = Base64.encodeBase64URLSafeString(policy.toString().trim().getBytes());
         encodedPutPolicy = Utils.base64Padding(encodedPutPolicy);
@@ -414,12 +424,12 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl, Integer userId) {
+    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl, Integer userId, String scenario) {
 
         ObjectNode info = Json.newObject();
         info.put("scope", scope + ":" + picName);
         info.put("deadline", System.currentTimeMillis() / 1000 + 2 * 3600);
-        info.put("callBackBody", getCallBackBody(userId));
+        info.put("callBackBody", getCallBackBody(userId, scenario));
         info.put("callbackUrl", callbackUrl);
         return info;
     }
@@ -429,21 +439,22 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static String getCallBackBody(Integer userId) {
+    private static String getCallBackBody(Integer userId, String scenario) {
         StringBuilder callbackBody = new StringBuilder(10);
         callbackBody.append("name=$(fname)");
         callbackBody.append("&size=$(fsize)");
         callbackBody.append("&h=$(imageInfo.height)");
         callbackBody.append("&w=$(imageInfo.width)");
-        callbackBody.append("&w=$(imageInfo.width)");
         callbackBody.append("&hash=$(etag)");
         callbackBody.append("&bucket=$(bucket)");
+        callbackBody.append("&key=$(key)");
         String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
         // 定义图片的URL
         callbackBody.append("&").append(UPLOAD_URL).append("=").append(url);
         callbackBody.append("&").append(UPLOAD_URL_SMALL).append("=").append(url).append("?imageView2/2/w/200");
         // 定义用户ID
         callbackBody.append("&").append(UPLOAD_UID).append("=").append(userId);
+        callbackBody.append("&").append(UPLOAD_SCENARIO).append("=").append(scenario);
         return callbackBody.toString();
     }
 
@@ -466,34 +477,58 @@ public class MiscCtrl extends Controller {
     public static Result getCallback() throws AizouException {
         Map<String, String[]> fav = request().body().asFormUrlEncoded();
         ObjectNode ret = Json.newObject();
+        String scenario = null;
         String url = null;
 //        String urlSmall = null;
         String userId = null;
         for (Map.Entry<String, String[]> entry : fav.entrySet()) {
             String key = entry.getKey();
             String[] value = entry.getValue();
-            //LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
             if (key.equals(UPLOAD_URL))
                 url = value[0];
             if (key.equals(UPLOAD_UID))
                 userId = value[0];
+            if (key.equals(UPLOAD_SCENARIO)) {
+                scenario = value[0];
+                LogUtils.info(MiscCtrl.class, "Test Upload CallBack.Scenario:" + scenario, key + "&&" + value[0]);
+            }
 //            if (key.equals(UPLOAD_URL_SMALL))
 //                urlSmall = value[0];
             ret.put(key, value[0]);
+
 //            LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
         }
-        ret.put("success", true);
 
-        // TODO userId在什么情况下可能为null？
-        if (userId != null)
-            UserAPI.resetAvater(Integer.valueOf(userId), url);
+        if (scenario != null && scenario.equals("album")) {
+            LogUtils.info(MiscCtrl.class, "Test scenario.equals(\"album\"):" + scenario);
+            ImageItem imageItem = getImageFromCallBack(ret);
+            if (imageItem == null)
+                return status(500, "Can't get image key!");
+            UserAPI.addUserAlbum(Long.valueOf(userId), imageItem);
+        } else
+            UserAPI.resetAvater(Long.valueOf(userId), url);
+        ret.put("success", true);
 
         return ok(ret);
     }
-//
-//    private static String delSpe(String str){
-//        return str.replaceAll("\\\\", "");
-//    }
+
+    private static ImageItem getImageFromCallBack(ObjectNode ret) {
+        ImageItem imageItem = new ImageItem();
+        // 如果没有url,返回空对象
+        if (ret.get("key") == null)
+            return null;
+        imageItem.setKey(ret.get("key").asText());
+
+        if (ret.get("w") != null && ret.get("w").canConvertToInt())
+            imageItem.setW(ret.get("w").asInt());
+        if (ret.get("h") != null && ret.get("h").canConvertToInt())
+            imageItem.setH(ret.get("h").asInt());
+        if (ret.get("size") != null && ret.get("size").canConvertToInt())
+            imageItem.setSize(ret.get("size").asInt());
+        if (ret.get("bucket") == null)
+            imageItem.setBucket(ret.get("bucket").asText());
+        return imageItem;
+    }
 
     /**
      * 旅行专栏
