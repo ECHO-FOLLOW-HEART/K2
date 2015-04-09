@@ -72,7 +72,7 @@ GET           /suggestions                                       controllers.tao
 #获得版本信息
 GET           /misc/updates                                      controllers.taozi.MiscCtrl.getUpdates()
 #举报
-#POST          /misc/tipOff                                       controllers.taozi.MiscCtrl.tipOff()
+POST          /misc/tipOff                                       controllers.taozi.MiscCtrl.postTipOff()
 #----------POI接口----------
 #查看POI详情
 # 景点详情
