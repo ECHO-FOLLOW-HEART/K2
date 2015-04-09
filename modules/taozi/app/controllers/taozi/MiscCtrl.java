@@ -15,6 +15,7 @@ import formatter.taozi.geo.SimpleLocalityFormatter;
 import formatter.taozi.misc.ColumnFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.misc.RecomFormatter;
+import formatter.taozi.misc.SimpleRefFormatter;
 import formatter.taozi.poi.BriefPOIFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
@@ -357,22 +358,6 @@ public class MiscCtrl extends Controller {
 
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
-
-//    /**
-//     * 通过城市id获得天气情况
-//     *
-//     * @param id
-//     * @return
-//     * @throws exception.AizouException
-//     */
-//    public static Result getWeatherDetail(String id) {
-//        try {
-//            YahooWeather weather = WeatherAPI.weatherDetails(new ObjectId(id));
-//            return Utils.createResponse(ErrorCode.NORMAL, new WeatherFormatter().format(weather));
-//        } catch (NullPointerException | AizouException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-//        }
-//    }
 
     /**
      * 获得资源上传凭证
@@ -887,4 +872,49 @@ public class MiscCtrl extends Controller {
         dsSave.save(tipOff);
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
+
+    /**
+     * 取得热门搜索
+     *
+     * @return
+     * @throws AizouException
+     */
+    public static Result getHotSearchs() throws AizouException {
+        List<SimpleRef> simpleRefs = new ArrayList<>();
+        SimpleRef simpleRef = new SimpleRef();
+        simpleRef.setId(new ObjectId("5473ccd7b8ce043a64108c46"));
+        simpleRef.setZhName("北京");
+        simpleRefs.add(simpleRef);
+        simpleRef.setId(new ObjectId("5473ccdfb8ce043a64108d97"));
+        simpleRef.setZhName("厦门");
+        simpleRefs.add(simpleRef);
+        simpleRefs.add(simpleRef);
+        simpleRef.setId(new ObjectId("54ae73f85c142faec2f8e9e1"));
+        simpleRef.setZhName("盘飧市");
+        simpleRefs.add(simpleRef);
+        simpleRef.setId(new ObjectId("54ae6b5e5c142faec2f78262"));
+        simpleRef.setZhName("护国寺小吃店");
+        simpleRef.setId(new ObjectId("547bfde9b8ce043eb2d84c3a"));
+        simpleRef.setZhName("曾厝垵");
+        simpleRefs.add(simpleRef);
+        simpleRef.setId(new ObjectId("547bfe30b8ce043eb2d890ff"));
+        simpleRef.setZhName("西湖");
+        simpleRefs.add(simpleRef);
+        simpleRef.setId(new ObjectId("547bfdcab8ce043eb2d82cda"));
+        simpleRef.setZhName("拙政园");
+        simpleRefs.add(simpleRef);
+        simpleRef.setId(new ObjectId("547bfde7b8ce043eb2d84a44"));
+        simpleRef.setZhName("东方明珠");
+        simpleRefs.add(simpleRef);
+        simpleRef.setId(new ObjectId("54ae98c05c142faec2fcd939"));
+        simpleRef.setZhName("东门商业街");
+        simpleRefs.add(simpleRef);
+        simpleRef.setId(new ObjectId(" 54ae93335c142faec2fba606"));
+        simpleRef.setZhName("银泰中心");
+        simpleRefs.add(simpleRef);
+        SimpleRefFormatter simpleRefFormatter = FormatterFactory.getInstance(SimpleRefFormatter.class);
+
+        return Utils.createResponse(ErrorCode.NORMAL, simpleRefFormatter.format(simpleRefs));
+    }
+
 }
