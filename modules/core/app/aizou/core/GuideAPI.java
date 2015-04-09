@@ -316,6 +316,8 @@ public class GuideAPI {
                 update.set(Guide.fnVisibility, guide.getVisibility());
             if (guide.getStatus() != null)
                 update.set(Guide.fnStatus, guide.getStatus());
+            if (guide.getUpdateTime() != null)
+                update.set(Guide.fnUpdateTime, guide.getUpdateTime());
             ds.update(query, update);
         } else
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("User %s has no guide which id is %s.", userId, guideId));
