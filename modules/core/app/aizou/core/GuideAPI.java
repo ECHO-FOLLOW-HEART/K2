@@ -58,6 +58,10 @@ public class GuideAPI {
         // 根据选择的目的地顺序排序
         guideTemplates = sortGuideTemplates(guideTemplates, ids);
         Guide result = constituteUgcGuide(guideTemplates, destinations, userId);
+        //设置攻略可见性
+        result.setVisibility(Guide.fnVisibilityPublic);
+        //设置攻略状态
+        result.setStatus(Guide.fnStatusPlanned);
         // 保存攻略时，置为可用
         result.setTaoziEna(true);
         //创建时即保存
@@ -97,6 +101,10 @@ public class GuideAPI {
         if (destinations != null && destinations.get(0) != null && destinations.get(0).getImages() != null)
             ugcGuide.images = TaoziDataFilter.getOneImage(destinations.get(0).getImages());
         ugcGuide.title = getUgcGuideTitle(destinations);
+        //设置攻略可见性
+        ugcGuide.setVisibility(Guide.fnVisibilityPublic);
+        //设置攻略状态
+        ugcGuide.setStatus(Guide.fnStatusPlanned);
         // 保存攻略时，置为可用
         ugcGuide.setTaoziEna(true);
         //创建时即保存
@@ -258,10 +266,13 @@ public class GuideAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<Guide> getGuideByUser(Integer uid, List<String> fieldList, int page, int pageSize) throws AizouException {
+    public static List<Guide> getGuideByUser(Long uid, List<String> fieldList, boolean isSelf, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class);
         query.field(Guide.fnUserId).equal(uid).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
+        // 如果是查看别人的攻略，只能产看公开的攻略
+        if (!isSelf)
+            query.field(Guide.fnVisibility).equal(Guide.fnVisibilityPublic);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         query.offset(page * pageSize).limit(pageSize);
@@ -285,6 +296,7 @@ public class GuideAPI {
         if (query.iterator().hasNext()) {
             UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
             if (guide.itinerary != null) {
+                // 添加poi类型
                 fillPOIType(guide.itinerary);
                 update.set(AbstractGuide.fnItinerary, guide.itinerary);
             }
@@ -300,8 +312,10 @@ public class GuideAPI {
                 update.set(Guide.fnTitle, guide.title);
             if (guide.localities != null)
                 update.set(Guide.fnLocalities, guide.localities);
-            update.set(Guide.fnUpdateTime, System.currentTimeMillis());
-
+            if (guide.getVisibility() != null)
+                update.set(Guide.fnVisibility, guide.getVisibility());
+            if (guide.getStatus() != null)
+                update.set(Guide.fnStatus, guide.getStatus());
             ds.update(query, update);
         } else
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("User %s has no guide which id is %s.", userId, guideId));

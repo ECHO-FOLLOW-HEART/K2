@@ -2,11 +2,11 @@ package controllers.taozi;
 
 import aizou.core.*;
 import aspectj.CheckUser;
+import aspectj.Key;
+import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import aspectj.Key;
-import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -21,7 +21,9 @@ import formatter.taozi.user.FavoriteFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
-import models.poi.*;
+import models.poi.AbstractPOI;
+import models.poi.Comment;
+import models.poi.RestaurantComment;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
@@ -46,7 +48,9 @@ import utils.results.TaoziSceneText;
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -392,7 +396,7 @@ public class MiscCtrl extends Controller {
             scope = qiniu.get("taoziAvaterScope").toString();
             callbackUrl = qiniu.get("callbackUrl").toString();
             stringBuilder.append("http://");
-            stringBuilder.append("api.taozilvxing.cn/taozi/misc/upload-callback");
+            stringBuilder.append("api2.taozilvxing.cn/taozi/misc/upload-callback");
 //            stringBuilder.append("?");
 //            stringBuilder.append("scenario=");
 //            stringBuilder.append(scenario);
@@ -854,5 +858,33 @@ public class MiscCtrl extends Controller {
         } else
             result.put("update", false);
         return Utils.createResponse(ErrorCode.NORMAL, result);
+    }
+
+    /**
+     * 举报
+     *
+     * @return
+     * @throws AizouException
+     */
+    public static Result postTipOff() throws AizouException {
+        JsonNode node = request().body().asJson();
+
+        Long selfId = Long.parseLong(request().getHeader("UserId"));
+        //Long offerUserId = Long.parseLong(node.get("offerUserId").asText());
+        Long targetUserId = Long.parseLong(node.get("targetUserId").asText());
+        String body = node.get("body").asText().trim();
+        if (body == null || body.equals(""))
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid tipOff content.");
+        TipOff tipOff = new TipOff();
+        Datastore dsSave = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+
+        tipOff.setOfferUserId(selfId);
+        tipOff.setTargetUserId(targetUserId);
+        tipOff.setBody(body);
+        tipOff.setcTime(System.currentTimeMillis());
+        final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+        tipOff.setDate(fmt.format(tipOff.getcTime()));
+        dsSave.save(tipOff);
+        return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 }
