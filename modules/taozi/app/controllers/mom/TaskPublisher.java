@@ -27,9 +27,15 @@ public class TaskPublisher implements Publisher<Task> {
     public TaskPublisher(String exchangeName, Channel channel) {
         this.exchangeName = exchangeName;
         this.channel = channel;
+
+        // 任务的默认过期时间为1天
+        Configuration config = Configuration.root().getConfig("mom");
+        int defaultExpiration = config.getInt("messageExpiration", 24 * 3600 * 1000);
+
         this.properties = new AMQP.BasicProperties.Builder()
                 .contentEncoding("utf-8")
                 .contentType("application/json")
+                .expiration(defaultExpiration + "")
                 .build();
     }
 
@@ -38,23 +44,43 @@ public class TaskPublisher implements Publisher<Task> {
         publishTask(msg, routingKey);
     }
 
+    public void publish(Task task) {
+        publishTask(task, DEFAULT_ROUTING);
+    }
+
+    public void publish(Task task, String routingKey, int expiration) {
+        // 消息属性拼接
+        AMQP.BasicProperties basicProperties = new AMQP.BasicProperties.Builder()
+                .contentEncoding("utf-8")
+                .contentType("application/json")
+                .expiration(expiration + "")
+                .build();
+
+        try {
+            channel.basicPublish(exchangeName, routingKey, basicProperties, task.toBytes());
+            logger.info("task publishMessage: " + exchangeName + " " + routingKey + " " + task.getTaskId() +
+                    " " + task.getTaskName() + " " + expiration);
+        } catch (Exception e) {
+            logger.error("error curried while publishing message {exchangeName=" + exchangeName + ",routingKey="
+                    + routingKey + ",expiration=" + expiration + "}");
+        }
+    }
+
     /**
      * 向celery发布任务，但是不关心任务执行的结果
      * @param task 需要发布的任务
      * @param routingKey 任务对应的路由信息，用于worker的识别和筛选
      */
-    public void publishTask(Task task, String routingKey) {
+    private void publishTask(Task task, String routingKey) {
         try {
             channel.basicPublish(exchangeName, routingKey, properties, task.toBytes());
-            logger.info("task publishMessage: " + exchangeName + " " + routingKey + " " + task.getTaskId() + " " + task.getTaskName());
+            logger.info("task publishMessage: " + exchangeName + " " + routingKey + " " + task.getTaskId() + " "
+                    + task.getTaskName());
 
         } catch (Exception e) {
-            logger.error("error curried while publishing message {exchangeName=" + exchangeName + ",routingKey=" + routingKey + "}");
+            logger.error("error curried while publishing message {exchangeName=" + exchangeName + ",routingKey="
+                    + routingKey + "}");
         }
-    }
-
-    public void publishTask(Task task) {
-        publishTask(task, DEFAULT_ROUTING);
     }
 
     /**

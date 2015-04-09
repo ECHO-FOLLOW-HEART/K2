@@ -4,6 +4,7 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import play.Configuration;
 
 import java.io.IOException;
 
@@ -22,9 +23,15 @@ public class MessagePublisher implements Publisher<Message> {
     public MessagePublisher(String exchangeName, Channel channel) {
         this.exchangeName = exchangeName;
         this.channel = channel;
+
+        // 消息的默认过期时间为1天
+        Configuration config = Configuration.root().getConfig("mom");
+        int defaultExpiration = config.getInt("messageExpiration", 24 * 3600 * 1000);
+
         this.properties = new AMQP.BasicProperties.Builder()
                 .contentEncoding("utf-8")
                 .contentType("application/json")
+                .expiration(defaultExpiration + "")
                 .build();
     }
 
@@ -49,6 +56,22 @@ public class MessagePublisher implements Publisher<Message> {
             logger.info("msg publishMessage: " + exchangeName + " " + routingKey);
         } catch (Exception e) {
             logger.error("error curried while publishing message");
+        }
+    }
+
+    public void publish(Message msg, String routingKey, int expiration) {
+        // 拼装消息属性
+        AMQP.BasicProperties basicProperties = new AMQP.BasicProperties.Builder()
+                .contentEncoding("utf-8")
+                .contentType("application/json")
+                .expiration(expiration + "")
+                .build();
+
+        try {
+            channel.basicPublish(exchangeName, routingKey, basicProperties, msg.toBytes());
+            logger.info("msg publishMessage: " + exchangeName + " " + routingKey + " " + expiration);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

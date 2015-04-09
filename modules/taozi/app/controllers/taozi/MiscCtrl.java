@@ -7,7 +7,6 @@ import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import controllers.mom.*;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -31,7 +30,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.bson.types.ObjectId;
-import org.json.JSONObject;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
@@ -51,7 +49,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.TimeoutException;
 
 /**
  * 其它
@@ -509,22 +506,22 @@ public class MiscCtrl extends Controller {
     public static Result getColumns(@Key(tag = "type") String type, @Key(tag = "id") String id)
             throws AizouException {
 
-        // 通过消息队列发送消息
-        MessagePublisher publisher = PublisherFactory.getInstance().getMessagePublisher("taozi.default.exchange");
-        publisher.publish(JsonMessage.obtainWithTimeStamp().with("title", "this is title"));
-        publisher.close();
-
-        //通过任务队列发布任务
-        Task something = SimpleTask.newTask("tasks.add", new Object[]{3, 4});
-        TaskPublisher taskPublisher = PublisherFactory.getInstance().getTaskPublisher("celery");
-        TaskPublisher.ResultCollector collector = taskPublisher.publishWithResult(something, "celery");
-        JSONObject result = null;
-        try {
-            result = collector.getJsonResult(3000);
-        } catch (TimeoutException e) {
-            play.Logger.info("timeout");
-        }
-        taskPublisher.close();
+//        // 通过消息队列发送消息
+//        MessagePublisher publisher = PublisherFactory.getInstance().getMessagePublisher("taozi.default.exchange");
+//        publisher.publish(JsonMessage.obtainWithTimeStamp().with("title", "this is title"));
+//        publisher.close();
+//
+//        //通过任务队列发布任务
+//        Task something = SimpleTask.newTask("tasks.add", new Object[]{3, 4});
+//        TaskPublisher taskPublisher = PublisherFactory.getInstance().getTaskPublisher("celery");
+//        TaskPublisher.ResultCollector collector = taskPublisher.publishWithResult(something, "celery");
+//        JSONObject result = null;
+//        try {
+//            result = collector.getJsonResult(3000);
+//        } catch (TimeoutException e) {
+//            play.Logger.info("timeout");
+//        }
+//        taskPublisher.close();
 
 
         Configuration config = Configuration.root();

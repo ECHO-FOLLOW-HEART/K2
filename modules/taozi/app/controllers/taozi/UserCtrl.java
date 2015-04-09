@@ -10,6 +10,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import asynchronous.AsyncExecutor;
+import controllers.mom.JsonMessage;
+import controllers.mom.MessagePublisher;
+import controllers.mom.PublisherFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -294,19 +297,19 @@ public class UserCtrl extends Controller {
         String passwd = req.get("pwd").asText();
         String loginName = req.get("loginName").asText();
 
+        // 获取手机号码
         PhoneEntity telEntry = null;
         try {
             telEntry = PhoneParserFactory.newInstance().parse(loginName);
         } catch (IllegalArgumentException ignore) {
         }
-
         ArrayList<Object> valueList = new ArrayList<>();
         valueList.add(loginName);
         if (telEntry != null && telEntry.getPhoneNumber() != null)
             valueList.add(telEntry.getPhoneNumber());
 
+        // 检查用户是否存在
         UserFormatterOld userFormatter = new UserFormatterOld(true);
-
         Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
                 userFormatter.getFilteredFields(), 0, 1);
         if (!itr.hasNext())
@@ -328,6 +331,17 @@ public class UserCtrl extends Controller {
                 Map.Entry<String, JsonNode> entry = it.next();
                 info.put(entry.getKey(), entry.getValue());
             }
+
+            // 通过消息队列发布登陆信息
+            MessagePublisher publisher = PublisherFactory.getInstance().getMessagePublisher("exchange.taozi");
+            String routingKey = "user.login";
+            publisher.publish(JsonMessage.obtainWithTimeStamp()
+                    .with("loginName", loginName)
+                    .with("tel", userInfo.getTel())
+                    .with("userId", userInfo.getUserId()),
+                    routingKey);
+            publisher.close();
+
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } else
             return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
