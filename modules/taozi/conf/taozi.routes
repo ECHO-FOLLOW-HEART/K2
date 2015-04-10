@@ -42,6 +42,8 @@ GET           /users/contacts                                    controllers.tao
 POST          /users/:id/memos                                   controllers.taozi.UserCtrl.setUserMemo(id:Long)
 #获取用户个人相册
 GET           /users/:id/albumns                                 controllers.taozi.UserCtrl.getUserAlbums(id:Long)
+#删除用户个人相册
+DELETE        /users/:id/albumns/:picId                          controllers.taozi.UserCtrl.deleteUserAlbums(id: Long,picId: String)
 #添加/删除用户到好友列表
 #POST          /users/blacklist                               controllers.taozi.UserCtrl.setUserBlacklist()
 

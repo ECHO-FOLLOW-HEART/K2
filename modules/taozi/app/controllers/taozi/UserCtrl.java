@@ -25,6 +25,7 @@ import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.F;
@@ -837,6 +838,21 @@ public class UserCtrl extends Controller {
         List<Album> albums = UserAPI.getUserAlbums(id);
         AlbumFormatter formatter = FormatterFactory.getInstance(AlbumFormatter.class, imgWidth);
         return Utils.status(formatter.format(albums));
+    }
+
+    /**
+     * 删除用户相册
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    @CheckUser
+    public static Result deleteUserAlbums(@CheckUser Long id, String picId) throws AizouException {
+
+        ObjectId oid = new ObjectId(picId);
+        UserAPI.deleteUserAlbums(id, oid);
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
     }
 
     /**

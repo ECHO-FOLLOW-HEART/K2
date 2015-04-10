@@ -1645,6 +1645,23 @@ public class UserAPI {
     }
 
     /**
+     * 删除用户图片
+     *
+     * @param userId
+     * @param picId
+     * @throws AizouException
+     */
+    public static void deleteUserAlbums(Long userId, Object picId) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Query<Album> query = dsUser.createQuery(Album.class);
+        query.field(Album.FD_USERID).equal(userId).field(Album.FD_ID).equal(picId).field(Album.FD_TAOZIENA).equal(true);
+
+        UpdateOperations<Album> ops = dsUser.createUpdateOperations(Album.class);
+        ops.set(Album.FD_TAOZIENA, false);
+        dsUser.updateFirst(query, ops);
+    }
+
+    /**
      * 应用图片为头像
      *
      * @param userId

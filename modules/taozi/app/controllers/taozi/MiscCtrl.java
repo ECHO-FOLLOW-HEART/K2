@@ -869,6 +869,7 @@ public class MiscCtrl extends Controller {
         tipOff.setcTime(System.currentTimeMillis());
         final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
         tipOff.setDate(fmt.format(tipOff.getcTime()));
+        tipOff.setTaoziEna(true);
         dsSave.save(tipOff);
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
@@ -881,40 +882,58 @@ public class MiscCtrl extends Controller {
      */
     public static Result getHotSearchs() throws AizouException {
         List<SimpleRef> simpleRefs = new ArrayList<>();
-        SimpleRef simpleRef = new SimpleRef();
-        simpleRef.setId(new ObjectId("5473ccd7b8ce043a64108c46"));
-        simpleRef.setZhName("北京");
-        simpleRefs.add(simpleRef);
-        simpleRef.setId(new ObjectId("5473ccdfb8ce043a64108d97"));
-        simpleRef.setZhName("厦门");
-        simpleRefs.add(simpleRef);
-        simpleRefs.add(simpleRef);
-        simpleRef.setId(new ObjectId("54ae73f85c142faec2f8e9e1"));
-        simpleRef.setZhName("盘飧市");
-        simpleRefs.add(simpleRef);
-        simpleRef.setId(new ObjectId("54ae6b5e5c142faec2f78262"));
-        simpleRef.setZhName("护国寺小吃店");
-        simpleRef.setId(new ObjectId("547bfde9b8ce043eb2d84c3a"));
-        simpleRef.setZhName("曾厝垵");
-        simpleRefs.add(simpleRef);
-        simpleRef.setId(new ObjectId("547bfe30b8ce043eb2d890ff"));
-        simpleRef.setZhName("西湖");
-        simpleRefs.add(simpleRef);
-        simpleRef.setId(new ObjectId("547bfdcab8ce043eb2d82cda"));
-        simpleRef.setZhName("拙政园");
-        simpleRefs.add(simpleRef);
-        simpleRef.setId(new ObjectId("547bfde7b8ce043eb2d84a44"));
-        simpleRef.setZhName("东方明珠");
-        simpleRefs.add(simpleRef);
-        simpleRef.setId(new ObjectId("54ae98c05c142faec2fcd939"));
-        simpleRef.setZhName("东门商业街");
-        simpleRefs.add(simpleRef);
-        simpleRef.setId(new ObjectId(" 54ae93335c142faec2fba606"));
-        simpleRef.setZhName("银泰中心");
-        simpleRefs.add(simpleRef);
+        SimpleRef simpleRef1 = new SimpleRef();
+        simpleRef1.setId(new ObjectId("5473ccd7b8ce043a64108c46"));
+        simpleRef1.setZhName("北京");
+        simpleRefs.add(simpleRef1);
+
+        SimpleRef simpleRef2 = new SimpleRef();
+        simpleRef2.setId(new ObjectId("5473ccdfb8ce043a64108d97"));
+        simpleRef2.setZhName("厦门");
+        simpleRefs.add(simpleRef2);
+
+        SimpleRef simpleRef3 = new SimpleRef();
+        simpleRef3.setId(new ObjectId("54ae73f85c142faec2f8e9e1"));
+        simpleRef3.setZhName("盘飧市");
+        simpleRefs.add(simpleRef3);
+
+        SimpleRef simpleRef4 = new SimpleRef();
+        simpleRef4.setId(new ObjectId("54ae6b5e5c142faec2f78262"));
+        simpleRef4.setZhName("护国寺小吃店");
+        simpleRefs.add(simpleRef4);
+
+        SimpleRef simpleRef5 = new SimpleRef();
+        simpleRef5.setId(new ObjectId("547bfde9b8ce043eb2d84c3a"));
+        simpleRef5.setZhName("曾厝垵");
+        simpleRefs.add(simpleRef5);
+
+        SimpleRef simpleRef6 = new SimpleRef();
+        simpleRef6.setId(new ObjectId("547bfe30b8ce043eb2d890ff"));
+        simpleRef6.setZhName("西湖");
+        simpleRefs.add(simpleRef6);
+
+        SimpleRef simpleRef7 = new SimpleRef();
+        simpleRef7.setId(new ObjectId("547bfdcab8ce043eb2d82cda"));
+        simpleRef7.setZhName("拙政园");
+        simpleRefs.add(simpleRef7);
+
+        SimpleRef simpleRef8 = new SimpleRef();
+        simpleRef8.setId(new ObjectId("547bfde7b8ce043eb2d84a44"));
+        simpleRef8.setZhName("东方明珠");
+        simpleRefs.add(simpleRef8);
+
+        SimpleRef simpleRef9 = new SimpleRef();
+        simpleRef9.setId(new ObjectId("54ae98c05c142faec2fcd939"));
+        simpleRef9.setZhName("东门商业街");
+        simpleRefs.add(simpleRef9);
+
+        SimpleRef simpleRef10 = new SimpleRef();
+        simpleRef10.setId(new ObjectId("54ae93335c142faec2fba606"));
+        simpleRef10.setZhName("银泰中心");
+        simpleRefs.add(simpleRef10);
         SimpleRefFormatter simpleRefFormatter = FormatterFactory.getInstance(SimpleRefFormatter.class);
 
-        return Utils.createResponse(ErrorCode.NORMAL, simpleRefFormatter.format(simpleRefs));
+        return Utils.createResponse(ErrorCode.NORMAL, simpleRefFormatter.formatNode(simpleRefs));
     }
 
 }
