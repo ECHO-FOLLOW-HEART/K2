@@ -122,7 +122,7 @@ public class GuideAPI {
     private static String getUgcGuideTitle(List<Locality> destinations) {
         StringBuffer titlesBuffer = new StringBuffer();
         for (Locality locality : destinations)
-            titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_NEWTON);
+            titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_DASH);
         String titleStr = titlesBuffer.toString();
         titleStr = titleStr.substring(0, titleStr.length() - 1);
         titleStr = "我的" + titleStr + "旅行计划";
@@ -266,13 +266,15 @@ public class GuideAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static List<Guide> getGuideByUser(Long uid, List<String> fieldList, boolean isSelf, int page, int pageSize) throws AizouException {
+    public static List<Guide> getGuideByUser(Long uid, List<String> fieldList, boolean isSelf, String statusStr, int page, int pageSize) throws AizouException {
         Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
         Query<Guide> query = ds.createQuery(Guide.class);
         query.field(Guide.fnUserId).equal(uid).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         // 如果是查看别人的攻略，只能产看公开的攻略
         if (!isSelf)
             query.field(Guide.fnVisibility).equal(Guide.fnVisibilityPublic);
+        if (statusStr != null)
+            query.field(Guide.fnStatus).equal(statusStr);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         query.offset(page * pageSize).limit(pageSize);

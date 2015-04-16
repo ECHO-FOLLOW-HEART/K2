@@ -2,11 +2,11 @@ package controllers.taozi;
 
 import aizou.core.GeoAPI;
 import aizou.core.GuideAPI;
+import aspectj.Key;
+import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import aspectj.Key;
-import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -20,6 +20,7 @@ import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Constants;
 import utils.LogUtils;
 import utils.TaoziDataFilter;
 import utils.Utils;
@@ -127,9 +128,12 @@ public class GuideCtrl extends Controller {
             resultUserId = Long.parseLong(targetIdStr);
             isSelf = false;
         }
+
+        String statusStr = request().getQueryString("status");
+
         List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle, Guide.fnUpdateTime,
-                Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays);
-        List<Guide> guides = GuideAPI.getGuideByUser(resultUserId, fields, isSelf, page, pageSize);
+                Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays,Guide.fnStatus);
+        List<Guide> guides = GuideAPI.getGuideByUser(resultUserId, fields, isSelf,statusStr, page, pageSize);
         List<Guide> result = new ArrayList<>();
         for (Guide guide : guides) {
             guide.images = TaoziDataFilter.getOneImage(guide.images);
@@ -161,7 +165,7 @@ public class GuideCtrl extends Controller {
 
         for (Locality des : dests) {
             sb.append(des.getZhName());
-            sb.append("、");
+            sb.append(Constants.SYMBOL_DASH);
             if (des.getImages() != null)
                 images.addAll(des.getImages());
         }
