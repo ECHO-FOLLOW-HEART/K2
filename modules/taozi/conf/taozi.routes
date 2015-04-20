@@ -21,13 +21,14 @@ POST          /users/check-validation                            controllers.tao
 #获取用户信息
 GET           /users/$uid<[0-9]+>                                controllers.taozi.UserCtrl.getUserProfileById(uid: Long)
 #搜索用户信息
-GET           /users/search                                      controllers.taozi.UserCtrl.searchUser(keyword: String)
+GET           /users/search                                      controllers.taozi.UserCtrl.searchUser(keyword: String,field: String?="GUID")
 #编辑用户信息，修改密码
 POST          /users/$uid<[0-9]+>                                controllers.taozi.UserCtrl.editorUserInfo(uid: Long)
 #根据环信用户名列表取得用户名列表
 POST          /users/easemob                                     controllers.taozi.UserCtrl.getUsersByEasemob()
 #根据通讯录进行用户匹配
 POST          /users/search-by-address-book                      controllers.taozi.UserCtrl.matchAddressBook()
+#根据通讯录进行用户匹配
 
 #----------好友接口----------
 #请求添加好友

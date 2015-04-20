@@ -75,6 +75,9 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
     public static String fnRoles_Common = "common";
 
     @Transient
+    public static String fnRoles_Expert = "expert";
+
+    @Transient
     public static String fnLevel = "level";
 
     @Transient

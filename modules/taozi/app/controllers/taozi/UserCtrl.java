@@ -57,6 +57,7 @@ public class UserCtrl extends Controller {
     public static int CAPTCHA_ACTION_SIGNUP = 1;
     public static int CAPTCHA_ACTION_MODPWD = 2;
     public static int CAPTCHA_ACTION_BANDTEL = 3;
+    public static final String FIELD_GUID = "GUID";
 
     /**
      * 手机注册
@@ -524,31 +525,44 @@ public class UserCtrl extends Controller {
         return Utils.status(ret);
     }
 
+
     /**
      * 获得用户信息
      *
      * @param keyword
      * @return
      */
-    public static Result searchUser(String keyword) throws AizouException {
-        PhoneEntity telEntry = null;
-        try {
-            telEntry = PhoneParserFactory.newInstance().parse(keyword);
-        } catch (IllegalArgumentException ignore) {
-        }
+    public static Result searchUser(String keyword, String field) throws AizouException {
+
 
         ArrayList<Object> valueList = new ArrayList<>();
         valueList.add(keyword);
-        if (telEntry != null && telEntry.getPhoneNumber() != null)
-            valueList.add(telEntry.getPhoneNumber());
+
+        Collection<String> fieldDescList;
+        if (field.equals(FIELD_GUID)) {
+            PhoneEntity telEntry = null;
+            try {
+                telEntry = PhoneParserFactory.newInstance().parse(keyword);
+            } catch (IllegalArgumentException ignore) {
+            }
+            if (telEntry != null && telEntry.getPhoneNumber() != null)
+                valueList.add(telEntry.getPhoneNumber());
+
+            // 设置查询字段
+            fieldDescList = Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,
+                    UserInfo.fnUserId);
+        } else {
+            valueList.add(keyword);
+            fieldDescList = Arrays.asList(field);
+        }
+
 
         UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
         formatter.setSelfView(false);
 
         List<UserInfo> result = new ArrayList<>();
         UserInfo user;
-        for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,
-                UserInfo.fnUserId), valueList, formatter.getFilteredFields(), 0, 20); itr.hasNext(); ) {
+        for (Iterator<UserInfo> itr = UserAPI.searchUser(fieldDescList, valueList, formatter.getFilteredFields(), 0, 20); itr.hasNext(); ) {
             user = itr.next();
             UserAPI.fillUserInfo(user);
             result.add(user);
