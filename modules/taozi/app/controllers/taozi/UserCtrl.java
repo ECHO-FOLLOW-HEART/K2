@@ -591,8 +591,8 @@ public class UserCtrl extends Controller {
             String nickName = req.get("nickName").asText();
             if (Utils.isNumeric(nickName))
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, MsgConstants.NICKNAME_NOT_NUMERIC_MSG, true);
-            //如果昵称不存在
-            if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null)
+            //如果昵称存在
+            if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) != null)
                 return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
             reqMap.put(UserInfo.fnNickName, nickName);
             reqMap.put(UserInfo.fnAlias, nickName.toLowerCase());

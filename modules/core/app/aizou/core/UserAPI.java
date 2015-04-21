@@ -1595,7 +1595,7 @@ public class UserAPI {
             for (Locality track : tracks)
                 tracksIds.add(track.getId());
             List<Locality> completeTracks = LocalityAPI.getLocalityList(tracksIds, Arrays.asList(Locality.FD_ID,
-                    Locality.FD_ZH_NAME, Locality.fnLocation), 0, utils.Constants.MAX_COUNT);
+                    Locality.FD_ZH_NAME, Locality.fnLocation,Locality.fnCountry), 0, utils.Constants.MAX_COUNT);
 
             userInfo.setTracks(completeTracks);
         }

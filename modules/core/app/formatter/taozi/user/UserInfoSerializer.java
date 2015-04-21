@@ -12,10 +12,11 @@ import models.misc.TravelNote;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Transient;
+import sun.awt.SunHints;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.*;
 
 public class UserInfoSerializer extends AizouSerializer<UserInfo> {
 
@@ -64,15 +65,38 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
 
         // List<Locality>
         jgen.writeFieldName(UserInfo.fnTracks);
-        jgen.writeStartArray();
+        jgen.writeStartObject();
         List<Locality> localities = userInfo.getTracks();
+
+        List<Locality> localitiesValue;
         if (localities != null && !localities.isEmpty()) {
-            JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(Locality.class, null);
-            for (Locality locality : localities) {
-                retLocality.serialize(locality, jgen, serializerProvider);
+            Map<String, List<Locality>> map = transLocalitiesByCountry(localities);
+            for (Map.Entry<String, List<Locality>> entry : map.entrySet()) {
+
+                jgen.writeFieldName(entry.getKey());
+                jgen.writeStartArray();
+                localitiesValue = entry.getValue();
+                if (localitiesValue != null && !localitiesValue.isEmpty()) {
+                    JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(Locality.class, null);
+                    for (Locality locality : localitiesValue) {
+                        retLocality.serialize(locality, jgen, serializerProvider);
+                    }
+                }
+                jgen.writeEndArray();
             }
         }
-        jgen.writeEndArray();
+        jgen.writeEndObject();
+
+//        jgen.writeFieldName(UserInfo.fnTracks);
+//        jgen.writeStartArray();
+//        List<Locality> localities = userInfo.getTracks();
+//        if (localities != null && !localities.isEmpty()) {
+//            JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(Locality.class, null);
+//            for (Locality locality : localities) {
+//                retLocality.serialize(locality, jgen, serializerProvider);
+//            }
+//        }
+//        jgen.writeEndArray();
 
         // List<TravelNote>
 //        jgen.writeFieldName(UserInfo.fnTravelNotes);
@@ -93,5 +117,28 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
             jgen.writeStringField("memo", getString(userInfo.getMemo()));
 
         jgen.writeEndObject();
+    }
+
+    private Map<String, List<Locality>> transLocalitiesByCountry(List<Locality> localities) {
+        Map<String, List<Locality>> map = new HashMap<>();
+        String country;
+        List<Locality> locs;
+        for (Locality loc : localities) {
+            if (loc.getCountry() == null || loc.getCountry().getZhName() == null)
+                country = "外国";
+            else
+                country = loc.getCountry().getZhName();
+            if (map.get(country) == null)
+                map.put(country, Arrays.asList(loc));
+            else {
+                locs = new ArrayList<>();
+                locs.addAll(map.get(country));
+                locs.add(loc);
+                map.put(country, locs);
+            }
+
+
+        }
+        return map;
     }
 }
