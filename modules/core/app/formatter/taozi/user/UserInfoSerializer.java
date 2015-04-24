@@ -70,7 +70,7 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
 
         List<Locality> localitiesValue;
         if (localities != null && !localities.isEmpty()) {
-            Map<String, List<Locality>> map = transLocalitiesByCountry(localities);
+            Map<String, List<Locality>> map = TaoziDataFilter.transLocalitiesByCountry(localities);
             for (Map.Entry<String, List<Locality>> entry : map.entrySet()) {
 
                 jgen.writeFieldName(entry.getKey());
@@ -119,26 +119,5 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
         jgen.writeEndObject();
     }
 
-    private Map<String, List<Locality>> transLocalitiesByCountry(List<Locality> localities) {
-        Map<String, List<Locality>> map = new HashMap<>();
-        String country;
-        List<Locality> locs;
-        for (Locality loc : localities) {
-            if (loc.getCountry() == null || loc.getCountry().getZhName() == null)
-                country = "外国";
-            else
-                country = loc.getCountry().getZhName();
-            if (map.get(country) == null)
-                map.put(country, Arrays.asList(loc));
-            else {
-                locs = new ArrayList<>();
-                locs.addAll(map.get(country));
-                locs.add(loc);
-                map.put(country, locs);
-            }
 
-
-        }
-        return map;
-    }
 }

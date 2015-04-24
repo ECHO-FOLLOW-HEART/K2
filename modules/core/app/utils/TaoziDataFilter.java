@@ -1,12 +1,11 @@
 package utils;
 
+import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 import models.poi.Restaurant;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by topy on 2015/1/13.
@@ -131,5 +130,28 @@ public class TaoziDataFilter {
                 break;
         }
         return result;
+    }
+
+    public static Map<String, List<Locality>> transLocalitiesByCountry(List<Locality> localities) {
+        Map<String, List<Locality>> map = new HashMap<>();
+        String country;
+        List<Locality> locs;
+        for (Locality loc : localities) {
+            if (loc.getCountry() == null || loc.getCountry().getZhName() == null)
+                country = "外国";
+            else
+                country = loc.getCountry().getZhName();
+            if (map.get(country) == null)
+                map.put(country, Arrays.asList(loc));
+            else {
+                locs = new ArrayList<>();
+                locs.addAll(map.get(country));
+                locs.add(loc);
+                map.put(country, locs);
+            }
+
+
+        }
+        return map;
     }
 }

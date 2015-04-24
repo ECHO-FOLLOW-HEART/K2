@@ -1595,7 +1595,7 @@ public class UserAPI {
             for (Locality track : tracks)
                 tracksIds.add(track.getId());
             List<Locality> completeTracks = LocalityAPI.getLocalityList(tracksIds, Arrays.asList(Locality.FD_ID,
-                    Locality.FD_ZH_NAME, Locality.fnLocation,Locality.fnCountry), 0, utils.Constants.MAX_COUNT);
+                    Locality.FD_ZH_NAME, Locality.fnLocation, Locality.fnCountry), 0, utils.Constants.MAX_COUNT);
 
             userInfo.setTracks(completeTracks);
         }
@@ -1661,6 +1661,23 @@ public class UserAPI {
         dsUser.updateFirst(query, ops);
     }
 
+    public static List<UserInfo> getExpertUserByTracks(List<ObjectId> ids, String role, Collection<String> fieldList) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+
+        Query<UserInfo> query = dsUser.createQuery(UserInfo.class);
+        List<Locality> localities = new ArrayList<>();
+        Locality locality;
+        for (ObjectId id : ids) {
+            locality = new Locality();
+            locality.setId(id);
+            localities.add(locality);
+        }
+        query.field(UserInfo.fnTracks).hasAnyOf(localities).field(UserInfo.fnRoles).hasThisOne(role);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        return query.asList();
+
+    }
     /**
      * 应用图片为头像
      *

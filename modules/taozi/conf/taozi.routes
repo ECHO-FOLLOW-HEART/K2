@@ -45,6 +45,11 @@ POST          /users/:id/memos                                   controllers.tao
 GET           /users/:id/albumns                                 controllers.taozi.UserCtrl.getUserAlbums(id:Long)
 #删除用户个人相册
 DELETE        /users/:id/albumns/:picId                          controllers.taozi.UserCtrl.deleteUserAlbums(id: Long,picId: String)
+#获取所有达人的足迹
+GET           /users/:userRole/tracks                            controllers.taozi.UserCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
+#获取足迹包含某目的地的所有达人
+POST          /users/:userRole/tracks/users                      controllers.taozi.UserCtrl.getExpertUserByTracks(userRole:String)
+
 #添加/删除用户到好友列表
 #POST          /users/blacklist                               controllers.taozi.UserCtrl.setUserBlacklist()
 

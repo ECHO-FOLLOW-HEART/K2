@@ -1,5 +1,6 @@
 package controllers.taozi;
 
+import aizou.core.LocalityAPI;
 import aizou.core.UserAPI;
 import aspectj.CheckUser;
 import aspectj.Key;
@@ -13,12 +14,17 @@ import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
+import formatter.taozi.geo.SimpleLocalityFormatter;
 import formatter.taozi.misc.AlbumFormatter;
 import formatter.taozi.user.ContactFormatter;
 import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatterOld;
 import formatter.taozi.user.UserInfoFormatter;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
+import models.geo.Locality;
+import models.geo.RmdLocality;
+import models.geo.RmdProvince;
 import models.misc.Album;
 import models.misc.Token;
 import models.user.Contact;
@@ -32,6 +38,7 @@ import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Constants;
 import utils.MsgConstants;
 import utils.TaoziDataFilter;
 import utils.Utils;
@@ -539,6 +546,7 @@ public class UserCtrl extends Controller {
         valueList.add(keyword);
 
         Collection<String> fieldDescList;
+        // 如果是按照电话、昵称或用户ID查询
         if (field.equals(FIELD_GUID)) {
             PhoneEntity telEntry = null;
             try {
@@ -869,6 +877,74 @@ public class UserCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
     }
 
+    /**
+     * 取得所有达人用户去过的目的地
+     * <p>
+     * 此处type未使用，以备扩展
+     *
+     * @param type
+     * @return
+     * @throws AizouException
+     */
+    public static Result getLocalitiesOfExpertUserTracks(String type) throws AizouException {
+
+        List<Locality> locs;
+        Map<ObjectId, Locality> map = new HashMap<>();
+        for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnRoles), Arrays.asList(UserInfo.fnRoles_Expert), Arrays.asList(UserInfo.fnTracks, UserInfo.FD_ID), 0, Constants.MAX_COUNT); itr.hasNext(); ) {
+            locs = itr.next().getTracks();
+            for (Locality loc : locs)
+                map.put(loc.getId(), loc);
+        }
+        List<ObjectId> locIds = new ArrayList<>();
+        locIds.addAll(map.keySet());
+        List<Locality> result = LocalityAPI.getLocalityList(locIds, Arrays.asList(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.fnCountry), 0, Constants.MAX_COUNT);
+        ObjectNode res = Json.newObject();
+        Map<String, List<Locality>> resultMap = TaoziDataFilter.transLocalitiesByCountry(result);
+
+        SimpleLocalityFormatter fmt = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
+
+        for (Map.Entry<String, List<Locality>> entry : resultMap.entrySet())
+            res.put(entry.getKey(), fmt.formatNode(sortLocalityByPinyin(entry.getValue())));
+
+        return Utils.createResponse(ErrorCode.NORMAL, res);
+    }
+
+    /**
+     * 根据拼音排序（未完成）
+     *
+     * @param rmdProvinceList
+     */
+    private static List<Locality> sortLocalityByPinyin(List<Locality> rmdProvinceList) {
+
+        Collections.sort(rmdProvinceList, new Comparator<Locality>() {
+            public int compare(Locality arg0, Locality arg1) {
+                return arg0.getZhName().compareTo(arg1.getZhName()) > 0 ? 1 : -1;
+            }
+        });
+
+        return rmdProvinceList;
+    }
+
+
+    public static Result getExpertUserByTracks(String type) throws AizouException {
+        JsonNode data = request().body().asJson();
+        Iterator<JsonNode> iterator = data.get("locId").iterator();
+        List<ObjectId> ids = new ArrayList<>();
+        while (iterator.hasNext()) {
+            ids.add(new ObjectId(iterator.next().asText()));
+        }
+
+        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+        formatter.setSelfView(false);
+
+        List<String> fields = Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnEasemobUser, UserInfo.fnUserId, UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnTel,
+                UserInfo.fnDialCode, UserInfo.fnRoles);
+        List<UserInfo> usersInfo = UserAPI.getExpertUserByTracks(ids, type, fields);
+
+        return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));
+
+    }
     /**
      * 应用图片为头像
      *
