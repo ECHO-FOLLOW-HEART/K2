@@ -1,35 +1,46 @@
 package controllers.taozi;
 
+import aizou.core.LocalityAPI;
 import aizou.core.UserAPI;
 import aspectj.CheckUser;
 import aspectj.Key;
 import aspectj.RemoveOcsCache;
 import aspectj.UsingOcsCache;
+import asynchronous.AsyncExecutor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
-import asynchronous.AsyncExecutor;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
+import formatter.taozi.geo.SimpleLocalityFormatter;
+import formatter.taozi.misc.AlbumFormatter;
 import formatter.taozi.user.ContactFormatter;
 import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatterOld;
 import formatter.taozi.user.UserInfoFormatter;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
+import models.geo.Locality;
+import models.geo.RmdLocality;
+import models.geo.RmdProvince;
+import models.misc.Album;
 import models.misc.Token;
 import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
 import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Constants;
 import utils.MsgConstants;
+import utils.TaoziDataFilter;
 import utils.Utils;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParser;
@@ -37,6 +48,8 @@ import utils.phone.PhoneParserFactory;
 
 import java.io.IOException;
 import java.net.URL;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,6 +64,7 @@ public class UserCtrl extends Controller {
     public static int CAPTCHA_ACTION_SIGNUP = 1;
     public static int CAPTCHA_ACTION_MODPWD = 2;
     public static int CAPTCHA_ACTION_BANDTEL = 3;
+    public static final String FIELD_GUID = "GUID";
 
     /**
      * 手机注册
@@ -425,6 +439,7 @@ public class UserCtrl extends Controller {
                 //如果第三方昵称为纯数字，则添加后缀
                 if (Utils.isNumeric(us.getNickName())) {
                     us.setNickName(us.getNickName() + "_桃子");
+                    us.setAlias(Arrays.asList(us.getNickName().toLowerCase()));
                 }
                 //如果第三方昵称已被其他用户使用，则添加后缀
                 nickDuplicateRemoval(us);
@@ -463,6 +478,7 @@ public class UserCtrl extends Controller {
         int size = uidStr.length();
         String doc = uidStr.substring(size - 4, size - 1);
         u.setNickName(u.getNickName() + "_" + doc);
+        u.setAlias(Arrays.asList(u.getNickName().toLowerCase()));
     }
 
     private static String getAccessUrl(String urlDomain, String urlAccess, String appid, String secret, String code) {
@@ -516,32 +532,50 @@ public class UserCtrl extends Controller {
         return Utils.status(ret);
     }
 
+
     /**
      * 获得用户信息
      *
      * @param keyword
      * @return
      */
-    public static Result searchUser(String keyword) throws AizouException {
-        PhoneEntity telEntry = null;
-        try {
-            telEntry = PhoneParserFactory.newInstance().parse(keyword);
-        } catch (IllegalArgumentException ignore) {
-        }
+    public static Result searchUser(String keyword, String field) throws AizouException {
+
 
         ArrayList<Object> valueList = new ArrayList<>();
         valueList.add(keyword);
-        if (telEntry != null && telEntry.getPhoneNumber() != null)
-            valueList.add(telEntry.getPhoneNumber());
+
+        Collection<String> fieldDescList;
+        // 如果是按照电话、昵称或用户ID查询
+        if (field.equals(FIELD_GUID)) {
+            PhoneEntity telEntry = null;
+            try {
+                telEntry = PhoneParserFactory.newInstance().parse(keyword);
+            } catch (IllegalArgumentException ignore) {
+            }
+            if (telEntry != null && telEntry.getPhoneNumber() != null)
+                valueList.add(telEntry.getPhoneNumber());
+
+            // 设置查询字段
+            fieldDescList = Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,
+                    UserInfo.fnUserId);
+        } else {
+            valueList.add(keyword);
+            fieldDescList = Arrays.asList(field);
+        }
+
 
         UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
         formatter.setSelfView(false);
 
         List<UserInfo> result = new ArrayList<>();
-        for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,
-                UserInfo.fnUserId), valueList, formatter.getFilteredFields(), 0, 20); itr.hasNext(); ) {
-            result.add(itr.next());
+        UserInfo user;
+        for (Iterator<UserInfo> itr = UserAPI.searchUser(fieldDescList, valueList, formatter.getFilteredFields(), 0, 20); itr.hasNext(); ) {
+            user = itr.next();
+            UserAPI.fillUserInfo(user);
+            result.add(user);
         }
+
         return Utils.status(formatter.format(result));
     }
 
@@ -552,44 +586,50 @@ public class UserCtrl extends Controller {
      * @return
      */
     @CheckUser
-    public static Result editorUserInfo(@CheckUser Long userId) throws AizouException {
+    public static Result editorUserInfo(@CheckUser Long userId) throws AizouException, IOException, ParseException {
         JsonNode req = request().body().asJson();
         if (userId == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalide UserId");
 
-        // TODO 这里的做法是：将用户信息整体读出，修改，然后save。这种做法的效率较低。
-        UserInfo userInfor = UserAPI.getUserInfo(userId);
-        if (userInfor == null) {
-            return Utils.createResponse(ErrorCode.DATA_NOT_EXIST, String.format("Not exist user id: %d.", userId));
-        }
+        Map<String, Object> reqMap = new HashMap<>();
+
+        reqMap.put(UserInfo.fnUserId, userId);
         //修改昵称
         if (req.has("nickName")) {
             String nickName = req.get("nickName").asText();
-            if (Utils.isNumeric(nickName)) {
+            if (Utils.isNumeric(nickName))
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, MsgConstants.NICKNAME_NOT_NUMERIC_MSG, true);
-            }
-            //如果昵称不存在
-            if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) == null) {
-                userInfor.setNickName(nickName);
-                userInfor.setAlias(Arrays.asList(nickName.toLowerCase()));
-            } else
+            //如果昵称存在
+            if (UserAPI.getUserByField(UserInfo.fnNickName, nickName) != null)
                 return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.NICKNAME_EXIST_MSG, true);
+            reqMap.put(UserInfo.fnNickName, nickName);
+            reqMap.put(UserInfo.fnAlias, nickName.toLowerCase());
         }
-        //修改签名
+        SimpleDateFormat timeFmt = new SimpleDateFormat("yyyy-MM-dd");
+        //签名
         if (req.has("signature"))
-            userInfor.setSignature(req.get("signature").asText());
-        //修改性别
-        if (req.has("gender")) {
-            String genderStr = req.get("gender").asText();
-            if ((!genderStr.equals("F")) && (!genderStr.equals("M"))) {
-                Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid gender");
-            }
-            userInfor.setGender(genderStr);
-        }
-        //修改头像
+            reqMap.put(UserInfo.fnSignature, req.get("signature").asText());
+        //性别
+        if (req.has("gender"))
+            reqMap.put(UserInfo.fnGender, req.get("gender").asText());
+        //头像
         if (req.has("avatar"))
-            userInfor.setAvatar(req.get("avatar").asText());
-        UserAPI.saveUserInfo(userInfor);
+            reqMap.put(UserInfo.fnAvatar, req.get("avatar").asText());
+        //旅行状态
+        if (req.has("travelStatus"))
+            reqMap.put(UserInfo.fnTravelStatus, req.get("travelStatus").asText());
+        if (req.has("birthday"))
+            reqMap.put(UserInfo.fnBirthday, timeFmt.parse(req.get("birthday").asText()));
+        if (req.has("zodiac"))
+            reqMap.put(UserInfo.fnZodiac, TaoziDataFilter.getZodiac(req.get("zodiac").asText()));
+        if (req.has("residence"))
+            reqMap.put(UserInfo.fnResidence, req.get("residence").asText());
+        // 足迹
+        if (req.has("tracks"))
+            reqMap.put(UserInfo.fnTracks, req.get("tracks").elements());
+        if (req.has("travelNotes"))
+            reqMap.put(UserInfo.fnTravelNotes, req.get("travelNotes").elements());
+        UserAPI.updateUserInfo(reqMap);
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
@@ -682,10 +722,14 @@ public class UserCtrl extends Controller {
         if (list == null)
             list = new ArrayList<>();
 
-        // TODO 需要启用新的formatter
+        // 查询备注信息
+        list = UserAPI.addUserMemo(userId, list);
+        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+        formatter.setSelfView(false);
+
         List<JsonNode> nodelist = new ArrayList<>();
         for (UserInfo userInfo : list) {
-            nodelist.add(new UserFormatterOld(false).format(userInfo));
+            nodelist.add(formatter.formatNode(userInfo));
         }
 
         ObjectNode node = Json.newObject();
@@ -702,6 +746,7 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
         JsonNode emList;
         List<String> emNameList = new ArrayList<>();
+        long selfId = Integer.parseInt(request().getHeader("UserId"));
 
         emList = req.get("easemob");
         if (null != emList && emList.isArray() && emList.findValues("easemob") != null) {
@@ -712,6 +757,8 @@ public class UserCtrl extends Controller {
         List<String> fieldList = Arrays.asList(UserInfo.fnUserId, UserInfo.fnNickName, UserInfo.fnAvatar,
                 UserInfo.fnGender, UserInfo.fnEasemobUser, UserInfo.fnSignature);
         List<UserInfo> list = UserAPI.getUserByEaseMob(emNameList, fieldList);
+
+        list = UserAPI.addUserMemo(selfId, list);
         List<JsonNode> nodeList = new ArrayList<>();
         for (UserInfo userInfo : list) {
             nodeList.add(new UserFormatterOld(false).format(userInfo));
@@ -780,36 +827,138 @@ public class UserCtrl extends Controller {
         return Utils.status(formatter.format(contacts));
     }
 
-    private static boolean isFriend(Long aFriend, List<UserInfo> friends) {
-        if (friends == null)
-            return false;
-        for (UserInfo userInfo : friends) {
-            if (userInfo.getUserId().equals(aFriend))
-                return true;
+    /**
+     * 添加用户的备注信息
+     *
+     * @param id
+     * @return
+     * @throws
+     */
+    public static Result setUserMemo(Long id) throws AizouException {
+
+        String selfId = request().getHeader("userId");
+        String memo = request().body().asJson().get("memo").asText();
+        UserAPI.setUserMemo(Long.parseLong(selfId), id, memo);
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
+
+    }
+
+    /**
+     * 取得用户的相册
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    @CheckUser
+    public static Result getUserAlbums(@CheckUser Long id) throws AizouException {
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+        List<Album> albums = UserAPI.getUserAlbums(id);
+        AlbumFormatter formatter = FormatterFactory.getInstance(AlbumFormatter.class, imgWidth);
+        return Utils.status(formatter.format(albums));
+    }
+
+    /**
+     * 删除用户相册
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    @CheckUser
+    public static Result deleteUserAlbums(@CheckUser Long id, String picId) throws AizouException {
+
+        ObjectId oid = new ObjectId(picId);
+        UserAPI.deleteUserAlbums(id, oid);
+        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
+    }
+
+    /**
+     * 取得所有达人用户去过的目的地
+     * <p>
+     * 此处type未使用，以备扩展
+     *
+     * @param type
+     * @return
+     * @throws AizouException
+     */
+    public static Result getLocalitiesOfExpertUserTracks(String type) throws AizouException {
+
+        List<Locality> locs;
+        Map<ObjectId, Locality> map = new HashMap<>();
+        for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnRoles), Arrays.asList(UserInfo.fnRoles_Expert), Arrays.asList(UserInfo.fnTracks, UserInfo.FD_ID), 0, Constants.MAX_COUNT); itr.hasNext(); ) {
+            locs = itr.next().getTracks();
+            for (Locality loc : locs)
+                map.put(loc.getId(), loc);
         }
-        return false;
+        List<ObjectId> locIds = new ArrayList<>();
+        locIds.addAll(map.keySet());
+        List<Locality> result = LocalityAPI.getLocalityList(locIds, Arrays.asList(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.fnCountry), 0, Constants.MAX_COUNT);
+        ObjectNode res = Json.newObject();
+        Map<String, List<Locality>> resultMap = TaoziDataFilter.transLocalitiesByCountry(result);
+
+        SimpleLocalityFormatter fmt = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
+
+        for (Map.Entry<String, List<Locality>> entry : resultMap.entrySet())
+            res.put(entry.getKey(), fmt.formatNode(sortLocalityByPinyin(entry.getValue())));
+
+        return Utils.createResponse(ErrorCode.NORMAL, res);
+    }
+
+    /**
+     * 根据拼音排序（未完成）
+     *
+     * @param rmdProvinceList
+     */
+    private static List<Locality> sortLocalityByPinyin(List<Locality> rmdProvinceList) {
+
+        Collections.sort(rmdProvinceList, new Comparator<Locality>() {
+            public int compare(Locality arg0, Locality arg1) {
+                return arg0.getZhName().compareTo(arg1.getZhName()) > 0 ? 1 : -1;
+            }
+        });
+
+        return rmdProvinceList;
     }
 
 
-//    /**
-//     * 添加用户的备注信息
-//     *
-//     * @param id
-//     * @return
-//     * @throws TravelPiException
-//     */
-//    public static Result setUserMemo(Integer id) throws TravelPiException {
-//        try {
-//            String selfId = request().getHeader("userId");
-//            String memo = request().body().asJson().get("memo").asText();
-//            UserAPI.setUserMemo(Integer.parseInt(selfId), id, memo);
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-//        } catch (TravelPiException e) {
-//            return Utils.createResponse(e.getErrCode(), Json.toJson(e.getMessage()));
-//        } catch (NullPointerException | NumberFormatException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-//        }
+    public static Result getExpertUserByTracks(String type) throws AizouException {
+        JsonNode data = request().body().asJson();
+        Iterator<JsonNode> iterator = data.get("locId").iterator();
+        List<ObjectId> ids = new ArrayList<>();
+        while (iterator.hasNext()) {
+            ids.add(new ObjectId(iterator.next().asText()));
+        }
+
+        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+        formatter.setSelfView(false);
+
+        List<String> fields = Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnEasemobUser, UserInfo.fnUserId, UserInfo.fnNickName,
+                UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnTel,
+                UserInfo.fnDialCode, UserInfo.fnRoles);
+        List<UserInfo> usersInfo = UserAPI.getExpertUserByTracks(ids, type, fields);
+
+        return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));
+
+    }
+    /**
+     * 应用图片为头像
+     *
+     * @return
+     * @throws AizouException
+     */
+//    public static Result setAlbumsToAvatar() throws AizouException {
+//        String action = request().body().asJson().get("action").asText();
+//        String selfId = request().getHeader("userId");
+//        String url = request().body().asJson().get("url").asText();
+//        UserAPI.setAlbumsToAvatar(Long.parseLong(selfId), url);
+//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
 //    }
+
 
 //    /**
 //     * 获得用户的黑名单列表

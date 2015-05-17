@@ -2,11 +2,11 @@ package controllers.taozi;
 
 import aizou.core.GeoAPI;
 import aizou.core.GuideAPI;
+import aspectj.Key;
+import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import aspectj.Key;
-import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -20,6 +20,7 @@ import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.Constants;
 import utils.LogUtils;
 import utils.TaoziDataFilter;
 import utils.Utils;
@@ -114,10 +115,25 @@ public class GuideCtrl extends Controller {
         String tmp = request().getHeader("UserId");
         if (tmp == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
-        Integer selfId = Integer.parseInt(tmp);
+        Long selfId = Long.parseLong(tmp);
+
+        String targetIdStr = request().getQueryString("userId");
+        Long resultUserId;
+        boolean isSelf;
+        // 判断是查询自己的攻略还是他人的攻略
+        if (targetIdStr == null) {
+            resultUserId = selfId;
+            isSelf = true;
+        } else {
+            resultUserId = Long.parseLong(targetIdStr);
+            isSelf = false;
+        }
+
+        String statusStr = request().getQueryString("status");
+
         List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle, Guide.fnUpdateTime,
-                Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays);
-        List<Guide> guides = GuideAPI.getGuideByUser(selfId, fields, page, pageSize);
+                Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays,Guide.fnStatus);
+        List<Guide> guides = GuideAPI.getGuideByUser(resultUserId, fields, isSelf,statusStr, page, pageSize);
         List<Guide> result = new ArrayList<>();
         for (Guide guide : guides) {
             guide.images = TaoziDataFilter.getOneImage(guide.images);
@@ -149,7 +165,7 @@ public class GuideCtrl extends Controller {
 
         for (Locality des : dests) {
             sb.append(des.getZhName());
-            sb.append("、");
+            sb.append(Constants.SYMBOL_DASH);
             if (des.getImages() != null)
                 images.addAll(des.getImages());
         }
@@ -175,7 +191,7 @@ public class GuideCtrl extends Controller {
         ObjectId guideId = new ObjectId(id);
         List<String> fields = new ArrayList<>();
         Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime,
-                Guide.fnImages);
+                Guide.fnImages,Guide.fnStatus);
         switch (part) {
             case AbstractGuide.fnItinerary:
                 fields.add(Guide.fnItinerary);

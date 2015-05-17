@@ -38,7 +38,14 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
         return (val != null) ? val : null;
     }
 
-    protected Boolean getValue(Boolean val) { return (val != null) ? val : false; }
+    protected Boolean getValue(Boolean val) {
+        return (val != null) ? val : false;
+    }
+
+    protected String getDate(Date val) {
+        DateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd");
+        return (val != null) ? dayFormat.format(val) : null;
+    }
 
     /**
      * 写入ObjectId

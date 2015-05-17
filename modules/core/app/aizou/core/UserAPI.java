@@ -11,11 +11,11 @@ import asynchronous.AsyncExecutor;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.user.UserFormatterOld;
+import models.AizouBaseEntity;
 import models.MorphiaFactory;
-import models.misc.MiscInfo;
-import models.misc.Sequence;
-import models.misc.Token;
-import models.misc.ValidationCode;
+import models.geo.Locality;
+import models.misc.*;
+import models.plan.Plan;
 import models.user.Credential;
 import models.user.OAuthInfo;
 import models.user.Relationship;
@@ -26,6 +26,7 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
+import org.mongodb.morphia.query.QueryImpl;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.F;
@@ -37,6 +38,8 @@ import utils.Utils;
 import javax.crypto.KeyGenerator;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -109,25 +112,96 @@ public class UserAPI {
         return query.get();
     }
 
-//    /**
-//     * 修改用户备注
-//     *
-//     * @param
-//     * @param id
-//     * @param memo
-//     * @throws TravelPiException
-//     */
-//    public static void setUserMemo(Integer selfId, Integer id, String memo) throws TravelPiException {
-//        UserInfo userInfo = getUserInfo(selfId);
-////        Map<Integer, UserInfo> friends = userInfo.friends;
-////        boolean flag = friends.containsKey(id);   //查看是否存在好友
-//
-//        Map<Integer, String> friendRemark = userInfo.remark;
-//        friendRemark.put(id, memo);
-//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-//        ds.save(userInfo);
-//
-//    }
+    /**
+     * 修改用户备注
+     *
+     * @param
+     * @param
+     * @param memo
+     * @throws
+     */
+    public static void setUserMemo(Long selfId, Long targetId, String memo) throws AizouException {
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Relationship> query = ds.createQuery(Relationship.class);
+        String memoTarget;
+        Long userA;
+        Long userB;
+        if (selfId > targetId) {
+            userA = targetId;
+            userB = selfId;
+            memoTarget = Relationship.FD_MemoA;
+        } else {
+            userA = selfId;
+            userB = targetId;
+            memoTarget = Relationship.FD_MemoB;
+        }
+        query.field("userA").equal(userA).field("userB").equal(userB);
+        UpdateOperations<Relationship> ops = ds.createUpdateOperations(Relationship.class);
+        ops.set(memoTarget, memo);
+        ds.update(query, ops);
+    }
+
+    public static List<UserInfo> addUserMemo(Long selfId, List<UserInfo> friends) throws AizouException {
+        List<UserInfo> result = new ArrayList<>();
+        Long friendId;
+        // UserId比自己大的用户列表
+        List<Long> bigUserIds = new ArrayList<>();
+        List<UserInfo> bigUsers = new ArrayList<>();
+        // UserId比自己小的用户列表
+        List<Long> smallUserIds = new ArrayList<>();
+        List<UserInfo> smallUsers = new ArrayList<>();
+        for (UserInfo userInfo : friends) {
+            friendId = userInfo.getUserId();
+            if (selfId < friendId) {
+                bigUserIds.add(userInfo.getUserId());
+                bigUsers.add(userInfo);
+            } else {
+                smallUserIds.add(userInfo.getUserId());
+                smallUsers.add(userInfo);
+            }
+        }
+
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<Relationship> query;
+        if (bigUserIds != null && !bigUserIds.isEmpty()) {
+            query = ds.createQuery(Relationship.class);
+            query.field(Relationship.FD_UserA).equal(selfId).field(Relationship.FD_UserB).in(bigUserIds);
+            List<Relationship> bigUserRs = query.asList();
+            // 比我的userId大的用户，备注取memoB
+            setMomeByDifUser(bigUserRs, bigUsers, Relationship.FD_MemoB);
+        }
+
+        if (smallUserIds != null && !smallUserIds.isEmpty()) {
+            query = ds.createQuery(Relationship.class);
+            query.field(Relationship.FD_UserB).equal(selfId).field(Relationship.FD_UserA).in(smallUserIds);
+            List<Relationship> smallUserRs = query.asList();
+            // 比我的userId小的用户，备注取memoA
+            setMomeByDifUser(smallUserRs, smallUsers, Relationship.FD_MemoA);
+        }
+
+        result.addAll(bigUsers);
+        result.addAll(smallUsers);
+        return result;
+    }
+
+    private static void setMomeByDifUser(List<Relationship> rs, List<UserInfo> friends, String momeTarget) {
+        Map<Long, String> userMemo = new HashMap<>();
+        for (Relationship temp : rs) {
+            if (momeTarget.equals(Relationship.FD_MemoB))
+                userMemo.put(temp.getUserB(), temp.getMemoB());
+            else if (momeTarget.equals(Relationship.FD_MemoA))
+                userMemo.put(temp.getUserA(), temp.getMemoA());
+        }
+        Long userId;
+        for (UserInfo user : friends) {
+            userId = user.getUserId();
+            if (userMemo.get(userId) != null)
+                user.setMemo(userMemo.get(userId));
+        }
+    }
+
+
 //
 //    /**
 //     * 检查用户是否在黑名单中
@@ -318,34 +392,71 @@ public class UserAPI {
         return user;
     }
 
-    public static void updateUserInfo(Http.Request req) throws AizouException {
-        String seq = req.getQueryString("seq");
-        String platform = req.getQueryString("platform");
-        String appVersion = req.getQueryString("v");
-        String uid = req.getQueryString("uid");
+//    public static void updateUserInfo(Http.Request req) throws AizouException {
+//        String seq = req.getQueryString("seq");
+//        String platform = req.getQueryString("platform");
+//        String appVersion = req.getQueryString("v");
+//        String uid = req.getQueryString("uid");
+//
+//        //取得用户信息
+//        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+//        // 优先按照uid进行lookup
+//        UserInfo user;
+//        if (uid != null)
+//            user = dsUser.createQuery(UserInfo.class).field("_id").equal(new ObjectId(uid)).get();
+//        else if (seq != null)
+//            user = dsUser.createQuery(UserInfo.class).field("udid").equal(seq).field("oauthList").equal(null).get();
+//        else
+//            user = null;
+//
+//        if (user == null)
+//            return;
+//
+//        //设置更新信息：用户机系统信息、用户App版本、用户设备编号
+//        UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
+//        ops.set("platform", platform);
+//        ops.set("appVersion", appVersion);
+//        ops.set("udid", seq);
+//        ops.set("enabled", true);
+//
+//        dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.getId()), ops);
+//    }
+
+    public static void updateUserInfo(Map<String, Object> reqMap) throws AizouException {
 
         //取得用户信息
         Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-        // 优先按照uid进行lookup
-        UserInfo user;
-        if (uid != null)
-            user = dsUser.createQuery(UserInfo.class).field("_id").equal(new ObjectId(uid)).get();
-        else if (seq != null)
-            user = dsUser.createQuery(UserInfo.class).field("udid").equal(seq).field("oauthList").equal(null).get();
-        else
-            user = null;
-
-        if (user == null)
-            return;
-
-        //设置更新信息：用户机系统信息、用户App版本、用户设备编号
         UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
-        ops.set("platform", platform);
-        ops.set("appVersion", appVersion);
-        ops.set("udid", seq);
-        ops.set("enabled", true);
+        for (Map.Entry<String, Object> entry : reqMap.entrySet()) {
+            String key = entry.getKey();
+            Object value = entry.getValue();
+            if (key.equals(UserInfo.fnTracks))
+                value = strListToObjectIdList((Iterator<JsonNode>) value, Locality.class);
+            else if (key.equals(UserInfo.fnTravelNotes))
+                value = strListToObjectIdList((Iterator<JsonNode>) value, TravelNote.class);
+            ops.set(key, value);
+        }
+        dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(reqMap.get(UserInfo.fnUserId)), ops);
+    }
 
-        dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("_id").equal(user.getId()), ops);
+    private static <T extends AizouBaseEntity> List<T> strListToObjectIdList(Iterator<JsonNode> it, Class<T> cls) {
+        List<T> result = new ArrayList<>();
+        T entity;
+        String oid;
+        ObjectId id;
+        try {
+            Constructor constructor = cls.getConstructor();
+            for (Iterator<JsonNode> iterator = it; iterator.hasNext(); ) {
+                oid = (it.next()).asText();
+                id = new ObjectId(oid);
+                entity = (T) constructor.newInstance();
+                entity.setId(id);
+                result.add(entity);
+            }
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            return null;
+        }
+        return result;
     }
 
     /**
@@ -560,23 +671,6 @@ public class UserAPI {
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Unable to generate UserId sequences.");
         return ret.count;
     }
-
-//    /**
-//     * 注册密码
-//     *
-//     * @param u
-//     * @param pwd
-//     * @return
-//     */
-//    public static void regCredential(UserInfo u, String pwd) throws TravelPiException {
-//        Credential cre = new Credential();
-//        cre.id = u.id;
-//        cre.userId = u.userId;
-//        cre.salt = Utils.getSalt();
-//        if (!pwd.equals(""))
-//            cre.pwdHash = Utils.toSha1Hex(cre.salt + pwd);
-//        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
-//    }
 
     /**
      * 注册密码和环信
@@ -1325,7 +1419,6 @@ public class UserAPI {
         requestBody.put("ext", ext);
         requestBody.put("from", selfInfo.getEasemobUser());
 
-
         // 重新获取token
         Configuration config = Configuration.root().getConfig("easemob");
         String orgName = config.getString("org");
@@ -1435,7 +1528,7 @@ public class UserAPI {
         }
     }
 
-    public static void resetAvater(Integer userId, String avater) throws AizouException {
+    public static void resetAvater(Long userId, String avater) throws AizouException {
         Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
         UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
         ops.set("avatar", avater);
@@ -1491,6 +1584,117 @@ public class UserAPI {
         if (query.iterator().hasNext())
             ds.delete(query);
     }
+
+    /**
+     * 填充用户信息
+     */
+    public static void fillUserInfo(UserInfo userInfo) throws AizouException {
+        List<Locality> tracks = userInfo.getTracks();
+        if (tracks != null) {
+            List<ObjectId> tracksIds = new ArrayList<>();
+            for (Locality track : tracks)
+                tracksIds.add(track.getId());
+            List<Locality> completeTracks = LocalityAPI.getLocalityList(tracksIds, Arrays.asList(Locality.FD_ID,
+                    Locality.FD_ZH_NAME, Locality.fnLocation, Locality.fnCountry), 0, utils.Constants.MAX_COUNT);
+
+            userInfo.setTracks(completeTracks);
+        }
+
+        List<TravelNote> travelNoteList = userInfo.getTravelNotes();
+        if (travelNoteList != null) {
+            List<ObjectId> travelNotesIds = new ArrayList<>();
+            for (TravelNote travelNote : travelNoteList)
+                travelNotesIds.add(travelNote.getId());
+            List<TravelNote> completeTravelNotes = TravelNoteAPI.getNotesByIdList(travelNotesIds, Arrays.asList(TravelNote.FD_ID,
+                    TravelNote.fnTitle, TravelNote.fnImages, TravelNote.fnSummary));
+            userInfo.setTravelNotes(completeTravelNotes);
+        }
+    }
+
+    /**
+     * 添加一张用户上传的图片
+     *
+     * @param userId
+     * @param imageItem
+     * @throws AizouException
+     */
+    public static void addUserAlbum(Long userId, ImageItem imageItem) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+
+        Album entity = new Album();
+        entity.setcTime(System.currentTimeMillis());
+        entity.setImage(imageItem);
+        entity.setUserId(userId);
+        entity.setTaoziEna(true);
+        LogUtils.info(UserAPI.class, "Test Upload CallBack.addUserAlbum", "imageItem" + imageItem.getUrl() + imageItem.getKey());
+        dsUser.save(entity);
+    }
+
+    /**
+     * 取得用户相册的图片
+     *
+     * @param userId
+     * @return
+     * @throws AizouException
+     */
+    public static List<Album> getUserAlbums(Long userId) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Query<Album> query = dsUser.createQuery(Album.class);
+        query.field(Album.FD_USERID).equal(userId).field(Album.FD_TAOZIENA).equal(true);
+        return query.asList();
+    }
+
+    /**
+     * 删除用户图片
+     *
+     * @param userId
+     * @param picId
+     * @throws AizouException
+     */
+    public static void deleteUserAlbums(Long userId, Object picId) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Query<Album> query = dsUser.createQuery(Album.class);
+        query.field(Album.FD_USERID).equal(userId).field(Album.FD_ID).equal(picId).field(Album.FD_TAOZIENA).equal(true);
+
+        UpdateOperations<Album> ops = dsUser.createUpdateOperations(Album.class);
+        ops.set(Album.FD_TAOZIENA, false);
+        dsUser.updateFirst(query, ops);
+    }
+
+    public static List<UserInfo> getExpertUserByTracks(List<ObjectId> ids, String role, Collection<String> fieldList) throws AizouException {
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+
+        Query<UserInfo> query = dsUser.createQuery(UserInfo.class);
+        List<Locality> localities = new ArrayList<>();
+        Locality locality;
+        for (ObjectId id : ids) {
+            locality = new Locality();
+            locality.setId(id);
+            localities.add(locality);
+        }
+        query.field(UserInfo.fnTracks).hasAnyOf(localities).field(UserInfo.fnRoles).hasThisOne(role);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        return query.asList();
+
+    }
+    /**
+     * 应用图片为头像
+     *
+     * @param userId
+     * @param url
+     * @throws AizouException
+     */
+//    public static void setAlbumsToAvatar(Long userId, String url) throws AizouException {
+//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+//        Query<UserInfo> query = ds.createQuery(UserInfo.class);
+//        query.field(UserInfo.fnUserId).equal(userId);
+//
+//        UpdateOperations<UserInfo> ops = ds.createUpdateOperations(UserInfo.class);
+//        ops.set(UserInfo.fnAvatar, url);
+//        ds.update(query, ops);
+//
+//    }
 
 
 }

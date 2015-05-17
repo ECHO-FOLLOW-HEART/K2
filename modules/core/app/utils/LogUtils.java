@@ -13,12 +13,13 @@ import java.util.Map;
  */
 public class LogUtils {
 
-    public static void error(Class cls, String info) {
+    public static void info(Class cls,String title, String info) {
 
         Logger log = LoggerFactory.getLogger(cls);
-        log.debug("---------CoreApi Debug Start---------");
-        log.debug(info);
-        log.debug("---------CoreApi Debug End---------");
+        log.info("---------CoreApi Debug Start---------");
+        log.info(title);
+        log.info(info);
+        log.info("---------CoreApi Debug End---------");
 
     }
 

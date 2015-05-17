@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.mongodb.BasicDBObjectBuilder;
 import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
+import models.geo.Locality;
+import models.misc.TravelNote;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
@@ -13,6 +15,7 @@ import play.data.validation.Constraints;
 import play.libs.Json;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -64,6 +67,36 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnAlias = "alias";
+
+    @Transient
+    public static String fnRoles = "roles";
+
+    @Transient
+    public static String fnRoles_Common = "common";
+
+    @Transient
+    public static String fnRoles_Expert = "expert";
+
+    @Transient
+    public static String fnLevel = "level";
+
+    @Transient
+    public static String fnTravelStatus = "travelStatus";
+
+    @Transient
+    public static String fnTracks = "tracks";
+
+    @Transient
+    public static String fnTravelNotes = "travelNotes";
+
+    @Transient
+    public static String fnResidence = "residence";
+
+    @Transient
+    public static String fnBirthday = "birthday";
+
+    @Transient
+    public static String fnZodiac = "zodiac";
     /**
      * 昵称
      */
@@ -145,6 +178,7 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
      * 环信的账号
      */
     private String easemobUser;
+
     /**
      * 注册来源
      */
@@ -155,6 +189,48 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
      */
     private List<String> alias;
 
+    /**
+     * 用户类型
+     */
+    private List<String> roles;
+
+    /**
+     * 用户等级
+     */
+    private int level;
+
+    /**
+     * 旅行状态
+     */
+    private String travelStatus;
+
+    /**
+     * 用户足迹
+     */
+    private List<Locality> tracks;
+
+    /**
+     * 用户游记
+     */
+
+    private List<TravelNote> travelNotes;
+
+    /**
+     * 居住地
+     */
+    private String residence;
+
+    /**
+     * 生日
+     */
+    private Date birthday;
+
+    /**
+     * 星座
+     */
+    private int zodiac;
+
+
     public UserInfo() {
     }
 
@@ -163,23 +239,12 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
         user.setId(new ObjectId());
         user.userId = userId;
         user.nickName = "桃子_" + user.userId;
+        user.roles = Arrays.asList(UserInfo.fnRoles_Common);
         user.alias = Arrays.asList(user.nickName.toLowerCase());
         user.setEnabled(true);
 
         return user;
     }
-
-//    /**
-//     * 唯一设备号。
-//     */
-//    public String udid;
-
-//    /**
-//     * 用户App版本
-//     *
-//     * @return
-//     */
-//    public String appVersion;
 
     public String getNickName() {
         return nickName;
@@ -304,6 +369,70 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     public void setAlias(List<String> alias) {
         this.alias = alias;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public String getTravelStatus() {
+        return travelStatus;
+    }
+
+    public void setTravelStatus(String travelStatus) {
+        this.travelStatus = travelStatus;
+    }
+
+    public List<Locality> getTracks() {
+        return tracks;
+    }
+
+    public void setTracks(List<Locality> tracks) {
+        this.tracks = tracks;
+    }
+
+    public List<TravelNote> getTravelNotes() {
+        return travelNotes;
+    }
+
+    public void setTravelNotes(List<TravelNote> travelNotes) {
+        this.travelNotes = travelNotes;
+    }
+
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+
+    public String getResidence() {
+        return residence;
+    }
+
+    public void setResidence(String residence) {
+        this.residence = residence;
+    }
+
+    public int getZodiac() {
+        return zodiac;
+    }
+
+    public void setZodiac(int zodiac) {
+        this.zodiac = zodiac;
+    }
+
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
     }
 
     @Override

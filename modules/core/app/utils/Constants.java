@@ -33,6 +33,7 @@ public class Constants {
     public static String SYMBOL_BAR = "|";
     public static String SYMBOL_SLASH = "/";
     public static String SYMBOL_NEWTON = "、";
+    public static String SYMBOL_DASH = "-";
 
 
 

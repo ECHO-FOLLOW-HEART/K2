@@ -71,6 +71,8 @@ public class GuideFormatter extends AizouFormatter<Guide> {
             jgen.writeEndArray();
 
             jgen.writeStringField(AbstractGuide.fnTitle, getString(guide.title));
+            //jgen.writeStringField(Guide.fnVisibility, guide.getVisibility() == null ? Guide.fnVisibilityPublic : guide.getVisibility());
+            jgen.writeStringField(Guide.fnStatus, guide.getStatus() == null ? Guide.fnStatusPlanned : guide.getStatus());
             jgen.writeObjectField(Guide.fnUserId, getValue(guide.getUserId()));
             jgen.writeObjectField(Guide.fnItineraryDays, getValue(guide.getItineraryDays()));
             jgen.writeObjectField(Guide.fnUpdateTime, getValue(guide.getUpdateTime()));

@@ -51,6 +51,8 @@ public class BacheCtrl extends Controller {
             query.field("userId").notEqual(null);
             for (UserInfo us : query.asList()) {
                 us.setAlias(Arrays.asList(us.getNickName().toLowerCase()));
+                us.setRoles(Arrays.asList(UserInfo.fnRoles_Common));
+
                 ds.save(us);
             }
         } catch (AizouException e) {

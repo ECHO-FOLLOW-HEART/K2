@@ -2,11 +2,11 @@ package controllers.taozi;
 
 import aizou.core.*;
 import aspectj.CheckUser;
+import aspectj.Key;
+import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import aspectj.Key;
-import aspectj.UsingOcsCache;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -15,13 +15,16 @@ import formatter.taozi.geo.SimpleLocalityFormatter;
 import formatter.taozi.misc.ColumnFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.misc.RecomFormatter;
+import formatter.taozi.misc.SimpleRefFormatter;
 import formatter.taozi.poi.BriefPOIFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
 import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
-import models.poi.*;
+import models.poi.AbstractPOI;
+import models.poi.Comment;
+import models.poi.RestaurantComment;
 import models.user.Favorite;
 import models.user.UserInfo;
 import org.apache.commons.codec.binary.Base64;
@@ -36,6 +39,7 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
+import utils.LogUtils;
 import utils.TaoziDataFilter;
 import utils.Utils;
 import utils.results.SceneID;
@@ -45,7 +49,9 @@ import utils.results.TaoziSceneText;
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -58,6 +64,7 @@ public class MiscCtrl extends Controller {
     public static String UPLOAD_URL = "url";
     public static String UPLOAD_URL_SMALL = "urlSmall";
     public static String UPLOAD_UID = "userId";
+    public static String UPLOAD_SCENARIO = "scenario";
 
     /**
      * 封面故事,获取App首页的图像。
@@ -352,22 +359,6 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
 
-//    /**
-//     * 通过城市id获得天气情况
-//     *
-//     * @param id
-//     * @return
-//     * @throws exception.AizouException
-//     */
-//    public static Result getWeatherDetail(String id) {
-//        try {
-//            YahooWeather weather = WeatherAPI.weatherDetails(new ObjectId(id));
-//            return Utils.createResponse(ErrorCode.NORMAL, new WeatherFormatter().format(weather));
-//        } catch (NullPointerException | AizouException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
-//        }
-//    }
-
     /**
      * 获得资源上传凭证
      *
@@ -384,17 +375,25 @@ public class MiscCtrl extends Controller {
         String secretKey = qiniu.get("secertKey").toString();
         String accessKey = qiniu.get("accessKey").toString();
         String scope, callbackUrl;
-        if (scenario.equals("portrait")) {
+        StringBuilder stringBuilder = new StringBuilder();
+        LogUtils.info(MiscCtrl.class, "Test Upload CallBack.scenario:" + scenario);
+        if (scenario.equals("portrait") || scenario.equals("album")) {
             scope = qiniu.get("taoziAvaterScope").toString();
             callbackUrl = qiniu.get("callbackUrl").toString();
-            callbackUrl = "http://" + callbackUrl;
+            stringBuilder.append("http://");
+            stringBuilder.append("api2.taozilvxing.cn/taozi/misc/upload-callback");
+//            stringBuilder.append("?");
+//            stringBuilder.append("scenario=");
+//            stringBuilder.append(scenario);
+            callbackUrl = stringBuilder.toString();
+            LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);
         } else
             return new TaoziResBuilder().setCode(ErrorCode.INVALID_ARGUMENT)
                     .setMessage(TaoziSceneText.instance().text(SceneID.INVALID_UPLOAD_SCENE))
                     .build();
 
         //取得上传策略
-        ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId));
+        ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId), scenario);
         // UrlBase64编码
         String encodedPutPolicy = Base64.encodeBase64URLSafeString(policy.toString().trim().getBytes());
         encodedPutPolicy = Utils.base64Padding(encodedPutPolicy);
@@ -414,12 +413,12 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl, Integer userId) {
+    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl, Integer userId, String scenario) {
 
         ObjectNode info = Json.newObject();
         info.put("scope", scope + ":" + picName);
         info.put("deadline", System.currentTimeMillis() / 1000 + 2 * 3600);
-        info.put("callBackBody", getCallBackBody(userId));
+        info.put("callBackBody", getCallBackBody(userId, scenario));
         info.put("callbackUrl", callbackUrl);
         return info;
     }
@@ -429,21 +428,22 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static String getCallBackBody(Integer userId) {
+    private static String getCallBackBody(Integer userId, String scenario) {
         StringBuilder callbackBody = new StringBuilder(10);
         callbackBody.append("name=$(fname)");
         callbackBody.append("&size=$(fsize)");
         callbackBody.append("&h=$(imageInfo.height)");
         callbackBody.append("&w=$(imageInfo.width)");
-        callbackBody.append("&w=$(imageInfo.width)");
         callbackBody.append("&hash=$(etag)");
         callbackBody.append("&bucket=$(bucket)");
+        callbackBody.append("&key=$(key)");
         String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
         // 定义图片的URL
         callbackBody.append("&").append(UPLOAD_URL).append("=").append(url);
         callbackBody.append("&").append(UPLOAD_URL_SMALL).append("=").append(url).append("?imageView2/2/w/200");
         // 定义用户ID
         callbackBody.append("&").append(UPLOAD_UID).append("=").append(userId);
+        callbackBody.append("&").append(UPLOAD_SCENARIO).append("=").append(scenario);
         return callbackBody.toString();
     }
 
@@ -466,34 +466,58 @@ public class MiscCtrl extends Controller {
     public static Result getCallback() throws AizouException {
         Map<String, String[]> fav = request().body().asFormUrlEncoded();
         ObjectNode ret = Json.newObject();
+        String scenario = null;
         String url = null;
 //        String urlSmall = null;
         String userId = null;
         for (Map.Entry<String, String[]> entry : fav.entrySet()) {
             String key = entry.getKey();
             String[] value = entry.getValue();
-            //LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
             if (key.equals(UPLOAD_URL))
                 url = value[0];
             if (key.equals(UPLOAD_UID))
                 userId = value[0];
+            if (key.equals(UPLOAD_SCENARIO)) {
+                scenario = value[0];
+                LogUtils.info(MiscCtrl.class, "Test Upload CallBack.Scenario:" + scenario, key + "&&" + value[0]);
+            }
 //            if (key.equals(UPLOAD_URL_SMALL))
 //                urlSmall = value[0];
             ret.put(key, value[0]);
+
 //            LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
         }
-        ret.put("success", true);
 
-        // TODO userId在什么情况下可能为null？
-        if (userId != null)
-            UserAPI.resetAvater(Integer.valueOf(userId), url);
+        if (scenario != null && scenario.equals("album")) {
+            LogUtils.info(MiscCtrl.class, "Test scenario.equals(\"album\"):" + scenario);
+            ImageItem imageItem = getImageFromCallBack(ret);
+            if (imageItem == null)
+                return status(500, "Can't get image key!");
+            UserAPI.addUserAlbum(Long.valueOf(userId), imageItem);
+        } else
+            UserAPI.resetAvater(Long.valueOf(userId), url);
+        ret.put("success", true);
 
         return ok(ret);
     }
-//
-//    private static String delSpe(String str){
-//        return str.replaceAll("\\\\", "");
-//    }
+
+    private static ImageItem getImageFromCallBack(ObjectNode ret) {
+        ImageItem imageItem = new ImageItem();
+        // 如果没有url,返回空对象
+        if (ret.get("key") == null)
+            return null;
+        imageItem.setKey(ret.get("key").asText());
+
+        if (ret.get("w") != null && ret.get("w").canConvertToInt())
+            imageItem.setW(ret.get("w").asInt());
+        if (ret.get("h") != null && ret.get("h").canConvertToInt())
+            imageItem.setH(ret.get("h").asInt());
+        if (ret.get("size") != null && ret.get("size").canConvertToInt())
+            imageItem.setSize(ret.get("size").asInt());
+        if (ret.get("bucket") == null)
+            imageItem.setBucket(ret.get("bucket").asText());
+        return imageItem;
+    }
 
     /**
      * 旅行专栏
@@ -820,4 +844,96 @@ public class MiscCtrl extends Controller {
             result.put("update", false);
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
+
+    /**
+     * 举报
+     *
+     * @return
+     * @throws AizouException
+     */
+    public static Result postTipOff() throws AizouException {
+        JsonNode node = request().body().asJson();
+
+        Long selfId = Long.parseLong(request().getHeader("UserId"));
+        //Long offerUserId = Long.parseLong(node.get("offerUserId").asText());
+        Long targetUserId = Long.parseLong(node.get("targetUserId").asText());
+        String body = node.get("body").asText().trim();
+        if (body == null || body.equals(""))
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid tipOff content.");
+        TipOff tipOff = new TipOff();
+        Datastore dsSave = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+
+        tipOff.setOfferUserId(selfId);
+        tipOff.setTargetUserId(targetUserId);
+        tipOff.setBody(body);
+        tipOff.setcTime(System.currentTimeMillis());
+        final DateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");
+        tipOff.setDate(fmt.format(tipOff.getcTime()));
+        tipOff.setTaoziEna(true);
+        dsSave.save(tipOff);
+        return Utils.createResponse(ErrorCode.NORMAL, "Success");
+    }
+
+    /**
+     * 取得热门搜索
+     *
+     * @return
+     * @throws AizouException
+     */
+    public static Result getHotSearchs() throws AizouException {
+        List<SimpleRef> simpleRefs = new ArrayList<>();
+        SimpleRef simpleRef1 = new SimpleRef();
+        simpleRef1.setId(new ObjectId("5473ccd7b8ce043a64108c46"));
+        simpleRef1.setZhName("北京");
+        simpleRefs.add(simpleRef1);
+
+        SimpleRef simpleRef2 = new SimpleRef();
+        simpleRef2.setId(new ObjectId("5473ccdfb8ce043a64108d97"));
+        simpleRef2.setZhName("厦门");
+        simpleRefs.add(simpleRef2);
+
+        SimpleRef simpleRef3 = new SimpleRef();
+        simpleRef3.setId(new ObjectId("54ae73f85c142faec2f8e9e1"));
+        simpleRef3.setZhName("盘飧市");
+        simpleRefs.add(simpleRef3);
+
+        SimpleRef simpleRef4 = new SimpleRef();
+        simpleRef4.setId(new ObjectId("54ae6b5e5c142faec2f78262"));
+        simpleRef4.setZhName("护国寺小吃店");
+        simpleRefs.add(simpleRef4);
+
+        SimpleRef simpleRef5 = new SimpleRef();
+        simpleRef5.setId(new ObjectId("547bfde9b8ce043eb2d84c3a"));
+        simpleRef5.setZhName("曾厝垵");
+        simpleRefs.add(simpleRef5);
+
+        SimpleRef simpleRef6 = new SimpleRef();
+        simpleRef6.setId(new ObjectId("547bfe30b8ce043eb2d890ff"));
+        simpleRef6.setZhName("西湖");
+        simpleRefs.add(simpleRef6);
+
+        SimpleRef simpleRef7 = new SimpleRef();
+        simpleRef7.setId(new ObjectId("547bfdcab8ce043eb2d82cda"));
+        simpleRef7.setZhName("拙政园");
+        simpleRefs.add(simpleRef7);
+
+        SimpleRef simpleRef8 = new SimpleRef();
+        simpleRef8.setId(new ObjectId("547bfde7b8ce043eb2d84a44"));
+        simpleRef8.setZhName("东方明珠");
+        simpleRefs.add(simpleRef8);
+
+        SimpleRef simpleRef9 = new SimpleRef();
+        simpleRef9.setId(new ObjectId("54ae98c05c142faec2fcd939"));
+        simpleRef9.setZhName("东门商业街");
+        simpleRefs.add(simpleRef9);
+
+        SimpleRef simpleRef10 = new SimpleRef();
+        simpleRef10.setId(new ObjectId("54ae93335c142faec2fba606"));
+        simpleRef10.setZhName("银泰中心");
+        simpleRefs.add(simpleRef10);
+        SimpleRefFormatter simpleRefFormatter = FormatterFactory.getInstance(SimpleRefFormatter.class);
+
+        return Utils.createResponse(ErrorCode.NORMAL, simpleRefFormatter.formatNode(simpleRefs));
+    }
+
 }
