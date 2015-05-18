@@ -31,6 +31,12 @@ import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
 import org.apache.commons.io.IOUtils;
+import org.apache.thrift.TException;
+import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TSocket;
+import org.apache.thrift.transport.TTransport;
+import org.apache.thrift.transport.TTransportException;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
@@ -38,6 +44,8 @@ import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import thrift.idl.com.aizou.yunkai.NotFoundException;
+import thrift.idl.com.aizou.yunkai.Userservice;
 import utils.Constants;
 import utils.MsgConstants;
 import utils.TaoziDataFilter;
@@ -539,7 +547,7 @@ public class UserCtrl extends Controller {
      * @param keyword
      * @return
      */
-    public static Result searchUser(String keyword, String field) throws AizouException {
+    public static Result searchUser(String keyword, String field,int page,int pageSize) throws AizouException {
 
 
         ArrayList<Object> valueList = new ArrayList<>();
@@ -570,7 +578,7 @@ public class UserCtrl extends Controller {
 
         List<UserInfo> result = new ArrayList<>();
         UserInfo user;
-        for (Iterator<UserInfo> itr = UserAPI.searchUser(fieldDescList, valueList, formatter.getFilteredFields(), 0, 20); itr.hasNext(); ) {
+        for (Iterator<UserInfo> itr = UserAPI.searchUser(fieldDescList, valueList, formatter.getFilteredFields(), page, pageSize); itr.hasNext(); ) {
             user = itr.next();
             UserAPI.fillUserInfo(user);
             result.add(user);
@@ -945,19 +953,6 @@ public class UserCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));
 
     }
-    /**
-     * 应用图片为头像
-     *
-     * @return
-     * @throws AizouException
-     */
-//    public static Result setAlbumsToAvatar() throws AizouException {
-//        String action = request().body().asJson().get("action").asText();
-//        String selfId = request().getHeader("userId");
-//        String url = request().body().asJson().get("url").asText();
-//        UserAPI.setAlbumsToAvatar(Long.parseLong(selfId), url);
-//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-//    }
 
 
 //    /**

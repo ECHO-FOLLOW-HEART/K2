@@ -37,11 +37,11 @@ public class UserInfoFormatter extends AizouFormatter<UserInfo> {
         filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnEasemobUser, UserInfo.fnUserId, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnTel,
                 UserInfo.fnDialCode, UserInfo.fnRoles, UserInfo.fnTravelStatus, UserInfo.fnTracks, UserInfo.fnTravelNotes, UserInfo.fnResidence
-                , UserInfo.fnBirthday, UserInfo.fnZodiac));
+                , UserInfo.fnBirthday, UserInfo.fnZodiac,UserInfo.fnLevel));
 
         sideFieldList.addAll(Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnEasemobUser, UserInfo.fnUserId, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnRoles, UserInfo.fnTravelStatus,
-                UserInfo.fnTracks, UserInfo.fnTravelNotes, UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac));
+                UserInfo.fnTracks, UserInfo.fnTravelNotes, UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac,UserInfo.fnLevel));
     }
 
     public void setSelfView(boolean selfView) {
