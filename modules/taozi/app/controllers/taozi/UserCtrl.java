@@ -44,8 +44,6 @@ import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import thrift.idl.com.aizou.yunkai.NotFoundException;
-import thrift.idl.com.aizou.yunkai.Userservice;
 import utils.Constants;
 import utils.MsgConstants;
 import utils.TaoziDataFilter;
@@ -547,7 +545,7 @@ public class UserCtrl extends Controller {
      * @param keyword
      * @return
      */
-    public static Result searchUser(String keyword, String field,int page,int pageSize) throws AizouException {
+    public static Result searchUser(String keyword, String field, int page, int pageSize) throws AizouException {
 
 
         ArrayList<Object> valueList = new ArrayList<>();
@@ -894,12 +892,14 @@ public class UserCtrl extends Controller {
      * @return
      * @throws AizouException
      */
-    public static Result getLocalitiesOfExpertUserTracks(String type) throws AizouException {
+    public static Result getLocalitiesOfExpertUserTracks(String type, boolean abroad) throws AizouException {
 
         List<Locality> locs;
         Map<ObjectId, Locality> map = new HashMap<>();
         for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnRoles), Arrays.asList(UserInfo.fnRoles_Expert), Arrays.asList(UserInfo.fnTracks, UserInfo.FD_ID), 0, Constants.MAX_COUNT); itr.hasNext(); ) {
             locs = itr.next().getTracks();
+            if (locs == null)
+                continue;
             for (Locality loc : locs)
                 map.put(loc.getId(), loc);
         }
@@ -907,7 +907,7 @@ public class UserCtrl extends Controller {
         locIds.addAll(map.keySet());
         List<Locality> result = LocalityAPI.getLocalityList(locIds, Arrays.asList(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.fnCountry), 0, Constants.MAX_COUNT);
         ObjectNode res = Json.newObject();
-        Map<String, List<Locality>> resultMap = TaoziDataFilter.transLocalitiesByCountry(result);
+        Map<String, List<Locality>> resultMap = TaoziDataFilter.transLocalitiesByCountry(result, abroad);
 
         SimpleLocalityFormatter fmt = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
 

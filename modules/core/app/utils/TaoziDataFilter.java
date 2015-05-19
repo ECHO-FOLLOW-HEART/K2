@@ -132,6 +132,48 @@ public class TaoziDataFilter {
         return result;
     }
 
+    public static Map<String, List<Locality>> transLocalitiesByCountry(List<Locality> localities, boolean abroad) {
+        Map<String, List<Locality>> map = new HashMap<>();
+        String country;
+        List<Locality> locs;
+        for (Locality loc : localities) {
+            if (abroad) {
+                if (loc.getCountry() != null && loc.getCountry().getZhName().equals("中国"))
+                    continue;
+                else {
+                    if (loc.getCountry() == null || loc.getCountry().getZhName() == null)
+                        country = "外国";
+                    else
+                        country = loc.getCountry().getZhName();
+                    if (map.get(country) == null)
+                        map.put(country, Arrays.asList(loc));
+                    else {
+                        locs = new ArrayList<>();
+                        locs.addAll(map.get(country));
+                        locs.add(loc);
+                        map.put(country, locs);
+                    }
+                }
+            } else {
+                if (loc.getCountry() != null && !loc.getCountry().getZhName().equals("中国"))
+                    continue;
+                else {
+                    country = loc.getCountry().getZhName();
+                    if (map.get(country) == null)
+                        map.put(country, Arrays.asList(loc));
+                    else {
+                        locs = new ArrayList<>();
+                        locs.addAll(map.get(country));
+                        locs.add(loc);
+                        map.put(country, locs);
+                    }
+                }
+            }
+
+        }
+        return map;
+    }
+
     public static Map<String, List<Locality>> transLocalitiesByCountry(List<Locality> localities) {
         Map<String, List<Locality>> map = new HashMap<>();
         String country;
@@ -149,8 +191,6 @@ public class TaoziDataFilter {
                 locs.add(loc);
                 map.put(country, locs);
             }
-
-
         }
         return map;
     }

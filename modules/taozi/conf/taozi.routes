@@ -21,7 +21,7 @@ POST          /users/check-validation                            controllers.tao
 #获取用户信息
 GET           /users/$uid<[0-9]+>                                controllers.taozi.UserCtrl.getUserProfileById(uid: Long)
 #搜索用户信息
-GET           /users/searcha                                      controllers.taozi.UserCtrl.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=5)
+GET           /users/searcha                                     controllers.taozi.UserCtrl.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=5)
 #编辑用户信息，修改密码
 POST          /users/$uid<[0-9]+>                                controllers.taozi.UserCtrl.editorUserInfo(uid: Long)
 #根据环信用户名列表取得用户名列表
@@ -46,7 +46,7 @@ GET           /users/:id/albumns                                 controllers.tao
 #删除用户个人相册
 DELETE        /users/:id/albumns/:picId                          controllers.taozi.UserCtrl.deleteUserAlbums(id: Long,picId: String)
 #获取所有达人的足迹
-GET           /users/:userRole/tracks                            controllers.taozi.UserCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
+GET           /users/:userRole/tracks                            controllers.taozi.UserCtrl.getLocalitiesOfExpertUserTracks(userRole:String,abroad:Boolean?=true)
 #获取足迹包含某目的地的所有达人
 POST          /users/:userRole/tracks/users                      controllers.taozi.UserCtrl.getExpertUserByTracks(userRole:String)
 
