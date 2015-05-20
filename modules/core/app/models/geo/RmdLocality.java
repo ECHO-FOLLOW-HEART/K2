@@ -7,7 +7,7 @@ import org.mongodb.morphia.annotations.Transient;
 /**
  * Created by topy on 2015/3/24.
  */
- @Embedded
+@Embedded
 public class RmdLocality extends AizouBaseEntity {
 
     @Transient
@@ -49,6 +49,17 @@ public class RmdLocality extends AizouBaseEntity {
      * 排序
      */
     private int sort;
+
+    private GeoJsonPoint location;
+
+    public GeoJsonPoint getLocation() {
+        return location;
+    }
+
+    public void setLocation(GeoJsonPoint location) {
+        this.location = location;
+    }
+
 
     public int getSort() {
         return sort;
@@ -97,4 +108,5 @@ public class RmdLocality extends AizouBaseEntity {
     public void setProvince(String province) {
         this.province = province;
     }
+
 }

@@ -944,10 +944,10 @@ public class UserCtrl extends Controller {
 
         UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
         formatter.setSelfView(false);
-
         List<String> fields = Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnEasemobUser, UserInfo.fnUserId, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnTel,
-                UserInfo.fnDialCode, UserInfo.fnRoles);
+                UserInfo.fnDialCode, UserInfo.fnRoles, UserInfo.fnTravelStatus, UserInfo.fnTracks, UserInfo.fnTravelNotes,
+                UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac, UserInfo.fnLevel);
         List<UserInfo> usersInfo = UserAPI.getExpertUserByTracks(ids, type, fields);
 
         return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));

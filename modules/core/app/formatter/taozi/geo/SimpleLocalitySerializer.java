@@ -15,9 +15,7 @@ public class SimpleLocalitySerializer extends AizouSerializer<Locality> {
     public void serialize(Locality locality, JsonGenerator jgen, SerializerProvider serializerProvider)
             throws IOException {
         jgen.writeStartObject();
-
         writeObjectId(locality, jgen, serializerProvider);
-
         jgen.writeStringField("zhName", getString(locality.getZhName()));
         jgen.writeStringField("enName", getString(locality.getEnName()));
 

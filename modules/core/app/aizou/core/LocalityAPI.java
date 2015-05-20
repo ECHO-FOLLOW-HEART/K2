@@ -314,15 +314,27 @@ public class LocalityAPI {
         return query.asList();
     }
 
-    public static List<Locality> getLocalityListByLoc(List<Locality> localities, String poiType, List<String> fieldList, int page, int pageSize) throws AizouException {
+    public static Map<String, Locality> getLocalityMap(List<ObjectId> ids, List<String> fieldList, int page, int pageSize) throws AizouException {
 
-        if (localities == null) {
-            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid POIs.");
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Query<Locality> query = ds.createQuery(Locality.class);
+
+        List<CriteriaContainerImpl> criList = new ArrayList<>();
+        for (ObjectId tempId : ids) {
+            criList.add(query.criteria("_id").equal(tempId));
         }
-        List<ObjectId> ids = new ArrayList<>();
-        for (Locality temp : localities) {
-            ids.add(temp.getId());
-        }
-        return getLocalityList(ids, fieldList, page, pageSize);
+
+        query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
+
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        query.offset(page * pageSize).limit(pageSize);
+
+        List<Locality> locs = query.asList();
+        HashMap<String, Locality> result = new HashMap<>();
+
+        if (locs != null)
+            for (Locality loc : locs) result.put(loc.getId().toString(), loc);
+        return result;
     }
 }

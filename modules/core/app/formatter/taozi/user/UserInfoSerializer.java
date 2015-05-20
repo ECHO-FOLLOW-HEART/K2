@@ -58,8 +58,8 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
         jgen.writeEndArray();
 
         jgen.writeNumberField(UserInfo.fnLevel, userInfo.getLevel());
-        jgen.writeStringField(UserInfo.fnTravelStatus, userInfo.getTravelStatus());
-        jgen.writeStringField(UserInfo.fnResidence, userInfo.getResidence());
+        jgen.writeStringField(UserInfo.fnTravelStatus, getString(userInfo.getTravelStatus()));
+        jgen.writeStringField(UserInfo.fnResidence, getString(userInfo.getResidence()));
         jgen.writeStringField(UserInfo.fnBirthday, getDate(userInfo.getBirthday()));
         jgen.writeStringField(UserInfo.fnZodiac, TaoziDataFilter.getZodiac(userInfo.getZodiac()));
 

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
 import models.AizouBaseEntity;
+import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.geo.RmdLocality;
 import models.geo.RmdProvince;
@@ -63,6 +64,18 @@ public class RmdProvinceFormatter extends AizouFormatter<RmdProvince> {
             jsonGenerator.writeStartObject();
             writeObjectId(rmdLocality, jsonGenerator, serializerProvider);
             jsonGenerator.writeStringField(RmdLocality.FD_ZH_NAME, getString(rmdLocality.getZhName()));
+
+            // Location
+            jsonGenerator.writeFieldName(Locality.fnLocation);
+            GeoJsonPoint geoJsonPoint = rmdLocality.getLocation();
+            JsonSerializer<Object> retLocalition;
+            if (geoJsonPoint != null) {
+                retLocalition = serializerProvider.findValueSerializer(GeoJsonPoint.class, null);
+                retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
+            } else {
+                retLocalition = serializerProvider.findNullValueSerializer(null);
+                retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
+            }
             jsonGenerator.writeEndObject();
 
         }

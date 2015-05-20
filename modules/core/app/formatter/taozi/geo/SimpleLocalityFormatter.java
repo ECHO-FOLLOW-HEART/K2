@@ -14,6 +14,6 @@ public class SimpleLocalityFormatter extends AizouFormatter<Locality> {
         registerSerializer(Locality.class, new SimpleLocalitySerializer());
         initObjectMapper(null);
 
-        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME,Locality.FD_EN_NAME));
+        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME,Locality.FD_EN_NAME,Locality.fnLocation));
     }
 }
