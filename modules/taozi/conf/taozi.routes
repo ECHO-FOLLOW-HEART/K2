@@ -42,9 +42,9 @@ GET           /users/contacts                                    controllers.tao
 #设置备注信息
 POST          /users/:id/memos                                   controllers.taozi.UserCtrl.setUserMemo(id:Long)
 #获取用户个人相册
-GET           /users/:id/albumns                                 controllers.taozi.UserCtrl.getUserAlbums(id:Long)
+GET           /users/:id/albums                                  controllers.taozi.UserCtrl.getUserAlbums(id:Long)
 #删除用户个人相册
-DELETE        /users/:id/albumns/:picId                          controllers.taozi.UserCtrl.deleteUserAlbums(id: Long,picId: String)
+DELETE        /users/:id/albums/:picId                           controllers.taozi.UserCtrl.deleteUserAlbums(id: Long,picId: String)
 #获取所有达人的足迹
 GET           /users/:userRole/tracks                            controllers.taozi.UserCtrl.getLocalitiesOfExpertUserTracks(userRole:String,abroad:Boolean?=true)
 #获取足迹包含某目的地的所有达人
