@@ -1,6 +1,7 @@
 package controllers.taozi;
 
 import aizou.core.GeoAPI;
+import aizou.core.LocalityAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -189,6 +190,14 @@ public class GeoCtrl extends Controller {
                 List<RmdProvince> rmdProvinceList = new ArrayList<>();
 
                 Map<String, Object> provincePinyinConf = Configuration.root().getConfig("provincePinyin").asMap();
+
+                List<ObjectId> oid = new ArrayList<>();
+                for (String str : mapConf.keySet())
+                    oid.add(new ObjectId(str));
+
+                Map<String, Locality> locationMap = LocalityAPI.getLocalityMap(oid, Arrays.asList(Locality.FD_ID, Locality.fnLocation), Constants.ZERO_COUNT,
+                        Constants.MAX_COUNT);
+
                 //取出配置文件中的数据,并转换为Entity
                 for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
                     k = entry.getKey();
@@ -210,6 +219,9 @@ public class GeoCtrl extends Controller {
                     locality.setId(new ObjectId(k));
                     locality.setZhName(zhName);
                     locality.setEnName("");
+                    Locality localityLocation = locationMap.get(locality.getId().toString());
+                    if (localityLocation != null)
+                        locality.setLocation(localityLocation.getLocation());
                     locality.setPinyin(pinyin);
                     locality.setProvince(province);
                     locality.setSort(sort);
@@ -290,7 +302,7 @@ public class GeoCtrl extends Controller {
             throws AizouException {
         List<Locality> localities = GeoAPI.getDestinationsByCountry(id, page, pageSize);
 
-        SimpleLocalityFormatter formatter = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
+        SimpleLocalityWithLocationFormatter formatter = FormatterFactory.getInstance(SimpleLocalityWithLocationFormatter.class);
         return formatter.formatNode(localities);
     }
 

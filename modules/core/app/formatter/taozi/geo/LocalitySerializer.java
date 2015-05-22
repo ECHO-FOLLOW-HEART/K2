@@ -7,11 +7,9 @@ import formatter.AizouSerializer;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
-import models.poi.AbstractPOI;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by zephyre on 12/6/14.

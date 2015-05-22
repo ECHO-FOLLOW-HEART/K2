@@ -23,8 +23,6 @@ import formatter.taozi.user.UserInfoFormatter;
 import models.AizouBaseEntity;
 import models.MorphiaFactory;
 import models.geo.Locality;
-import models.geo.RmdLocality;
-import models.geo.RmdProvince;
 import models.misc.Album;
 import models.misc.Token;
 import models.user.Contact;
@@ -539,7 +537,7 @@ public class UserCtrl extends Controller {
      * @param keyword
      * @return
      */
-    public static Result searchUser(String keyword, String field) throws AizouException {
+    public static Result searchUser(String keyword, String field, int page, int pageSize) throws AizouException {
 
 
         ArrayList<Object> valueList = new ArrayList<>();
@@ -570,7 +568,7 @@ public class UserCtrl extends Controller {
 
         List<UserInfo> result = new ArrayList<>();
         UserInfo user;
-        for (Iterator<UserInfo> itr = UserAPI.searchUser(fieldDescList, valueList, formatter.getFilteredFields(), 0, 20); itr.hasNext(); ) {
+        for (Iterator<UserInfo> itr = UserAPI.searchUser(fieldDescList, valueList, formatter.getFilteredFields(), page, pageSize); itr.hasNext(); ) {
             user = itr.next();
             UserAPI.fillUserInfo(user);
             result.add(user);
@@ -886,12 +884,14 @@ public class UserCtrl extends Controller {
      * @return
      * @throws AizouException
      */
-    public static Result getLocalitiesOfExpertUserTracks(String type) throws AizouException {
+    public static Result getLocalitiesOfExpertUserTracks(String type, boolean abroad) throws AizouException {
 
         List<Locality> locs;
         Map<ObjectId, Locality> map = new HashMap<>();
         for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnRoles), Arrays.asList(UserInfo.fnRoles_Expert), Arrays.asList(UserInfo.fnTracks, UserInfo.FD_ID), 0, Constants.MAX_COUNT); itr.hasNext(); ) {
             locs = itr.next().getTracks();
+            if (locs == null)
+                continue;
             for (Locality loc : locs)
                 map.put(loc.getId(), loc);
         }
@@ -899,7 +899,7 @@ public class UserCtrl extends Controller {
         locIds.addAll(map.keySet());
         List<Locality> result = LocalityAPI.getLocalityList(locIds, Arrays.asList(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.fnCountry), 0, Constants.MAX_COUNT);
         ObjectNode res = Json.newObject();
-        Map<String, List<Locality>> resultMap = TaoziDataFilter.transLocalitiesByCountry(result);
+        Map<String, List<Locality>> resultMap = TaoziDataFilter.transLocalitiesByCountry(result, abroad);
 
         SimpleLocalityFormatter fmt = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
 
@@ -936,28 +936,15 @@ public class UserCtrl extends Controller {
 
         UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
         formatter.setSelfView(false);
-
         List<String> fields = Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnEasemobUser, UserInfo.fnUserId, UserInfo.fnNickName,
                 UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnTel,
-                UserInfo.fnDialCode, UserInfo.fnRoles);
+                UserInfo.fnDialCode, UserInfo.fnRoles, UserInfo.fnTravelStatus, UserInfo.fnTracks, UserInfo.fnTravelNotes,
+                UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac, UserInfo.fnLevel);
         List<UserInfo> usersInfo = UserAPI.getExpertUserByTracks(ids, type, fields);
 
         return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));
 
     }
-    /**
-     * 应用图片为头像
-     *
-     * @return
-     * @throws AizouException
-     */
-//    public static Result setAlbumsToAvatar() throws AizouException {
-//        String action = request().body().asJson().get("action").asText();
-//        String selfId = request().getHeader("userId");
-//        String url = request().body().asJson().get("url").asText();
-//        UserAPI.setAlbumsToAvatar(Long.parseLong(selfId), url);
-//        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-//    }
 
 
 //    /**

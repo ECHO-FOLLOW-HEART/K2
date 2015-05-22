@@ -116,7 +116,7 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
     private String avatarSmall;
 
     /**
-     * 性别： F\M\Both\None
+     * 性别： F\M\Secret\None
      */
     @JsonProperty("gender")
     private String gender;
@@ -237,12 +237,12 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
     public static UserInfo newInstance(Long userId) {
         UserInfo user = new UserInfo();
         user.setId(new ObjectId());
+        user.setGender("U");
         user.userId = userId;
         user.nickName = "桃子_" + user.userId;
         user.roles = Arrays.asList(UserInfo.fnRoles_Common);
         user.alias = Arrays.asList(user.nickName.toLowerCase());
         user.setEnabled(true);
-
         return user;
     }
 
