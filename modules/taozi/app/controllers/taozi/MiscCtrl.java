@@ -35,6 +35,7 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
+import play.core.Router;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -376,12 +377,12 @@ public class MiscCtrl extends Controller {
         String accessKey = qiniu.get("accessKey").toString();
         String scope, callbackUrl;
         StringBuilder stringBuilder = new StringBuilder();
-        LogUtils.info(MiscCtrl.class, "Test Upload CallBack.scenario:" + scenario);
         if (scenario.equals("portrait") || scenario.equals("album")) {
             scope = qiniu.get("taoziAvaterScope").toString();
             callbackUrl = qiniu.get("callbackUrl").toString();
             stringBuilder.append("http://");
-            stringBuilder.append("api2.taozilvxing.cn/taozi/misc/upload-callback");
+            // stringBuilder.append("api2.taozilvxing.cn/taozi/misc/upload-callback");
+            stringBuilder.append("182.92.150.243:9000/taozi/misc/upload-callback");
 //            stringBuilder.append("?");
 //            stringBuilder.append("scenario=");
 //            stringBuilder.append(scenario);
@@ -437,6 +438,7 @@ public class MiscCtrl extends Controller {
         callbackBody.append("&hash=$(etag)");
         callbackBody.append("&bucket=$(bucket)");
         callbackBody.append("&key=$(key)");
+        callbackBody.append("&id=" + new ObjectId().toString());
         String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
         // 定义图片的URL
         callbackBody.append("&").append(UPLOAD_URL).append("=").append(url);
@@ -516,6 +518,8 @@ public class MiscCtrl extends Controller {
             imageItem.setSize(ret.get("size").asInt());
         if (ret.get("bucket") == null)
             imageItem.setBucket(ret.get("bucket").asText());
+        if (ret.get("id") == null)
+            imageItem.setId(new ObjectId(ret.get("id").asText()));
         return imageItem;
     }
 

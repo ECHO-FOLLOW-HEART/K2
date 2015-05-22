@@ -2,6 +2,7 @@ package models.misc;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.AizouBaseItem;
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 
@@ -36,6 +37,7 @@ public class ImageItem extends AizouBaseItem {
 
     private String url;
 
+    private ObjectId id;
     /**
      * 图像宽度
      */
@@ -77,8 +79,8 @@ public class ImageItem extends AizouBaseItem {
      */
     public String getFullUrl() {
         if (key != null)
-            //return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "lvxingpai-img-store", key);
-            return String.format("http://images.taozilvxing.com/%s", key);
+            return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "taozi-uploads", key);
+            //return String.format("http://images.taozilvxing.com/%s", key);
         else
             return null;
     }
@@ -163,4 +165,11 @@ public class ImageItem extends AizouBaseItem {
         this.cropHint = cropHint;
     }
 
+    public ObjectId getId() {
+        return id;
+    }
+
+    public void setId(ObjectId id) {
+        this.id = id;
+    }
 }
