@@ -926,6 +926,13 @@ public class UserCtrl extends Controller {
     }
 
 
+    /**
+     * 取得所有达人用户的所有足迹
+     *
+     * @param type
+     * @return
+     * @throws AizouException
+     */
     public static Result getExpertUserByTracks(String type) throws AizouException {
         JsonNode data = request().body().asJson();
         Iterator<JsonNode> iterator = data.get("locId").iterator();
@@ -943,6 +950,23 @@ public class UserCtrl extends Controller {
         List<UserInfo> usersInfo = UserAPI.getExpertUserByTracks(ids, type, fields);
 
         return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));
+
+    }
+
+    /**
+     * 修改用户足迹
+     *
+     * @param id
+     * @return
+     * @throws AizouException
+     */
+    public static Result modifyTracks(@CheckUser Long id) throws AizouException {
+        JsonNode data = request().body().asJson();
+        Iterator<JsonNode> iterator = data.get("tracks").elements();
+        String action = data.get("action").asText();
+        UserAPI.modifyTracks(id, action, iterator);
+
+        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
 
     }
 

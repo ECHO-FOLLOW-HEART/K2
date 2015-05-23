@@ -1678,6 +1678,31 @@ public class UserAPI {
         return query.asList();
 
     }
+
+    /**
+     * 修改足迹信息
+     *
+     * @param userId
+     * @param action
+     * @param its
+     * @throws AizouException
+     */
+    public static void modifyTracks(Long userId, String action, Iterator<JsonNode> its) throws AizouException {
+
+        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Query<UserInfo> query = dsUser.createQuery(UserInfo.class);
+        query.field(Album.FD_USERID).equal(userId);
+
+        UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
+        if (action.equals("add"))
+            ops.addAll(UserInfo.fnTracks, strListToObjectIdList(its, Locality.class), false);
+        else if (action.equals("del"))
+            ops.removeAll(UserInfo.fnTracks, strListToObjectIdList(its, Locality.class));
+        else
+            throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid action");
+        dsUser.updateFirst(query, ops);
+    }
+    
     /**
      * 应用图片为头像
      *
