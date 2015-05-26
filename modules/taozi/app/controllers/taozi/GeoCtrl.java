@@ -59,7 +59,7 @@ public class GeoCtrl extends Controller {
         Locality locality = GeoAPI.locDetails(id);
         if (locality == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
-        locality.setDesc(StringUtils.abbreviate(locality.getDesc(), Constants.ABBREVIATE_LEN));
+        //locality.setDesc(StringUtils.abbreviate(locality.getDesc(), Constants.ABBREVIATE_LEN));
         locality.setImages(TaoziDataFilter.getOneImage(locality.getImages()));
         //是否被收藏
         MiscAPI.isFavorite(locality, userId);

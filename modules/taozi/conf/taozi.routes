@@ -48,6 +48,8 @@ DELETE        /users/$id<[0-9]+>/albums/:picId                   controllers.tao
 #获取所有达人的足迹
 GET           /users/:userRole/tracks                            controllers.taozi.UserCtrl.getLocalitiesOfExpertUserTracks(userRole:String,abroad:Boolean?=true)
 #获取足迹包含某目的地的所有达人
+POST          /users/:userRole/tracks/users                      controllers.taozi.UserCtrl.getExpertUserByTracks(userRole:String)
+#修改足迹
 POST          /users/$id<[0-9]+>/tracks                          controllers.taozi.UserCtrl.modifyTracks(id:Long)
 
 

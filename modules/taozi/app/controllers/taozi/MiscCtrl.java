@@ -472,6 +472,7 @@ public class MiscCtrl extends Controller {
         String url = null;
 //        String urlSmall = null;
         String userId = null;
+        String id = null;
         for (Map.Entry<String, String[]> entry : fav.entrySet()) {
             String key = entry.getKey();
             String[] value = entry.getValue();
@@ -479,15 +480,16 @@ public class MiscCtrl extends Controller {
                 url = value[0];
             if (key.equals(UPLOAD_UID))
                 userId = value[0];
+            if (key.equals("id"))
+                id = value[0];
             if (key.equals(UPLOAD_SCENARIO)) {
                 scenario = value[0];
+
                 LogUtils.info(MiscCtrl.class, "Test Upload CallBack.Scenario:" + scenario, key + "&&" + value[0]);
             }
 //            if (key.equals(UPLOAD_URL_SMALL))
 //                urlSmall = value[0];
             ret.put(key, value[0]);
-
-//            LogUtils.info(MiscCtrl.class, key + "&&" + value[0]);
         }
 
         if (scenario != null && scenario.equals("album")) {
@@ -516,9 +518,9 @@ public class MiscCtrl extends Controller {
             imageItem.setH(ret.get("h").asInt());
         if (ret.get("size") != null && ret.get("size").canConvertToInt())
             imageItem.setSize(ret.get("size").asInt());
-        if (ret.get("bucket") == null)
+        if (ret.get("bucket") != null)
             imageItem.setBucket(ret.get("bucket").asText());
-        if (ret.get("id") == null)
+        if (ret.get("id") != null)
             imageItem.setId(new ObjectId(ret.get("id").asText()));
         return imageItem;
     }

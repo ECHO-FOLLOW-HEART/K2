@@ -125,7 +125,7 @@ public class GuideAPI {
             titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_DASH);
         String titleStr = titlesBuffer.toString();
         titleStr = titleStr.substring(0, titleStr.length() - 1);
-        titleStr = "我的" + titleStr + "旅行计划";
+        titleStr = "我的" + titleStr + "行程";
         return titleStr;
     }
 

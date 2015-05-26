@@ -15,6 +15,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.taozi.geo.SimpleLocalityFormatter;
+import formatter.taozi.geo.SimpleLocalityWithLocationFormatter;
 import formatter.taozi.misc.AlbumFormatter;
 import formatter.taozi.user.ContactFormatter;
 import formatter.taozi.user.CredentialFormatter;
@@ -524,7 +525,7 @@ public class UserCtrl extends Controller {
         UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
         if (result == null)
             return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
-
+        UserAPI.fillUserInfo(result);
         String ret = formatter.format(result);
 
         return Utils.status(ret);
@@ -561,7 +562,6 @@ public class UserCtrl extends Controller {
             valueList.add(keyword);
             fieldDescList = Arrays.asList(field);
         }
-
 
         UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
         formatter.setSelfView(false);
@@ -897,11 +897,11 @@ public class UserCtrl extends Controller {
         }
         List<ObjectId> locIds = new ArrayList<>();
         locIds.addAll(map.keySet());
-        List<Locality> result = LocalityAPI.getLocalityList(locIds, Arrays.asList(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.fnCountry), 0, Constants.MAX_COUNT);
+        List<Locality> result = LocalityAPI.getLocalityList(locIds, Arrays.asList(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.fnCountry, Locality.fnLocation), 0, Constants.MAX_COUNT);
         ObjectNode res = Json.newObject();
         Map<String, List<Locality>> resultMap = TaoziDataFilter.transLocalitiesByCountry(result, abroad);
 
-        SimpleLocalityFormatter fmt = FormatterFactory.getInstance(SimpleLocalityFormatter.class);
+        SimpleLocalityWithLocationFormatter fmt = FormatterFactory.getInstance(SimpleLocalityWithLocationFormatter.class);
 
         for (Map.Entry<String, List<Locality>> entry : resultMap.entrySet())
             res.put(entry.getKey(), fmt.formatNode(sortLocalityByPinyin(entry.getValue())));
@@ -927,7 +927,7 @@ public class UserCtrl extends Controller {
 
 
     /**
-     * 取得所有达人用户的所有足迹
+     * 取得包含此足迹的所有达人
      *
      * @param type
      * @return
@@ -948,7 +948,9 @@ public class UserCtrl extends Controller {
                 UserInfo.fnDialCode, UserInfo.fnRoles, UserInfo.fnTravelStatus, UserInfo.fnTracks, UserInfo.fnTravelNotes,
                 UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac, UserInfo.fnLevel);
         List<UserInfo> usersInfo = UserAPI.getExpertUserByTracks(ids, type, fields);
-
+        for (UserInfo user : usersInfo)
+            // TODO 
+            UserAPI.fillUserInfo(user);
         return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));
 
     }
