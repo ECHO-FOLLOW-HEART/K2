@@ -63,6 +63,7 @@ public class UserCtrl extends Controller {
     public static int CAPTCHA_ACTION_SIGNUP = 1;
     public static int CAPTCHA_ACTION_MODPWD = 2;
     public static int CAPTCHA_ACTION_BANDTEL = 3;
+    public static long PAIPAI_USERID = 10000;
     public static final String FIELD_GUID = "GUID";
 
     /**
@@ -105,6 +106,8 @@ public class UserCtrl extends Controller {
             info.put(entry.getKey(), entry.getValue());
         }
 
+        //添加服务号
+        addContactImpl(userInfo.getUserId(), PAIPAI_USERID);
         return Utils.createResponse(ErrorCode.NORMAL, info);
     }
 
@@ -461,6 +464,8 @@ public class UserCtrl extends Controller {
                 Map.Entry<String, JsonNode> entry = it.next();
                 info.put(entry.getKey(), entry.getValue());
             }
+            //添加服务号
+            addContactImpl(userInfo.getUserId(), PAIPAI_USERID);
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (IOException e) {
             throw new AizouException(ErrorCode.IO_ERROR, "", e);
