@@ -367,7 +367,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     @CheckUser
-    public static Result putPolicy(String scenario) throws InvalidKeyException, NoSuchAlgorithmException {
+    public static Result putPolicy(String scenario) throws InvalidKeyException, NoSuchAlgorithmException, AizouException {
         Configuration config = Configuration.root();
 
         String userId = request().getHeader("UserId");
@@ -383,9 +383,7 @@ public class MiscCtrl extends Controller {
             stringBuilder.append("http://");
             // stringBuilder.append("api2.taozilvxing.cn/taozi/misc/upload-callback");
             stringBuilder.append("182.92.150.243:9000/taozi/misc/upload-callback");
-//            stringBuilder.append("?");
-//            stringBuilder.append("scenario=");
-//            stringBuilder.append(scenario);
+
             callbackUrl = stringBuilder.toString();
             LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);
         } else
@@ -430,6 +428,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     private static String getCallBackBody(Integer userId, String scenario) {
+        String picId = new ObjectId().toString();
         StringBuilder callbackBody = new StringBuilder(10);
         callbackBody.append("name=$(fname)");
         callbackBody.append("&size=$(fsize)");
@@ -438,7 +437,8 @@ public class MiscCtrl extends Controller {
         callbackBody.append("&hash=$(etag)");
         callbackBody.append("&bucket=$(bucket)");
         callbackBody.append("&key=$(key)");
-        callbackBody.append("&id=" + new ObjectId().toString());
+        callbackBody.append("&id=" + picId);
+        LogUtils.info(MiscCtrl.class, "Magic Id:" + picId);
         String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
         // 定义图片的URL
         callbackBody.append("&").append(UPLOAD_URL).append("=").append(url);
@@ -484,8 +484,7 @@ public class MiscCtrl extends Controller {
                 id = value[0];
             if (key.equals(UPLOAD_SCENARIO)) {
                 scenario = value[0];
-
-                LogUtils.info(MiscCtrl.class, "Test Upload CallBack.Scenario:" + scenario, key + "&&" + value[0]);
+                // LogUtils.info(MiscCtrl.class, "Test Upload CallBack.Scenario:" + scenario, key + "&&" + value[0]);
             }
 //            if (key.equals(UPLOAD_URL_SMALL))
 //                urlSmall = value[0];
@@ -497,7 +496,7 @@ public class MiscCtrl extends Controller {
             ImageItem imageItem = getImageFromCallBack(ret);
             if (imageItem == null)
                 return status(500, "Can't get image key!");
-            UserAPI.addUserAlbum(Long.valueOf(userId), imageItem);
+            UserAPI.addUserAlbum(Long.valueOf(userId), imageItem,id);
         } else
             UserAPI.resetAvater(Long.valueOf(userId), url);
         ret.put("success", true);
@@ -520,8 +519,6 @@ public class MiscCtrl extends Controller {
             imageItem.setSize(ret.get("size").asInt());
         if (ret.get("bucket") != null)
             imageItem.setBucket(ret.get("bucket").asText());
-        if (ret.get("id") != null)
-            imageItem.setId(new ObjectId(ret.get("id").asText()));
         return imageItem;
     }
 

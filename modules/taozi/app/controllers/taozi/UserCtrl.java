@@ -1,5 +1,6 @@
 package controllers.taozi;
 
+import aizou.core.GuideAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.UserAPI;
 import aspectj.CheckUser;
@@ -14,7 +15,6 @@ import com.mongodb.BasicDBObjectBuilder;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
-import formatter.taozi.geo.SimpleLocalityFormatter;
 import formatter.taozi.geo.SimpleLocalityWithLocationFormatter;
 import formatter.taozi.misc.AlbumFormatter;
 import formatter.taozi.user.ContactFormatter;
@@ -526,9 +526,9 @@ public class UserCtrl extends Controller {
         if (result == null)
             return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
         UserAPI.fillUserInfo(result);
-        String ret = formatter.format(result);
-
-        return Utils.status(ret);
+        ObjectNode ret = (ObjectNode) formatter.formatNode(result);
+        ret.put("guideCnt", GuideAPI.getGuideCntByUser(selfId));
+        return Utils.status(ret.toString());
     }
 
 
@@ -612,7 +612,7 @@ public class UserCtrl extends Controller {
             reqMap.put(UserInfo.fnGender, req.get("gender").asText());
         //头像
         if (req.has("avatar"))
-            reqMap.put(UserInfo.fnAvatar, req.get("avatar").asText());
+            reqMap.put(UserInfo.fnAvatar, cutPicUrl(req.get("avatar").asText()));
         //旅行状态
         if (req.has("travelStatus"))
             reqMap.put(UserInfo.fnTravelStatus, req.get("travelStatus").asText());
@@ -629,6 +629,13 @@ public class UserCtrl extends Controller {
             reqMap.put(UserInfo.fnTravelNotes, req.get("travelNotes").elements());
         UserAPI.updateUserInfo(reqMap);
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
+    }
+
+    private static String cutPicUrl(String url) {
+        int pos = url.indexOf('?');
+        if (pos > 0)
+            return url.substring(0, pos + 1);
+        return url;
     }
 
     /**
@@ -949,7 +956,7 @@ public class UserCtrl extends Controller {
                 UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac, UserInfo.fnLevel);
         List<UserInfo> usersInfo = UserAPI.getExpertUserByTracks(ids, type, fields);
         for (UserInfo user : usersInfo)
-            // TODO 
+            // TODO
             UserAPI.fillUserInfo(user);
         return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));
 

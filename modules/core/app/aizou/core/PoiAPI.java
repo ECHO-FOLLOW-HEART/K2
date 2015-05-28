@@ -17,6 +17,8 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
+import utils.Constants;
+import utils.LogUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -1081,13 +1083,18 @@ public class PoiAPI {
 
         // TODO 暂时写成这样，等Solr的数据可以及时同步再改
         if (poiClass == ViewSpot.class && poiList != null) {
-
             List<ObjectId> poiIdList = new ArrayList<>();
-            for (AbstractPOI aPoi : poiList)
+            for (AbstractPOI aPoi : poiList) {
                 poiIdList.add(aPoi.getId());
-
+            }
             if (!poiIdList.isEmpty()) {
                 query.field(AizouBaseEntity.FD_ID).in(poiIdList).order(String.format("-%s", AbstractPOI.fnHotness));
+                if (keyword != null && !keyword.isEmpty()) {
+                    keyword = keyword.toLowerCase();
+                    query.field("alias").equal(Pattern.compile("^" + keyword));
+                }
+                if (locId != null)
+                    query.field("targets").equal(locId);
                 query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
                 // 分页已在poiSolrSearch中完成
                 // .offset(page * pageSize).limit(pageSize);
@@ -1117,9 +1124,10 @@ public class PoiAPI {
         SolrQuery query = new SolrQuery();
         String queryString = String.format("alias:%s", keyword);
         query.setQuery(queryString);
-        query.setStart(page * pageSize).setRows(pageSize);
+        //query.setStart(page * pageSize).setRows(pageSize);
         //query.setSort(AbstractPOI.fnHotness, SolrQuery.ORDER.desc);
         //query.addFilterQuery("taoziEna:true");
+        query.setRows(Constants.MAX_COUNT);
         query.setFields(AizouBaseEntity.FD_ID);
         SolrDocumentList vsDocs = server.query(query).getResults();
 

@@ -1618,15 +1618,15 @@ public class UserAPI {
      * @param imageItem
      * @throws AizouException
      */
-    public static void addUserAlbum(Long userId, ImageItem imageItem) throws AizouException {
+    public static void addUserAlbum(Long userId, ImageItem imageItem, String id) throws AizouException {
         Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
 
         Album entity = new Album();
+        entity.setId(new ObjectId(id));
         entity.setcTime(System.currentTimeMillis());
         entity.setImage(imageItem);
         entity.setUserId(userId);
         entity.setTaoziEna(true);
-        LogUtils.info(UserAPI.class, "Test Upload CallBack.addUserAlbum", "imageItem" + imageItem.getUrl() + imageItem.getKey());
         dsUser.save(entity);
     }
 
@@ -1702,7 +1702,7 @@ public class UserAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid action");
         dsUser.updateFirst(query, ops);
     }
-    
+
     /**
      * 应用图片为头像
      *

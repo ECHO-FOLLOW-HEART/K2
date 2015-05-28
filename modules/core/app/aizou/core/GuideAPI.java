@@ -282,6 +282,13 @@ public class GuideAPI {
         return query.asList();
     }
 
+    public static long getGuideCntByUser(Long uid) throws AizouException {
+        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Query<Guide> query = ds.createQuery(Guide.class);
+        query.field(Guide.fnUserId).equal(uid).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
+        return query.countAll();
+    }
+
     /**
      * 更新行程单
      *

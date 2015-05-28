@@ -79,8 +79,8 @@ public class ImageItem extends AizouBaseItem {
      */
     public String getFullUrl() {
         if (key != null)
-            return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "taozi-uploads", key);
-            //return String.format("http://images.taozilvxing.com/%s", key);
+            //return String.format("http://%s.qiniudn.com/%s", bucket != null ? bucket : "taozi-uploads", key);
+            return bucket != null ? String.format("http://%s.qiniudn.com/%s", bucket, key) : String.format("http://images.taozilvxing.com/%s", key);
         else
             return null;
     }
