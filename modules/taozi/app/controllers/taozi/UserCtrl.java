@@ -37,10 +37,7 @@ import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.Constants;
-import utils.MsgConstants;
-import utils.TaoziDataFilter;
-import utils.Utils;
+import utils.*;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParser;
 import utils.phone.PhoneParserFactory;
@@ -63,8 +60,12 @@ public class UserCtrl extends Controller {
     public static int CAPTCHA_ACTION_SIGNUP = 1;
     public static int CAPTCHA_ACTION_MODPWD = 2;
     public static int CAPTCHA_ACTION_BANDTEL = 3;
-    public static long PAIPAI_USERID = 10000;
     public static final String FIELD_GUID = "GUID";
+    public static long PAIPAI_USERID = 10000;
+    public static final String PAIPAI_ESMOB = "gcounhhq0ckfjwotgp02c39vq40ewhxt";
+    public static final String PAIPAI_WELCOME_1 = "你好，我是旅行达人派派，欢迎使用旅行派。";
+    public static final String PAIPAI_WELCOME_2 = "你可以用旅行派制做行程计划、收集购物美食。还可以跟旅行达人们交流互动，获取帮助和建议噢。";
+
 
     /**
      * 手机注册
@@ -344,6 +345,10 @@ public class UserCtrl extends Controller {
                 Map.Entry<String, JsonNode> entry = it.next();
                 info.put(entry.getKey(), entry.getValue());
             }
+
+            // 服务号发消息
+            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
+            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } else
             return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
@@ -432,6 +437,9 @@ public class UserCtrl extends Controller {
                     info.put(entry.getKey(), entry.getValue());
                 }
 
+                // 服务号发消息
+                UserAPI.sendMessageToUser(PAIPAI_ESMOB, us, PAIPAI_WELCOME_1);
+                UserAPI.sendMessageToUser(PAIPAI_ESMOB, us, PAIPAI_WELCOME_2);
                 return Utils.createResponse(ErrorCode.NORMAL, info);
             }
 
@@ -464,8 +472,12 @@ public class UserCtrl extends Controller {
                 Map.Entry<String, JsonNode> entry = it.next();
                 info.put(entry.getKey(), entry.getValue());
             }
+
             //添加服务号
             addContactImpl(userInfo.getUserId(), PAIPAI_USERID);
+            // 服务号发消息
+            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
+            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (IOException e) {
             throw new AizouException(ErrorCode.IO_ERROR, "", e);
@@ -532,7 +544,7 @@ public class UserCtrl extends Controller {
             return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
         UserAPI.fillUserInfo(result);
         ObjectNode ret = (ObjectNode) formatter.formatNode(result);
-        ret.put("guideCnt", GuideAPI.getGuideCntByUser(selfId));
+        ret.put("guideCnt", GuideAPI.getGuideCntByUser(userId));
         return Utils.status(ret.toString());
     }
 

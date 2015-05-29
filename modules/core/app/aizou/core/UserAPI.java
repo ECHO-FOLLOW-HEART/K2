@@ -1704,6 +1704,68 @@ public class UserAPI {
     }
 
     /**
+     * 服务器调用环信接口发送透传消息
+     */
+    public static void sendMessageToUser(String selfEasemob, UserInfo targetInfo, String message) throws AizouException {
+        if (selfEasemob == null)
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
+//        ObjectNode info = (ObjectNode) new UserFormatterOld(false).format(selfInfo);
+//        // 添加邀请信息
+//        info.put("attachMsg", message);
+//        ObjectNode ext = Json.newObject();
+//        ext.put("CMDType", cmdType);
+//
+//        ext.put("content", info.toString());
+
+        ObjectNode msg = Json.newObject();
+        msg.put("type", "txt");
+        msg.put("msg", message);
+
+        ObjectNode requestBody = Json.newObject();
+        List<String> users = new ArrayList<>();
+        users.add(targetInfo.getEasemobUser());
+
+        requestBody.put("target_type", "users");
+
+        requestBody.put("target", Json.toJson(users));
+        requestBody.put("msg", msg);
+        //requestBody.put("ext", ext);
+        requestBody.put("from", selfEasemob);
+
+        // 重新获取token
+        Configuration config = Configuration.root().getConfig("easemob");
+        String orgName = config.getString("org");
+        String appName = config.getString("app");
+
+        String href = String.format("https://a1.easemob.com/%s/%s/messages",
+                orgName, appName);
+
+        try {
+            URL url = new URL(href);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Authorization", String.format("Bearer %s", getEaseMobToken()));
+
+            OutputStreamWriter out = new OutputStreamWriter(conn.getOutputStream(), "UTF-8");
+            out.write(requestBody.toString());
+            LogUtils.info(UserAPI.class, requestBody.toString());
+            out.flush();
+            out.close();
+
+            InputStream in = conn.getInputStream();
+            String body = IOUtils.toString(in, conn.getContentEncoding());
+
+            JsonNode tokenData = Json.parse(body);
+            LogUtils.info(UserAPI.class, body.toString());
+            if (tokenData.has("error"))
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
+        } catch (java.io.IOException e) {
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
+        }
+    }
+    /**
      * 应用图片为头像
      *
      * @param userId
