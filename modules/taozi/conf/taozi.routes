@@ -75,9 +75,9 @@ POST          /misc/upload-callback                              controllers.tao
 #推荐
 GET           /recommend                                         controllers.taozi.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #搜索
-GET           /search                                            controllers.taozi.MiscCtrl.search(keyWord: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
+GET           /search                                            controllers.taozi.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #提示
-GET           /suggestions                                       controllers.taozi.MiscCtrl.getSuggestions(keyWord: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, shopping: Boolean?=false,pageSize: Int?=5)
+GET           /suggestions                                       controllers.taozi.MiscCtrl.getSuggestions(keyword: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, shopping: Boolean?=false,pageSize: Int?=5)
 #获得版本信息
 GET           /misc/updates                                      controllers.taozi.MiscCtrl.getUpdates()
 #举报
@@ -173,7 +173,6 @@ GET           /poi/shoppings/$id<[0-9a-f]{24}>/comments          controllers.tao
 GET           /columns                                           controllers.taozi.MiscCtrl.getColumns(itemType: String?="homepage", id: String?="")
 GET           /changeOrign                                       controllers.taozi.BacheCtrl.changeOrign()
 #更多精选游记
-# TODO keyWord typo
-GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyWord: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
+GET           /travel-notes/search                               controllers.taozi.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情(H5)
 GET           /travel-notes/$id<[0-9a-f]{24}>                    controllers.taozi.TravelNoteCtrl.travelNoteDetail(id:String)

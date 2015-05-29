@@ -12,10 +12,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.taozi.geo.*;
-import models.geo.Country;
-import models.geo.Locality;
-import models.geo.RmdLocality;
-import models.geo.RmdProvince;
+import models.geo.*;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.Configuration;
@@ -69,6 +66,8 @@ public class GeoCtrl extends Controller {
         // 显示图集的数量
         response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
         response.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + id);
+        response.put("diningTitles", contentsTitles(locality.getCuisines()));
+        response.put("shoppingTitles", contentsTitles(locality.getCommodities()));
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
 
@@ -351,6 +350,12 @@ public class GeoCtrl extends Controller {
             case "desc":
                 fieldList.add(Locality.fnDesc);
                 break;
+            case "diningTitles":
+                Collections.addAll(fieldList, Locality.fnCuisines);
+                break;
+            case "shoppingTitles":
+                Collections.addAll(fieldList, Locality.fnCommodities);
+                break;
             default:
                 throw new AizouException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
         }
@@ -397,20 +402,27 @@ public class GeoCtrl extends Controller {
                 result.put("desc", locality.getShoppingIntro());
                 result.put("contents", detailsEntryFormatter.formatNode(locality.getCommodities()));
                 break;
+            case "diningTitles":
+                result.put("contentsTitles", contentsTitles(locality.getCuisines()));
+                break;
+            case "shoppingTitles":
+                result.put("contentsTitles", contentsTitles(locality.getCommodities()));
+                break;
         }
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
-//    public static List<ObjectNode> contentsToList(List<DetailsEntry> entries) {
-//        if (entries == null)
-//            return new ArrayList<>();
-//
-//        List<ObjectNode> objs = new ArrayList<>();
-//        for (DetailsEntry entry : entries) {
-//            objs.add((ObjectNode) new DetailsEntryFormatter().format(entry));
-//        }
-//        return objs;
-//    }
+    public static String contentsTitles(List<DetailsEntry> entries) {
+        if (entries == null)
+            return "";
+
+        StringBuilder sb = new StringBuilder();
+        for (DetailsEntry entry : entries) {
+            sb.append(entry.getTitle());
+            sb.append(" ");
+        }
+        return sb.toString();
+    }
 
     /**
      * 游玩攻略概览-H5
