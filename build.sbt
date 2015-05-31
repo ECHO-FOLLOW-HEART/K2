@@ -31,7 +31,7 @@ libraryDependencies ++= Seq(
   "org.springframework" % "spring-tx" % "3.2.2.RELEASE",
   "org.aspectj" % "aspectjrt" % "1.8.4",
   "org.aspectj" % "aspectjweaver" % "1.8.4",
-  "com.aizou" % "iisfileappender_2.10" % "0.1-SNAPSHOT",
+  "com.lvxingpai" %% "fileappender" % "0.1-SNAPSHOT",
   play.PlayImport.cache,
   "com.github.mumoshu" %% "play2-memcached" % "0.6.0",
   "org.apache.thrift" % "libthrift" % "0.9.2",
