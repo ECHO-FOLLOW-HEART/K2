@@ -1097,7 +1097,7 @@ public class PoiAPI {
                     query.field("targets").equal(locId);
                 query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
                 // 分页已在poiSolrSearch中完成
-                // .offset(page * pageSize).limit(pageSize);
+                query.offset(page * pageSize).limit(pageSize);
                 return query.asList();
             } else
                 return new ArrayList<>();
