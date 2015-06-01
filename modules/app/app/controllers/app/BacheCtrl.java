@@ -1,4 +1,4 @@
-package controllers.taozi;
+package controllers.app;
 
 import exception.AizouException;
 import exception.ErrorCode;

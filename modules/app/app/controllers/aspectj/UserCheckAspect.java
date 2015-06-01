@@ -11,7 +11,7 @@ import org.aspectj.lang.annotation.Before;
  */
 @Aspect
 public class UserCheckAspect {
-    @Before("execution(public * controllers.taozi..*(..)) && @annotation(aspectj.CheckUser)")
+    @Before("execution(public * controllers.app..*(..)) && @annotation(aspectj.CheckUser)")
     public void checkUser(JoinPoint pjp) throws AizouException {
         new UserCheckHandler().checkUser(pjp);
     }

@@ -1,4 +1,4 @@
-package controllers.taozi;
+package controllers.app;
 
 import aizou.core.GeoAPI;
 import aizou.core.LocalityAPI;
@@ -13,7 +13,6 @@ import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.taozi.geo.*;
 import models.geo.*;
-import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
@@ -25,8 +24,6 @@ import utils.Utils;
 import utils.results.TaoziResBuilder;
 
 import java.util.*;
-
-import static models.geo.RmdProvince.*;
 
 
 /**

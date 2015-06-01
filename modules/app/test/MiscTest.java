@@ -1,8 +1,8 @@
 import com.fasterxml.jackson.databind.JsonNode;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import controllers.taozi.MiscCtrl;
-import controllers.taozi.routes;
+import controllers.app.MiscCtrl;
+import controllers.app.routes;
 import exception.ErrorCode;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -21,7 +21,6 @@ import utils.validator.SimpleViewSpotValidator;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 

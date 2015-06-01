@@ -1,4 +1,4 @@
-package controllers.taozi;
+package controllers.app;
 
 import aizou.core.GeoAPI;
 import aizou.core.GuideAPI;

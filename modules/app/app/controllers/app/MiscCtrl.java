@@ -1,4 +1,4 @@
-package controllers.taozi;
+package controllers.app;
 
 import aizou.core.*;
 import aspectj.CheckUser;
@@ -35,7 +35,6 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
-import play.core.Router;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;

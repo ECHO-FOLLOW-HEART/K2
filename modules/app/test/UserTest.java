@@ -2,7 +2,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import controllers.taozi.routes;
+import controllers.app.routes;
 import exception.ErrorCode;
 import org.junit.BeforeClass;
 import org.junit.Ignore;

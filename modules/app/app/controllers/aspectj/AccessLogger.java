@@ -26,7 +26,7 @@ public class AccessLogger {
     private static final String ACCESS = "access";
     private Log logger = LogFactory.getLog(ACCESS);
 
-    @Around(value = "execution(public play.mvc.Result controllers.taozi..*(..))")
+    @Around(value = "execution(public play.mvc.Result controllers.app..*(..))")
     public Result logAspect(ProceedingJoinPoint pjp) throws Throwable {
         long start = System.currentTimeMillis();
         Result r = (Result) pjp.proceed();

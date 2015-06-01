@@ -1,4 +1,4 @@
-package controllers.taozi;
+package controllers.app;
 
 import aizou.core.MiscAPI;
 import aizou.core.TravelNoteAPI;

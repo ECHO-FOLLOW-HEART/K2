@@ -18,13 +18,13 @@ public class OcsCacheAspect {
         handler = new OcsCacheHandler();
     }
 
-    @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
+    @Around(value = "execution(play.mvc.Result controllers.app..*(..))" +
             "&&@annotation(aspectj.RemoveOcsCache)")
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
         return handler.removeCache(pjp);
     }
 
-    @Around(value = "execution(public * controllers.taozi..*(..)) && @annotation(aspectj.UsingOcsCache)")
+    @Around(value = "execution(public * controllers.app..*(..)) && @annotation(aspectj.UsingOcsCache)")
     public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
         return handler.tryUsingCache(pjp);
     }

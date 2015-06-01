@@ -23,7 +23,7 @@ import static utils.WrappedStatus.MiscWrappedStatus;
 /**
  * Created by Heaven on 2015/1/29.
  */
-//@Aspect
+@Aspect
 public class ModifyHandler {
     private static final java.lang.String SEPARATOR = "\\|";
     public static final String hCACHE_CONTROL = "Cache-Control";
@@ -31,7 +31,7 @@ public class ModifyHandler {
     public static final String hIF_MODIFIED_SINCE = "If-Modified-Since";
     Log logger = LogFactory.getLog(this.getClass());
 
-    @Around(value = "execution(play.mvc.Result controllers.taozi..*(..))" +
+    @Around(value = "execution(play.mvc.Result controllers.app..*(..))" +
             "&&@annotation(controllers.aspectj.UsingLocalCache)")
     public Result checkLastModify(ProceedingJoinPoint pjp, JoinPoint joinPoint) throws Throwable {
         MethodSignature ms = (MethodSignature) pjp.getSignature();
