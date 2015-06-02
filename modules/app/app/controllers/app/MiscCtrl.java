@@ -495,7 +495,7 @@ public class MiscCtrl extends Controller {
             ImageItem imageItem = getImageFromCallBack(ret);
             if (imageItem == null)
                 return status(500, "Can't get image key!");
-            UserAPI.addUserAlbum(Long.valueOf(userId), imageItem,id);
+            UserAPI.addUserAlbum(Long.valueOf(userId), imageItem, id);
         } else
             UserAPI.resetAvater(Long.valueOf(userId), url);
         ret.put("success", true);
@@ -536,7 +536,8 @@ public class MiscCtrl extends Controller {
 
         List<Column> columnList = MiscAPI.getColumns(type, id);
         for (Column c : columnList) {
-            c.setLink(url + c.getId().toString());
+            if (c.getLinkType() != null && c.getLinkType().equals(Column.FD_LINKTYPE_JOIN))
+                c.setLink(url + c.getId().toString());
         }
         ColumnFormatter columnFormatter = FormatterFactory.getInstance(ColumnFormatter.class);
 

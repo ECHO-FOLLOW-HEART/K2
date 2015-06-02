@@ -7,7 +7,7 @@ import org.mongodb.morphia.annotations.Transient;
 
 /**
  * 首页专栏
- *
+ * <p>
  * Created by lxf on 14-11-12.
  */
 @JsonFilter("columnFilter")
@@ -32,6 +32,11 @@ public class Column extends AizouBaseEntity {
     @Transient
     public static final String FD_SORT = "sort";
 
+    @Transient
+    public static final String FD_LINKTYPE_DIRECTLY = "directly";
+
+    @Transient
+    public static final String FD_LINKTYPE_JOIN = "join";
 
     /**
      * 标题
@@ -59,6 +64,8 @@ public class Column extends AizouBaseEntity {
      * 显示类型：homepage-显示在首页的内容，recommend-显示在推荐页的内容
      */
     private String type;
+
+    private String linkType;
 
     private int sort;
 
@@ -108,5 +115,13 @@ public class Column extends AizouBaseEntity {
 
     public void setLink(String link) {
         this.link = link;
+    }
+
+    public String getLinkType() {
+        return linkType;
+    }
+
+    public void setLinkType(String linkType) {
+        this.linkType = linkType;
     }
 }
