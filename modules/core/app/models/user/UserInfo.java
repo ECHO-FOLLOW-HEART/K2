@@ -239,7 +239,7 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
         user.setId(new ObjectId());
         user.setGender("U");
         user.userId = userId;
-        user.nickName = "桃子_" + user.userId;
+        user.nickName = "旅行派_" + user.userId;
         user.roles = Arrays.asList(UserInfo.fnRoles_Common);
         user.alias = Arrays.asList(user.nickName.toLowerCase());
         user.setEnabled(true);
