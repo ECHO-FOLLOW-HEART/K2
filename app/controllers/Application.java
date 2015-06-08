@@ -7,20 +7,20 @@ import play.mvc.Result;
 
 public class Application extends Controller {
 
-    public static Result index() throws AizouException {
-        Result set = set();
-        return set;
-    }
-
-    public static Result set() {
-        String get = (String) Cache.get("key123");
-        if (get == null || get.isEmpty()) {
-            get = "data";
-            Cache.set("key123", get, 10);
-            return ok("get data");
-        }
-        return ok("get data from cache");
-    }
+//    public static Result index() throws AizouException {
+//        Result set = set();
+//        return set;
+//    }
+//
+//    public static Result set() {
+//        String get = (String) Cache.get("key123");
+//        if (get == null || get.isEmpty()) {
+//            get = "data";
+//            Cache.set("key123", get, 10);
+//            return ok("get data");
+//        }
+//        return ok("get data from cache");
+//    }
 
 //    @Transactional
 //    public static Result feedData() {
