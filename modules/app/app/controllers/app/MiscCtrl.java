@@ -381,7 +381,7 @@ public class MiscCtrl extends Controller {
             callbackUrl = qiniu.get("callbackUrl").toString();
             stringBuilder.append("http://");
             // stringBuilder.append("api2.taozilvxing.cn/taozi/misc/upload-callback");
-            stringBuilder.append("182.92.150.243:9000/taozi/misc/upload-callback");
+            stringBuilder.append("182.92.150.243:9000/app/misc/upload-callback");
 
             callbackUrl = stringBuilder.toString();
             LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);
