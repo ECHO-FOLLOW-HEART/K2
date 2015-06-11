@@ -17,12 +17,14 @@ import org.bson.types.ObjectId;
 import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
+import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
 import utils.results.TaoziResBuilder;
 
+import java.text.ParseException;
 import java.util.*;
 
 
@@ -103,8 +105,8 @@ public class GeoCtrl extends Controller {
                                              @Key(tag = "page") int page,
                                              @Key(tag = "pageSize") int pageSize) throws AizouException {
 //            long t0 = System.currentTimeMillis();
-//            Http.Request req = request();
-//            Http.Response rsp = response();
+            Http.Request req = request();
+            Http.Response rsp = response();
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
@@ -113,11 +115,14 @@ public class GeoCtrl extends Controller {
         Configuration config = Configuration.root();
         Map destnations = (Map) config.getObject("destinations");
         //TODO 禁用了这里的304机制，统一由ModifiedHandler处理
-//            String lastModify = destnations.get("lastModify").toString();
-//            添加缓存用的相应头
-//            Utils.addCacheResponseHeader(rsp, lastModify);
-//            if (Utils.useCache(req, lastModify))
-//                return status(304, "Content not modified, dude.");
+            String lastModify = destnations.get("lastModify").toString();
+            //添加缓存用的相应头
+        try {
+            Utils.addCacheResponseHeader(rsp, lastModify);
+        } catch (ParseException e) {
+        }
+        if (Utils.useCache(req, lastModify))
+                return status(304, "Content not modified, dude.");
 
         List<ObjectNode> objs = new ArrayList<>();
         // 国外目的地
