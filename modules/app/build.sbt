@@ -5,7 +5,7 @@ name := "taozi"
 
 scalaVersion := "2.10.3"
 
-val finagleVersion = "6.14.0"
+val finagleVersion = "6.25.0"
 
 libraryDependencies ++= Seq(
   "org.aspectj" % "aspectjrt" % "1.8.4",
@@ -19,12 +19,11 @@ libraryDependencies ++= Seq(
   play.PlayImport.cache,
   "com.github.mumoshu" %% "play2-memcached" % "0.6.0",
   "org.apache.thrift" % "libthrift" % "0.9.2",
-  "com.twitter" %% "scrooge-core" % "3.17.0",
-  "com.twitter" %% "finagle-thrift" % "6.24.0",
+  "com.twitter" %% "scrooge-core" % "3.18.1",
+  "com.twitter" %% "finagle-thrift" % finagleVersion,
   "com.twitter" %% "finagle-core" % finagleVersion,
   "com.twitter" %% "finagle-thrift" % finagleVersion,
-  "com.twitter" %% "finagle-thriftmux" % finagleVersion,
-  "com.twitter" %% "scrooge-core" % "3.18.1"
+  "com.twitter" %% "finagle-thriftmux" % finagleVersion
   //  "org.mongodb" % "mongo-java-driver" % "2.12.4",
   //  "org.mongodb.morphia" % "morphia" % "0.108",
   //  "org.mongodb.morphia" % "morphia-validation" % "0.108",

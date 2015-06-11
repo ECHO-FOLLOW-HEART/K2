@@ -5,13 +5,13 @@ name := "aizou"
 
 version := "2.0"
 
-lazy val `core` = (project in file("modules/core")).enablePlugins(PlayJava)
+lazy val `core` = (project in file("modules/core")).enablePlugins(PlayJava, ScroogeSBT)
 
-lazy val `app` = (project in file("modules/app")).enablePlugins(PlayJava).dependsOn(core)
+lazy val `app` = (project in file("modules/app")).enablePlugins(PlayJava, ScroogeSBT).dependsOn(core)
 
-lazy val `web` = (project in file("modules/web")).enablePlugins(PlayJava).dependsOn(core)
+lazy val `web` = (project in file("modules/web")).enablePlugins(PlayJava, ScroogeSBT).dependsOn(core)
 
-lazy val `k2` = (project in file(".")).enablePlugins(PlayJava)
+lazy val `k2` = (project in file(".")).enablePlugins(PlayJava, ScroogeSBT)
   .dependsOn(core)
   .dependsOn(app)
   .dependsOn(web)
@@ -19,7 +19,7 @@ lazy val `k2` = (project in file(".")).enablePlugins(PlayJava)
 
 scalaVersion := "2.10.3"
 
-val finagleVersion = "6.14.0"
+val finagleVersion = "6.25.0"
 
 libraryDependencies ++= Seq(
   javaJdbc,
@@ -37,11 +37,11 @@ libraryDependencies ++= Seq(
   play.PlayImport.cache,
   "com.github.mumoshu" %% "play2-memcached" % "0.6.0",
   "org.apache.thrift" % "libthrift" % "0.9.2",
-  "com.twitter" %% "finagle-thrift" % "6.24.0",
+  "com.twitter" %% "scrooge-core" % "3.18.1",
+  "com.twitter" %% "finagle-thrift" % finagleVersion,
   "com.twitter" %% "finagle-core" % finagleVersion,
   "com.twitter" %% "finagle-thrift" % finagleVersion,
-  "com.twitter" %% "finagle-thriftmux" % finagleVersion,
-  "com.twitter" %% "scrooge-core" % "3.18.1"
+  "com.twitter" %% "finagle-thriftmux" % finagleVersion
 )
 
 javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
