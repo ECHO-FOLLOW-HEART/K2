@@ -16,6 +16,7 @@ import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
 import models.plan.Plan;
+import models.poi.AbstractPOI;
 import models.user.Credential;
 import models.user.OAuthInfo;
 import models.user.Relationship;
@@ -500,7 +501,7 @@ public class UserAPI {
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         query.field("origin").equal(Constants.APP_FLAG_TAOZI);
-
+        query.order(String.format("%s, %s", UserInfo.fnLevel, UserInfo.fnUserId));
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
