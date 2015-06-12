@@ -65,6 +65,7 @@ public class MiscCtrl extends Controller {
     public static String UPLOAD_URL_SMALL = "urlSmall";
     public static String UPLOAD_UID = "userId";
     public static String UPLOAD_SCENARIO = "scenario";
+    private Map qiniu;
 
     /**
      * 封面故事,获取App首页的图像。
