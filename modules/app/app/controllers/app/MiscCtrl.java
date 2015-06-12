@@ -379,9 +379,9 @@ public class MiscCtrl extends Controller {
         StringBuilder stringBuilder = new StringBuilder();
         if (scenario.equals("portrait") || scenario.equals("album")) {
             scope = qiniu.get("taoziAvaterScope").toString();
-            callbackUrl = qiniu.get("callbackUrl").toString();
+            //callbackUrl = qiniu.get("callbackUrl").toString();
             stringBuilder.append("http://");
-            stringBuilder.append(callbackUrl);
+            stringBuilder.append("api.lvxingpai.com/app/misc/upload-callback");
             //stringBuilder.append("182.92.150.243:9000/app/misc/upload-callback");
             callbackUrl = stringBuilder.toString();
             LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);
