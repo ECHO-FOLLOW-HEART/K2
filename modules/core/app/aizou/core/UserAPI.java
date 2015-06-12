@@ -501,7 +501,7 @@ public class UserAPI {
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         query.field("origin").equal(Constants.APP_FLAG_TAOZI);
-        query.order(String.format("%s, %s", UserInfo.fnLevel, UserInfo.fnUserId));
+        query.order(String.format("-%s, %s", UserInfo.fnLevel, UserInfo.fnUserId));
         return query.offset(page * pageSize).limit(pageSize).iterator();
     }
 
