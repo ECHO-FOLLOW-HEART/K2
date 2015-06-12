@@ -21,7 +21,7 @@ POST          /users/check-validation                            controllers.app
 #获取用户信息
 GET           /users/$uid<[0-9]+>                                controllers.app.UserCtrl.getUserProfileById(uid: Long)
 #搜索用户信息
-GET           /users/search                                      controllers.app.UserCtrl.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=5)
+GET           /users/search                                      controllers.app.UserCtrl.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=10)
 #编辑用户信息，修改密码
 POST          /users/$uid<[0-9]+>                                controllers.app.UserCtrl.editorUserInfo(uid: Long)
 #根据环信用户名列表取得用户名列表
