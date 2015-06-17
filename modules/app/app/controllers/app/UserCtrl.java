@@ -109,6 +109,9 @@ public class UserCtrl extends Controller {
 
         //添加服务号
         addContactImpl(userInfo.getUserId(), PAIPAI_USERID);
+        // 发消息
+        UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
+        UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
         return Utils.createResponse(ErrorCode.NORMAL, info);
     }
 
