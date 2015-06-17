@@ -69,27 +69,4 @@ public class ChatGroupInfo extends AizouBaseEntity {
     public Integer maxUsers;
 
 
-//    /**
-//     * 转换成json
-//     *
-//     * @return
-//     */
-//    @Override
-//    public JsonNode toJson() {
-//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-//        builder.add("ownerId", owner.userId).add("ownerName", owner.nickName).add("desc", desc)
-//                .add("groupName", groupName).add("isGroupPublic", isGroupPublic);
-//        List<JsonNode> list = new ArrayList<>();
-//        if (!(members == null)) {
-//            for (UserInfo userInfo : members) {
-//                ObjectNode node = Json.newObject();
-//                node.put("userId", userInfo.userId);
-//                node.put("userName", userInfo.nickName);
-//                list.add(node);
-//            }
-//            builder.add("members", list);
-//        }
-//
-//        return Json.toJson(builder.get());
-//    }
 }

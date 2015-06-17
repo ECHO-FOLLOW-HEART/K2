@@ -494,4 +494,8 @@ public class Utils {
         cal.add(Calendar.DATE, +1);
         rsp.setHeader("Expires", formatGMT.format(cal.getTime()));
     }
+
+    public static String getReqValue(JsonNode req, String key, String defaultValue) {
+        return req.has(key) ? req.get(key).asText() : defaultValue;
+    }
 }
