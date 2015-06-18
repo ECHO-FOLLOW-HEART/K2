@@ -150,5 +150,19 @@ public class UserCtrlImpl_V20 extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
 
+    public static Result modPasswordImpl(Integer userId, String oldPwd, String newPwd) throws AizouException {
+        //验证用户是否存在-手机号
+        UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
+        if (userInfo == null)
+            return Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
+
+        //验证密码
+        if (UserAPI.validCredential(userInfo, oldPwd)) {
+            //重设密码
+            UserAPI.resetPwd(userInfo, newPwd);
+            return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+        } else
+            return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
+    }
 
 }

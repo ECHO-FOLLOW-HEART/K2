@@ -1,6 +1,5 @@
 package controllers.thrift;
 
-import com.aizou.yunkai.ChatGroup;
 import com.aizou.yunkai.ChatGroupProp;
 import com.aizou.yunkai.UserInfo;
 import com.aizou.yunkai.UserInfoProp;

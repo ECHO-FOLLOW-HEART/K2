@@ -3,14 +3,21 @@ package controllers.thrift;
 import com.aizou.yunkai.ChatGroupProp;
 import com.aizou.yunkai.UserInfoProp;
 import com.aizou.yunkai.userservice;
+import com.twitter.finagle.Service;
+import com.twitter.finagle.builder.ClientBuilder;
+import com.twitter.finagle.thrift.ClientId;
+import com.twitter.finagle.thrift.ThriftClientFramedCodecFactory;
+import com.twitter.finagle.thrift.ThriftClientRequest;
 import models.user.UserInfo;
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
 
+import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +33,7 @@ public class ThriftFactory {
     public synchronized static userservice.Client getClient() {
         TTransport transport = null;
         try {
-            transport = new TSocket("192.168.100.2", 9400);
+            transport = new TFramedTransport(new TSocket("192.168.100.2", 9400));
             transport.open();
             TProtocol protocol = new TBinaryProtocol(transport);
             client = new userservice.Client(protocol);
@@ -109,19 +116,20 @@ public class ThriftFactory {
 
     public static void main(String[] args) throws TException {
         System.out.print("-----");
-//        userservice.Client client = ThriftFactory.getClient();
-//        System.out.print(client.toString());
-//        //UserInfo ckdemima = client.login("18514007293", "ckdemima");
+        //userservice.Client client = ThriftFactory.getClient();
+        //System.out.print(client.toString());
+        //UserInfo ckdemima = client.login("18514007293", "ckdemima");
 
-        TTransport transport = new TSocket("192.168.100.2", 9400);
-
+        TTransport transport = new TFramedTransport(new TSocket("192.168.100.2", 9400));
+//
         TProtocol protocol = new TBinaryProtocol(transport);
-        userservice.Client client = new userservice.Client(protocol);
+        userservice.Client client1 = new userservice.Client(protocol);
         transport.open();
-        com.aizou.yunkai.UserInfo userById = client.getUserById(1);
+        com.aizou.yunkai.UserInfo userById = client1.getUserById(100000);
         System.out.print("--1---");
         System.out.print(userById.getUserId());
         transport.close();
+
     }
 
 

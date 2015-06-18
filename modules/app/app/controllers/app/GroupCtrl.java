@@ -3,7 +3,6 @@ package controllers.app;
 import aizou.core.ChatGroupAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.twitter.finagle.Thrift;
-import controllers.thrift.ThriftFactory;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Utils;

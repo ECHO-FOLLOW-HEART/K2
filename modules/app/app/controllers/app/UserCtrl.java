@@ -1,13 +1,8 @@
 package controllers.app;
 
-import aizou.core.GuideAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.UserAPI;
 import aspectj.CheckUser;
-import aspectj.Key;
-import aspectj.RemoveOcsCache;
-import aspectj.UsingOcsCache;
-import asynchronous.AsyncExecutor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -30,7 +25,6 @@ import models.misc.Token;
 import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
-import org.apache.commons.io.IOUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
@@ -38,13 +32,16 @@ import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.*;
+import utils.Constants;
+import utils.MsgConstants;
+import utils.TaoziDataFilter;
+import utils.Utils;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParser;
 import utils.phone.PhoneParserFactory;
 
+import javax.persistence.Version;
 import java.io.IOException;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -56,6 +53,7 @@ import java.util.regex.Pattern;
  * <p>
  * Created by topy on 2014/10/10.
  */
+
 public class UserCtrl extends Controller {
 
     public static int CAPTCHA_ACTION_SIGNUP = 1;
@@ -88,6 +86,7 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
+    @Version
     public static Result checkCaptcha() throws AizouException {
         JsonNode req = request().body().asJson();
         String tel = req.get("tel").asText();
@@ -164,19 +163,7 @@ public class UserCtrl extends Controller {
         Integer userId = Integer.parseInt(req.get("userId").asText());
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
-
-        //验证用户是否存在-手机号
-        UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
-        if (userInfo == null)
-            return Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
-
-        //验证密码
-        if (UserAPI.validCredential(userInfo, oldPwd)) {
-            //重设密码
-            UserAPI.resetPwd(userInfo, newPwd);
-            return Utils.createResponse(ErrorCode.NORMAL, "Success!");
-        } else
-            return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
+        return UserCtrlImpl.modPasswordImpl(userId, oldPwd, newPwd);
     }
 
     /**
@@ -325,18 +312,7 @@ public class UserCtrl extends Controller {
         Long selfId = null;
         if (tmp != null)
             selfId = Long.parseLong(tmp);
-
-        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
-        boolean selfView = (selfId != null && ((Long) userId).equals(selfId));
-        formatter.setSelfView(selfView);
-
-        UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
-        if (result == null)
-            return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
-        UserAPI.fillUserInfo(result);
-        ObjectNode ret = (ObjectNode) formatter.formatNode(result);
-        ret.put("guideCnt", GuideAPI.getGuideCntByUser(userId));
-        return Utils.status(ret.toString());
+        return UserCtrlImpl.getUserProfileByIdImpl(userId, selfId);
     }
 
 

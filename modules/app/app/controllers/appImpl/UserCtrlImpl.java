@@ -1,5 +1,6 @@
 package controllers.appImpl;
 
+import aizou.core.GuideAPI;
 import aizou.core.UserAPI;
 import aspectj.Key;
 import aspectj.RemoveOcsCache;
@@ -185,7 +186,7 @@ public class UserCtrlImpl implements ICtrlImpl {
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
 
-    public static Result authRegisterImpl(String code) throws AizouException{
+    public static Result authRegisterImpl(String code) throws AizouException {
         String appid, secret, urlAccess, urlDomain, urlInfo;
 
         Configuration config = Configuration.root();
@@ -327,6 +328,36 @@ public class UserCtrlImpl implements ICtrlImpl {
     private static String getInfoUrl(String urlDomain, String urlInfo, String access_token, String openId) {
 
         return "https://" + urlDomain + urlInfo + "?" + "access_token=" + access_token + "&" + "openid=" + openId;
+    }
+
+    public static Result getUserProfileByIdImpl(long userId, Long selfId) throws AizouException {
+
+        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+        boolean selfView = (selfId != null && ((Long) userId).equals(selfId));
+        formatter.setSelfView(selfView);
+
+        UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
+        if (result == null)
+            return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
+        UserAPI.fillUserInfo(result);
+        ObjectNode ret = (ObjectNode) formatter.formatNode(result);
+        ret.put("guideCnt", GuideAPI.getGuideCntByUser(userId));
+        return Utils.status(ret.toString());
+    }
+
+    public static Result modPasswordImpl(Integer userId, String oldPwd, String newPwd) throws AizouException {
+        //验证用户是否存在-手机号
+        UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
+        if (userInfo == null)
+            return Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
+
+        //验证密码
+        if (UserAPI.validCredential(userInfo, oldPwd)) {
+            //重设密码
+            UserAPI.resetPwd(userInfo, newPwd);
+            return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+        } else
+            return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
     }
 
 }
