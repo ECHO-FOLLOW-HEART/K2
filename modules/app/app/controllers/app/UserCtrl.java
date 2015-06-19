@@ -63,8 +63,9 @@ public class UserCtrl extends Controller {
     public static final String FIELD_GUID = "GUID";
     public static long PAIPAI_USERID = 10000;
     public static final String PAIPAI_ESMOB = "xtx2xbxlggo4imqh76kzu5xb86e86yc7";
-    public static final String PAIPAI_WELCOME_1 = "你好，我是旅行达人派派，欢迎使用旅行派。";
-    public static final String PAIPAI_WELCOME_2 = "你可以用旅行派制做行程计划、收集购物美食。还可以跟旅行达人们交流互动，获取帮助和建议噢。";
+    public static final String PAIPAI_WELCOME_1 = "你好，我是热爱旅行,形迹八方的派派。";
+    public static final String PAIPAI_WELCOME_2 = "在这儿，没有规则，没有底限，随心所欲，畅所欲言。欢迎7×24小时的调戏。";
+    public static final String PAIPAI_WELCOME_3 = "世界这么大，约吗？";
 
 
     /**
@@ -112,6 +113,7 @@ public class UserCtrl extends Controller {
         // 发消息
         UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
         UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
+        UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_3);
         return Utils.createResponse(ErrorCode.NORMAL, info);
     }
 
@@ -352,6 +354,7 @@ public class UserCtrl extends Controller {
             // 服务号发消息
             UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
             UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
+            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_3);
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } else
             return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
@@ -443,6 +446,7 @@ public class UserCtrl extends Controller {
                 // 服务号发消息
                 UserAPI.sendMessageToUser(PAIPAI_ESMOB, us, PAIPAI_WELCOME_1);
                 UserAPI.sendMessageToUser(PAIPAI_ESMOB, us, PAIPAI_WELCOME_2);
+                UserAPI.sendMessageToUser(PAIPAI_ESMOB, us, PAIPAI_WELCOME_3);
                 return Utils.createResponse(ErrorCode.NORMAL, info);
             }
 
@@ -481,6 +485,7 @@ public class UserCtrl extends Controller {
             // 服务号发消息
             UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
             UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
+            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_3);
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (IOException e) {
             throw new AizouException(ErrorCode.IO_ERROR, "", e);
