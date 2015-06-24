@@ -21,7 +21,6 @@ import org.apache.commons.io.IOUtils;
 import play.Configuration;
 import play.libs.F;
 import play.libs.Json;
-import play.mvc.Controller;
 import play.mvc.Result;
 import utils.MsgConstants;
 import utils.Utils;
@@ -35,7 +34,7 @@ import java.util.*;
 /**
  * Created by topy on 2015/6/13.
  */
-public class UserCtrlImpl implements ICtrlImpl {
+public class UserCtrlImpl {
 
     public static int CAPTCHA_ACTION_SIGNUP = 1;
     public static int CAPTCHA_ACTION_MODPWD = 2;

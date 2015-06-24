@@ -74,6 +74,10 @@ public class ThriftFactory {
         client.updateUserInfo(userId, ThriftConvert.convertUserFieldsToPropMap(userInfo));
     }
 
+    public static void modifyPwd(long userId, Map<String, String> userInfo) throws TException {
+    }
+
+
     /**
      * 添加好友
      *
