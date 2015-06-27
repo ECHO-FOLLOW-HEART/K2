@@ -81,28 +81,6 @@ public class ChatGroup extends AizouBaseEntity {
 
     private Boolean visible;
 
-
-//    public static Group create(Long creator, Long groupId, String name,String avatar, String groupType, Boolean isPublic, List<Long> members) {
-//
-//        Group c = new Group();
-//        c.id = new ObjectId();
-//        c.groupId = groupId;
-//        c.creator = creator;
-//        c.admin = Arrays.asList(creator);
-//
-//        c.name = name;
-//        c.avatar = avatar;
-//        c.type = groupType;
-//        c.visible = isPublic;
-//        c.participants = members;
-//        c.participantCnt = members.size();
-//        c.maxUsers = 50;
-//        c.desc = "群主什么也没说";
-//        c.msgCounter = 0L;
-//        c.createTime = c.updateTime = System.currentTimeMillis();
-//        return c;
-//    }
-
     public Long getGroupId() {
         return groupId;
     }
