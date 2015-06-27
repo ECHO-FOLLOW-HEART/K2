@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFilter;
 import models.AizouBaseEntity;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
-import play.data.validation.Constraints;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * 涉及用户的秘密数据
@@ -32,7 +33,7 @@ public class Credential extends AizouBaseEntity {
     /**
      * 用户ID
      */
-    @Constraints.Required
+    @NotNull
     private Long userId;
 
     /**
@@ -43,7 +44,7 @@ public class Credential extends AizouBaseEntity {
     /**
      * 该用户对应的盐值
      */
-    @Constraints.Required
+    @NotNull
     private String salt;
 
     /**
@@ -54,7 +55,7 @@ public class Credential extends AizouBaseEntity {
     /**
      * 用户密钥，鉴权的时候使用
      */
-    @Constraints.Required
+    @NotNull
     private String secKey;
 
     public Long getUserId() {

@@ -8,9 +8,9 @@ import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
-import play.data.validation.Constraints;
 import play.libs.Json;
 
+import javax.validation.constraints.NotNull;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -38,14 +38,14 @@ public class YahooWeather extends AizouBaseEntity implements ITravelPiFormatter 
      * 地点
      */
     @Embedded
-    @Constraints.Required
+    @NotNull
     public SimpleRef loc;
 
     /**
      * 当前天气
      */
     @Embedded
-    @Constraints.Required
+    @NotNull
     public WeatherItem current;
 
     /**
@@ -56,7 +56,7 @@ public class YahooWeather extends AizouBaseEntity implements ITravelPiFormatter 
     /**
      * 更新时间
      */
-    @Constraints.Required
+    @NotNull
     public Date updateTime;
 
     public String getUpdateTime() {

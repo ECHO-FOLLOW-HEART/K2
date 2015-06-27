@@ -10,8 +10,8 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Transient;
-import play.data.validation.Constraints;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -33,13 +33,13 @@ public class ChatGroupInfo extends AizouBaseEntity {
     /**
      * 群的id
      */
-    @Constraints.Required
+    @NotNull
     public String groupId;
 
     /**
      * 群主
      */
-    @Constraints.Required
+    @NotNull
     @Embedded
     public UserInfo owner;
 

@@ -1,17 +1,17 @@
 import com.typesafe.sbt.SbtAspectj.AspectjKeys._
 import com.typesafe.sbt.SbtAspectj._
 
-name := "aizou"
+name := "k2"
 
-version := "2.0"
+version := "3.0"
 
-lazy val `core` = (project in file("modules/core")).enablePlugins(PlayJava)
+lazy val `core` = (project in file("modules/core")).enablePlugins(PlayScala)
 
-lazy val `app` = (project in file("modules/app")).enablePlugins(PlayJava).dependsOn(core)
+lazy val `app` = (project in file("modules/app")).enablePlugins(PlayScala).dependsOn(core)
 
-lazy val `web` = (project in file("modules/web")).enablePlugins(PlayJava).dependsOn(core)
+lazy val `web` = (project in file("modules/web")).enablePlugins(PlayScala).dependsOn(core)
 
-lazy val `k2` = (project in file(".")).enablePlugins(PlayJava)
+lazy val `k2` = (project in file(".")).enablePlugins(PlayScala)
   .dependsOn(core)
   .dependsOn(app)
   .dependsOn(web)

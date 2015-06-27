@@ -7,8 +7,8 @@ import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
-import play.data.validation.Constraints;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
 
@@ -92,7 +92,7 @@ public class Favorite extends AizouBaseEntity {
     /**
      * 用户ID
      */
-    @Constraints.Required
+    @NotNull
     public Integer userId;
 
     public ObjectId itemId;

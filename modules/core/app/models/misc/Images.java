@@ -5,8 +5,8 @@ import models.AizouBaseEntity;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Transient;
-import play.data.validation.Constraints;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
@@ -33,7 +33,7 @@ public class Images extends AizouBaseEntity {
     private Map<String, Integer> cropHint;
 
 
-    @Constraints.Required
+    @NotNull
     private String key;
 
     private String bucket;

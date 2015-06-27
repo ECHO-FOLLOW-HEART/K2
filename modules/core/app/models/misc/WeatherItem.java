@@ -6,8 +6,9 @@ import models.AizouBaseItem;
 import models.ITravelPiFormatter;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
-import play.data.validation.Constraints;
 import play.libs.Json;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * 单项天气信息
@@ -58,7 +59,7 @@ public class WeatherItem extends AizouBaseItem implements ITravelPiFormatter {
     /**
      * 天气代码
      */
-    @Constraints.Required
+    @NotNull
     public Integer code;
 
     /**
