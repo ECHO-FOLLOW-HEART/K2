@@ -25,7 +25,7 @@ libraryDependencies ++= Seq(
   cache,
   javaWs,
   filters,
-  "org.mongodb" % "mongo-java-driver" % "2.12.4",
+  "org.mongodb" % "mongo-java-driver" % "3.0.0",
   "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",
   "org.springframework" % "spring-aop" % "3.2.2.RELEASE",
   "org.springframework" % "spring-tx" % "3.2.2.RELEASE",

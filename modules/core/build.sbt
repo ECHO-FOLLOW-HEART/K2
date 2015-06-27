@@ -4,10 +4,12 @@ name := "core"
 
 scalaVersion := "2.10.3"
 
+val morphiaVersion = "0.111"
+
 libraryDependencies ++= Seq(
-  "org.mongodb" % "mongo-java-driver" % "2.12.4",
-  "org.mongodb.morphia" % "morphia" % "0.108",
-  "org.mongodb.morphia" % "morphia-validation" % "0.108",
+  "org.mongodb" % "mongo-java-driver" % "3.0.0",
+  "org.mongodb.morphia" % "morphia" % morphiaVersion,
+  "org.mongodb.morphia" % "morphia-validation" % morphiaVersion,
   "cglib" % "cglib-nodep" % "3.1",
   "com.thoughtworks.proxytoys" % "proxytoys" % "1.0",
   "org.apache.solr" % "solr-solrj" % "4.10.0",

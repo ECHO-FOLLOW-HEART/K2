@@ -1,22 +1,16 @@
 package formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
-import models.AizouBaseEntity;
 import models.geo.Locality;
-import models.guide.Guide;
-import models.misc.TravelNote;
 import models.user.UserInfo;
-import org.bson.types.ObjectId;
-import org.mongodb.morphia.annotations.Transient;
-import sun.awt.SunHints;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 public class UserInfoSerializer extends AizouSerializer<UserInfo> {
 
