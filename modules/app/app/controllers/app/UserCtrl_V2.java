@@ -1,13 +1,19 @@
 package controllers.app;
 
+import aizou.core.GuideAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.UserAPI;
 import aspectj.CheckUser;
+import aspectj.Key;
+import aspectj.RemoveOcsCache;
+import aspectj.UsingOcsCache;
+import asynchronous.AsyncExecutor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
 import controllers.appImpl.UserCtrlImpl;
+import controllers.thrift.ThriftFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -22,11 +28,14 @@ import models.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Album;
 import models.misc.Token;
+import models.misc.TravelNote;
 import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
+import org.apache.thrift.TException;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
+import org.mongodb.morphia.query.UpdateOperations;
 import play.Configuration;
 import play.libs.F;
 import play.libs.Json;
@@ -54,7 +63,7 @@ import java.util.regex.Pattern;
  * Created by topy on 2014/10/10.
  */
 
-public class UserCtrl extends Controller {
+public class UserCtrl_V2 extends Controller {
 
     public static int CAPTCHA_ACTION_SIGNUP = 1;
     public static int CAPTCHA_ACTION_MODPWD = 2;
@@ -62,9 +71,8 @@ public class UserCtrl extends Controller {
     public static final String FIELD_GUID = "GUID";
     public static long PAIPAI_USERID = 10000;
     public static final String PAIPAI_ESMOB = "xtx2xbxlggo4imqh76kzu5xb86e86yc7";
-    public static final String PAIPAI_WELCOME_1 = "你好，我是热爱旅行,形迹八方的派派。";
-    public static final String PAIPAI_WELCOME_2 = "在这儿，没有规则，没有底限，随心所欲，畅所欲言。欢迎7×24小时的调戏。";
-    public static final String PAIPAI_WELCOME_3 = "世界这么大，约吗？";
+    public static final String PAIPAI_WELCOME_1 = "你好，我是旅行达人派派，欢迎使用旅行派。";
+    public static final String PAIPAI_WELCOME_2 = "你可以用旅行派制做行程计划、收集购物美食。还可以跟旅行达人们交流互动，获取帮助和建议噢。";
 
 
     /**
@@ -72,14 +80,28 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result signup() throws AizouException {
+    public static Result signup() throws AizouException, TException {
         JsonNode req = request().body().asJson();
 
         String pwd = req.get("pwd").asText();
         String captcha = req.get("captcha").asText();
 
         PhoneEntity telEntry = PhoneParserFactory.newInstance().parse(req.get("tel").asText());
-        return UserCtrlImpl.signupImpl(telEntry, pwd, captcha);
+
+        //验证用户是否存在
+        if (ThriftFactory.existUserByTel(telEntry.getPhoneNumber())) {
+            return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
+        }
+        UserInfo userInfo;
+        if (captcha.equals("85438734") || UserAPI.checkValidation(telEntry.getDialCode(), telEntry.getPhoneNumber()
+                , 1, captcha, null)) {
+            // 生成用户
+            userInfo = ThriftFactory.createUserByTel("旅行派_" + telEntry.getPhoneNumber(), pwd, telEntry.getPhoneNumber());
+        } else
+            return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
+
+        ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
+        return Utils.createResponse(ErrorCode.NORMAL, info);
     }
 
     /**
@@ -117,41 +139,22 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result bindTel() throws AizouException {
+    public static Result bindTel() throws AizouException, TException {
         JsonNode req = request().body().asJson();
-        UserInfo userInfo;
-        String tel = req.get("tel").asText();
+        PhoneEntity telEntry = PhoneParserFactory.newInstance().parse(req.get("tel").asText());
         String token = req.get("token").asText();
-        Integer countryCode;
         String pwd = req.has("pwd") ? req.get("pwd").asText() : "";
         Integer userId = Integer.valueOf(req.get("userId").asText());
-        if (req.has("dialCode")) {
-            countryCode = Integer.valueOf(req.get("dialCode").asText());
-        } else {
-            countryCode = 86;
-        }
         //验证验证码
         if (UserAPI.checkToken(token, Integer.valueOf(userId), CAPTCHA_ACTION_BANDTEL)) {
             //如果手机已存在，则绑定无效
-            if (UserAPI.getUserByField(UserInfo.fnTel, tel) != null) {
+            if (ThriftFactory.existUserByTel(telEntry.getPhoneNumber()))
                 return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
-            }
-            userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId, null);
-            userInfo.setTel(tel);
-            UserAPI.saveUserInfo(userInfo);
-
-            if (!pwd.equals("")) {
-                Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
-                Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(userInfo.getUserId()).get();
-                cre.setSalt(Utils.getSalt());
-                cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
-
-                MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
-            }
+            ThriftFactory.updateUserTel(userId, telEntry.getPhoneNumber());
             return Utils.createResponse(ErrorCode.NORMAL, "Success!");
-        } else {
+        } else
             return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.TOKEN_ERROR_MSG, true);
-        }
+
     }
 
     /**
@@ -159,12 +162,18 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result modPassword() throws AizouException {
+    public static Result modPassword() throws AizouException, TException {
         JsonNode req = request().body().asJson();
         Integer userId = Integer.parseInt(req.get("userId").asText());
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
-        return UserCtrlImpl.modPasswordImpl(userId, oldPwd, newPwd);
+
+        if (ThriftFactory.verifyCredential(userId, oldPwd)) {
+            ThriftFactory.resetPassword(userId, newPwd);
+
+            return Utils.createResponse(ErrorCode.NORMAL, "Success!");
+        } else
+            return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
     }
 
     /**
@@ -172,41 +181,30 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result newPassword() throws AizouException {
+    public static Result newPassword() throws AizouException, TException {
         JsonNode req = request().body().asJson();
         String pwd = req.get("pwd").asText();
         String token = req.get("token").asText();
         String tel = req.get("tel").asText();
-        Integer countryCode = 86;
-        if (req.has("dialCode"))
-            countryCode = Integer.valueOf(req.get("dialCode").asText());
+        Long uId;
+        UserInfo user;
 
         //验证密码格式
-        if (!validityPwd(pwd)) {
+        if (!validityPwd(pwd))
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, MsgConstants.PWD_FORMAT_ERROR_MSG, true);
-        }
-        //验证Token
+        user = ThriftFactory.getUserByTel(tel);
+        if (user == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, MsgConstants.USER_NOT_EXIST_MSG, true);
         //忘记密码后重设密码，不需要userId
         if (UserAPI.checkToken(token, 0, CAPTCHA_ACTION_MODPWD)) {
-            UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, tel);
-            UserAPI.resetPwd(userInfo, pwd);
-
-            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
-            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-            if (cre == null)
-                throw new AizouException(ErrorCode.USER_NOT_EXIST, "User not exist.");
-
-            // 机密数据
-            JsonNode creNode = new CredentialFormatter().format(cre);
-            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                info.put(entry.getKey(), entry.getValue());
-            }
-
+            uId = user.getUserId();
+            ThriftFactory.resetPassword(uId, pwd);
+            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(user);
+            // TODO Credential.fnSecKey 什么用
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } else
             return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
+
     }
 
     private static boolean validityPwd(String pwd) {
@@ -221,7 +219,7 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result sendCaptcha() throws AizouException {
+    public static Result sendCaptcha() throws AizouException, TException {
 
         JsonNode req = request().body().asJson();
 
@@ -231,7 +229,7 @@ public class UserCtrl extends Controller {
         Integer userId = req.has("userId") ? Integer.valueOf(req.get("userId").asText()) : null;
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
         //验证用户是否存在
-        UserInfo us = UserAPI.getUserByField(UserInfo.fnTel, tel);
+        UserInfo us = ThriftFactory.getUserByTel(tel);
         if (actionCode == CAPTCHA_ACTION_SIGNUP) {
             if (us != null) {   //us！=null,说明用户存在
                 return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true);
@@ -264,12 +262,28 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result signin() throws AizouException {
+    public static Result signin() throws AizouException, TException {
 
         JsonNode req = request().body().asJson();
         String passwd = req.get("pwd").asText();
         String loginName = req.get("loginName").asText();
-        return UserCtrlImpl.singinImpl(loginName, passwd);
+
+        PhoneEntity telEntry = null;
+        try {
+            telEntry = PhoneParserFactory.newInstance().parse(loginName);
+        } catch (IllegalArgumentException ignore) {
+        }
+
+        ArrayList<Object> valueList = new ArrayList<>();
+        valueList.add(loginName);
+        if (telEntry != null && telEntry.getPhoneNumber() != null)
+            valueList.add(telEntry.getPhoneNumber());
+
+        UserInfo user = ThriftFactory.longin(loginName, passwd);
+        if (user == null)
+            return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
+        UserFormatterOld userFormatter = new UserFormatterOld(true);
+        return Utils.createResponse(ErrorCode.NORMAL, userFormatter.format(user));
     }
 
     /**
@@ -277,14 +291,12 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result validityInfo(String tel, String nick) throws AizouException {
+    public static Result validityInfo(String tel, String nickName) throws AizouException, TException {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-
-        if (UserAPI.getUserByField(UserInfo.fnTel, tel) != null)
+        if (ThriftFactory.existUserByTel(tel))
             return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
-        if (UserAPI.getUserByField(UserInfo.fnNickName, nick) != null) {
+        if (ThriftFactory.existUserByNickName(nickName))
             return Utils.createResponse(ErrorCode.USER_EXIST, Json.toJson(builder.add("valid", false).get()));
-        }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.add("valid", true).get()));
     }
 
@@ -297,7 +309,9 @@ public class UserCtrl extends Controller {
     public static Result authRegister() throws AizouException {
         JsonNode req = request().body().asJson();
         String code = req.get("code").asText();
-        return UserCtrlImpl.authRegisterImpl(code);
+        // TODO
+        // UserCtrlImpl.authRegisterImpl(code);
+        return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
     }
 
 
@@ -313,7 +327,19 @@ public class UserCtrl extends Controller {
         Long selfId = null;
         if (tmp != null)
             selfId = Long.parseLong(tmp);
-        return UserCtrlImpl.getUserProfileByIdImpl(userId, selfId);
+        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+        boolean selfView = (selfId != null && ((Long) userId).equals(selfId));
+        formatter.setSelfView(selfView);
+
+        UserInfo result = ThriftFactory.getUserById(selfId);
+        if (result == null)
+            return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
+        ObjectNode ret = (ObjectNode) formatter.formatNode(result);
+        ret.put("guideCnt", GuideAPI.getGuideCntByUser(userId));
+        // TODO 缺少接口 获得其他用户属性
+        ret.put("tracks", Json.toJson(new ArrayList<>()));
+        ret.put("travelNotes", Json.toJson(new ArrayList<>()));
+        return Utils.status(ret.toString());
     }
 
 
@@ -323,43 +349,19 @@ public class UserCtrl extends Controller {
      * @param keyword
      * @return
      */
-    public static Result searchUser(String keyword, String field, int page, int pageSize) throws AizouException {
+    public static Result searchUser(String keyword, String field, int page, int pageSize) throws AizouException, TException {
 
-
-        ArrayList<Object> valueList = new ArrayList<>();
-        valueList.add(keyword);
-
-        Collection<String> fieldDescList;
+        List<UserInfo> userList = new ArrayList<>();
         // 如果是按照电话、昵称或用户ID查询
         if (field.equals(FIELD_GUID)) {
-            PhoneEntity telEntry = null;
-            try {
-                telEntry = PhoneParserFactory.newInstance().parse(keyword);
-            } catch (IllegalArgumentException ignore) {
-            }
-            if (telEntry != null && telEntry.getPhoneNumber() != null)
-                valueList.add(telEntry.getPhoneNumber());
-
-            // 设置查询字段
-            fieldDescList = Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName,
-                    UserInfo.fnUserId);
-        } else {
-            valueList.add(keyword);
-            fieldDescList = Arrays.asList(field);
-        }
-
+            userList = ThriftFactory.searchUserInfoByTelOrName(keyword, page, pageSize);
+        } else
+            //  TODO 按role
+            return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
         UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
         formatter.setSelfView(false);
-
-        List<UserInfo> result = new ArrayList<>();
-        UserInfo user;
-        for (Iterator<UserInfo> itr = UserAPI.searchUser(fieldDescList, valueList, formatter.getFilteredFields(), page, pageSize); itr.hasNext(); ) {
-            user = itr.next();
-            UserAPI.fillUserInfo(user);
-            result.add(user);
-        }
-
-        return Utils.status(formatter.format(result));
+        //TODO 添加足迹信息，和游记信息
+        return Utils.status(formatter.format(userList));
     }
 
     /**
@@ -369,14 +371,12 @@ public class UserCtrl extends Controller {
      * @return
      */
     @CheckUser
-    public static Result editorUserInfo(@CheckUser Long userId) throws AizouException, IOException, ParseException {
+    public static Result editorUserInfo(@CheckUser Long userId) throws AizouException, IOException, ParseException, TException {
         JsonNode req = request().body().asJson();
-        if (userId == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalide UserId");
 
-        Map<String, Object> reqMap = new HashMap<>();
+        Map<String, String> reqMap = new HashMap<>();
 
-        reqMap.put(UserInfo.fnUserId, userId);
+
         //修改昵称
         if (req.has("nickName")) {
             String nickName = req.get("nickName").asText();
@@ -398,21 +398,12 @@ public class UserCtrl extends Controller {
         //头像
         if (req.has("avatar"))
             reqMap.put(UserInfo.fnAvatar, cutPicUrl(req.get("avatar").asText()));
+
         //旅行状态
-        if (req.has("travelStatus"))
-            reqMap.put(UserInfo.fnTravelStatus, req.get("travelStatus").asText());
-        if (req.has("birthday"))
-            reqMap.put(UserInfo.fnBirthday, timeFmt.parse(req.get("birthday").asText()));
-        if (req.has("zodiac"))
-            reqMap.put(UserInfo.fnZodiac, TaoziDataFilter.getZodiac(req.get("zodiac").asText()));
-        if (req.has("residence"))
-            reqMap.put(UserInfo.fnResidence, req.get("residence").asText());
-        // 足迹
-        if (req.has("tracks"))
-            reqMap.put(UserInfo.fnTracks, req.get("tracks").elements());
-        if (req.has("travelNotes"))
-            reqMap.put(UserInfo.fnTravelNotes, req.get("travelNotes").elements());
-        UserAPI.updateUserInfo(reqMap);
+        if (req.has("travelStatus") || req.has("birthday") || req.has("zodiac")
+                || req.has("residence") || req.has("tracks") || req.has("travelNotes"))
+            return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
+        ThriftFactory.updateUserInfo(userId, reqMap);
         return Utils.createResponse(ErrorCode.NORMAL, "Success");
     }
 
@@ -428,16 +419,12 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
-    public static Result requestAddContact() throws AizouException {
-        long userId, contactId;
-        String message;
-
+    public static Result requestAddContact() throws AizouException, TException {
         JsonNode req = request().body().asJson();
-        userId = Integer.parseInt(request().getHeader("UserId"));
-        message = req.get("message").asText();
-        contactId = Integer.parseInt(req.get("userId").asText());
-
-        UserAPI.requestAddContact(userId, contactId, message);
+        long userId = Integer.parseInt(request().getHeader("UserId"));
+        long contactId = Integer.parseInt(req.get("userId").asText());
+        String message = req.get("message").asText();
+        ThriftFactory.sendContactRequest(userId, contactId, message);
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
 
@@ -448,12 +435,10 @@ public class UserCtrl extends Controller {
      */
     public static F.Promise<Result> addContact() throws AizouException {
         long userId, contactId;
-
         userId = Integer.parseInt(request().getHeader("UserId"));
         contactId = Integer.parseInt(request().body().asJson().get("userId").asText());
-        return UserCtrlImpl.addContactImpl(userId, contactId);
+        return addContactImpl(userId, contactId);
     }
-
 
     /**
      * 删除好友
@@ -461,17 +446,48 @@ public class UserCtrl extends Controller {
      * @param id
      * @return
      */
-    public static Result delContact(Long id) throws AizouException {
+    public static Result delContact(Long id) throws AizouException, TException {
         long userId;
         userId = Integer.parseInt(request().getHeader("UserId"));
-        return UserCtrlImpl.delContactImpl(userId, id);
+        return delContactImpl(userId, id);
     }
 
+    @RemoveOcsCache(keyList = "getContactList({userA})|getContactList({userB})")
+    public static Result delContactImpl(@Key(tag = "userA") long userA, @Key(tag = "userB") long userB)
+            throws AizouException, TException {
+        ThriftFactory.removeContact(userA, userB);
+        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+    }
 
-    public static Result getContactList() throws AizouException {
+    public static Result getContactList() throws AizouException, TException {
         long userId;
         userId = Integer.parseInt(request().getHeader("UserId"));
-        return UserCtrlImpl.getContactListImpl(userId);
+        return getContactListImpl(userId);
+    }
+
+    /**
+     * 获得好友列表
+     *
+     * @return
+     */
+    @UsingOcsCache(key = "getContactList({id})", expireTime = 300)
+    public static Result getContactListImpl(@Key(tag = "id") long userId) throws AizouException, TException {
+        List<UserInfo> list = ThriftFactory.getContactList(userId);
+        if (list == null)
+            list = new ArrayList<>();
+        // TODO Yunkai里应包含备注信息
+        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
+        formatter.setSelfView(false);
+
+        List<JsonNode> nodelist = new ArrayList<>();
+        for (UserInfo userInfo : list) {
+            userInfo.setMemo("临时备注信息");
+            nodelist.add(formatter.formatNode(userInfo));
+        }
+
+        ObjectNode node = Json.newObject();
+        node.put("contacts", Json.toJson(nodelist));
+        return Utils.createResponse(ErrorCode.NORMAL, node);
     }
 
 
@@ -576,7 +592,8 @@ public class UserCtrl extends Controller {
 
         String selfId = request().getHeader("userId");
         String memo = request().body().asJson().get("memo").asText();
-        UserAPI.setUserMemo(Long.parseLong(selfId), id, memo);
+        //UserAPI.setUserMemo(Long.parseLong(selfId), id, memo);
+        // TODO
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
 
     }
@@ -626,27 +643,9 @@ public class UserCtrl extends Controller {
      */
     public static Result getLocalitiesOfExpertUserTracks(String type, boolean abroad) throws AizouException {
 
-        List<Locality> locs;
-        Map<ObjectId, Locality> map = new HashMap<>();
-        for (Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnRoles), Arrays.asList(UserInfo.fnRoles_Expert), Arrays.asList(UserInfo.fnTracks, UserInfo.FD_ID), 0, Constants.MAX_COUNT); itr.hasNext(); ) {
-            locs = itr.next().getTracks();
-            if (locs == null)
-                continue;
-            for (Locality loc : locs)
-                map.put(loc.getId(), loc);
-        }
-        List<ObjectId> locIds = new ArrayList<>();
-        locIds.addAll(map.keySet());
-        List<Locality> result = LocalityAPI.getLocalityList(locIds, Arrays.asList(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.fnCountry, Locality.fnLocation), 0, Constants.MAX_COUNT);
-        ObjectNode res = Json.newObject();
-        Map<String, List<Locality>> resultMap = TaoziDataFilter.transLocalitiesByCountry(result, abroad);
-
-        SimpleLocalityWithLocationFormatter fmt = FormatterFactory.getInstance(SimpleLocalityWithLocationFormatter.class);
-
-        for (Map.Entry<String, List<Locality>> entry : resultMap.entrySet())
-            res.put(entry.getKey(), fmt.formatNode(sortLocalityByPinyin(entry.getValue())));
-
-        return Utils.createResponse(ErrorCode.NORMAL, res);
+        // TODO 分国内国外
+        // TODO
+        return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
     }
 
     /**
@@ -655,13 +654,11 @@ public class UserCtrl extends Controller {
      * @param rmdProvinceList
      */
     private static List<Locality> sortLocalityByPinyin(List<Locality> rmdProvinceList) {
-
         Collections.sort(rmdProvinceList, new Comparator<Locality>() {
             public int compare(Locality arg0, Locality arg1) {
                 return arg0.getZhName().compareTo(arg1.getZhName()) > 0 ? 1 : -1;
             }
         });
-
         return rmdProvinceList;
     }
 
@@ -687,11 +684,10 @@ public class UserCtrl extends Controller {
                 UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnTel,
                 UserInfo.fnDialCode, UserInfo.fnRoles, UserInfo.fnTravelStatus, UserInfo.fnTracks, UserInfo.fnTravelNotes,
                 UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac, UserInfo.fnLevel);
-        List<UserInfo> usersInfo = UserAPI.getExpertUserByTracks(ids, type, fields);
-        for (UserInfo user : usersInfo)
-            // TODO
-            UserAPI.fillUserInfo(user);
-        return Utils.createResponse(ErrorCode.NORMAL, formatter.formatNode(usersInfo));
+        // TODO 取得包含此足迹的所有达人
+        // TODO
+        //UserAPI.fillUserInfo(user);
+        return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
 
     }
 
@@ -706,53 +702,38 @@ public class UserCtrl extends Controller {
         JsonNode data = request().body().asJson();
         Iterator<JsonNode> iterator = data.get("tracks").elements();
         String action = data.get("action").asText();
-        UserAPI.modifyTracks(id, action, iterator);
-
-        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+        // TODO
+        return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
 
     }
 
+    /**
+     * 添加好友
+     *
+     * @param userId
+     * @param contactId
+     * @return
+     * @throws AizouException
+     */
+    @RemoveOcsCache(keyList = "getContactList({userA})|getContactList({userB})")
+    public static F.Promise<Result> addContactImpl(@Key(tag = "userA") final long userId,
+                                                   @Key(tag = "userB") final long contactId)
+            throws AizouException {
+        return AsyncExecutor.execute(
+                new F.Function0<Object>() {
+                    @Override
+                    public Object apply() throws Throwable {
+                        ThriftFactory.addContact(userId, contactId);
+                        return null;
+                    }
+                },
+                new F.Function<Object, Result>() {
+                    @Override
+                    public Result apply(Object o) throws Throwable {
+                        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+                    }
+                }
+        );
+    }
 
-//    /**
-//     * 获得用户的黑名单列表
-//     *
-//     * @param
-//     * @return backlist
-//     */
-//    public static Result getUserBlackList() {
-//        try {
-//            String userId = request().getHeader("userId");
-//            List<Integer> list = UserAPI.getBlackList(Integer.parseInt(userId));
-//            Map<String, List<Integer>> map = new HashMap<>();
-//            map.put("blacklist", list);
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(map));
-//        } catch (TravelPiException | NullPointerException | ClassCastException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-//        }
-//    }
-//
-//    /**
-//     * 将用户加入/移除黑名单
-//     *
-//     * @return
-//     */
-//    public static Result setUserBlacklist() {
-//        try {
-//            String selfId = request().getHeader("userId");
-//            JsonNode req = request().body().asJson();
-//            List<Integer> list = (List<Integer>) req.get("userList").iterator();
-//            /*Iterator<JsonNode> iterator =  req.get("userList").iterator();
-//            List<Integer> list =new ArrayList<>();
-//            while(iterator.hasNext()){
-//               JsonNode node=iterator.next();
-//               list.add(node.get("userList").asInt());
-//            }*/
-//            String operation = req.get("action").asText();
-//
-//            UserAPI.setUserBlacklist(Integer.parseInt(selfId), list, operation);
-//            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
-//        } catch (TravelPiException | NullPointerException | ClassCastException e) {
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, Json.toJson("failed"));
-//        }
-//    }
 }

@@ -1,3 +1,5 @@
+
+
 #----------用户接口----------
 #用户
 #手机注册
@@ -28,7 +30,6 @@ POST          /users/$uid<[0-9]+>                                controllers.app
 POST          /users/easemob                                     controllers.app.UserCtrl.getUsersByEasemob()
 #根据通讯录进行用户匹配
 POST          /users/search-by-address-book                      controllers.app.UserCtrl.matchAddressBook()
-#根据通讯录进行用户匹配
 
 #----------好友接口----------
 #请求添加好友
@@ -52,6 +53,19 @@ POST          /users/:userRole/tracks/users                      controllers.app
 #修改足迹
 POST          /users/$id<[0-9]+>/tracks                          controllers.app.UserCtrl.modifyTracks(id:Long)
 
+#群组
+#创建群组
+#POST        /groups                        controllers.app.GroupCtrl.createGroup()
+##修改群组信息
+#PUT         /groups/:gId                   controllers.GroupCtrl.modifyGroup(gId:Long)
+##取得群组信息
+#GET         /groups/:gId                   controllers.GroupCtrl.getGroup(gId:Long)
+##取得群组成员信息
+#GET         /groups/:gId/users             controllers.GroupCtrl.getGroupUsers(gId:Long)
+##操作群组，加减成员
+#POST        /groups/:gId                   controllers.GroupCtrl.opGroup(gId:Long)
+##取得用户的群组
+#GET         /users/:uid/groups             controllers.GroupCtrl.getUserGroups(uid:Long)
 
 #添加/删除用户到好友列表
 #POST          /users/blacklist                               controllers.taozi.UserCtrl.setUserBlacklist()
