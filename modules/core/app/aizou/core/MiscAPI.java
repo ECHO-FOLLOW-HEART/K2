@@ -46,7 +46,7 @@ public class MiscAPI {
     }
 
     public static void saveColumns(Column pageFirst) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         ds.save(pageFirst);
     }
 
@@ -58,7 +58,7 @@ public class MiscAPI {
      */
     public static JsonNode saveComment(Comment comment)
             throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         comment.setId(new ObjectId());
         ds.save(comment);
 
@@ -74,7 +74,7 @@ public class MiscAPI {
      * @throws exception.AizouException
      */
     public static void updateComment(String poiId, String commentDetails) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         UpdateOperations<Comment> uo = ds.createUpdateOperations(Comment.class);
         uo.set("commentDetails", commentDetails);
         ds.update(ds.createQuery(Comment.class).field("poiId").equal(poiId), uo);
@@ -93,7 +93,7 @@ public class MiscAPI {
     public static <T extends Comment> List<T> getComments(Class<? extends Comment> cls, ObjectId poiId, Double lower, Double upper, long lastUpdate, int page, int pageSize)
             throws AizouException {
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Datastore ds = MorphiaFactory.datastore();
         Query<T> query = (Query<T>) ds.createQuery(cls).field(Comment.FD_ITEM_ID).equal(poiId);
         query = query.order("-" + Comment.FD_PUBLISHTIME);
 
@@ -119,7 +119,7 @@ public class MiscAPI {
             item.setIsFavorite(false);
             return;
         }
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Favorite> query = ds.createQuery(Favorite.class);
         query.field(UserInfo.fnUserId).equal(userId).field(Favorite.fnItemId).equal(item.getId());
         Iterator<Favorite> it = query.iterator();
@@ -138,7 +138,7 @@ public class MiscAPI {
         if (userId == null) {
             return;
         }
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Favorite> query = ds.createQuery(Favorite.class);
         query.field(UserInfo.fnUserId).equal(userId);
         List<CriteriaContainerImpl> criList = new ArrayList<>();
@@ -159,7 +159,7 @@ public class MiscAPI {
     }
 
     public static List<Images> getLocalityAlbum(ObjectId id, int page, int pageSize) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Images> query = ds.createQuery(Images.class);
 
         query.field(Images.FD_ITEMID).equal(id);
@@ -168,7 +168,7 @@ public class MiscAPI {
     }
 
     public static Long getLocalityAlbumCount(ObjectId id) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Images> query = ds.createQuery(Images.class);
 
         query.field(Images.FD_ITEMID).equal(id);
@@ -176,7 +176,7 @@ public class MiscAPI {
     }
 
     public static Map<String, String> getMiscInfos(List<String> keys) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         Query<MiscInfo> query = ds.createQuery(MiscInfo.class);
 
         List<CriteriaContainerImpl> criList = new ArrayList<>();

@@ -17,8 +17,7 @@ public class WeatherAPI {
      * @param id
      */
     public static YahooWeather weatherDetails(ObjectId id) throws AizouException {
-        return MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC).
-                createQuery(YahooWeather.class).field("loc.id").equal(id).get();
+        return MorphiaFactory.datastore().createQuery(YahooWeather.class).field("loc.id").equal(id).get();
     }
 
 }

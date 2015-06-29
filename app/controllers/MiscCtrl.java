@@ -5,12 +5,12 @@ import aizou.core.PoiAPI;
 import aizou.core.UserAPI;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import com.mongodb.*;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.travelpi.geo.LocalityFormatter;
 import formatter.travelpi.geo.SimpleLocalityFormatter;
-import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Feedback;
 import models.misc.MiscInfo;
@@ -47,14 +47,12 @@ public class MiscCtrl extends Controller {
             uid = new ObjectId(feedback.get("uid").asText());
             //DBCollection col = Utils.getMongoClient().getDB("user").getCollection("user_info");
             //DBObject userItem = col.findOne(QueryBuilder.start("_id").is(uid).get());
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            Datastore ds = MorphiaFactory.datastore();
             Query<UserInfo> query = ds.createQuery(UserInfo.class);
             query.field("_id").equal(uid);
             if (!query.iterator().hasNext())
                 return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", uid));
         } catch (NullPointerException ignored) {
-        } catch (IllegalArgumentException | AizouException e) {
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid user id: %s.", feedback.get("uid").asText()));
         }
         String body = null;
         if (feedback.has("body"))
@@ -63,7 +61,7 @@ public class MiscCtrl extends Controller {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "No body found.");
 
         Feedback feedBack = new Feedback();
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         feedBack.uid = uid;
         feedBack.body = body;
         feedBack.time = new Date();
@@ -380,7 +378,7 @@ public class MiscCtrl extends Controller {
 
     private static JsonNode appHomeImageImpl(int width, int height, int quality, String format, int interlace)
             throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         MiscInfo info = ds.createQuery(MiscInfo.class).get();
 
         if (info == null)
@@ -519,18 +517,14 @@ public class MiscCtrl extends Controller {
         List<JsonNode> results = new ArrayList<JsonNode>();
 
         Datastore ds = null;
-        try {
-            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            Query<Recommendation> query = ds.createQuery(Recommendation.class);
+        ds = MorphiaFactory.datastore();
+        Query<Recommendation> query = ds.createQuery(Recommendation.class);
 
-            query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
-            query.order(type).offset(page * pageSize).limit(pageSize);
+        query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
+        query.order(type).offset(page * pageSize).limit(pageSize);
 
-            for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
-                results.add(it.next().toJson());
-            }
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
+            results.add(it.next().toJson());
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));
@@ -643,7 +637,7 @@ public class MiscCtrl extends Controller {
      * @return
      */
     public static Result destRecommend() {
-        if (destRecommendCache==null) {
+        if (destRecommendCache == null) {
             // 获得支持的国家列表
             try {
                 Map<String, List<Locality>> ret = PoiAPI.destRecommend();

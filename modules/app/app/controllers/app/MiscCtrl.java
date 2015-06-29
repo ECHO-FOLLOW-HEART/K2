@@ -78,7 +78,7 @@ public class MiscCtrl extends Controller {
     public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height,
                                       @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
             throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE)
                 .asList();
         if (infos == null)
@@ -127,7 +127,7 @@ public class MiscCtrl extends Controller {
         if (body == null || body.equals(""))
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid feedback content.");
         Feedback feedBack = new Feedback();
-        Datastore dsSave = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore dsSave = MorphiaFactory.datastore();
         if (uid != null)
             feedBack.uid = uid;
         feedBack.body = body;
@@ -150,7 +150,7 @@ public class MiscCtrl extends Controller {
         List<ObjectNode> retNodeList = new ArrayList<>();
         Datastore ds;
 
-        ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        ds = MorphiaFactory.datastore();
         Query<Recom> query = ds.createQuery(Recom.class);
 
         query.field("enabled").equal(Boolean.TRUE);
@@ -196,7 +196,7 @@ public class MiscCtrl extends Controller {
         String itemId = collection.get("itemId").asText();
         ObjectId oid = new ObjectId(itemId);
         String type = collection.get("type").asText();
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Favorite> query = ds.createQuery(Favorite.class);
         query.field("userId").equal(userId).field("type").equal(type).field("itemId").equal(oid);
         if (query.iterator().hasNext()) {
@@ -231,7 +231,7 @@ public class MiscCtrl extends Controller {
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
         Integer userId = Integer.parseInt(request().getHeader("UserId"));
-        Query<Favorite> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).createQuery(Favorite.class);
+        Query<Favorite> query = MorphiaFactory.datastore().createQuery(Favorite.class);
         query.field("userId").equal(userId);
 
         if (faType != null && !faType.equals("all") && !faType.equals(""))
@@ -353,7 +353,7 @@ public class MiscCtrl extends Controller {
     public static Result delFavorite(String id) throws AizouException {
         ObjectId oid = new ObjectId(id);
         Integer userId = Integer.parseInt(request().getHeader("UserId"));
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Favorite> query = ds.createQuery(Favorite.class).field("userId").equal(userId).field("itemId").equal(oid);
         ds.delete(query);
 
@@ -864,7 +864,7 @@ public class MiscCtrl extends Controller {
         if (body == null || body.equals(""))
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Invalid tipOff content.");
         TipOff tipOff = new TipOff();
-        Datastore dsSave = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore dsSave = MorphiaFactory.datastore();
 
         tipOff.setOfferUserId(selfId);
         tipOff.setTargetUserId(targetUserId);

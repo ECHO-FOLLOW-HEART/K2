@@ -305,21 +305,18 @@ public class PlanCtrl extends Controller {
                             break;
                     }
                     if (poiClass != null) {
-                        try {
-                            // TODO 需要改成通过调用PoiAPI来获得相应的价格数据。
-                            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
-                            AbstractPOI ret = ds.createQuery(poiClass).field("_id").equal(item.item.id).get();
-                            if (ret == null)
-                                continue;
+                        // TODO 需要改成通过调用PoiAPI来获得相应的价格数据。
+                        Datastore ds = MorphiaFactory.datastore();
+                        AbstractPOI ret = ds.createQuery(poiClass).field("_id").equal(item.item.id).get();
+                        if (ret == null)
+                            continue;
 
-                            if (ret.price == null || ret.price <= 0) {
-                                budget.set(0, 50 + budget.get(0));
-                                budget.set(1, 120 + budget.get(1));
-                            } else {
-                                budget.set(0, (int) (ret.price + budget.get(0)));
-                                budget.set(1, (int) (ret.price + budget.get(1)));
-                            }
-                        } catch (AizouException ignored) {
+                        if (ret.price == null || ret.price <= 0) {
+                            budget.set(0, 50 + budget.get(0));
+                            budget.set(1, 120 + budget.get(1));
+                        } else {
+                            budget.set(0, (int) (ret.price + budget.get(0)));
+                            budget.set(1, (int) (ret.price + budget.get(1)));
                         }
                     }
                 }
@@ -383,7 +380,7 @@ public class PlanCtrl extends Controller {
                             }
 
                             if ("airport".equals(item.get("subType").asText())) {
-                                Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+                                Datastore ds = MorphiaFactory.datastore();
                                 Airport airport = ds.createQuery(Airport.class).field("_id")
                                         .equal(new ObjectId(item.get("itemId").asText())).get();
                                 if (airport != null && airport.addr != null && airport.addr.coords != null) {
@@ -397,7 +394,7 @@ public class PlanCtrl extends Controller {
                                         conItem.put("blat", airport.addr.coords.blng);
                                 }
                             } else if ("trainStation".equals(item.get("subType").asText())) {
-                                Datastore dsTrain = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+                                Datastore dsTrain = MorphiaFactory.datastore();
                                 TrainStation trainStation = dsTrain.createQuery(TrainStation.class).field("_id")
                                         .equal(new ObjectId(item.get("itemId").asText())).get();
                                 if (trainStation != null && trainStation.addr != null && trainStation.addr.coords != null) {
@@ -989,7 +986,7 @@ public class PlanCtrl extends Controller {
 //        String subType = item.get("subType").asText();
 
         PlanItem planItem = null;
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Datastore ds = MorphiaFactory.datastore();
         SimpleRef ref, locRef;
         String enName, zhName;
         Locality locality;
@@ -1056,7 +1053,7 @@ public class PlanCtrl extends Controller {
         String subType = item.get("subType").asText();
 
         PlanItem planItem = null;
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Datastore ds = MorphiaFactory.datastore();
         SimpleRef ref;
         //12小时制：hh:mm:ss  24小时制：HH:mm:ss
         SimpleDateFormat fmt = new SimpleDateFormat("yyyy-MM-dd HH:mm:ssZ");

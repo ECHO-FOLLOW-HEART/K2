@@ -144,7 +144,7 @@ public class POICtrl extends Controller {
         if (colName == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Datastore ds = MorphiaFactory.datastore();
 
 
         DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);

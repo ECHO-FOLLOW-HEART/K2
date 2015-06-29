@@ -141,12 +141,12 @@ public class UserCtrl extends Controller {
             UserAPI.saveUserInfo(userInfo);
 
             if (!pwd.equals("")) {
-                Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+                Datastore ds = MorphiaFactory.datastore();
                 Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(userInfo.getUserId()).get();
                 cre.setSalt(Utils.getSalt());
                 cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
 
-                MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+                MorphiaFactory.datastore().save(cre);
             }
             return Utils.createResponse(ErrorCode.NORMAL, "Success!");
         } else {

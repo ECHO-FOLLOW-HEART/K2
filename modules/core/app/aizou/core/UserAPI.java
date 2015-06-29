@@ -56,7 +56,7 @@ public class UserAPI {
     public static int CMDTYPE_DEL_FRIEND = 3;
 
     public static UserInfo getUserById(ObjectId id) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         return ds.createQuery(UserInfo.class).field("_id").equal(id).get();
     }
 
@@ -101,7 +101,7 @@ public class UserAPI {
      * @throws exception.AizouException
      */
     public static UserInfo getUserInfo(Long id, Collection<String> fieldList) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<UserInfo> query = ds.createQuery(UserInfo.class).field(UserInfo.fnUserId).equal(id);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
@@ -119,7 +119,7 @@ public class UserAPI {
      */
     public static void setUserMemo(Long selfId, Long targetId, String memo) throws AizouException {
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Relationship> query = ds.createQuery(Relationship.class);
         String memoTarget;
         Long userA;
@@ -159,7 +159,7 @@ public class UserAPI {
             }
         }
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Relationship> query;
         if (bigUserIds != null && !bigUserIds.isEmpty()) {
             query = ds.createQuery(Relationship.class);
@@ -259,7 +259,7 @@ public class UserAPI {
 //            default:
 //                throw new TravelPiException(ErrorCode.INVALID_ARGUMENT, "INVALID_ARGUMENT");
 //        }
-//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);    //更新用户的信息
+//        Datastore ds = MorphiaFactory.datastore();    //更新用户的信息
 //        ds.save(userInfo);
 //    }
 //
@@ -290,7 +290,7 @@ public class UserAPI {
      * @return
      */
     public static UserInfo getUserByOAuth(String provider, String oauthId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("$elemMatch",
                 BasicDBObjectBuilder.start().add("provider", provider).add("oauthId", oauthId).get());
         return ds.createQuery(UserInfo.class).filter("oauthList", builder.get()).get();
@@ -303,7 +303,7 @@ public class UserAPI {
      * @return
      */
     public static UserInfo getUserByUdid(String udid) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         return ds.createQuery(UserInfo.class).field("udid").equal(udid).field("oauthList").notEqual(null).get();
     }
 
@@ -322,7 +322,7 @@ public class UserAPI {
         user.setNickName((new ObjectId()).toString());
         user.setAvatar("http://default");
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         ds.save(user);
 
         return user;
@@ -341,7 +341,7 @@ public class UserAPI {
         UserInfo user = getUserByOAuth(provider, oauthId);
         if (user != null) {
             //更新签名
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            Datastore ds = MorphiaFactory.datastore();
 //            user.secToken = secToken;
             ds.save(user);
 
@@ -383,7 +383,7 @@ public class UserAPI {
         oauthList.add(oauthInfo);
         user.setOauthList(oauthList);
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         ds.save(user);
 
         return user;
@@ -396,7 +396,7 @@ public class UserAPI {
 //        String uid = req.getQueryString("uid");
 //
 //        //取得用户信息
-//        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+//        Datastore dsUser = MorphiaFactory.datastore();
 //        // 优先按照uid进行lookup
 //        UserInfo user;
 //        if (uid != null)
@@ -422,7 +422,7 @@ public class UserAPI {
     public static void updateUserInfo(Map<String, Object> reqMap) throws AizouException {
 
         //取得用户信息
-        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore dsUser = MorphiaFactory.datastore();
         UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
         for (Map.Entry<String, Object> entry : reqMap.entrySet()) {
             String key = entry.getKey();
@@ -473,7 +473,7 @@ public class UserAPI {
                                                 Collection<String> fieldList,
                                                 int page, int pageSize)
             throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
 
         if (fieldDesc == null || fieldDesc.isEmpty())
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid fields.");
@@ -561,7 +561,7 @@ public class UserAPI {
      * @return
      */
     public static void saveUserInfo(UserInfo u) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         ds.save(u);
     }
 
@@ -580,7 +580,7 @@ public class UserAPI {
         // 注册环信
         String[] ret = regEasemob();
         user.setEasemobUser(ret[0]);
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
+        MorphiaFactory.datastore().save(user);
 
         // 注册机密信息
         String easemobPwd = ret[1];
@@ -597,7 +597,7 @@ public class UserAPI {
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "", e);
         }
 
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+        MorphiaFactory.datastore().save(cre);
 
         return user;
     }
@@ -616,7 +616,7 @@ public class UserAPI {
 
         user.setEasemobUser(ret[0]);
         user.setOrigin(Constants.APP_FLAG_TAOZI);
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(user);
+        MorphiaFactory.datastore().save(user);
 
         // 注册机密信息
         Credential cre = new Credential();
@@ -629,7 +629,7 @@ public class UserAPI {
         } catch (NoSuchAlgorithmException e) {
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "", e);
         }
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+        MorphiaFactory.datastore().save(cre);
 
         return user;
     }
@@ -659,7 +659,7 @@ public class UserAPI {
     }
 
     public static Long populateUserId() throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Sequence> query = ds.createQuery(Sequence.class);
         query.field("column").equal(Sequence.USERID);
         UpdateOperations<Sequence> ops = ds.createUpdateOperations(Sequence.class).inc("count");
@@ -719,7 +719,7 @@ public class UserAPI {
      */
     public static Credential getPwd(UserInfo u) throws AizouException {
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
         if (u.getUserId() == null)
             return null;
@@ -750,7 +750,7 @@ public class UserAPI {
      * @throws exception.AizouException
      */
     public static Credential getCredentialByUserId(Long userId, List<String> fieldList) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Credential> query = ds.createQuery(Credential.class).field("userId").equal(userId);
         if (fieldList != null && !fieldList.isEmpty()) {
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
@@ -769,12 +769,12 @@ public class UserAPI {
         if (pwd == null || pwd.isEmpty() || u == null || u.getUserId() == null)
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "");
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(u.getUserId()).get();
         cre.setSalt(Utils.getSalt());
         cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
 
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+        MorphiaFactory.datastore().save(cre);
     }
 
     /**
@@ -785,7 +785,7 @@ public class UserAPI {
      * @return
      */
     public static boolean validCredential(UserInfo u, String pwd) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Credential> ceQuery = ds.createQuery(Credential.class);
         Credential ce = ceQuery.field("userId").equal(u.getUserId()).get();
         return ce != null && ce.getPwdHash().equals(Utils.toSha1Hex(ce.getSalt() + pwd));
@@ -802,7 +802,7 @@ public class UserAPI {
      */
     public static Long sendValCode(int countryCode, String tel, int actionCode, Integer userId, long expireMs, long resendMs)
             throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
 
@@ -838,7 +838,7 @@ public class UserAPI {
      */
     public static boolean checkValidation(int countryCode, String tel, int actionCode, String valCode, Integer userId)
             throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         ValidationCode entry = ds.createQuery(ValidationCode.class).field("key")
                 .equal(ValidationCode.calcKey(countryCode, tel, actionCode)).get();
 
@@ -861,7 +861,7 @@ public class UserAPI {
      * 获取环信系统的token。如果已经过期，则重新申请一个。
      */
     private static String getEaseMobToken() throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         MiscInfo info = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_HUANXIN_INFO).get();
 
         String token = info.easemobToken;
@@ -911,7 +911,7 @@ public class UserAPI {
 
     public static Token valCodetoToken(Integer countryCode, String tel, int actionCode, int userId, long expireMs) throws AizouException {
         ValidationCode valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         Token token = Token.newInstance(valCode, expireMs);
 
         Token uniq = ds.createQuery(Token.class).field("value")
@@ -924,7 +924,7 @@ public class UserAPI {
     }
 
     public static boolean checkToken(String token, int userId, int actionCode) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         Token uniq = ds.createQuery(Token.class).field("value").equal(token).field("used").notEqual(true).get();
         //设置已使用过
         if (uniq != null)
@@ -1462,7 +1462,7 @@ public class UserAPI {
         Set<Long> contactSet = getContactIds(selfId);
 
         // 取得好友信息
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<UserInfo> queryFriends = ds.createQuery(UserInfo.class);
         List<CriteriaContainerImpl> criList = new ArrayList<>();
         for (Long tempId : contactSet) {
@@ -1486,7 +1486,7 @@ public class UserAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid UserId.");
 
         // 从关系表中取得好友关系列表
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Relationship> query = ds.createQuery(Relationship.class);
 
         query.or(query.criteria("userA").equal(selfId), query.criteria("userB").equal(selfId));
@@ -1508,7 +1508,7 @@ public class UserAPI {
 
     public static List<UserInfo> getUserByEaseMob(List<String> users, List<String> fieldList) throws AizouException {
         try {
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            Datastore ds = MorphiaFactory.datastore();
             Query<UserInfo> query = ds.createQuery(UserInfo.class);
             List<CriteriaContainerImpl> criList = new ArrayList<>();
             for (String name : users) {
@@ -1526,7 +1526,7 @@ public class UserAPI {
     }
 
     public static void resetAvater(Long userId, String avater) throws AizouException {
-        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore dsUser = MorphiaFactory.datastore();
         UpdateOperations<UserInfo> ops = dsUser.createUpdateOperations(UserInfo.class);
         ops.set("avatar", avater);
         dsUser.updateFirst(dsUser.createQuery(UserInfo.class).field("userId").equal(userId), ops);
@@ -1540,7 +1540,7 @@ public class UserAPI {
      * @throws AizouException
      */
     public static void addFriends(Long selfId, Long targetId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
 
         Query<Relationship> query = ds.createQuery(Relationship.class);
         // 较小的userId设为userA
@@ -1568,7 +1568,7 @@ public class UserAPI {
      * @throws AizouException
      */
     public static void delFriends(Long selfId, Long targetId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
 
         Query<Relationship> query = ds.createQuery(Relationship.class);
         // 较小的userId
@@ -1616,7 +1616,7 @@ public class UserAPI {
      * @throws AizouException
      */
     public static void addUserAlbum(Long userId, ImageItem imageItem, String id) throws AizouException {
-        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Datastore dsUser = MorphiaFactory.datastore();
 
         Album entity = new Album();
         entity.setId(new ObjectId(id));
@@ -1635,7 +1635,7 @@ public class UserAPI {
      * @throws AizouException
      */
     public static List<Album> getUserAlbums(Long userId) throws AizouException {
-        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Datastore dsUser = MorphiaFactory.datastore();
         Query<Album> query = dsUser.createQuery(Album.class);
         query.field(Album.FD_USERID).equal(userId).field(Album.FD_TAOZIENA).equal(true);
         return query.asList();
@@ -1649,7 +1649,7 @@ public class UserAPI {
      * @throws AizouException
      */
     public static void deleteUserAlbums(Long userId, Object picId) throws AizouException {
-        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.IMAGESTORE);
+        Datastore dsUser = MorphiaFactory.datastore();
         Query<Album> query = dsUser.createQuery(Album.class);
         query.field(Album.FD_USERID).equal(userId).field(Album.FD_ID).equal(picId).field(Album.FD_TAOZIENA).equal(true);
 
@@ -1659,7 +1659,7 @@ public class UserAPI {
     }
 
     public static List<UserInfo> getExpertUserByTracks(List<ObjectId> ids, String role, Collection<String> fieldList) throws AizouException {
-        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore dsUser = MorphiaFactory.datastore();
 
         Query<UserInfo> query = dsUser.createQuery(UserInfo.class);
         List<Locality> localities = new ArrayList<>();
@@ -1686,7 +1686,7 @@ public class UserAPI {
      */
     public static void modifyTracks(Long userId, String action, Iterator<JsonNode> its) throws AizouException {
 
-        Datastore dsUser = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore dsUser = MorphiaFactory.datastore();
         Query<UserInfo> query = dsUser.createQuery(UserInfo.class);
         query.field(Album.FD_USERID).equal(userId);
 
@@ -1770,7 +1770,7 @@ public class UserAPI {
      * @throws AizouException
      */
 //    public static void setAlbumsToAvatar(Long userId, String url) throws AizouException {
-//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+//        Datastore ds = MorphiaFactory.datastore();
 //        Query<UserInfo> query = ds.createQuery(UserInfo.class);
 //        query.field(UserInfo.fnUserId).equal(userId);
 //

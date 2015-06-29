@@ -21,7 +21,7 @@ public class MiscCtrl {
      */
     public static Result getProxies(String verifier, float latency, int recently, int page, int pageSize)
             throws IllegalAccessException, InstantiationException, AizouException {
-        Query<Proxy> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC).createQuery(Proxy.class);
+        Query<Proxy> query = MorphiaFactory.datastore().createQuery(Proxy.class);
 
         if (verifier == null || verifier.isEmpty())
             verifier = "baidu";

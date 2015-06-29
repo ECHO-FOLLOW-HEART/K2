@@ -35,7 +35,7 @@ public class ChatGroupAPI {
      * @throws exception.AizouException
      */
     public static void saveData(ChatGroupInfo chatGroupInfo) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         ds.save(chatGroupInfo);
     }
 
@@ -46,7 +46,7 @@ public class ChatGroupAPI {
      * @throws exception.AizouException
      */
     public static void deleteData(ChatGroupInfo chatGroupInfo) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         ds.delete(chatGroupInfo);
     }
 
@@ -59,7 +59,7 @@ public class ChatGroupAPI {
      * @throws exception.AizouException
      */
     public static ChatGroupInfo getChatGroupById(String id) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         return ds.createQuery(ChatGroupInfo.class).field("groupId").equal(id).get();
 
     }
@@ -73,7 +73,7 @@ public class ChatGroupAPI {
      * @throws exception.AizouException
      */
     public static ChatGroupInfo getUserGroupInfo(String id, List<String> list) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         Query<ChatGroupInfo> query = ds.createQuery(ChatGroupInfo.class).field("groupId").equal(id);
         if (list != null && !list.isEmpty()) {
             query.retrievedFields(true, list.toArray(new String[list.size()]));
@@ -117,7 +117,7 @@ public class ChatGroupAPI {
      * @throws exception.AizouException
      */
     private static String getEaseMobToken() throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         MiscInfo info = ds.createQuery(MiscInfo.class).get();
 
         String token = info.easemobToken;
@@ -327,7 +327,7 @@ public class ChatGroupAPI {
             }
         }
         //更新库
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         UpdateOperations<ChatGroupInfo> os = ds.createUpdateOperations(ChatGroupInfo.class);
         os.set(ChatGroupInfo.MEMBERS, members);
         ds.update(ds.createQuery(ChatGroupInfo.class).field("groupId").equal(groupId), os);
@@ -379,7 +379,7 @@ public class ChatGroupAPI {
         } else
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "delete failed");
         //更新库
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+        Datastore ds = MorphiaFactory.datastore();
         UpdateOperations<ChatGroupInfo> os = ds.createUpdateOperations(ChatGroupInfo.class);
         os.set(ChatGroupInfo.MEMBERS, members);
         ds.update(ds.createQuery(ChatGroupInfo.class).field("groupId").equal(groupId), os);
@@ -432,7 +432,7 @@ public class ChatGroupAPI {
             chatGroupInfo.isGroupPublic = isGroupPublic;
 
             //bug
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+            Datastore ds = MorphiaFactory.datastore();
             UpdateOperations<ChatGroupInfo> os = ds.createUpdateOperations(ChatGroupInfo.class);
             os.set("desc", desc);
             os.set("groupName", groupName);

@@ -1,6 +1,6 @@
 package com.lvxingpai.k2.core
 
-import com.mongodb.{MongoClientOptions, MongoCredential, ServerAddress, MongoClient}
+import com.mongodb.{MongoClient, MongoClientOptions, MongoCredential, ServerAddress}
 import org.mongodb.morphia.{Morphia, ValidationExtension}
 
 import scala.collection.JavaConversions._
@@ -10,8 +10,10 @@ import scala.collection.JavaConversions._
  */
 object MorphiaFactory {
   lazy val client = {
-    val services = CoreConfig.conf.getConfigList("backends.mongo").get
-    val serverAddresses = services.toSeq map (c=>{
+    val backends = CoreConfig.conf.getConfig("backends.mongo").get
+    val services = backends.subKeys.toSeq map (backends.getConfig(_).get)
+
+    val serverAddresses = services map (c => {
       new ServerAddress(c.getString("host").get, c.getInt("port").get)
     })
 

@@ -28,7 +28,7 @@ object CoreConfig {
         )
       case "dev" =>
         Seq(
-          EtcdConfBuilder().addKey("k2-dev").build(),
+          EtcdConfBuilder().addKey("k2-dev", "k2").build(),
           EtcdServiceBuilder().addKey("mongo-dev", "mongo").addKey("smscenter").addKey("yunkai")
             .addKey("redis-main", "redis").build()
         )
