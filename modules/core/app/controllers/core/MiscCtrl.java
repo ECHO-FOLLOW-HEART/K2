@@ -4,7 +4,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.ProxyFormatter;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.misc.Proxy;
 import org.mongodb.morphia.query.Query;
 import play.mvc.Result;

@@ -3,7 +3,7 @@ package aizou.core;
 
 import exception.AizouException;
 import models.AizouBaseEntity;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
 import org.bson.types.ObjectId;

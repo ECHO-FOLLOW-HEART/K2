@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   "org.apache.solr" % "solr-solrj" % "4.10.0",
   "dom4j" % "dom4j" % "1.6.1",
   "jaxen" % "jaxen" % "1.1.6",
-  "com.lvxingpai" %% "appconfig" % "0.1.3-SNAPSHOT",
+  "com.lvxingpai" %% "appconfig" % "0.2.1-SNAPSHOT",
   "org.aspectj" % "aspectjrt" % "1.8.4",
   "org.aspectj" % "aspectjweaver" % "1.8.4",
   "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",

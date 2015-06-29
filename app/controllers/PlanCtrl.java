@@ -8,7 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.travelpi.plan.SimpleUgcPlanFormatter;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Share;
 import models.misc.SimpleRef;

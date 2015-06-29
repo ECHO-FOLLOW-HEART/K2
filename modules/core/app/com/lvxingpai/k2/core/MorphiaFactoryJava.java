@@ -1,4 +1,4 @@
-package models;
+package com.lvxingpai.k2.core;
 
 import com.mongodb.*;
 import exception.AizouException;
@@ -9,7 +9,6 @@ import org.mongodb.morphia.ValidationExtension;
 import play.Configuration;
 import play.Play;
 
-import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -17,10 +16,10 @@ import java.util.*;
  *
  * @author Zephyre
  */
-public class MorphiaFactory {
+public class MorphiaFactoryJava {
 
     private static Hashtable<DBType, Datastore> dsMap = new Hashtable<>();
-    private static MorphiaFactory ourInstance;
+    private static MorphiaFactoryJava ourInstance;
     private final Morphia morphia;
     private final MongoClient client;
 
@@ -35,7 +34,7 @@ public class MorphiaFactory {
 //        new ValidationExtension(morphia);
 //    }
 
-    private MorphiaFactory() throws AizouException {
+    private MorphiaFactoryJava() throws AizouException {
         Configuration config = Play.application().configuration();
 
         List<ServerAddress> servers = new ArrayList<>();
@@ -73,9 +72,9 @@ public class MorphiaFactory {
         morphia.mapPackage("models.traffic", true);
     }
 
-    public synchronized static MorphiaFactory getInstance() throws AizouException {
+    public synchronized static MorphiaFactoryJava getInstance() throws AizouException {
         if (ourInstance == null)
-            ourInstance = new MorphiaFactory();
+            ourInstance = new MorphiaFactoryJava();
 
         return ourInstance;
     }

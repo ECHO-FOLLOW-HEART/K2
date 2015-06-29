@@ -1,7 +1,7 @@
 package aizou.core;
 
 import exception.AizouException;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.misc.YahooWeather;
 import org.bson.types.ObjectId;
 

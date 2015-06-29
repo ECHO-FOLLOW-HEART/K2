@@ -43,14 +43,11 @@ javaOptions ++= Seq("-Xmx2048M", "-XX:MaxPermSize=2048M")
 
 unmanagedResourceDirectories in Test <+= baseDirectory(_ / "target/web/public/test")
 
-resolvers += "Spy Repository" at "http://files.couchbase.com/maven2" // required to resolve `spymemcached`, the plugin's dependency.unmanagedResourceDirectories in Test <+= baseDirectory(_ / "target/web/public/test")
-
 aspectjSettings
 
 showWeaveInfo in Aspectj := false
 
 inputs in Aspectj <+= compiledClasses
-
 
 binaries in Aspectj <++= update map { report =>
   report.matching(

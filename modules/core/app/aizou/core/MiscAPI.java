@@ -5,7 +5,7 @@ import exception.AizouException;
 import formatter.FormatterFactory;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.misc.Column;
 import models.misc.Images;
 import models.misc.MiscInfo;
@@ -19,7 +19,6 @@ import org.mongodb.morphia.query.Query;
 import org.mongodb.morphia.query.UpdateOperations;
 
 import java.util.*;
-import java.util.regex.Pattern;
 
 /**
  * Created by lxf on 14-11-12.
@@ -34,7 +33,7 @@ public class MiscAPI {
      */
     public static List<Column> getColumns(String type, String id) throws AizouException {
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Column> query = ds.createQuery(Column.class);
         if (id.equals("")) {
             query.field(Column.FD_TYPE).equal(type);

@@ -3,7 +3,7 @@ package aizou.core;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.SolrServerFactory;
 import models.geo.Country;
 import models.geo.Locality;
@@ -18,7 +18,6 @@ import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import utils.Constants;
-import utils.LogUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;

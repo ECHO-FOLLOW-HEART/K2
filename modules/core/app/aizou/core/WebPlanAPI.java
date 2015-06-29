@@ -2,7 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.misc.SimpleRef;
 import models.plan.Plan;
 import models.plan.PlanDayEntry;

@@ -10,7 +10,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.travelpi.geo.LocalityFormatter;
 import formatter.travelpi.geo.SimpleLocalityFormatter;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Feedback;
 import models.misc.MiscInfo;
