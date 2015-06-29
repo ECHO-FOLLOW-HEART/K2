@@ -5,9 +5,9 @@ import com.mongodb.BasicDBObjectBuilder;
 import models.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
-import play.data.validation.Constraints;
 import play.libs.Json;
 
+import javax.validation.constraints.NotNull;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,8 +24,8 @@ public class AirRoute extends AbstractRoute {
     @Embedded
     public AirPrice price;
 
-    @Constraints.Required
     @Embedded
+    @NotNull
     public SimpleRef carrier;
 
     public Boolean selfChk;

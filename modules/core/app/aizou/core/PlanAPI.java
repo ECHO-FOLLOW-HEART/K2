@@ -3,7 +3,7 @@ package aizou.core;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.SimpleRef;
 import models.plan.*;
@@ -32,7 +32,7 @@ public class PlanAPI {
 
     private static List<Plan> planExploreHelper(ObjectId targetId, boolean isLoc, String tag, int minDays, int maxDays,
                                                 int page, int pageSize) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Plan> query = ds.createQuery(Plan.class);
 
         if (isLoc)
@@ -136,7 +136,7 @@ public class PlanAPI {
      */
     public static Plan getPlan(ObjectId planId, boolean isUgc) throws AizouException {
         Class<? extends Plan> cls = isUgc ? UgcPlan.class : Plan.class;
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         return ds.createQuery(cls).field("_id").equal(planId).field("enabled").equal(Boolean.TRUE).get();
     }
 
@@ -162,7 +162,7 @@ public class PlanAPI {
      * @return
      */
     public static Iterator<UgcPlan> getPlanByUser(String userId, int page, int pageSize) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         ObjectId userOid = new ObjectId(userId);
         query.field("uid").equal(userOid).field("enabled").equal(Boolean.TRUE);
@@ -180,7 +180,7 @@ public class PlanAPI {
      * @return
      */
     public static UgcPlan getPlanById(String ugcPlanId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
         query.field("_id").equal(ugcOPlanId).field("enabled").equal(Boolean.TRUE);
@@ -196,7 +196,7 @@ public class PlanAPI {
      * @return
      */
     public static SharePlan getSharePlanById(String planId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         Query<SharePlan> query = ds.createQuery(SharePlan.class);
         ObjectId sharePlanPlanId = new ObjectId(planId);
         query.field("_id").equal(sharePlanPlanId).field("enabled").equal(Boolean.TRUE);
@@ -680,17 +680,17 @@ public class PlanAPI {
 
 
     public static void saveUGCPlan(UgcPlan ugcPlan) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         ds.save(ugcPlan);
     }
 
     public static void saveSharePlan(SharePlan sharePlan) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         ds.save(sharePlan);
     }
 
     public static void updateUGCPlanByFiled(ObjectId ugcPlanId, String filed, String filedValue) throws AizouException, NoSuchFieldException, IllegalAccessException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         query.field("_id").equal(ugcPlanId);
         Iterator<UgcPlan> it = query.iterator();
@@ -705,7 +705,7 @@ public class PlanAPI {
     }
 
     public static void deleteUGCPlan(String ugcPlanId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         Query<UgcPlan> query = ds.createQuery(UgcPlan.class);
         ObjectId ugcOPlanId = new ObjectId(ugcPlanId);
         query.field("_id").equal(ugcOPlanId);

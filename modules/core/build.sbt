@@ -4,15 +4,20 @@ name := "core"
 
 scalaVersion := "2.10.3"
 
+val morphiaVersion = "0.111"
+
 libraryDependencies ++= Seq(
-  "org.mongodb" % "mongo-java-driver" % "2.12.4",
-  "org.mongodb.morphia" % "morphia" % "0.108",
-  "org.mongodb.morphia" % "morphia-validation" % "0.108",
+  "org.mongodb" % "mongo-java-driver" % "3.0.0",
+  "org.mongodb.morphia" % "morphia" % morphiaVersion,
+  "org.mongodb.morphia" % "morphia-validation" % morphiaVersion,
+  "org.hibernate" % "hibernate-validator" % "5.1.3.Final",
+  "javax.el" % "javax.el-api" % "3.0.0",
   "cglib" % "cglib-nodep" % "3.1",
   "com.thoughtworks.proxytoys" % "proxytoys" % "1.0",
   "org.apache.solr" % "solr-solrj" % "4.10.0",
   "dom4j" % "dom4j" % "1.6.1",
   "jaxen" % "jaxen" % "1.1.6",
+  "com.lvxingpai" %% "appconfig" % "0.2.1-SNAPSHOT",
   "org.aspectj" % "aspectjrt" % "1.8.4",
   "org.aspectj" % "aspectjweaver" % "1.8.4",
   "org.springframework" % "spring-aspects" % "3.2.2.RELEASE",

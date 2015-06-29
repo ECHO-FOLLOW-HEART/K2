@@ -2,7 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.traffic.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -42,7 +42,7 @@ public class TrafficAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid flight code.");
 
         flightCode = flightCode.toUpperCase();
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Datastore ds = MorphiaFactory.datastore();
         Query<AirRoute> query = ds.createQuery(AirRoute.class);
         query.field("code").equal(flightCode);
         AirRoute route = query.get();
@@ -78,7 +78,7 @@ public class TrafficAPI {
                                                 final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits,
                                                 final SortField sortField, int sortType, int page, int pageSize) throws AizouException {
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Datastore ds = MorphiaFactory.datastore();
         Query<AirRoute> query = ds.createQuery(AirRoute.class);
 
         query.or(query.criteria("depStop.id").equal(depId), query.criteria("depLoc.id").equal(depId));
@@ -168,7 +168,7 @@ public class TrafficAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid train code.");
 
         trainCode = trainCode.toUpperCase();
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Datastore ds = MorphiaFactory.datastore();
         Query<TrainRoute> query = ds.createQuery(TrainRoute.class);
 
         TrainRoute route = query.field("code").equal(trainCode).get();
@@ -204,7 +204,7 @@ public class TrafficAPI {
                                                   final List<Calendar> arrTimeLimit, final List<Calendar> epTimeLimits, final List<Double> priceLimits, final SortField sortField,
                                                   int sortType, int page, int pageSize) throws AizouException {
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Datastore ds = MorphiaFactory.datastore();
         Query<TrainRoute> query = ds.createQuery(TrainRoute.class);
 
         // 解析列车型号类型查询，例如：DGC
@@ -347,7 +347,7 @@ public class TrafficAPI {
      * @throws AizouException
      */
     public static  AbstractTrafficHub getTrafficHubInfo(String trafficType, ObjectId id) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAFFIC);
+        Datastore ds = MorphiaFactory.datastore();
         Query<? extends AbstractTrafficHub> query = null;
         if (trafficType.equals(TRAFFIC_TYPE_AIRPOT)) {
             query = ds.createQuery(Airport.class);

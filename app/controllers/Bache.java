@@ -2,7 +2,7 @@ package controllers;
 
 import exception.AizouException;
 import exception.ErrorCode;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -56,7 +56,7 @@ public class Bache extends Controller {
 //        }
 //
 //        try {
-//            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+//            Datastore ds = MorphiaFactory.datastore();
 //            Query<Plan> query = ds.createQuery(Plan.class);
 //            UpdateOperations<Plan> update = ds.createUpdateOperations(Plan.class);
 //
@@ -149,7 +149,7 @@ public class Bache extends Controller {
             Locality depLoc;
             Locality arrLoc;
             int kmMount = 0;
-            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+            Datastore ds = MorphiaFactory.datastore();
             Query<Locality> query = ds.createQuery(Locality.class);
             Query<Locality> query1 = ds.createQuery(Locality.class);
             depLoc = query.field("_id").equal(depOid).get();
@@ -181,7 +181,7 @@ public class Bache extends Controller {
 //
 //        Map<ObjectId, Double> mapPrice = new HashMap<ObjectId, Double>(5000);
 //
-//        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+//        Datastore ds = MorphiaFactory.datastore();
 //        Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
 //        query.field("_id").equal(id);
 //        ViewSpot viewSpotTemp = null;
@@ -201,7 +201,7 @@ public class Bache extends Controller {
 //
 //        List<String> capList = Arrays.asList(cap);
 //        try {
-//            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//            Datastore ds = MorphiaFactory.datastore();
 //            Query<Locality> query = ds.createQuery(Locality.class);
 //            query.field("zhName").hasAnyOf(capList).field("level").equal(2);
 //            Locality locality = null;
@@ -225,7 +225,7 @@ public class Bache extends Controller {
 //        List<String> capList = Arrays.asList(cap);
 //        Datastore ds = null;
 //        try {
-//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//            ds = MorphiaFactory.datastore();
 //            Query<Locality> query = ds.createQuery(Locality.class);
 //            query.field("zhName").hasAnyOf(capList).field("level").equal(2).field("enabled").equal(Boolean.TRUE);
 //            List<Recommendation> recommendList = new ArrayList<Recommendation>();
@@ -245,7 +245,7 @@ public class Bache extends Controller {
 //                rec.enabled = true;
 //                recommendList.add(rec);
 //            }
-//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+//            Datastore update = MorphiaFactory.datastore();
 //            update.save(recommendList);
 //
 //
@@ -265,7 +265,7 @@ public class Bache extends Controller {
 //        List<String> capList = Arrays.asList(vsList);
 //        Datastore ds = null;
 //        try {
-//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+//            ds = MorphiaFactory.datastore();
 //            Query<ViewSpot> query = ds.createQuery(ViewSpot.class);
 //            query.field("name").hasAnyOf(capList).field("enabled").equal(Boolean.TRUE);
 //            List<Recommendation> recommendList = new ArrayList<Recommendation>();
@@ -283,7 +283,7 @@ public class Bache extends Controller {
 //                rec.enabled = true;
 //                recommendList.add(rec);
 //            }
-//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+//            Datastore update = MorphiaFactory.datastore();
 //            update.save(recommendList);
 //
 //
@@ -326,7 +326,7 @@ public class Bache extends Controller {
 //        Datastore ds = null;
 //        try {
 //
-//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+//            ds = MorphiaFactory.datastore();
 //
 //            Query<Plan> querySrc = ds.createQuery(Plan.class);
 //            querySrc.field("manualPriority").equal(manualIndex).field("desc").notEqual(null)
@@ -366,7 +366,7 @@ public class Bache extends Controller {
 //                rec.enabled = true;
 //                recommendList.add(rec);
 //            }
-//            Datastore update = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+//            Datastore update = MorphiaFactory.datastore();
 //            update.save(recommendList);
 //
 //
@@ -386,7 +386,7 @@ public class Bache extends Controller {
 //
 //
 //        try {
-//            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+//            Datastore ds = MorphiaFactory.datastore();
 //            Query<Plan> querySrc = ds.createQuery(Plan.class);
 //
 //            Plan plan;
@@ -434,7 +434,7 @@ public class Bache extends Controller {
 //
 //        Datastore ds;
 //        try {
-//            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+//            ds = MorphiaFactory.datastore();
 //
 //            Query<Locality> querySrc = ds.createQuery(Locality.class);
 //
@@ -469,7 +469,7 @@ public class Bache extends Controller {
 //     */
 //    public static Result addUserIdSequence() {
 //        try {
-//            Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
+//            Datastore ds = MorphiaFactory.datastore();
 //            Sequence info = new Sequence();
 //            info.column = Sequence.USERID;
 //            info.count = 100000;

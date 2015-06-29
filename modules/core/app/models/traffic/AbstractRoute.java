@@ -6,9 +6,9 @@ import models.AizouBaseEntity;
 import models.ITravelPiFormatter;
 import models.misc.SimpleRef;
 import org.mongodb.morphia.annotations.Embedded;
-import play.data.validation.Constraints;
 import play.libs.Json;
 
+import javax.validation.constraints.NotNull;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,34 +21,34 @@ import java.util.Map;
  * @author Zephyre
  */
 public abstract class AbstractRoute extends AizouBaseEntity implements ITravelPiFormatter {
-    @Constraints.Required
+    @NotNull
     @Embedded
     public SimpleRef depStop;
 
-    @Constraints.Required
+    @NotNull
     @Embedded
     public SimpleRef arrStop;
 
-    @Constraints.Required
+    @NotNull
     public String code;
 
-    @Constraints.Required
+    @NotNull
     @Embedded
     public SimpleRef depLoc;
 
-    @Constraints.Required
+    @NotNull
     @Embedded
     public SimpleRef arrLoc;
 
     public Integer distance;
 
-    @Constraints.Required
+    @NotNull
     public Integer timeCost;
 
-    @Constraints.Required
+    @NotNull
     public Date depTime;
 
-    @Constraints.Required
+    @NotNull
     public Date arrTime;
 
     @Override

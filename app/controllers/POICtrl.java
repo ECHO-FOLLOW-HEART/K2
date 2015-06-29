@@ -7,7 +7,7 @@ import com.mongodb.*;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.travelpi.poi.BriefPOIFormatter;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.poi.AbstractPOI;
 import models.poi.ViewSpot;
 import org.apache.commons.lang3.StringUtils;
@@ -144,7 +144,7 @@ public class POICtrl extends Controller {
         if (colName == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType));
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Datastore ds = MorphiaFactory.datastore();
 
 
         DBCollection col = Utils.getMongoClient().getDB("poi").getCollection(colName);

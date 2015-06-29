@@ -10,8 +10,8 @@ import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Transient;
-import play.data.validation.Constraints;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @Entity
@@ -33,13 +33,13 @@ public class ChatGroupInfo extends AizouBaseEntity {
     /**
      * 群的id
      */
-    @Constraints.Required
+    @NotNull
     public String groupId;
 
     /**
      * 群主
      */
-    @Constraints.Required
+    @NotNull
     @Embedded
     public UserInfo owner;
 
@@ -69,27 +69,4 @@ public class ChatGroupInfo extends AizouBaseEntity {
     public Integer maxUsers;
 
 
-//    /**
-//     * 转换成json
-//     *
-//     * @return
-//     */
-//    @Override
-//    public JsonNode toJson() {
-//        BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();
-//        builder.add("ownerId", owner.userId).add("ownerName", owner.nickName).add("desc", desc)
-//                .add("groupName", groupName).add("isGroupPublic", isGroupPublic);
-//        List<JsonNode> list = new ArrayList<>();
-//        if (!(members == null)) {
-//            for (UserInfo userInfo : members) {
-//                ObjectNode node = Json.newObject();
-//                node.put("userId", userInfo.userId);
-//                node.put("userName", userInfo.nickName);
-//                list.add(node);
-//            }
-//            builder.add("members", list);
-//        }
-//
-//        return Json.toJson(builder.get());
-//    }
 }

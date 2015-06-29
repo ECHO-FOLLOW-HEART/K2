@@ -3,7 +3,7 @@ package aizou.core;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.ImageItem;
 import models.misc.TravelNote;
@@ -181,7 +181,7 @@ public class TravelNoteAPI {
      * @throws AizouException
      */
     public static TravelNote getNoteById(ObjectId id) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<TravelNote> query = ds.createQuery(TravelNote.class).field("_id").equal(id);
         return query.get();
     }
@@ -196,7 +196,7 @@ public class TravelNoteAPI {
      * @throws AizouException
      */
     public static TravelNote getNoteById(ObjectId id, List<String> fields) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<TravelNote> query = ds.createQuery(TravelNote.class).field("_id").equal(id);
         if (fields != null && !fields.isEmpty())
             query.retrievedFields(true, fields.toArray(new String[fields.size()]));
@@ -215,7 +215,7 @@ public class TravelNoteAPI {
         if (idList.size() == 0)
             return new ArrayList<>();
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.TRAVELNOTE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<TravelNote> query = ds.createQuery(TravelNote.class);
         query.field(AizouBaseEntity.FD_ID).in(idList);
         if (fields != null && !fields.isEmpty())

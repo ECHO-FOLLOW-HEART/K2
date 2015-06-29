@@ -11,7 +11,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.travelpi.geo.LocalityFormatter;
 import formatter.travelpi.geo.SimpleLocalityFormatter;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Recommendation;
 import models.poi.AbstractPOI;
@@ -236,19 +236,14 @@ public class MiscCtrl extends Controller {
     public static Result recommend(String type, int page, int pageSize) {
         List<JsonNode> results = new ArrayList<JsonNode>();
 
-        Datastore ds = null;
-        try {
-            ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC);
-            Query<Recommendation> query = ds.createQuery(Recommendation.class);
+        Datastore ds = MorphiaFactory.datastore();
+        Query<Recommendation> query = ds.createQuery(Recommendation.class);
 
-            query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
-            query.order(type).offset(page * pageSize).limit(pageSize);
+        query.field("enabled").equal(Boolean.TRUE).field(type).greaterThan(0);
+        query.order(type).offset(page * pageSize).limit(pageSize);
 
-            for (Iterator<Recommendation> it = query.iterator(); it.hasNext(); ) {
-                results.add(it.next().toJson());
-            }
-        } catch (AizouException e) {
-            return Utils.createResponse(e.getErrCode(), e.getMessage());
+        for (Recommendation aQuery : query) {
+            results.add(aQuery.toJson());
         }
 
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appRecommendFilter(Json.toJson(results), request()));

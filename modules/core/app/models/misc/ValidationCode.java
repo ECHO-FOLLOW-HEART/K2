@@ -4,8 +4,8 @@ import org.apache.commons.codec.binary.Base64;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.utils.IndexDirection;
-import play.data.validation.Constraints;
 
+import javax.validation.constraints.NotNull;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -24,17 +24,17 @@ public class ValidationCode extends Token {
      * 验证码的key。由国家代码+手机号+操作码经过hash生成，方便查询。
      */
     @Indexed(value = IndexDirection.ASC, unique = true, dropDups = true)
-    @Constraints.Required
+    @NotNull
     public String key;
     /**
      * 国家代码
      */
-    @Constraints.Required
+    @NotNull
     public Integer countryCode;
     /**
      * 手机号码
      */
-    @Constraints.Required
+    @NotNull
     public String tel;
     /**
      * 上次发送验证码的时间

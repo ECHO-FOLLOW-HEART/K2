@@ -9,8 +9,9 @@ import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
-import play.data.validation.Constraints;
 import play.libs.Json;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * 航空公司。
@@ -23,13 +24,13 @@ public class Airline extends AizouBaseEntity implements ITravelPiFormatter {
     @Id
     public ObjectId id;
 
-    @Constraints.Required
+    @NotNull
     public String code;
 
-    @Constraints.Required
+    @NotNull
     public String name;
 
-    @Constraints.Required
+    @NotNull
     public String fullName;
 
     public String shortName;

@@ -39,25 +39,27 @@ public class OcsCacheHandler {
     }
 
     public Result removeCache(ProceedingJoinPoint pjp) throws Throwable {
-        if (cacheEnabled) {
-            MethodSignature ms = (MethodSignature) pjp.getSignature();
-            Method method = ms.getMethod();
-            RemoveOcsCache annotation = method.getAnnotation(RemoveOcsCache.class);
-            String[] keyList = annotation.keyList().split(SEPARATOR);
-            for (String keyEntry : keyList) {
-                String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
-                logger.debug("Remove key: " + key);
-                Cache.remove(key);
-            }
-        }
+        // TODO 暂时禁用Cache功能
+//        if (cacheEnabled) {
+//            MethodSignature ms = (MethodSignature) pjp.getSignature();
+//            Method method = ms.getMethod();
+//            RemoveOcsCache annotation = method.getAnnotation(RemoveOcsCache.class);
+//            String[] keyList = annotation.keyList().split(SEPARATOR);
+//            for (String keyEntry : keyList) {
+//                String key = getCacheKey(keyEntry, method.getParameterAnnotations(), pjp.getArgs());
+//                logger.debug("Remove key: " + key);
+//                Cache.remove(key);
+//            }
+//        }
 
         return (Result) pjp.proceed();
     }
 
     public Object tryUsingCache(ProceedingJoinPoint pjp) throws Throwable {
-        if (!cacheEnabled) {
+        // TODO 暂时禁用Cache功能
+        if (true || !cacheEnabled)
+//        if (!cacheEnabled) {
             return pjp.proceed();
-        }
 
         Http.Context context = Http.Context.current();
 

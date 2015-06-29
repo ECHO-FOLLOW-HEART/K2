@@ -1,7 +1,8 @@
 package models.user;
 
 import org.mongodb.morphia.annotations.Embedded;
-import play.data.validation.Constraints;
+
+import javax.validation.constraints.NotNull;
 
 /**
  * 第三方OAuth登录信息。
@@ -12,22 +13,26 @@ public class OAuthInfo {
     /**
      * 第三方账号体系的名称。比如：weixin表示这是微信账号
      */
-    @Constraints.Required
+    @NotNull
     private String provider;
+
     /**
      * 用户在第三方账号体系中的id
      */
-    @Constraints.Required
+    @NotNull
     private String oauthId;
+
     /**
      * 用户在第三方账号的昵称
      */
-    @Constraints.Required
+    @NotNull
     private String nickName;
+
     /**
      * 用户在第三方账号的头像
      */
     private String avatar;
+
     /**
      * 用户在第三方账号的token
      */

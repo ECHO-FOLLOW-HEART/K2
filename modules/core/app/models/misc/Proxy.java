@@ -3,8 +3,8 @@ package models.misc;
 import com.fasterxml.jackson.annotation.JsonFilter;
 import models.AizouBaseEntity;
 import org.mongodb.morphia.annotations.Entity;
-import play.data.validation.Constraints;
 
+import javax.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.Map;
 
@@ -25,26 +25,26 @@ public class Proxy extends AizouBaseEntity {
     public static final String FD_DESC = "desc";
     public static final String FD_VERIFIED_TIME = "verifiedTime";
 
-    @Constraints.Required
+    @NotNull
     public String scheme;
 
-    @Constraints.Required
+    @NotNull
     public String host;
 
-    @Constraints.Required
+    @NotNull
     public Integer port;
 
     public String user;
 
     public String passwd;
 
-    @Constraints.Required
+    @NotNull
     public Map<String, Float> latency;
 
-    @Constraints.Required
+    @NotNull
     public Map<String, Boolean> verified;
 
-    @Constraints.Required
+    @NotNull
     public Date verifiedTime;
 
     public String desc;

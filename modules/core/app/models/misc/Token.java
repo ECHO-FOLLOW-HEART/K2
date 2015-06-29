@@ -5,9 +5,9 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.utils.IndexDirection;
-import play.data.validation.Constraints;
 import utils.Utils;
 
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,7 +23,7 @@ public class Token {
     /**
      * 验证码的内容
      */
-    @Constraints.Required
+    @NotNull
     public String value;
 
     /**
@@ -40,13 +40,13 @@ public class Token {
      * 过期时间
      */
     @Indexed(value = IndexDirection.ASC)
-    @Constraints.Required
+    @NotNull
     public Long expireTime;
 
     /**
      * 验证码的生成时间
      */
-    @Constraints.Required
+    @NotNull
     public Long createTime;
 
     /**

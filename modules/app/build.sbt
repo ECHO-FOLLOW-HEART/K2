@@ -1,7 +1,7 @@
 import com.typesafe.sbt.SbtAspectj.AspectjKeys._
 import com.typesafe.sbt.SbtAspectj._
 
-name := "taozi"
+name := "lvxingpai"
 
 scalaVersion := "2.10.3"
 

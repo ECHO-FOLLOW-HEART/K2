@@ -4,7 +4,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.ProxyFormatter;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.misc.Proxy;
 import org.mongodb.morphia.query.Query;
 import play.mvc.Result;
@@ -21,7 +21,7 @@ public class MiscCtrl {
      */
     public static Result getProxies(String verifier, float latency, int recently, int page, int pageSize)
             throws IllegalAccessException, InstantiationException, AizouException {
-        Query<Proxy> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.MISC).createQuery(Proxy.class);
+        Query<Proxy> query = MorphiaFactory.datastore().createQuery(Proxy.class);
 
         if (verifier == null || verifier.isEmpty())
             verifier = "baidu";

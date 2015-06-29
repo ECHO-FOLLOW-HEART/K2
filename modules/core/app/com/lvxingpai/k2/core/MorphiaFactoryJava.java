@@ -1,4 +1,4 @@
-package models;
+package com.lvxingpai.k2.core;
 
 import com.mongodb.*;
 import exception.AizouException;
@@ -9,7 +9,6 @@ import org.mongodb.morphia.ValidationExtension;
 import play.Configuration;
 import play.Play;
 
-import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -17,10 +16,10 @@ import java.util.*;
  *
  * @author Zephyre
  */
-public class MorphiaFactory {
+public class MorphiaFactoryJava {
 
     private static Hashtable<DBType, Datastore> dsMap = new Hashtable<>();
-    private static MorphiaFactory ourInstance;
+    private static MorphiaFactoryJava ourInstance;
     private final Morphia morphia;
     private final MongoClient client;
 
@@ -35,7 +34,7 @@ public class MorphiaFactory {
 //        new ValidationExtension(morphia);
 //    }
 
-    private MorphiaFactory() throws AizouException {
+    private MorphiaFactoryJava() throws AizouException {
         Configuration config = Play.application().configuration();
 
         List<ServerAddress> servers = new ArrayList<>();
@@ -48,34 +47,34 @@ public class MorphiaFactory {
         }
         for (Object entry : (List) confEntry) {
             Map s = (Map) entry;
-            try {
-                servers.add(new ServerAddress(s.get("host").toString(), Integer.parseInt(s.get("port").toString())));
-            } catch (UnknownHostException ignored) {
-            }
+            servers.add(new ServerAddress(s.get("host").toString(), Integer.parseInt(s.get("port").toString())));
         }
 
         if (servers.isEmpty())
             throw new AizouException(ErrorCode.DATABASE_ERROR, "Invalid database connection settings.");
 
+//        val user = conf.getString("yunkai.mongo.user")
+//        val password = conf.getString("yunkai.mongo.password")
+//        val dbName = conf.getString("yunkai.mongo.db")
+//        val credential = MongoCredential.createScramSha1Credential(user, dbName, password.toCharArray)
+
+//        credential = MongoCredential.create
         client = new MongoClient(servers);
 
         morphia = new Morphia();
         new ValidationExtension(morphia);
 
-//        morphia.map(MiscInfo.class);
-//        morphia.map(Locality.class);
-//        morphia.map(Country.class);
-//        morphia.map(Restaurant.class);
-//        morphia.map(Hotel.class);
-//        morphia.map(ViewSpot.class);
-
-
-//        morphia.mapPackage("models.morphia", true);
+        morphia.mapPackage("models.geo", true);
+        morphia.mapPackage("models.guide", true);
+        morphia.mapPackage("models.misc", true);
+        morphia.mapPackage("models.plan", true);
+        morphia.mapPackage("models.poi", true);
+        morphia.mapPackage("models.traffic", true);
     }
 
-    public synchronized static MorphiaFactory getInstance() throws AizouException {
+    public synchronized static MorphiaFactoryJava getInstance() throws AizouException {
         if (ourInstance == null)
-            ourInstance = new MorphiaFactory();
+            ourInstance = new MorphiaFactoryJava();
 
         return ourInstance;
     }
@@ -98,45 +97,11 @@ public class MorphiaFactory {
         if (dsMap.contains(type))
             return dsMap.get(type);
 
-        Datastore ds = null;
-        switch (type) {
-            case GEO:
-                ds = morphia.createDatastore(client, "geo");
-                break;
-            case POI:
-                ds = morphia.createDatastore(client, "poi");
-                break;
-            case PLAN:
-                ds = morphia.createDatastore(client, "plan");
-                break;
-            case PLAN_UGC:
-                ds = morphia.createDatastore(client, "plan_ugc");
-                break;
-            case USER:
-                ds = morphia.createDatastore(client, "user");
-                break;
-            case MISC:
-                ds = morphia.createDatastore(client, "misc");
-                break;
-            case TRAFFIC:
-                ds = morphia.createDatastore(client, "traffic");
-                break;
-            case GUIDE:
-                ds = morphia.createDatastore(client, "guide");
-                break;
-            case IMAGESTORE:
-                ds = morphia.createDatastore(client, "imagestore");
-                break;
-            case TRAVELNOTE:
-                ds = morphia.createDatastore(client, "travelnote");
-                break;
-        }
+        Datastore ds = morphia.createDatastore(client, "k2-dev");
         try {
-            if (ds != null) {
-                ds.ensureIndexes();
-                ds.ensureCaps();
-                dsMap.put(type, ds);
-            }
+            ds.ensureIndexes();
+            ds.ensureCaps();
+            dsMap.put(type, ds);
         } catch (MongoClientException e) {
             throw new AizouException(ErrorCode.DATABASE_ERROR, "Database error.", e);
         }

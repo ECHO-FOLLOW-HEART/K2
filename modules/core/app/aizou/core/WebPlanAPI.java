@@ -2,7 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.misc.SimpleRef;
 import models.plan.Plan;
 import models.plan.PlanDayEntry;
@@ -122,7 +122,7 @@ public class WebPlanAPI {
      */
     public static Plan getPlan(ObjectId planId, boolean isUgc) throws AizouException {
         Class<? extends Plan> cls = isUgc ? UgcPlan.class : Plan.class;
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.PLAN);
+        Datastore ds = MorphiaFactory.datastore();
         return ds.createQuery(cls).field("_id").equal(planId).field("enabled").equal(Boolean.TRUE).get();
     }
 
@@ -352,7 +352,7 @@ public class WebPlanAPI {
      */
     public static Iterator<? extends AbstractPOI> exploreHotelByType(ObjectId locId,
                                                                      String hotelType, int page, int pageSize) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Datastore ds = MorphiaFactory.datastore();
         Query<? extends AbstractPOI> query = ds.createQuery(Hotel.class);
         query.field("targets").equal(locId);
         Double hotelTypeValue = null;
@@ -388,7 +388,7 @@ public class WebPlanAPI {
      */
     public static Iterator<? extends AbstractPOI> exploreRestaurantByType(ObjectId locId,
                                                                           String restaurantType, int page, int pageSize) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.POI);
+        Datastore ds = MorphiaFactory.datastore();
         Query<? extends AbstractPOI> query = ds.createQuery(Restaurant.class);
         query.field("targets").equal(locId);
         switch (restaurantType) {

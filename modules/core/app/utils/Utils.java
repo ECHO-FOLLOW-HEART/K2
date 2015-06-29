@@ -54,11 +54,7 @@ public class Utils {
     private synchronized static void initMongoDB() throws AizouException {
         String dbName = "travelpi";
         morphia = new Morphia();
-        try {
-            datastore = morphia.createDatastore(new MongoClient(), dbName);
-        } catch (UnknownHostException e) {
-            throw new AizouException(ErrorCode.DATABASE_ERROR, "Cannot initialize the MongoDB client.");
-        }
+        datastore = morphia.createDatastore(new MongoClient(), dbName);
     }
 
     public synchronized static Morphia getMorphia() throws AizouException {
@@ -190,11 +186,7 @@ public class Utils {
         if (client != null)
             return client;
 
-        try {
-            client = new MongoClient(host, port);
-        } catch (UnknownHostException e) {
-            throw new AizouException(ErrorCode.DATABASE_ERROR, String.format("Invalid database connection: host=%s, port=%d", host, port));
-        }
+        client = new MongoClient(host, port);
         mongoClientMap.put(key, client);
         return client;
     }
@@ -493,5 +485,9 @@ public class Utils {
         cal.setTime(format.parse(lastModify));
         cal.add(Calendar.DATE, +1);
         rsp.setHeader("Expires", formatGMT.format(cal.getTime()));
+    }
+
+    public static String getReqValue(JsonNode req, String key, String defaultValue) {
+        return req.has(key) ? req.get(key).asText() : defaultValue;
     }
 }

@@ -3,7 +3,7 @@ package aizou.core;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
@@ -33,7 +33,7 @@ public class GuideAPI {
      * @throws exception.AizouException
      */
     public static Guide getGuideByDestination(List<ObjectId> ids, Integer userId) throws AizouException {
-        Query<GuideTemplate> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
+        Query<GuideTemplate> query = MorphiaFactory.datastore()
                 .createQuery(GuideTemplate.class);
         List<CriteriaContainerImpl> criList = new ArrayList<>();
         for (ObjectId id : ids) {
@@ -42,7 +42,7 @@ public class GuideAPI {
         query.or(criList.toArray(new CriteriaContainerImpl[criList.size()]));
         List<GuideTemplate> guideTemplates = query.asList();
 
-        Query<Locality> queryDes = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
+        Query<Locality> queryDes = MorphiaFactory.datastore()
                 .createQuery(Locality.class);
         List<String> fieldList = new ArrayList<>();
         Collections.addAll(fieldList, "_id", "zhName", "enName");
@@ -65,7 +65,7 @@ public class GuideAPI {
         // 保存攻略时，置为可用
         result.setTaoziEna(true);
         //创建时即保存
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE).save(result);
+        MorphiaFactory.datastore().save(result);
         return result;
 
     }
@@ -78,7 +78,7 @@ public class GuideAPI {
      */
     public static Guide getEmptyGuide(List<ObjectId> ids, Integer userId) throws AizouException {
 
-        Query<Locality> queryDes = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO)
+        Query<Locality> queryDes = MorphiaFactory.datastore()
                 .createQuery(Locality.class);
         List<String> fieldList = new ArrayList<>();
         Collections.addAll(fieldList, "_id", "zhName", "enName", "images");
@@ -108,7 +108,7 @@ public class GuideAPI {
         // 保存攻略时，置为可用
         ugcGuide.setTaoziEna(true);
         //创建时即保存
-        MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE).save(ugcGuide);
+        MorphiaFactory.datastore().save(ugcGuide);
         return ugcGuide;
 
     }
@@ -234,7 +234,7 @@ public class GuideAPI {
      * @throws exception.AizouException
      */
     public static Guide getGuideById(ObjectId id, List<String> fieldList) throws AizouException {
-        Query<Guide> query = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE)
+        Query<Guide> query = MorphiaFactory.datastore()
                 .createQuery(Guide.class);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
@@ -250,7 +250,7 @@ public class GuideAPI {
      */
     public static void deleteGuideById(ObjectId id) throws AizouException {
 
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Datastore ds = MorphiaFactory.datastore();
         UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
         Query<Guide> query = ds.createQuery(Guide.class);
         query.field("_id").equal(id);
@@ -267,7 +267,7 @@ public class GuideAPI {
      * @throws exception.AizouException
      */
     public static List<Guide> getGuideByUser(Long uid, List<String> fieldList, boolean isSelf, String statusStr, int page, int pageSize) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Guide> query = ds.createQuery(Guide.class);
         query.field(Guide.fnUserId).equal(uid).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         // 如果是查看别人的攻略，只能产看公开的攻略
@@ -283,7 +283,7 @@ public class GuideAPI {
     }
 
     public static long getGuideCntByUser(Long uid) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Guide> query = ds.createQuery(Guide.class);
         query.field(Guide.fnUserId).equal(uid).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         return query.countAll();
@@ -297,7 +297,7 @@ public class GuideAPI {
      * @throws exception.AizouException
      */
     public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
         if (userId != null)
             query.field("userId").equal(userId);
@@ -362,7 +362,7 @@ public class GuideAPI {
      * @throws exception.AizouException
      */
     public static Guide getGuideInfo(ObjectId id, List<String> list) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Guide> query = ds.createQuery(Guide.class).field("_id").equal(id);
         if (list != null && !list.isEmpty()) {
             query.retrievedFields(true, list.toArray(new String[list.size()]));
@@ -379,7 +379,7 @@ public class GuideAPI {
      * @throws exception.AizouException
      */
     public static void saveGuideTitle(ObjectId id, String title, Long userId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Datastore ds = MorphiaFactory.datastore();
 
         Query<Guide> query = ds.createQuery(Guide.class)
                 .field("_id").equal(id)
@@ -402,7 +402,7 @@ public class GuideAPI {
      * @throws exception.AizouException
      */
     public static void saveGuideByUser(Guide guide, Integer userId) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GUIDE);
+        Datastore ds = MorphiaFactory.datastore();
         guide.setId(new ObjectId());
         guide.setUserId(userId);
         guide.setUpdateTime(System.currentTimeMillis());
@@ -417,7 +417,7 @@ public class GuideAPI {
      * @throws exception.AizouException
      */
     public static Locality getLocalityGuideInfo(ObjectId id) throws AizouException {
-        Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.GEO);
+        Datastore ds = MorphiaFactory.datastore();
         Query<Locality> query = ds.createQuery(Locality.class);
         query.field("id").equal(id);
         query.retrievedFields(true, Locality.fnDinningIntro, Locality.fnShoppingIntro);

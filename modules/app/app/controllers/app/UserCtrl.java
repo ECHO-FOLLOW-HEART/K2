@@ -1,17 +1,13 @@
 package controllers.app;
 
-import aizou.core.GuideAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.UserAPI;
 import aspectj.CheckUser;
-import aspectj.Key;
-import aspectj.RemoveOcsCache;
-import aspectj.UsingOcsCache;
-import asynchronous.AsyncExecutor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
+import controllers.appImpl.UserCtrlImpl;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -22,14 +18,13 @@ import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatterOld;
 import formatter.taozi.user.UserInfoFormatter;
 import models.AizouBaseEntity;
-import models.MorphiaFactory;
+import com.lvxingpai.k2.core.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Album;
 import models.misc.Token;
 import models.user.Contact;
 import models.user.Credential;
 import models.user.UserInfo;
-import org.apache.commons.io.IOUtils;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import play.Configuration;
@@ -37,13 +32,16 @@ import play.libs.F;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.*;
+import utils.Constants;
+import utils.MsgConstants;
+import utils.TaoziDataFilter;
+import utils.Utils;
 import utils.phone.PhoneEntity;
 import utils.phone.PhoneParser;
 import utils.phone.PhoneParserFactory;
 
+import javax.persistence.Version;
 import java.io.IOException;
-import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -55,6 +53,7 @@ import java.util.regex.Pattern;
  * <p>
  * Created by topy on 2014/10/10.
  */
+
 public class UserCtrl extends Controller {
 
     public static int CAPTCHA_ACTION_SIGNUP = 1;
@@ -80,41 +79,7 @@ public class UserCtrl extends Controller {
         String captcha = req.get("captcha").asText();
 
         PhoneEntity telEntry = PhoneParserFactory.newInstance().parse(req.get("tel").asText());
-
-        //验证用户是否存在
-        if (UserAPI.getUserByField(UserInfo.fnTel, telEntry.getPhoneNumber(),
-                Arrays.asList(UserInfo.fnUserId)) != null) {
-            return Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_EXIST_MSG, true);
-        }
-
-        UserInfo userInfo;
-        //验证验证码 magic captcha
-        if (captcha.equals("85438734") || UserAPI.checkValidation(telEntry.getDialCode(), telEntry.getPhoneNumber()
-                , 1, captcha, null)) {
-            // 生成用户
-            userInfo = UserAPI.regByTel(telEntry.getPhoneNumber(), telEntry.getDialCode(), pwd);
-        } else
-            return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
-
-        ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
-
-        Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-
-        // 机密数据
-        JsonNode creNode = new CredentialFormatter().format(cre);
-        for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-            Map.Entry<String, JsonNode> entry = it.next();
-            info.put(entry.getKey(), entry.getValue());
-        }
-
-        //添加服务号
-        addContactImpl(userInfo.getUserId(), PAIPAI_USERID);
-        // 发消息
-        UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
-        UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
-        UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_3);
-        return Utils.createResponse(ErrorCode.NORMAL, info);
+        return UserCtrlImpl.signupImpl(telEntry, pwd, captcha);
     }
 
     /**
@@ -122,6 +87,7 @@ public class UserCtrl extends Controller {
      *
      * @return
      */
+    @Version
     public static Result checkCaptcha() throws AizouException {
         JsonNode req = request().body().asJson();
         String tel = req.get("tel").asText();
@@ -175,12 +141,12 @@ public class UserCtrl extends Controller {
             UserAPI.saveUserInfo(userInfo);
 
             if (!pwd.equals("")) {
-                Datastore ds = MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER);
+                Datastore ds = MorphiaFactory.datastore();
                 Credential cre = ds.createQuery(Credential.class).field(Credential.fnUserId).equal(userInfo.getUserId()).get();
                 cre.setSalt(Utils.getSalt());
                 cre.setPwdHash(Utils.toSha1Hex(cre.getSalt() + pwd));
 
-                MorphiaFactory.getInstance().getDatastore(MorphiaFactory.DBType.USER).save(cre);
+                MorphiaFactory.datastore().save(cre);
             }
             return Utils.createResponse(ErrorCode.NORMAL, "Success!");
         } else {
@@ -198,19 +164,7 @@ public class UserCtrl extends Controller {
         Integer userId = Integer.parseInt(req.get("userId").asText());
         String oldPwd = req.get("oldPwd").asText();
         String newPwd = req.get("newPwd").asText();
-
-        //验证用户是否存在-手机号
-        UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnUserId, userId);
-        if (userInfo == null)
-            return Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true);
-
-        //验证密码
-        if (UserAPI.validCredential(userInfo, oldPwd)) {
-            //重设密码
-            UserAPI.resetPwd(userInfo, newPwd);
-            return Utils.createResponse(ErrorCode.NORMAL, "Success!");
-        } else
-            return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
+        return UserCtrlImpl.modPasswordImpl(userId, oldPwd, newPwd);
     }
 
     /**
@@ -315,49 +269,7 @@ public class UserCtrl extends Controller {
         JsonNode req = request().body().asJson();
         String passwd = req.get("pwd").asText();
         String loginName = req.get("loginName").asText();
-
-        PhoneEntity telEntry = null;
-        try {
-            telEntry = PhoneParserFactory.newInstance().parse(loginName);
-        } catch (IllegalArgumentException ignore) {
-        }
-
-        ArrayList<Object> valueList = new ArrayList<>();
-        valueList.add(loginName);
-        if (telEntry != null && telEntry.getPhoneNumber() != null)
-            valueList.add(telEntry.getPhoneNumber());
-
-        UserFormatterOld userFormatter = new UserFormatterOld(true);
-
-        Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
-                userFormatter.getFilteredFields(), 0, 1);
-        if (!itr.hasNext())
-            return Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_NOT_EXIST_MSG, true);
-        UserInfo userInfo = itr.next();
-
-        //验证密码
-        if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
-            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
-
-            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-            if (cre == null)
-                throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
-
-            // 机密数据
-            JsonNode creNode = new CredentialFormatter().format(cre);
-            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                info.put(entry.getKey(), entry.getValue());
-            }
-
-            // 服务号发消息
-            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
-            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
-            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_3);
-            return Utils.createResponse(ErrorCode.NORMAL, info);
-        } else
-            return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
+        return UserCtrlImpl.singinImpl(loginName, passwd);
     }
 
     /**
@@ -384,151 +296,10 @@ public class UserCtrl extends Controller {
      */
     public static Result authRegister() throws AizouException {
         JsonNode req = request().body().asJson();
-        String appid, secret, urlAccess, urlDomain, urlInfo, code;
-
-        code = req.get("code").asText();
-        Configuration config = Configuration.root();
-        Map wx = (Map) config.getObject("wx");
-        appid = wx.get("appid").toString();
-        secret = wx.get("secret").toString();
-        urlDomain = wx.get("domain").toString();
-        urlAccess = wx.get("urlaccess").toString();
-        urlInfo = wx.get("urlinfo").toString();
-
-        //请求access_token
-        String acc_url = getAccessUrl(urlDomain, urlAccess, appid, secret, code);
-        try {
-
-            URL url = new URL(acc_url);
-            String json = IOUtils.toString(url, "UTF-8");
-            ObjectMapper m = new ObjectMapper();
-            JsonNode rootNode = m.readTree(json);
-            String access_token, openId, info_url;
-            JsonNode infoNode;
-
-            //如果请求失败
-            if (rootNode.has("errcode"))
-                return Utils.createResponse(ErrorCode.WEIXIN_CODE_ERROR, MsgConstants.WEIXIN_ACESS_ERROR_MSG, true);
-            //获取access_token
-            access_token = rootNode.get("access_token").asText();
-            openId = rootNode.get("openid").asText();
-
-            //请求用户信息
-            info_url = getInfoUrl(urlDomain, urlInfo, access_token, openId);
-            url = new URL(info_url);
-            json = IOUtils.toString(url, "UTF-8");
-            m = new ObjectMapper();
-            infoNode = m.readTree(json);
-
-            UserInfo us;
-
-            if (!infoNode.has("openid")) {
-                return Utils.createResponse(ErrorCode.WEIXIN_CODE_ERROR, MsgConstants.WEIXIN_ACESS_ERROR_MSG, true);
-            }
-
-            //如果第三方用户已存在,视为第二次登录
-            us = UserAPI.getUserByField(UserInfo.fnOauthId, infoNode.get("openid").asText());
-            if (us != null) {
-                ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(us);
-
-                Credential cre = UserAPI.getCredentialByUserId(us.getUserId(),
-                        Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-                if (cre == null)
-                    throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
-
-                // 机密数据
-                JsonNode creNode = new CredentialFormatter().format(cre);
-                for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                    Map.Entry<String, JsonNode> entry = it.next();
-                    info.put(entry.getKey(), entry.getValue());
-                }
-
-                // 服务号发消息
-                UserAPI.sendMessageToUser(PAIPAI_ESMOB, us, PAIPAI_WELCOME_1);
-                UserAPI.sendMessageToUser(PAIPAI_ESMOB, us, PAIPAI_WELCOME_2);
-                UserAPI.sendMessageToUser(PAIPAI_ESMOB, us, PAIPAI_WELCOME_3);
-                return Utils.createResponse(ErrorCode.NORMAL, info);
-            }
-
-            //JSON转化为userInfo
-            us = UserAPI.oauthToUserInfoForWX(infoNode);
-            if (UserAPI.getUserByField(UserInfo.fnNickName, us.getNickName()) != null) {
-                //如果第三方昵称为纯数字，则添加后缀
-                if (Utils.isNumeric(us.getNickName())) {
-                    us.setNickName(us.getNickName() + "_桃子");
-                    us.setAlias(Arrays.asList(us.getNickName().toLowerCase()));
-                }
-                //如果第三方昵称已被其他用户使用，则添加后缀
-                nickDuplicateRemoval(us);
-            }
-
-            //注册信息
-            UserInfo userInfo = UserAPI.regByWeiXin(us);
-
-            //返回注册信息
-            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
-
-            Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
-                    Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
-            if (cre == null)
-                throw new AizouException(ErrorCode.USER_NOT_EXIST, "Credential info is null.");
-
-            // 返回机密数据
-            JsonNode creNode = new CredentialFormatter().format(cre);
-            for (Iterator<Map.Entry<String, JsonNode>> it = creNode.fields(); it.hasNext(); ) {
-                Map.Entry<String, JsonNode> entry = it.next();
-                info.put(entry.getKey(), entry.getValue());
-            }
-
-            //添加服务号
-            addContactImpl(userInfo.getUserId(), PAIPAI_USERID);
-            // 服务号发消息
-            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_1);
-            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
-            UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_3);
-            return Utils.createResponse(ErrorCode.NORMAL, info);
-        } catch (IOException e) {
-            throw new AizouException(ErrorCode.IO_ERROR, "", e);
-        }
+        String code = req.get("code").asText();
+        return UserCtrlImpl.authRegisterImpl(code);
     }
 
-    /**
-     * 截取userID的后3位，区分重复的昵称
-     *
-     * @param u
-     */
-    private static void nickDuplicateRemoval(UserInfo u) {
-        String uidStr = u.getUserId().toString();
-        int size = uidStr.length();
-        String doc = uidStr.substring(size - 4, size - 1);
-        u.setNickName(u.getNickName() + "_" + doc);
-        u.setAlias(Arrays.asList(u.getNickName().toLowerCase()));
-    }
-
-    private static String getAccessUrl(String urlDomain, String urlAccess, String appid, String secret, String code) {
-        StringBuffer acc_url = new StringBuffer(10);
-        acc_url.append("https://");
-        acc_url.append(urlDomain);
-        acc_url.append(urlAccess);
-        acc_url.append("?");
-        acc_url.append("appid=");
-        acc_url.append(appid);
-        acc_url.append("&");
-        acc_url.append("secret=");
-        acc_url.append(secret);
-        acc_url.append("&");
-        acc_url.append("code=");
-        acc_url.append(code);
-        acc_url.append("&");
-        acc_url.append("grant_type=");
-        acc_url.append("authorization_code");
-        return acc_url.toString();
-    }
-
-    private static String getInfoUrl(String urlDomain, String urlInfo, String access_token, String openId) {
-
-        return "https://" + urlDomain + urlInfo + "?" + "access_token=" + access_token + "&" + "openid=" + openId;
-    }
 
     /**
      * 通过id获得用户详细信息。
@@ -542,18 +313,7 @@ public class UserCtrl extends Controller {
         Long selfId = null;
         if (tmp != null)
             selfId = Long.parseLong(tmp);
-
-        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
-        boolean selfView = (selfId != null && ((Long) userId).equals(selfId));
-        formatter.setSelfView(selfView);
-
-        UserInfo result = UserAPI.getUserInfo(userId, formatter.getFilteredFields());
-        if (result == null)
-            return Utils.createResponse(ErrorCode.USER_NOT_EXIST);
-        UserAPI.fillUserInfo(result);
-        ObjectNode ret = (ObjectNode) formatter.formatNode(result);
-        ret.put("guideCnt", GuideAPI.getGuideCntByUser(userId));
-        return Utils.status(ret.toString());
+        return UserCtrlImpl.getUserProfileByIdImpl(userId, selfId);
     }
 
 
@@ -691,29 +451,9 @@ public class UserCtrl extends Controller {
 
         userId = Integer.parseInt(request().getHeader("UserId"));
         contactId = Integer.parseInt(request().body().asJson().get("userId").asText());
-        return addContactImpl(userId, contactId);
+        return UserCtrlImpl.addContactImpl(userId, contactId);
     }
 
-    @RemoveOcsCache(keyList = "getContactList({userA})|getContactList({userB})")
-    public static F.Promise<Result> addContactImpl(@Key(tag = "userA") final long userId,
-                                                   @Key(tag = "userB") final long contactId)
-            throws AizouException {
-        return AsyncExecutor.execute(
-                new F.Function0<Object>() {
-                    @Override
-                    public Object apply() throws Throwable {
-                        UserAPI.addContact(userId, contactId);
-                        return null;
-                    }
-                },
-                new F.Function<Object, Result>() {
-                    @Override
-                    public Result apply(Object o) throws Throwable {
-                        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
-                    }
-                }
-        );
-    }
 
     /**
      * 删除好友
@@ -724,48 +464,16 @@ public class UserCtrl extends Controller {
     public static Result delContact(Long id) throws AizouException {
         long userId;
         userId = Integer.parseInt(request().getHeader("UserId"));
-
-        return delContactImpl(userId, id);
+        return UserCtrlImpl.delContactImpl(userId, id);
     }
 
-    @RemoveOcsCache(keyList = "getContactList({userA})|getContactList({userB})")
-    public static Result delContactImpl(@Key(tag = "userA") long userA, @Key(tag = "userB") long userB)
-            throws AizouException {
-        UserAPI.delContact(userA, userB);
-        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
-    }
 
     public static Result getContactList() throws AizouException {
         long userId;
         userId = Integer.parseInt(request().getHeader("UserId"));
-        return getContactListImpl(userId);
+        return UserCtrlImpl.getContactListImpl(userId);
     }
 
-    /**
-     * 获得好友列表
-     *
-     * @return
-     */
-    @UsingOcsCache(key = "getContactList({id})", expireTime = 300)
-    public static Result getContactListImpl(@Key(tag = "id") long userId) throws AizouException {
-        List<UserInfo> list = UserAPI.getContactList(userId);
-        if (list == null)
-            list = new ArrayList<>();
-
-        // 查询备注信息
-        list = UserAPI.addUserMemo(userId, list);
-        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
-        formatter.setSelfView(false);
-
-        List<JsonNode> nodelist = new ArrayList<>();
-        for (UserInfo userInfo : list) {
-            nodelist.add(formatter.formatNode(userInfo));
-        }
-
-        ObjectNode node = Json.newObject();
-        node.put("contacts", Json.toJson(nodelist));
-        return Utils.createResponse(ErrorCode.NORMAL, node);
-    }
 
     /**
      * 根据环信用户名获取
