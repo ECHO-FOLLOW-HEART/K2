@@ -12,7 +12,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.user.UserFormatterOld;
 import models.AizouBaseEntity;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
 import models.user.Credential;

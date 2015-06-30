@@ -5,7 +5,7 @@ import exception.AizouException;
 import formatter.FormatterFactory;
 import formatter.taozi.misc.CommentFormatter;
 import models.AizouBaseEntity;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.misc.Column;
 import models.misc.Images;
 import models.misc.MiscInfo;

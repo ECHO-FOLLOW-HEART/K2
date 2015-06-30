@@ -2,7 +2,7 @@ package aizou.core;
 
 import exception.AizouException;
 import exception.ErrorCode;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.traffic.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;

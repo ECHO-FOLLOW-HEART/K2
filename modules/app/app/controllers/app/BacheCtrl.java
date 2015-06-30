@@ -2,7 +2,7 @@ package controllers.app;
 
 import exception.AizouException;
 import exception.ErrorCode;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.user.UserInfo;
 import org.mongodb.morphia.Datastore;
