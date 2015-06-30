@@ -9,6 +9,8 @@ val morphiaVersion = "1.0.0"
 val springVersion = "3.2.2.RELEASE"
 //val springVersion = "4.1.6.RELEASE"
 
+val finagleVersion = "6.26.0"
+
 libraryDependencies ++= Seq(
 //  "org.mongodb" % "mongo-java-driver" % "3.0.1",
   "org.mongodb.morphia" % "morphia" % morphiaVersion,
@@ -28,9 +30,15 @@ libraryDependencies ++= Seq(
   "org.springframework" % "spring-tx" % springVersion,
   "javax.persistence" % "persistence-api" % "1.0.2",
   play.sbt.PlayImport.cache,
-  "com.github.mumoshu" %% "play2-memcached" % "0.6.0"
+  "com.github.mumoshu" %% "play2-memcached" % "0.6.0",
+  "com.twitter" %% "finagle-core" % finagleVersion,
+  "com.twitter" %% "finagle-thrift" % finagleVersion,
+  "com.twitter" %% "finagle-thriftmux" % finagleVersion,
+  "com.twitter" %% "scrooge-core" % "3.19.0"
   //  "commons-logging" % "commons-logging" % "1.2"
 )
+
+com.twitter.scrooge.ScroogeSBT.newSettings
 
 aspectjSettings
 

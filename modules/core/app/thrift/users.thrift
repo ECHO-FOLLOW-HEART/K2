@@ -1,4 +1,4 @@
-namespace java com.lvxingpai.yunkai
+namespace java com.lvxingpai.yunkai.java
 #@namespace scala com.lvxingpai.yunkai
 
 enum Gender {
@@ -13,19 +13,21 @@ enum GroupType{
 }
 
 struct UserInfo {
-  1: i64 userId,
-  2: string nickName,
-  3: optional string avatar,
-  4: optional Gender gender,
-  5: optional string signature,
-  6: optional string tel,
+  1: string id,
+  2: i64 userId,
+  3: string nickName,
+  4: optional string avatar,
+  5: optional Gender gender,
+  6: optional string signature,
+  7: optional string tel,
 }
 
 //Created by pengyt on 2015/5/26.
 struct ChatGroup{
-  1: i64 chatGroupId,
-  2: string name,
-  3: optional string groupDesc,
+  1: string id,
+  2: i64 chatGroupId,
+  3: string name,
+  4: optional string groupDesc,
 //  4: GroupType groupType,
   5: optional string avatar,
   6: optional list<string> tags,
@@ -41,6 +43,7 @@ struct ChatGroup{
 }
 
 enum UserInfoProp {
+  ID,
   USER_ID,
   NICK_NAME,
   AVATAR,
@@ -52,6 +55,7 @@ enum UserInfoProp {
 
 //Created by pengyt on 2015/5/26.
 enum ChatGroupProp{
+  ID,
   CHAT_GROUP_ID,
   NAME,
   GROUP_DESC,
@@ -134,8 +138,8 @@ service userservice {
   // 获得用户的好友个数
   i32 getContactCount(1:i64 userId) throws (1:NotFoundException ex)
 
-  // 用户登录
-  UserInfo login(1:string loginName, 2:string password) throws (1:AuthException ex)
+  // 第3个参数表示登录设备的来源, 比如：web或者安卓
+  UserInfo login(1:string loginName, 2:string password, 3:string source) throws (1:AuthException ex)
 
   // 验证用户密码
   bool verifyCredential(1:i64 userId, 2:string password) throws (1:AuthException ex)
@@ -179,10 +183,10 @@ service userservice {
   i32 getUserChatGroupCount(1: i64 userId) throws (1: NotFoundException ex)
 
   // 批量添加讨论组成员
-  list<i64> addChatGroupMembers(1: i64 chatGroupId, 2: list<i64> userIds) throws (1:NotFoundException ex)
+  list<i64> addChatGroupMembers(1: i64 chatGroupId, 2: i64 operatorId, 3: list<i64> userIds) throws (1:NotFoundException ex)
 
   // 批量删除讨论组成员
-  list<i64> removeChatGroupMembers(1: i64 chatGroupId, 2: list<i64> userIds) throws (1:NotFoundException ex)
+  list<i64> removeChatGroupMembers(1: i64 chatGroupId, 2: i64 operatorId, 3: list<i64> userIds) throws (1:NotFoundException ex)
 
   // 获得讨论组成员
   list<UserInfo> getChatGroupMembers(1:i64 chatGroupId, 2:optional list<UserInfoProp> fields) throws (1:NotFoundException ex)
