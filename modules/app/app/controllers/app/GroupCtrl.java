@@ -1,14 +1,10 @@
 package controllers.app;
 
-import aizou.core.ChatGroupAPI;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.twitter.finagle.Thrift;
 import controllers.thrift.ThriftFactory;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.taozi.group.ChatGroupFormatter;
-import formatter.taozi.guide.SimpleGuideFormatter;
-import formatter.taozi.user.UserInfoFormatter;
 import formatter.taozi.user.UserInfoSimpleFormatter;
 import models.group.ChatGroup;
 import models.user.UserInfo;
