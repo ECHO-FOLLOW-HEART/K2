@@ -649,7 +649,6 @@ public class MiscCtrl extends Controller {
                                 @Key(tag = "ps") int pageSize)
             throws SolrServerException, AizouException {
         ObjectNode results = Json.newObject();
-
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;

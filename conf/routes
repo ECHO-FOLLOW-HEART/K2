@@ -4,9 +4,7 @@
 
 # Home page
 #GET           /                                                  controllers.Application.index()
-->            /app                                                   app.Routes
-#Api Version 2.0 Modify user module
-->            /app/2/                                                app2.Routes
+->            /app/                                                  app.Routes
 ->            /core                                                  core.Routes
 ->            /web                                                   web.Routes
 
