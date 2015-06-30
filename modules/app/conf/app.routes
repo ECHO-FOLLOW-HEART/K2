@@ -1,20 +1,18 @@
 
 #----------用户接口----------
 #用户
-#Finagle测试
-#GET           /finagle                                           controllers.app.UserCtrl_V2.testFinagle()
 #手机注册
 POST          /users/signup                                      controllers.app.UserCtrlScala.signup()
 ##第三方注册、登录
 #POST          /users/auth-signup                                 controllers.app.UserCtrl_V2.authRegister()
 ##检验用户信息的有效性(手机号)
 #GET           /users/validity                                    controllers.app.UserCtrl_V2.validityInfo(tel:String?="",nick:String?="")
-##手机号登录
-#POST          /users/signin                                      controllers.app.UserCtrl_V2.signin()
+#手机号登录
+POST          /users/signin                                      controllers.app.UserCtrlScala.login()
 ##发送手机验证码
 #POST          /users/send-validation                             controllers.app.UserCtrl_V2.sendCaptcha()
-##修改密码
-#POST          /users/pwd                                         controllers.app.UserCtrl_V2.modPassword()
+#修改密码
+POST          /users/pwd                                         controllers.app.UserCtrlScala.resetPassword()
 ##验证验证码，重设密码
 #POST          /users/reset-pwd                                   controllers.app.UserCtrl_V2.newPassword()
 ##绑定手机
@@ -39,9 +37,9 @@ GET           /users/$uid<[0-9]+>                                controllers.app
 #POST          /users/contacts                                    controllers.app.UserCtrl_V2.addContact()
 ##删除好友
 #DELETE        /users/contacts/$id<[0-9]+>                        controllers.app.UserCtrl_V2.delContact(id: Long)
-##获得好友列表
-#GET           /users/contacts                                    controllers.app.UserCtrl_V2.getContactList(uid: Long = 0)
-#GET           /users/$uid<[0-9]+>/contacts                       controllers.app.UserCtrl_V2.getContactList(uid: Long)
+#获得好友列表
+GET           /users/contacts                                    controllers.app.UserCtrlScala.getContactList(uid: Long = 0)
+GET           /users/$uid<[0-9]+>/contacts                       controllers.app.UserCtrlScala.getContactList(uid: Long)
 ##设置备注信息
 #POST          /users/$id<[0-9]+>/memos                           controllers.app.UserCtrl_V2.setUserMemo(id:Long)
 
