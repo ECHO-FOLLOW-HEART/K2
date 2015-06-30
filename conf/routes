@@ -8,9 +8,6 @@
 ->            /core                                                  core.Routes
 ->            /web                                                   web.Routes
 
-# Map static resources from the /public folder to the /assets URL path
-GET           /assets/*file                                          controllers.Assets.at(path="/public", file)
-
 GET           /geo/localities/search                                 controllers.GeoCtrl.searchLocality(keyword: String?="", country: String?="", scope: Int?=1, prefix: Boolean?=true, page: Int?=0, pageSize: Int?=20)
 GET           /geo/localities/$id<[0-9a-f]{24}>                      controllers.GeoCtrl.getLocality(id: String, relatedVs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false)
 #GET           /geo/localities/baiduId/:baiduId                   controllers.GeoCtrl.getLocalityBaiduId(baiduId: Integer)
