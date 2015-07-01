@@ -33,14 +33,18 @@ GET           /users/$uid<[0-9]+>                                    controllers
 ##----------用户好友接口----------
 #请求添加好友
 POST          /users/$uid<[0-9]+>/contact-requests                   controllers.app.UserCtrlScala.requestContact(uid: Long)
+#接受或拒绝好友请求
 PUT           /users/$uid<[0-9]+>/contact-requests/:requestId        controllers.app.UserCtrlScala.updateContactRequest(uid: Long, requestId: String)
-##确认添加好友
-#POST          /users/contacts                                    controllers.app.UserCtrl_V2.addContact()
-##删除好友
+#添加好友
+POST          /users/$uid<[0-9]+>/contacts                           controllers.app.UserCtrlScala.addContact(uid:Long)
+#删除好友
 #DELETE        /users/contacts/$id<[0-9]+>                        controllers.app.UserCtrl_V2.delContact(id: Long)
+DELETE        /users/$uid<[0-9]+>/contacts/$cid<[0-9]+>              controllers.app.UserCtrlScala.delContact(uid:Long, cid:Long)
 #获得好友列表
 GET           /users/contacts                                        controllers.app.UserCtrlScala.getContactList(uid: Long = 0)
 GET           /users/$uid<[0-9]+>/contacts                           controllers.app.UserCtrlScala.getContactList(uid: Long)
+#获得好友信息
+GET           /users/$uid<[0-9]+>/contacts/$cid<[0-9]+>              controllers.app.UserCtrlScala.getContact(uid:Long, cid:Long)
 ##设置备注信息
 #POST          /users/$id<[0-9]+>/memos                           controllers.app.UserCtrl_V2.setUserMemo(id:Long)
 

@@ -15,7 +15,7 @@ import misc.{FinagleConvert, FinagleFactory}
 import models.misc.ValidationCode
 import models.user.UserInfo
 import org.mongodb.morphia.Datastore
-import play.api.mvc.{Action, Controller}
+import play.api.mvc.{Action, Controller, Result, Results}
 import play.libs.Json
 import utils.phone.PhoneParserFactory
 import utils.{MsgConstants, Utils}
@@ -157,6 +157,62 @@ object UserCtrlScala extends Controller {
         }
     }
   })
+
+  def getContact(userId: Long, contactId: Long) = Action.async(request => {
+    val client = FinagleFactory.client
+
+    val isContactFuture = client.isContact(userId, contactId)
+
+    val future: TwitterFuture[Result] = isContactFuture flatMap (isContact => {
+      if (isContact) {
+        client.getUserById(contactId, Some(basicUserInfoFieds)) map (user => {
+          val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
+          val fields = basicUserInfoFieds
+          val node = formatter.formatNode(user)
+          Utils.createResponse(ErrorCode.NORMAL, node).toScala
+        })
+      } else TwitterFuture {
+        Results.NotFound
+      }
+    })
+
+    future
+  })
+
+
+  def addContact(userId: Long) = Action.async(request => {
+    val ret = (for {
+      body <- request.body.asJson
+      contactId <- (body \ "userId").asOpt[Long]
+    } yield {
+        FinagleFactory.client.addContact(userId, contactId) map (_ => {
+          Utils.createResponse(ErrorCode.NORMAL).toScala
+        }) rescue {
+          case _: NotFoundException =>
+            TwitterFuture {
+              Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+            }
+        }
+      }) getOrElse {
+      TwitterFuture {
+        Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+      }
+    }
+    ret
+  })
+
+
+  def delContact(userId: Long, contactId: Long) = Action.async(request => {
+    FinagleFactory.client.removeContact(userId, contactId) map (_ => {
+      Utils.createResponse(ErrorCode.NORMAL).toScala
+    }) rescue {
+      case _: NotFoundException =>
+        TwitterFuture {
+          Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+        }
+    }
+  })
+
 
   /**
    * 发送验证码
