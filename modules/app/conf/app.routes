@@ -64,20 +64,20 @@ POST          /users/$id<[0-9]+>/tracks                              controllers
 
 ##----------用户群组接口----------
 ##取得用户的讨论组
-#GET           /users/:uid/chatgroups                             controllers.app.GroupCtrl.getUserGroup(uid:Long,page:Int?=0,pageSize:Int?=100)
+GET           /users/:uid/chatgroups                             controllers.app.GroupCtrlScala.getUserGroups(uid:Long,page:Int?=0,pageSize:Int?=100)
 #
 ##----------用户讨论组接口----------
-##创建讨论组
-#POST          /chatgroups                                        controllers.app.GroupCtrl.createGroup()
-##修改讨论组信息
-#PUT           /chatgroups/:gId                                   controllers.app.GroupCtrl.modifyGroup(gId:Long)
-##取得讨论组信息
-#GET           /chatgroups/:gId                                   controllers.app.GroupCtrl.getGroup(gId:Long)
-##取得讨论组成员信息
-#GET           /chatgroups/:gId/users                             controllers.app.GroupCtrl.getGroupUsers(gId:Long)
-##操作讨论组，加减成员
-#POST          /chatgroups/:gId                                   controllers.app.GroupCtrl.opGroup(gId:Long)
-##退出讨论组
+#创建讨论组
+POST          /chatgroups                                        controllers.app.GroupCtrlScala.createGroup()
+#修改讨论组信息
+PUT           /chatgroups/:gId                                   controllers.app.GroupCtrlScala.modifyGroup(gId:Long)
+#取得讨论组信息
+GET           /chatgroups/:gId                                   controllers.app.GroupCtrlScala.getGroup(gId:Long)
+#取得讨论组成员信息
+GET           /chatgroups/:gId/users                             controllers.app.GroupCtrlScala.getGroupUsers(gId:Long)
+#操作讨论组，加减成员
+POST          /chatgroups/:gId                                   controllers.app.GroupCtrlScala.opGroup(gId:Long)
+#退出讨论组
 #POST        /chatgroups/:gId/quit          controllers.GroupCtrl.quitGroup(gId:Long)
 
 
