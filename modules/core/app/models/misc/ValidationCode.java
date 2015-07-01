@@ -60,7 +60,7 @@ public class ValidationCode extends Token {
      * @param actionCode  操作码
      * @return 一个新的验证码对象
      */
-    public static ValidationCode newInstance(int countryCode, String tel, int actionCode, Integer userId, long expireMs) {
+    public static ValidationCode newInstance(int countryCode, String tel, int actionCode, Long userId, long expireMs) {
         ValidationCode code = new ValidationCode();
 
         code.key = calcKey(countryCode, tel, actionCode);

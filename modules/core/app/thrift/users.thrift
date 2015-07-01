@@ -108,7 +108,7 @@ service userservice {
   // 发送好友请求
   // sender/receiver: 由谁向谁发起请求
   // message: 请求附言
-  string sendContactRequest(1:i64 sender, 2:i64 receiver, 3:optional string message) throws (1:NotFoundException ex1, 2:InvalidArgsException ex2)
+  string sendContactRequest(1:i64 sender, 2:i64 receiver, 3:optional string message) throws (1:NotFoundException ex1, 2:InvalidArgsException ex2, 3:InvalidStateException ex3)
 
   // 接受好友请求
   void acceptContactRequest(1:string requestId) throws (1:NotFoundException ex)

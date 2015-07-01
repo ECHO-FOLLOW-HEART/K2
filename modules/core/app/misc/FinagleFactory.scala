@@ -2,7 +2,8 @@ package misc
 
 import java.net.InetSocketAddress
 
-import com.lvxingpai.yunkai.Userservice.FinagledClient
+import com.lvxingpai.smscenter.SmsCenter.{FinagledClient => SmsClient}
+import com.lvxingpai.yunkai.Userservice.{FinagledClient => YunkaiClient}
 import com.twitter.finagle.builder.ClientBuilder
 import com.twitter.finagle.thrift.ThriftClientFramedCodec
 import org.apache.thrift.protocol.TBinaryProtocol
@@ -17,14 +18,30 @@ object FinagleFactory {
 
     val server = services.head.getString("host").get -> services.head.getInt("port").get
 
-//    val server = "localhost" -> 9000
-
     val service = ClientBuilder()
       .hosts(new InetSocketAddress(server._1, server._2))
       //      .hosts(new InetSocketAddress("192.168.100.2", 9400))
       .hostConnectionLimit(1000)
       .codec(ThriftClientFramedCodec())
       .build()
-    new FinagledClient(service, new TBinaryProtocol.Factory())
+    new YunkaiClient(service, new TBinaryProtocol.Factory())
+  }
+
+  lazy val smsClient = {
+    val backends = CoreConfig.conf.getConfig("backends.smscenter").get
+    val servers = for {
+      subKey <- backends.subKeys.toSeq
+      conf <- backends.getConfig(subKey)
+      host <- conf.getString("host")
+      port <- conf.getInt("port")
+    } yield host -> port
+
+    val service = ClientBuilder()
+      .hosts(new InetSocketAddress(servers.head._1, servers.head._2))
+      .hostConnectionLimit(1000)
+      .codec(ThriftClientFramedCodec())
+      .build()
+
+    new SmsClient(service, new TBinaryProtocol.Factory())
   }
 }

@@ -253,7 +253,7 @@ public class UserCtrl extends Controller {
         //注册发验证码-1，找回密码-2，绑定手机-3
 
         //注册发送短信
-        long returnMs = UserAPI.sendValCode(countryCode, tel, actionCode, userId, expireMs * 1000, resendMs * 1000);
+        long returnMs = UserAPI.sendValCode(countryCode, tel, actionCode, userId.longValue(), expireMs * 1000, resendMs * 1000);
         builder.add("coolDown", returnMs);
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));
