@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.misc.MiscInfo;
 import models.user.ChatGroupInfo;
 import models.user.UserInfo;

@@ -19,7 +19,7 @@ import formatter.taozi.misc.SimpleRefFormatter;
 import formatter.taozi.poi.BriefPOIFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
 import models.poi.AbstractPOI;
@@ -649,7 +649,6 @@ public class MiscCtrl extends Controller {
                                 @Key(tag = "ps") int pageSize)
             throws SolrServerException, AizouException {
         ObjectNode results = Json.newObject();
-
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;

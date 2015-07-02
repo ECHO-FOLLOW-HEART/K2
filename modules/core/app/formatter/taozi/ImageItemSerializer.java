@@ -1,7 +1,6 @@
 package formatter.taozi;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
 import models.misc.ImageItem;
@@ -93,10 +92,15 @@ public class ImageItemSerializer extends AizouSerializer<ImageItem> {
                     width = maxWidth;
                     height = (int) (width * r);
                 } else {
-                    int top = cropHint.get("top");
-                    int right = cropHint.get("right");
-                    int bottom = cropHint.get("bottom");
-                    int left = cropHint.get("left");
+                    Integer top = 0, right = 0, bottom = 0, left = 0;
+                    try {
+                        top = Integer.parseInt(cropHint.get("top").toString());
+                        right = Integer.parseInt(cropHint.get("right").toString());
+                        bottom = Integer.parseInt(cropHint.get("bottom").toString());
+                        left = Integer.parseInt(cropHint.get("left").toString());
+                    } catch (NumberFormatException e) {
+                        e.getMessage();
+                    }
 
                     width = right - left;
                     height = bottom - top;

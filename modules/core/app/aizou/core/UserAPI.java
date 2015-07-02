@@ -12,7 +12,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.taozi.user.UserFormatterOld;
 import models.AizouBaseEntity;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.*;
 import models.user.Credential;
@@ -800,7 +800,7 @@ public class UserAPI {
      * @param expireMs    多少豪秒以后过期
      * @param resendMs    多少毫秒以后可以重新发送验证短信
      */
-    public static Long sendValCode(int countryCode, String tel, int actionCode, Integer userId, long expireMs, long resendMs)
+    public static Long sendValCode(int countryCode, String tel, int actionCode, Long userId, long expireMs, long resendMs)
             throws AizouException {
         Datastore ds = MorphiaFactory.datastore();
         ValidationCode valCode = ds.createQuery(ValidationCode.class).field("key")
@@ -910,7 +910,7 @@ public class UserAPI {
     }
 
     public static Token valCodetoToken(Integer countryCode, String tel, int actionCode, int userId, long expireMs) throws AizouException {
-        ValidationCode valCode = ValidationCode.newInstance(countryCode, tel, actionCode, userId, expireMs);
+        ValidationCode valCode = ValidationCode.newInstance(countryCode, tel, actionCode, Long.valueOf(userId), expireMs);
         Datastore ds = MorphiaFactory.datastore();
         Token token = Token.newInstance(valCode, expireMs);
 

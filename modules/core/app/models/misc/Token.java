@@ -29,7 +29,7 @@ public class Token {
     /**
      * 验证码的内容
      */
-    public Integer userId;
+    public Long userId;
 
     /**
      * 操作权限:1-注册,2-修改密码,3-绑定

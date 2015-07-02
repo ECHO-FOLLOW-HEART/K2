@@ -18,7 +18,7 @@ import formatter.taozi.user.CredentialFormatter;
 import formatter.taozi.user.UserFormatterOld;
 import formatter.taozi.user.UserInfoFormatter;
 import models.AizouBaseEntity;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.Album;
 import models.misc.Token;
@@ -253,7 +253,7 @@ public class UserCtrl extends Controller {
         //注册发验证码-1，找回密码-2，绑定手机-3
 
         //注册发送短信
-        long returnMs = UserAPI.sendValCode(countryCode, tel, actionCode, userId, expireMs * 1000, resendMs * 1000);
+        long returnMs = UserAPI.sendValCode(countryCode, tel, actionCode, userId.longValue(), expireMs * 1000, resendMs * 1000);
         builder.add("coolDown", returnMs);
 
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(builder.get()));

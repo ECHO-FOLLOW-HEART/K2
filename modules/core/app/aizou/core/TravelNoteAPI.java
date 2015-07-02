@@ -3,7 +3,7 @@ package aizou.core;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
-import com.lvxingpai.k2.core.MorphiaFactory;
+import database.MorphiaFactory;
 import models.geo.Locality;
 import models.misc.ImageItem;
 import models.misc.TravelNote;
