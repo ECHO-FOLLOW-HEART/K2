@@ -12,6 +12,17 @@ enum GroupType{
   FORUM
 }
 
+struct ContactRequest {
+  1:string id,
+  2:i64 sender,
+  3:i64 receiver,
+  4:i32 status,
+  5:string requestMessage,
+  6:string rejectMessage
+  7:i64 timestamp,
+  8:i64 expire
+}
+
 struct UserInfo {
   1: string id,
   2: i64 userId,
@@ -111,13 +122,15 @@ service userservice {
   string sendContactRequest(1:i64 sender, 2:i64 receiver, 3:optional string message) throws (1:NotFoundException ex1, 2:InvalidArgsException ex2, 3:InvalidStateException ex3)
 
   // 接受好友请求
-  void acceptContactRequest(1:string requestId) throws (1:NotFoundException ex)
+  void acceptContactRequest(1:string requestId) throws (1:NotFoundException ex, 2:InvalidStateException ex2)
 
   // 拒绝好友请求
-  void rejectContactRequest(1:string requestId, 2:optional string message) throws (1:NotFoundException ex1, 2:InvalidArgsException ex2)
+  void rejectContactRequest(1:string requestId, 2:optional string message) throws (1:NotFoundException ex1, 2:InvalidArgsException ex2, 3:InvalidStateException ex3)
 
   // 取消好友请求
   void cancelContactRequest(1:string requestId) throws (1:NotFoundException ex)
+
+  list<ContactRequest> getContactRequests(1:i64 userId, 2:optional i32 offset, 3:optional i32 limit) throws (1:NotFoundException ex)
 
   // 添加单个好友
   void addContact(1:i64 userA, 2:i64 userB) throws (1:NotFoundException ex)

@@ -1,16 +1,13 @@
 package controllers.app
 
-import com.fasterxml.jackson.databind.{ObjectMapper, JsonNode}
-
-import scala.collection.JavaConversions._
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
-import com.lvxingpai.yunkai.{ChatGroup => YunkaiChatGroup, ChatGroupProp, NotFoundException}
-import com.lvxingpai.yunkai.{NotFoundException, UserInfo => YunkaiUserInfo, UserInfoProp}
+import com.lvxingpai.yunkai.{ChatGroup => YunkaiChatGroup, ChatGroupProp, NotFoundException, UserInfo => YunkaiUserInfo}
 import com.twitter.util.{Future => TwitterFuture}
 import exception.ErrorCode
 import formatter.FormatterFactory
 import formatter.taozi.group.ChatGroupFormatter
-import formatter.taozi.user.{UserInfoSimpleFormatter, UserInfoFormatter}
+import formatter.taozi.user.UserInfoSimpleFormatter
 import misc.TwitterConverter._
 import misc.{FinagleConvert, FinagleFactory}
 import models.group.ChatGroup
@@ -19,6 +16,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.mvc.{Action, Controller, Result}
 import utils.Utils
 
+import scala.collection.JavaConversions._
 import scala.concurrent.Future
 import scala.language.{implicitConversions, postfixOps}
 
@@ -41,11 +39,11 @@ object GroupCtrlScala extends Controller {
    * @param gID
    * @return
    */
-  def getGroup(gID: Long) = Action.async {
+  def getGroup1(gID: Long) = Action.async {
     request => {
-      val formatter = FormatterFactory.getInstance(classOf[ChatGroupFormatter])
       val future: Future[Result] = try {
-        FinagleFactory.client.getChatGroup(gID, Some(basicChatGroupFieds)) map (chatGroup => {
+        FinagleFactory.client.getChatGroup(gID, Some(Seq())) map (chatGroup => {
+          val formatter = FormatterFactory.getInstance(classOf[ChatGroupFormatter])
           val node = formatter.formatNode(chatGroup).asInstanceOf[ObjectNode]
           Utils.status(node.toString).toScala
         })
@@ -60,6 +58,20 @@ object GroupCtrlScala extends Controller {
   }
 
 
+  def getGroup(gid: Long) = Action.async(request => {
+    FinagleFactory.client.getChatGroup(gid, Some(basicChatGroupFieds)) map (chatGroup => {
+      val formatter = FormatterFactory.getInstance(classOf[ChatGroupFormatter])
+      val node = formatter.formatNode(chatGroup).asInstanceOf[ObjectNode]
+      Utils.createResponse(ErrorCode.NORMAL, node).toScala
+    }) rescue {
+      case _: NotFoundException =>
+        TwitterFuture {
+          Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+        }
+    }
+  })
+
+
   /**
    * 创建群组
    *
@@ -70,10 +82,10 @@ object GroupCtrlScala extends Controller {
       val uid = request.headers.get("UserId").get.toLong
       val jsonNode = request.body.asJson.get
 
-      val name = (jsonNode \ "name").asOpt[String].getOrElse("")
+      val name = (jsonNode \ "name").asOpt[String].getOrElse("旅行派讨论组")
       val avatar = (jsonNode \ "avatar").asOpt[String].getOrElse("")
       val desc = (jsonNode \ "desc").asOpt[String].getOrElse("")
-      val participants = (jsonNode \ "participants").asOpt[Array[Long]]
+      val participants = (jsonNode \ "members").asOpt[Array[Long]]
       val participantsValue = participants.get.toSeq
       val formatter = FormatterFactory.getInstance(classOf[ChatGroupFormatter])
       val propMap: Map[ChatGroupProp, String] = Map(ChatGroupProp.Name -> name, ChatGroupProp.Avatar -> avatar, ChatGroupProp.GroupDesc -> desc)
@@ -100,12 +112,9 @@ object GroupCtrlScala extends Controller {
     request => {
       val uid = request.headers.get("UserId").get.toLong
       val jsonNode = request.body.asJson.get
-      val groupId = (jsonNode \ "groupId").asOpt[Long].get
       val name = (jsonNode \ "name").asOpt[String]
       val desc = (jsonNode \ "desc").asOpt[String]
       val avatar = (jsonNode \ "avatar").asOpt[String]
-      val participants = (jsonNode \ "participants").asOpt[Array[Long]]
-      val participantsValue = participants.get.toSeq
 
       val propMap = scala.collection.mutable.Map[ChatGroupProp, String]()
       if (name.nonEmpty)
@@ -116,7 +125,7 @@ object GroupCtrlScala extends Controller {
         propMap.put(ChatGroupProp.Avatar, avatar.get)
 
       val formatter = FormatterFactory.getInstance(classOf[ChatGroupFormatter])
-      (FinagleFactory.client.updateChatGroup(uid, propMap) map (chatGroup => {
+      (FinagleFactory.client.updateChatGroup(gid, propMap) map (chatGroup => {
         val node = formatter.formatNode(chatGroup).asInstanceOf[ObjectNode]
         Utils.status(node.toString).toScala
       })) rescue {
@@ -184,19 +193,27 @@ object GroupCtrlScala extends Controller {
    */
   def opGroup(gid: Long) = Action.async {
     request => {
-      val uid = request.headers.get("UserId").get.toLong
+      object ActionCode extends Enumeration {
+        val ADD_MEMBER = Value(1)
+        val DELETE_MEMBER = Value(2)
+      }
+
+      val operator = (request.headers.get("UserId") map (_.toLong)).get
       val jsonNode = request.body.asJson.get
-      val action = (jsonNode \ "action").asOpt[String].get
-      val participants = (jsonNode \ "participants").asOpt[Array[Long]].get
-      (Future {
+      val action = (jsonNode \ "action").asOpt[Int].get
+      val participants = (jsonNode \ "members").asOpt[Array[Long]].get
+      Future {
         action match {
-          case ACTION_ADDMEMBERS =>
-            FinagleFactory.client.addChatGroupMembers(gid, uid, participants)
-          case ACTION_DELMEMBERS =>
-            FinagleFactory.client.removeChatGroupMembers(gid, uid, participants)
+          case item if item == ActionCode.ADD_MEMBER.id =>
+            FinagleFactory.client.addChatGroupMembers(gid, operator, participants)
+            Utils.createResponse(ErrorCode.NORMAL, "Success").toScala
+          case item if item == ActionCode.DELETE_MEMBER.id =>
+            FinagleFactory.client.removeChatGroupMembers(gid, operator, participants)
+            Utils.createResponse(ErrorCode.NORMAL, "Success").toScala
+          case _=>
+            Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
         }
-        Utils.createResponse(ErrorCode.NORMAL, "Success").toScala
-      }) rescue {
+      } rescue {
         case _: NotFoundException =>
           Future {
             Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
@@ -204,4 +221,51 @@ object GroupCtrlScala extends Controller {
       }
     }
   }
+
+  def addChatGroupMember(gid: Long) = Action.async(request => {
+    val operator = (request.headers.get("UserId") map (_.toLong)).get
+    val future = for {
+      body <- request.body.asJson
+      member <- (body \ "member").asOpt[Long]
+    } yield {
+        FinagleFactory.client.addChatGroupMembers(gid, operator, Seq(member)) map (_ => {
+          Utils.createResponse(ErrorCode.NORMAL).toScala
+        }) rescue {
+          case _: NotFoundException =>
+            TwitterFuture {
+              Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+            }
+        }
+      }
+
+    val ret = future getOrElse TwitterFuture {
+      Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+    }
+
+    ret
+
+  })
+
+  def deleteChatGroupMember(groupId: Long, memberId: Long) = Action.async(request => {
+    val client = FinagleFactory.client
+
+    val operator = (request.headers.get("UserId") map (_.toLong)).get
+    val futureGroup = client.getChatGroup(groupId, None)
+    val futureUser = client.getUserById(memberId, None)
+
+    val future = (for {
+      _ <- futureGroup
+      _ <- futureUser
+      ret <- client.removeChatGroupMembers(groupId, operator, Seq(memberId))
+    } yield {
+        Utils.createResponse(ErrorCode.NORMAL).toScala
+      }) rescue {
+      case _: NotFoundException =>
+        TwitterFuture {
+          Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+        }
+    }
+
+    future
+  })
 }

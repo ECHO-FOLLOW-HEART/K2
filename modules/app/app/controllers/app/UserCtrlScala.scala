@@ -2,8 +2,10 @@ package controllers.app
 
 import aizou.core.UserAPI
 import aizou.core.user.ValFormatterFactory
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.{LongNode, ObjectNode, TextNode}
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind.node.{ArrayNode, LongNode, ObjectNode, TextNode}
+import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.lvxingpai.yunkai.{UserInfo => YunkaiUserInfo, _}
 import com.twitter.util.{Future => TwitterFuture}
 import database.MorphiaFactory
@@ -63,7 +65,7 @@ object UserCtrlScala extends Controller {
   def login() = Action.async(request => {
     val ret = for {
       body <- request.body.asJson
-      password <- (body \ "pwd").asOpt[String]
+      password <- (body \ "password").asOpt[String]
       loginName <- (body \ "loginName").asOpt[String]
     } yield {
         val telEntry = PhoneParserFactory.newInstance().parse(loginName)
@@ -108,12 +110,19 @@ object UserCtrlScala extends Controller {
     ret get
   })
 
-  def resetPassword() = Action.async(request => {
+  def resetPassword(userId: Long = 0) = Action.async(request => {
+    val actualUserId =
+      if (userId == 0)
+        (request.body.asJson.get \ "userId").asOpt[Long].get
+      else
+        userId
+
+
     val ret = for {
       body <- request.body.asJson
-      userId <- (body \ "userId").asOpt[Long]
+      //      userId <- (body \ "userId").asOpt[Long]
       //      oldPassword <- (body \ "oldPwd").asOpt[String]
-      newPassword <- (body \ "newPwd").asOpt[String]
+      newPassword <- (body \ "newPassword").asOpt[String]
     } yield {
         FinagleFactory.client.resetPassword(userId, newPassword) map (_ => {
           Utils.createResponse(ErrorCode.NORMAL, "Success!").toScala
@@ -306,11 +315,11 @@ object UserCtrlScala extends Controller {
    * 绑定手机
    * @return
    */
-  def bindCellPhone() = Action.async(request => {
+  def bindCellPhone(userId: Long) = Action.async(request => {
     val ret = for {
       body <- request.body.asJson
       tel <- (body \ "tel").asOpt[String]
-      userId <- (body \ "userId").asOpt[Long]
+    //      userId <- (body \ "userId").asOpt[Long]
     } yield {
         FinagleFactory.client.updateTelNumber(userId, PhoneParserFactory.newInstance().parse(tel).getPhoneNumber) map (_ => {
           Utils.createResponse(ErrorCode.NORMAL, "Success!").toScala
@@ -326,13 +335,61 @@ object UserCtrlScala extends Controller {
 
 
   /**
+   * 获得好友请求的列表
+   * @param userId
+   * @return
+   */
+  def getContactRequests(userId: Long, offset: Int, limit: Int) = Action.async(request => {
+    val ret = FinagleFactory.client.getContactRequests(userId, Option(offset), Option(limit)) map (reqSeq => {
+      val mapper = new ObjectMapper()
+      val module = new SimpleModule()
+
+      val ser = new JsonSerializer[ContactRequest] {
+        override def serialize(value: ContactRequest, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
+          gen.writeStartObject()
+
+          gen.writeStringField("id", value.id)
+          gen.writeNumberField("sender", value.sender)
+          gen.writeNumberField("receiver", value.receiver)
+          gen.writeStringField("status", value.status match {
+            case 0 => "PENDING"
+            case 1 => "ACCEPTED"
+            case 2 => "REJECTED"
+            case 3 => "CANCELLED"
+            case _ => "UNKNOWN"
+          })
+          gen.writeStringField("requestMessage", Option(value.requestMessage) getOrElse "")
+          gen.writeStringField("rejectMessage", Option(value.rejectMessage) getOrElse "")
+          gen.writeNumberField("timestamp", value.timestamp)
+          gen.writeNumberField("expire", value.expire)
+
+          gen.writeEndObject()
+        }
+      }
+      module.addSerializer(classOf[ContactRequest], ser)
+      mapper.registerModule(module)
+
+      val node = mapper.valueToTree[ArrayNode](bufferAsJavaList(reqSeq.toBuffer))
+      Utils.createResponse(ErrorCode.NORMAL, node).toScala
+    }) rescue {
+      case _: NotFoundException =>
+        TwitterFuture {
+          Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+        }
+    }
+
+    ret
+  })
+
+
+  /**
    * 发送好友请求
    * @return
    */
   def requestContact(userId: Long) = Action.async(request => {
     val ret = (for {
       body <- request.body.asJson
-      contactId <- (body \ "userId").asOpt[Long]
+      contactId <- (body \ "contactId").asOpt[Long]
     } yield {
         val message = (body \ "message").asOpt[String]
         FinagleFactory.client.sendContactRequest(userId, contactId, message) map (requestId => {

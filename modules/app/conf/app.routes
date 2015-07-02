@@ -11,12 +11,15 @@ POST          /users/signup                                          controllers
 POST          /users/signin                                          controllers.app.UserCtrlScala.login()
 #发送手机验证码
 POST          /users/send-validation                                 controllers.app.UserCtrlScala.sendValidationCode()
+POST          /users/validation-codes                                controllers.app.UserCtrlScala.sendValidationCode()
 #修改密码
-POST          /users/pwd                                             controllers.app.UserCtrlScala.resetPassword()
+#POST          /users/pwd                                             controllers.app.UserCtrlScala.resetPassword()
+PUT           /users/$uid<[0-9]+>/password                           controllers.app.UserCtrlScala.resetPassword(uid: Long)
 ##验证验证码，重设密码
 #POST          /users/reset-pwd                                   controllers.app.UserCtrl_V2.newPassword()
 #绑定手机
-POST          /users/bind                                            controllers.app.UserCtrlScala.bindCellPhone()
+#POST          /users/bind                                            controllers.app.UserCtrlScala.bindCellPhone()
+PUT           /users/$uid<[0-9]+>/tel                                controllers.app.UserCtrlScala.bindCellPhone(uid: Long)
 ##验证验证码,返回token,绑定手机时用
 #POST          /users/check-validation                            controllers.app.UserCtrl_V2.checkCaptcha()
 #获取用户信息
@@ -31,10 +34,12 @@ GET           /users/$uid<[0-9]+>                                    controllers
 #POST          /users/search-by-address-book                      controllers.app.UserCtrl_V2.matchAddressBook()
 #
 ##----------用户好友接口----------
+#好友请求的列表
+GET           /users/$uid<[0-9]+>/contact-requests                   controllers.app.UserCtrlScala.getContactRequests(uid: Long, offset: Int?=0, limit: Int?=50)
 #请求添加好友
 POST          /users/$uid<[0-9]+>/contact-requests                   controllers.app.UserCtrlScala.requestContact(uid: Long)
 #接受或拒绝好友请求
-PUT           /users/$uid<[0-9]+>/contact-requests/:requestId        controllers.app.UserCtrlScala.updateContactRequest(uid: Long, requestId: String)
+PATCH         /users/$uid<[0-9]+>/contact-requests/:requestId        controllers.app.UserCtrlScala.updateContactRequest(uid: Long, requestId: String)
 #添加好友
 POST          /users/$uid<[0-9]+>/contacts                           controllers.app.UserCtrlScala.addContact(uid:Long)
 #删除好友
@@ -64,19 +69,23 @@ POST          /users/$id<[0-9]+>/tracks                              controllers
 
 ##----------用户群组接口----------
 ##取得用户的讨论组
-GET           /users/:uid/chatgroups                             controllers.app.GroupCtrlScala.getUserGroups(uid:Long,page:Int?=0,pageSize:Int?=100)
+GET           /users/:uid/chatgroups                                 controllers.app.GroupCtrlScala.getUserGroups(uid:Long,page:Int?=0,pageSize:Int?=100)
 #
 ##----------用户讨论组接口----------
 #创建讨论组
-POST          /chatgroups                                        controllers.app.GroupCtrlScala.createGroup()
+POST          /chatgroups                                            controllers.app.GroupCtrlScala.createGroup()
 #修改讨论组信息
-PUT           /chatgroups/:gId                                   controllers.app.GroupCtrlScala.modifyGroup(gId:Long)
+PATCH         /chatgroups/:gId                                       controllers.app.GroupCtrlScala.modifyGroup(gId:Long)
 #取得讨论组信息
-GET           /chatgroups/:gId                                   controllers.app.GroupCtrlScala.getGroup(gId:Long)
+GET           /chatgroups/:gId                                       controllers.app.GroupCtrlScala.getGroup(gId:Long)
 #取得讨论组成员信息
-GET           /chatgroups/:gId/users                             controllers.app.GroupCtrlScala.getGroupUsers(gId:Long)
+GET           /chatgroups/:gId/members                               controllers.app.GroupCtrlScala.getGroupUsers(gId:Long)
+#添加讨论组成员
+POST          /chatgroups/$gid<[0-9]+>/members                       controllers.app.GroupCtrlScala.addChatGroupMember(gid: Long)
+#删除讨论组成员
+DELETE        /chatgroups/$gid<[0-9]+>/members/$cid<[0-9]+>          controllers.app.GroupCtrlScala.deleteChatGroupMember(gid: Long, cid: Long)
 #操作讨论组，加减成员
-POST          /chatgroups/:gId                                   controllers.app.GroupCtrlScala.opGroup(gId:Long)
+PATCH         /chatgroups/$gid<[0-9]+>/members                       controllers.app.GroupCtrlScala.opGroup(gid:Long)
 #退出讨论组
 #POST        /chatgroups/:gId/quit          controllers.GroupCtrl.quitGroup(gId:Long)
 
