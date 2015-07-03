@@ -92,15 +92,10 @@ public class ImageItemSerializer extends AizouSerializer<ImageItem> {
                     width = maxWidth;
                     height = (int) (width * r);
                 } else {
-                    Integer top = 0, right = 0, bottom = 0, left = 0;
-                    try {
-                        top = Integer.parseInt(cropHint.get("top").toString());
-                        right = Integer.parseInt(cropHint.get("right").toString());
-                        bottom = Integer.parseInt(cropHint.get("bottom").toString());
-                        left = Integer.parseInt(cropHint.get("left").toString());
-                    } catch (NumberFormatException e) {
-                        e.getMessage();
-                    }
+                    Integer top = getCropHint(cropHint, "top");
+                    Integer right = getCropHint(cropHint, "right");
+                    Integer bottom = getCropHint(cropHint, "bottom");
+                    Integer left = getCropHint(cropHint, "left");
 
                     width = right - left;
                     height = bottom - top;
@@ -116,5 +111,12 @@ public class ImageItemSerializer extends AizouSerializer<ImageItem> {
             jsonGenerator.writeStringField("url", String.format("%s?imageView2/2/w/%d", fullUrl, maxWidth));
 
         jsonGenerator.writeEndObject();
+    }
+
+    private Integer getCropHint(Map<String, Integer> cropHint, String key) {
+        if (cropHint.get(key) == null)
+            return 0;
+        else
+            return Integer.parseInt(cropHint.get(key).toString());
     }
 }

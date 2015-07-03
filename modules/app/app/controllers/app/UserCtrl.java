@@ -15,7 +15,7 @@ import formatter.taozi.geo.SimpleLocalityWithLocationFormatter;
 import formatter.taozi.misc.AlbumFormatter;
 import formatter.taozi.user.ContactFormatter;
 import formatter.taozi.user.CredentialFormatter;
-import formatter.taozi.user.UserFormatterOld;
+import formatter.taozi.user.UserLoginFormatter;
 import formatter.taozi.user.UserInfoFormatter;
 import models.AizouBaseEntity;
 import database.MorphiaFactory;
@@ -62,7 +62,7 @@ public class UserCtrl extends Controller {
     public static final String FIELD_GUID = "GUID";
     public static long PAIPAI_USERID = 10000;
     public static final String PAIPAI_ESMOB = "xtx2xbxlggo4imqh76kzu5xb86e86yc7";
-    public static final String PAIPAI_WELCOME_1 = "你好，我是热爱旅行,形迹八方的派派。";
+    public static final String PAIPAI_WELCOME_1 = "你好，我是热爱旅行,行迹八方的派派。";
     public static final String PAIPAI_WELCOME_2 = "在这儿，没有规则，没有底限，随心所欲，畅所欲言。欢迎7×24小时的调戏。";
     public static final String PAIPAI_WELCOME_3 = "世界这么大，约吗？";
 
@@ -191,7 +191,7 @@ public class UserCtrl extends Controller {
             UserInfo userInfo = UserAPI.getUserByField(UserInfo.fnTel, tel);
             UserAPI.resetPwd(userInfo, pwd);
 
-            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
+            ObjectNode info = (ObjectNode) new UserLoginFormatter(true).format(userInfo);
             Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
             if (cre == null)
@@ -499,7 +499,7 @@ public class UserCtrl extends Controller {
         list = UserAPI.addUserMemo(selfId, list);
         List<JsonNode> nodeList = new ArrayList<>();
         for (UserInfo userInfo : list) {
-            nodeList.add(new UserFormatterOld(false).format(userInfo));
+            nodeList.add(new UserLoginFormatter(false).format(userInfo));
         }
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
     }

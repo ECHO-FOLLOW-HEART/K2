@@ -8,7 +8,7 @@ import com.lvxingpai.yunkai.{UserInfo => YunkaiUserInfo, _}
 import com.twitter.util.{Future => TwitterFuture}
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{UserFormatterOld, UserInfoFormatter}
+import formatter.taozi.user.{UserLoginFormatter, UserInfoFormatter}
 import misc.TwitterConverter._
 import misc.{FinagleConvert, FinagleFactory}
 import models.user.UserInfo
@@ -39,12 +39,13 @@ object UserCtrlScala extends Controller {
 
     (FinagleFactory.client.getUserById(userId, Some(fields)) map (user => {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
-
       // TODO 缺少接口 获得其他用户属性
       node.put("guideCnt", 0) // GuideAPI.getGuideCntByUser(userId))
-      node.set("tracks", new ObjectMapper().createArrayNode())
-      node.set("travelNotes", new ObjectMapper().createArrayNode())
-
+      node.put("trackCnt", 0)
+      node.put("travelNoteCnt", 0)
+      node.put("albumnCnt", 0)
+      //      node.set("tracks", new ObjectMapper().createArrayNode())
+      //      node.set("travelNotes", new ObjectMapper().createArrayNode())
       Utils.status(node.toString).toScala
     })) rescue {
       case _: NotFoundException =>
@@ -62,7 +63,7 @@ object UserCtrlScala extends Controller {
     } yield {
         val telEntry = PhoneParserFactory.newInstance().parse(loginName)
         val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password, "app") map (user => {
-          val userFormatter = new UserFormatterOld(true)
+          val userFormatter = new UserLoginFormatter(true)
           Utils.createResponse(ErrorCode.NORMAL, userFormatter.format(user)).toScala
         })
         future rescue {
@@ -114,7 +115,7 @@ object UserCtrlScala extends Controller {
           if (checkCodeResult) {
             val nickName = "旅行派_" + tel.getPhoneNumber
             FinagleFactory.client.createUser(nickName, password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber))) map (user => {
-              val node = new UserFormatterOld(true).format(user)
+              val node = new UserLoginFormatter(true).format(user)
               Utils.createResponse(ErrorCode.NORMAL, node).toScala
             }) rescue {
               case _: UserExistsException =>

@@ -13,7 +13,7 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.taozi.user.CredentialFormatter;
-import formatter.taozi.user.UserFormatterOld;
+import formatter.taozi.user.UserLoginFormatter;
 import formatter.taozi.user.UserInfoFormatter;
 import models.user.Credential;
 import models.user.UserInfo;
@@ -65,7 +65,7 @@ public class UserCtrlImpl {
         if (telEntry != null && telEntry.getPhoneNumber() != null)
             valueList.add(telEntry.getPhoneNumber());
 
-        UserFormatterOld userFormatter = new UserFormatterOld(true);
+        UserLoginFormatter userFormatter = new UserLoginFormatter(true);
 
         Iterator<UserInfo> itr = UserAPI.searchUser(Arrays.asList(UserInfo.fnTel, UserInfo.fnNickName), valueList,
                 userFormatter.getFilteredFields(), 0, 1);
@@ -75,7 +75,7 @@ public class UserCtrlImpl {
 
         //验证密码
         if ((!passwd.equals("")) && UserAPI.validCredential(userInfo, passwd)) {
-            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
+            ObjectNode info = (ObjectNode) new UserLoginFormatter(true).format(userInfo);
 
             Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -114,7 +114,7 @@ public class UserCtrlImpl {
         } else
             return Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true);
 
-        ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
+        ObjectNode info = (ObjectNode) new UserLoginFormatter(true).format(userInfo);
 
         Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                 Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -230,7 +230,7 @@ public class UserCtrlImpl {
             //如果第三方用户已存在,视为第二次登录
             us = UserAPI.getUserByField(UserInfo.fnOauthId, infoNode.get("openid").asText());
             if (us != null) {
-                ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(us);
+                ObjectNode info = (ObjectNode) new UserLoginFormatter(true).format(us);
 
                 Credential cre = UserAPI.getCredentialByUserId(us.getUserId(),
                         Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
@@ -266,7 +266,7 @@ public class UserCtrlImpl {
             UserInfo userInfo = UserAPI.regByWeiXin(us);
 
             //返回注册信息
-            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(userInfo);
+            ObjectNode info = (ObjectNode) new UserLoginFormatter(true).format(userInfo);
 
             Credential cre = UserAPI.getCredentialByUserId(userInfo.getUserId(),
                     Arrays.asList(Credential.fnEasemobPwd, Credential.fnSecKey));
