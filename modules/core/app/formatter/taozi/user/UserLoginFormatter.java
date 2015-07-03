@@ -18,14 +18,14 @@ import java.util.Map;
  * <p/>
  * Created by zephyre on 10/28/14.
  */
-public class UserFormatterOld extends TaoziBaseFormatter {
+public class UserLoginFormatter extends TaoziBaseFormatter {
     private boolean selfFormatter;
 
-    public UserFormatterOld(boolean self) {
+    public UserLoginFormatter(boolean self) {
         selfFormatter = self;
 
         stringFields.addAll(Arrays.asList(UserInfo.fnNickName, UserInfo.fnAvatar,UserInfo.fnAvatarSmall, UserInfo.fnGender,
-                UserInfo.fnSignature, UserInfo.fnEasemobUser));
+                UserInfo.fnSignature));
 
         if (self)
             stringFields.add(UserInfo.fnTel);

@@ -10,7 +10,7 @@ import com.mongodb.DBObject;
 import asynchronous.AsyncExecutor;
 import exception.AizouException;
 import exception.ErrorCode;
-import formatter.taozi.user.UserFormatterOld;
+import formatter.taozi.user.UserLoginFormatter;
 import models.AizouBaseEntity;
 import database.MorphiaFactory;
 import models.geo.Locality;
@@ -1389,7 +1389,7 @@ public class UserAPI {
     public static void unvarnishedTrans(UserInfo selfInfo, UserInfo targetInfo, int cmdType, String message) throws AizouException {
         if (selfInfo.getEasemobUser() == null)
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
-        ObjectNode info = (ObjectNode) new UserFormatterOld(false).format(selfInfo);
+        ObjectNode info = (ObjectNode) new UserLoginFormatter(false).format(selfInfo);
         // 添加邀请信息
         info.put("attachMsg", message);
         ObjectNode ext = Json.newObject();
@@ -1706,7 +1706,7 @@ public class UserAPI {
     public static void sendMessageToUser(String selfEasemob, UserInfo targetInfo, String message) throws AizouException {
         if (selfEasemob == null)
             throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
-//        ObjectNode info = (ObjectNode) new UserFormatterOld(false).format(selfInfo);
+//        ObjectNode info = (ObjectNode) new UserLoginFormatter(false).format(selfInfo);
 //        // 添加邀请信息
 //        info.put("attachMsg", message);
 //        ObjectNode ext = Json.newObject();

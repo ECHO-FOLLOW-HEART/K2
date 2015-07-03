@@ -19,7 +19,7 @@
 //import exception.ErrorCode;
 //import formatter.FormatterFactory;
 //import formatter.taozi.user.ContactFormatter;
-//import formatter.taozi.user.UserFormatterOld;
+//import formatter.taozi.user.UserLoginFormatter;
 //import formatter.taozi.user.UserInfoFormatter;
 //import misc.FinagleConvert;
 //import misc.FinagleFactory;
@@ -131,7 +131,7 @@
 //                    F.Promise.wrap(TwitterConverter.twitterToScalaFuture(future));
 //
 //            return promise.map(userInfo -> {
-//                ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(FinagleConvert.convertK2User(userInfo));
+//                ObjectNode info = (ObjectNode) new UserLoginFormatter(true).format(FinagleConvert.convertK2User(userInfo));
 //                return Utils.createResponse(ErrorCode.NORMAL, info);
 //            });
 //        } else {
@@ -234,7 +234,7 @@
 //        if (UserAPI.checkToken(token, 0, CAPTCHA_ACTION_MODPWD)) {
 //            uId = user.getUserId();
 //            ThriftFactory.resetPassword(uId, pwd);
-//            ObjectNode info = (ObjectNode) new UserFormatterOld(true).format(user);
+//            ObjectNode info = (ObjectNode) new UserLoginFormatter(true).format(user);
 //            // TODO Credential.fnSecKey 什么用
 //            return Utils.createResponse(ErrorCode.NORMAL, info);
 //        } else
@@ -317,7 +317,7 @@
 //        UserInfo user = ThriftFactory.longin(loginName, passwd);
 //        if (user == null)
 //            return Utils.createResponse(ErrorCode.AUTH_ERROR, MsgConstants.PWD_ERROR_MSG, true);
-//        UserFormatterOld userFormatter = new UserFormatterOld(true);
+//        UserLoginFormatter userFormatter = new UserLoginFormatter(true);
 //        return Utils.createResponse(ErrorCode.NORMAL, userFormatter.format(user));
 //    }
 //
@@ -559,7 +559,7 @@
 //        list = UserAPI.addUserMemo(selfId, list);
 //        List<JsonNode> nodeList = new ArrayList<>();
 //        for (UserInfo userInfo : list) {
-//            nodeList.add(new UserFormatterOld(false).format(userInfo));
+//            nodeList.add(new UserLoginFormatter(false).format(userInfo));
 //        }
 //        return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(nodeList));
 //    }

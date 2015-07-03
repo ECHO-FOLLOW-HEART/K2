@@ -31,7 +31,6 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
 
         writeObjectId(userInfo, jgen, serializerProvider);
 
-        jgen.writeStringField("easemobUser", getString(userInfo.getEasemobUser()));
         jgen.writeStringField("nickName", getString(userInfo.getNickName()));
         jgen.writeStringField("avatar", getString(userInfo.getAvatar()));
         jgen.writeStringField("avatarSmall", getString(userInfo.getAvatarSmall()));
@@ -61,7 +60,6 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
         jgen.writeFieldName(UserInfo.fnTracks);
         jgen.writeStartObject();
         List<Locality> localities = userInfo.getTracks();
-
         List<Locality> localitiesValue;
         if (localities != null && !localities.isEmpty()) {
             Map<String, List<Locality>> map = TaoziDataFilter.transLocalitiesByCountry(localities);
