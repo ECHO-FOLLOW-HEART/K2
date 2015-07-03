@@ -34,7 +34,7 @@ struct UserInfo {
 }
 
 //Created by pengyt on 2015/5/26.
-struct ChatGroup{
+struct ChatGroup {
   1: string id,
   2: i64 chatGroupId,
   3: string name,
@@ -51,6 +51,14 @@ struct ChatGroup{
   11: i64 createTime,
   12: i64 updateTime,
   13: bool visible
+}
+
+struct Token {
+  1: string fingerprint
+  2: i32 action
+  3: optional i64 userId
+  4: i64 createTime
+  5: i64 expireTime
 }
 
 enum UserInfoProp {
@@ -80,11 +88,11 @@ enum ChatGroupProp{
 }
 
 exception NotFoundException {
-  1:string message;
+  1:optional string message;
 }
 
 exception InvalidArgsException {
-  1:string message;
+  1:optional string message;
 }
 
 exception AuthException {
@@ -92,15 +100,20 @@ exception AuthException {
 }
 
 exception UserExistsException {
-  1:string message
+  1:optional string message
 }
 
 exception GroupMembersLimitException {
-  1:string message
+  1:optional string message
 }
 
 exception InvalidStateException {
-  1:string message
+  1:optional string message
+}
+
+// 验证码验证失败的异常
+exception ValidationCodeException {
+  1:optional string message
 }
 
 service userservice {
@@ -157,8 +170,19 @@ service userservice {
   // 验证用户密码
   bool verifyCredential(1:i64 userId, 2:string password) throws (1:AuthException ex)
 
+  // 发送手机验证码
+  void sendValidationCode(1:i32 action, 2:optional i32 countryCode, 3:string tel, 4:optional i64 userId) throws (1:InvalidStateException ex)
+
+  // 根据fingerprint读取Token
+  Token fetchToken(1:string fingerprint) throws (1:NotFoundException ex)
+
+  string checkValidationCode(1:string code, 2:i32 action, 3:optional i32 countryCode, 4:string tel, 5:optional i64 userId) throws (1:ValidationCodeException ex)
+
   // 用户修改密码
-  void resetPassword(1:i64 userId, 2:string newPassword) throws (1: InvalidArgsException ex1, 2: AuthException ex2)
+  void resetPassword(1:i64 userId, 2:string oldPassword, 3:string newPassword) throws (1:InvalidArgsException ex1, 2:AuthException ex2)
+
+  // 通过提供token的方式修改密码
+  void resetPasswordByToken(1:i64 userId, 2:string token, 3:string newPassword) throws (1:InvalidArgsException ex1, 2:AuthException ex2)
 
   // 修改手机号
   void updateTelNumber(1:i64 userId, 2:string tel) throws (1:NotFoundException ex1, 2:InvalidArgsException ex2)

@@ -2,7 +2,7 @@
 #----------用户接口----------
 #用户
 #手机注册
-POST          /users/signup                                          controllers.app.UserCtrlScala.signup()
+POST          /users                                                 controllers.app.UserCtrlScala.signup()
 ##第三方注册、登录
 #POST          /users/auth-signup                                 controllers.app.UserCtrl_V2.authRegister()
 ##检验用户信息的有效性(手机号)
@@ -10,10 +10,11 @@ POST          /users/signup                                          controllers
 #手机号登录
 POST          /users/signin                                          controllers.app.UserCtrlScala.login()
 #发送手机验证码
-POST          /users/send-validation                                 controllers.app.UserCtrlScala.sendValidationCode()
+#POST          /users/send-validation                                 controllers.app.UserCtrlScala.sendValidationCode()
 POST          /users/validation-codes                                controllers.app.UserCtrlScala.sendValidationCode()
-#修改密码
-#POST          /users/pwd                                             controllers.app.UserCtrlScala.resetPassword()
+# 校验验证码
+GET           /users/validation-codes/:code                          controllers.app.UserCtrlScala.checkValidationCode(action:Int, code:String, userId:Int, tel:String, countryCode:Int?=86)
+#修改密码（包括两种方式：通过token重置，或者通过提供旧密码的方式）
 PUT           /users/$uid<[0-9]+>/password                           controllers.app.UserCtrlScala.resetPassword(uid: Long)
 ##验证验证码，重设密码
 #POST          /users/reset-pwd                                   controllers.app.UserCtrl_V2.newPassword()
@@ -26,12 +27,13 @@ PUT           /users/$uid<[0-9]+>/tel                                controllers
 GET           /users/$uid<[0-9]+>                                    controllers.app.UserCtrlScala.getUserInfo(uid: Long)
 ##搜索用户信息
 #GET           /users/search                                      controllers.app.UserCtrl_V2.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=100)
-##编辑用户信息，修改密码
-#POST          /users/$uid<[0-9]+>                                controllers.app.UserCtrl_V2.editorUserInfo(uid: Long)
+#编辑用户信息
+PUT           /users/$uid<[0-9]+>                                    controllers.app.UserCtrlScala.updateUserInfo(uid: Long)
 ##根据环信用户名列表取得用户名列表
 #POST          /users/easemob                                     controllers.app.UserCtrl_V2.getUsersByEasemob()
 ##根据通讯录进行用户匹配
 #POST          /users/search-by-address-book                      controllers.app.UserCtrl_V2.matchAddressBook()
+GET           /users/$uid<[0-9]+>/address-book                      controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
 #
 ##----------用户好友接口----------
 #好友请求的列表
