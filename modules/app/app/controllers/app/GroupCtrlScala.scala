@@ -86,7 +86,7 @@ object GroupCtrlScala extends Controller {
       val avatar = (jsonNode \ "avatar").asOpt[String].getOrElse("")
       val desc = (jsonNode \ "desc").asOpt[String].getOrElse("")
       val participants = (jsonNode \ "members").asOpt[Array[Long]]
-      val participantsValue = participants.get.toSeq
+      val participantsValue = participants.getOrElse(Array.emptyLongArray).toSeq
       val formatter = FormatterFactory.getInstance(classOf[ChatGroupFormatter])
       val propMap: Map[ChatGroupProp, String] = Map(ChatGroupProp.Name -> name, ChatGroupProp.Avatar -> avatar, ChatGroupProp.GroupDesc -> desc)
 
@@ -210,7 +210,7 @@ object GroupCtrlScala extends Controller {
           case item if item == ActionCode.DELETE_MEMBER.id =>
             FinagleFactory.client.removeChatGroupMembers(gid, operator, participants)
             Utils.createResponse(ErrorCode.NORMAL, "Success").toScala
-          case _=>
+          case _ =>
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
         }
       } rescue {
