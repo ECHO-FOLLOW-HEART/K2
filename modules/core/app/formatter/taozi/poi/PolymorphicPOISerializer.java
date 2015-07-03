@@ -51,6 +51,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
         jsonGenerator.writeObjectField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
         jsonGenerator.writeStringField(AbstractPOI.FD_ADDRESS, getString(abstractPOI.address));
+        jsonGenerator.writeStringField(AbstractPOI.FD_STYLE, getString(abstractPOI.getStyle()));
 
 
         jsonGenerator.writeFieldName("images");
@@ -168,6 +169,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
         jsonGenerator.writeObjectField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
         jsonGenerator.writeStringField(AbstractPOI.FD_ADDRESS, getString(abstractPOI.address));
+        jsonGenerator.writeStringField(AbstractPOI.FD_STYLE, getString(abstractPOI.getStyle()));
 
 
         jsonGenerator.writeFieldName("images");

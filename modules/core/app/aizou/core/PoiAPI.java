@@ -915,7 +915,7 @@ public class PoiAPI {
         //query.filter("images size",0).field(AbstractPOI.FD_IMAGES);
         query.retrievedFields(true, AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.FD_IMAGES,
                 AbstractPOI.FD_DESC, AbstractPOI.FD_RATING, AbstractPOI.FD_LOCATION, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_PRICE_DESC,
-                AbstractPOI.FD_ADDRESS, AbstractPOI.FD_RANK);
+                AbstractPOI.FD_ADDRESS, AbstractPOI.FD_RANK,AbstractPOI.FD_STYLE);
         query.offset(page * pageSize).limit(pageSize);
         return query.iterator();
     }
@@ -1003,7 +1003,7 @@ public class PoiAPI {
         Class<? extends AbstractPOI> poiClass = null;
         List<String> fieldList = new ArrayList<>();
         Collections.addAll(fieldList, "_id", "zhName", "enName", "rating", "images", "hotness",
-                "desc", "location", "locality", "priceDesc", "address", "tags", "price", "rank");
+                "desc", "location", "locality", "priceDesc", "address", "tags", "price", "rank",AbstractPOI.FD_STYLE);
         switch (poiType) {
             case VIEW_SPOT:
                 fieldList.add("timeCostDesc");
