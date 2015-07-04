@@ -315,7 +315,6 @@ object UserCtrlScala extends Controller {
     val ret = for {
       body <- request.body.asJson
       tel <- (body \ "tel").asOpt[String] map (PhoneParserFactory.newInstance().parse(_).getPhoneNumber)
-      userId <- request.headers.get("UserId") map (_.toLong)
       token <- (body \ "token").asOpt[String]
     } yield {
         FinagleFactory.client.updateTelNumber(userId, tel, token) map (_ => {
