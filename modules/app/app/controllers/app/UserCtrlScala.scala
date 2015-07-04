@@ -8,7 +8,8 @@ import com.lvxingpai.yunkai.{UserInfo => YunkaiUserInfo, _}
 import com.twitter.util.{Future => TwitterFuture}
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{UserLoginFormatter, UserInfoFormatter}
+import formatter.taozi.user.{UserInfoFormatter, UserLoginFormatter}
+import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{FinagleConvert, FinagleFactory}
 import models.user.UserInfo
@@ -18,6 +19,7 @@ import utils.phone.PhoneParserFactory
 import utils.{MsgConstants, Utils}
 
 import scala.collection.JavaConversions._
+import scala.concurrent.{Future => ScalaFuture}
 import scala.language.{implicitConversions, postfixOps}
 
 /**
@@ -83,25 +85,14 @@ object UserCtrlScala extends Controller {
 
   def signup() = Action.async(request => {
     val client = FinagleFactory.client
-    val action = 1 // 创建用户
+    val action = OperationCode.Signup
 
     /**
      * 验证码的有效性
      */
     def checkCode(valCode: String, tel: String, countryCode: Option[Int]): TwitterFuture[Boolean] = {
-      val magicCode = "85438734"
-
-      if (valCode == magicCode)
-        TwitterFuture {
-          true
-        }
-      else {
-        val future = client.checkValidationCode(valCode, action, countryCode, tel, None) map (_ => true)
-        future rescue {
-          case _: ValidationCodeException => TwitterFuture {
-            false
-          }
-        }
+      client.checkValidationCode(valCode, action, countryCode, Some(tel), None) map (_ => true) rescue {
+        case _: ValidationCodeException => TwitterFuture(false)
       }
     }
 
@@ -119,14 +110,12 @@ object UserCtrlScala extends Controller {
               Utils.createResponse(ErrorCode.NORMAL, node).toScala
             }) rescue {
               case _: UserExistsException =>
-                TwitterFuture {
-                  Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_EXIST_MSG, true).toScala
-                }
+                TwitterFuture(Utils.createResponse(ErrorCode.USER_EXIST, MsgConstants.USER_EXIST_MSG, true).toScala)
+              case _: InvalidArgsException =>
+                TwitterFuture(Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala)
             }
           } else
-            TwitterFuture {
-              Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true).toScala
-            }
+            TwitterFuture(Utils.createResponse(ErrorCode.CAPTCHA_ERROR, MsgConstants.CAPTCHA_ERROR_MSG, true).toScala)
         })
       }
 
@@ -149,19 +138,14 @@ object UserCtrlScala extends Controller {
             val future = if (oldPassword.nonEmpty)
               client.resetPassword(userId, oldPassword.get, newPassword)
             else
-              client.resetPasswordByToken(userId, token.get, newPassword)
+              client.resetPasswordByToken(userId, newPassword, token.get)
 
             (future map (_ => {
               Utils.createResponse(ErrorCode.NORMAL).toScala
             })) rescue {
-              case _: NotFoundException =>
-                TwitterFuture {
-                  Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
-                }
-              case _: InvalidArgsException =>
-                TwitterFuture {
-                  Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
-                }
+              case _: NotFoundException => TwitterFuture(Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala)
+              case _: InvalidArgsException => TwitterFuture(Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala)
+              case _: AuthException => TwitterFuture(Utils.createResponse(ErrorCode.AUTH_ERROR).toScala)
             }
           } else TwitterFuture {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
@@ -266,68 +250,61 @@ object UserCtrlScala extends Controller {
    * @return
    */
   def sendValidationCode() = Action.async(request => {
-    object ActionCode extends Enumeration {
-      val Signup = Value(1)
-      val ResetPassword = Value(2)
-      val BindCellPhone = Value(3)
+    import com.lvxingpai.yunkai.OperationCode._
+
+    val client = FinagleFactory.client
+
+    def sendSignupValidationCode(): Option[TwitterFuture[Result]] = {
+      for {
+        body <- request.body.asJson
+        tel <- (body \ "tel").asOpt[String] map (PhoneParserFactory.newInstance().parse(_).getPhoneNumber)
+      } yield {
+        sendValidationCodesImpl(Signup, None, tel, None)
+      }
     }
 
-    val future = for {
+    def sendOtherValidationCode(action: OperationCode): Option[TwitterFuture[Result]] = {
+      for {
+        body <- request.body.asJson
+        userId <- (body \ "userId").asOpt[Long]
+      } yield {
+        // 获得userId的电话号码
+        val telFuture = client.getUserById(userId, Some(Seq(UserInfoProp.Tel))) map (_.tel)
+
+        // 发送验证码。如果用户的tel不存在，则返回INVALID_ARGUMENT
+        telFuture flatMap (opt => {
+          opt map (tel => {
+            sendValidationCodesImpl(action, None, tel, Some(userId))
+          }) getOrElse TwitterFuture(Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala)
+        })
+      }
+    }
+
+    // 真正发送验证码的代码
+    def sendValidationCodesImpl(action: OperationCode, countryCode: Option[Int], tel: String,
+                                userId: Option[Long]): TwitterFuture[Result] = {
+      (client.sendValidationCode(action, countryCode, tel, userId) map (_ => {
+        val node = new ObjectMapper().createObjectNode()
+        node.set("coolDown", LongNode.valueOf(60))
+        Utils.createResponse(ErrorCode.NORMAL, node).toScala
+      })) rescue {
+        case _: OverQuotaLimitException => TwitterFuture(Utils.createResponse(ErrorCode.SMS_QUOTA_ERROR).toScala)
+        case _: InvalidArgsException => TwitterFuture(Utils.createResponse(ErrorCode.SMS_INVALID_ACTION).toScala)
+      }
+    }
+
+    val future = (for {
       body <- request.body.asJson
-      tel <- (body \ "tel").asOpt[String]
-      countryCode <- (body \ "dialCode").asOpt[Int] orElse Some(86)
       actionCode <- (body \ "actionCode").asOpt[Int]
-    } yield {
-        // 用户是否存在
-        // 如果没有userId，则返回false
-        val userOpt = (body \ "userId").asOpt[Long]
-        val userExistFuture = (for {
-          userId <- userOpt
-        } yield {
-            FinagleFactory.client.getUserById(userId, None) map (_ => true) rescue {
-              case _: NotFoundException => TwitterFuture {
-                false
-              }
-            }
-          }) getOrElse TwitterFuture {
-          false
+      valCodeResult <- {
+        actionCode match {
+          case item if item == OperationCode.Signup.value => sendSignupValidationCode()
+          case action => sendOtherValidationCode(action)
         }
-
-        for {
-          exists <- userExistFuture
-          result <- {
-            val condition = (actionCode, exists)
-            condition match {
-              case item if item._1 == ActionCode.ResetPassword.id && !item._2 => TwitterFuture {
-                Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_TEL_NOT_EXIST_MSG, true).toScala
-              }
-              case item if item._1 == ActionCode.BindCellPhone.id && !item._2 => TwitterFuture {
-                Utils.createResponse(ErrorCode.USER_NOT_EXIST, MsgConstants.USER_TEL_EXIST_MSG, true).toScala
-              }
-              case _ =>
-                val telEntry = PhoneParserFactory.newInstance().parse(tel)
-
-                (FinagleFactory.client.sendValidationCode(actionCode, Some(countryCode), telEntry.getPhoneNumber, userOpt) map (_ => {
-                  val node = new ObjectMapper().createObjectNode()
-                  node.set("coolDown", LongNode.valueOf(60))
-                  Utils.createResponse(ErrorCode.NORMAL, node).toScala
-                })) rescue {
-                  case _: InvalidStateException => TwitterFuture {
-                    Utils.createResponse(ErrorCode.ILLEGAL_STATE).toScala
-                  }
-                }
-            }
-          }
-        } yield result
       }
+    } yield valCodeResult) getOrElse TwitterFuture(Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala)
 
-    val ret = future getOrElse {
-      // 如果ret为None，说明输入有误
-      TwitterFuture {
-        Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
-      }
-    }
-    ret
+    future
   })
 
   /**
@@ -337,16 +314,16 @@ object UserCtrlScala extends Controller {
   def bindCellPhone(userId: Long) = Action.async(request => {
     val ret = for {
       body <- request.body.asJson
-      tel <- (body \ "tel").asOpt[String]
-    //      userId <- (body \ "userId").asOpt[Long]
+      tel <- (body \ "tel").asOpt[String] map (PhoneParserFactory.newInstance().parse(_).getPhoneNumber)
+      userId <- request.headers.get("UserId") map (_.toLong)
+      token <- (body \ "token").asOpt[String]
     } yield {
-        FinagleFactory.client.updateTelNumber(userId, PhoneParserFactory.newInstance().parse(tel).getPhoneNumber) map (_ => {
+        FinagleFactory.client.updateTelNumber(userId, tel, token) map (_ => {
           Utils.createResponse(ErrorCode.NORMAL, "Success!").toScala
         }) rescue {
-          case _: NotFoundException =>
-            TwitterFuture {
-              Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
-            }
+          case _: NotFoundException => TwitterFuture(Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala)
+          case _: AuthException => TwitterFuture(Utils.createResponse(ErrorCode.AUTH_ERROR).toScala)
+          case _: InvalidArgsException => TwitterFuture(Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala)
         }
       }
     ret.get
@@ -475,9 +452,21 @@ object UserCtrlScala extends Controller {
     ret
   })
 
-  def checkValidationCode(action: Int, code: String, userId: Int, tel: String, countryCode: Int) = play.mvc.Results.TODO
+  def checkValidationCode(action: Int, code: String, userId: Option[Long], tel: Option[String], countryCode: Option[Int]) = Action.async(request => {
+    FinagleFactory.client.checkValidationCode(code, action, countryCode, tel, userId) map (token => {
+      val node = new ObjectMapper().createObjectNode().set("token", TextNode.valueOf(token))
+      Utils.createResponse(ErrorCode.NORMAL, node).toScala
+    }) rescue {
+      case _: ValidationCodeException => TwitterFuture(Utils.createResponse(ErrorCode.AUTH_ERROR).toScala)
+    }
+  })
+
 
   def updateUserInfo(uid: Long) = play.mvc.Results.TODO
 
   def matchAddressBook(uid: Long) = play.mvc.Results.TODO
+
+  def searchUser(tel: Option[String] = None, nickName: Option[String] = None, fields: Option[String] = None, offset: Int, limit: Int) = play.mvc.Results.TODO
+
+  def setUserMemo(uid: Long, contactId: Long) = play.mvc.Results.TODO
 }

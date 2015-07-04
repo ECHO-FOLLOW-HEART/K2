@@ -116,6 +116,8 @@ object GroupCtrlScala extends Controller {
       val desc = (jsonNode \ "desc").asOpt[String]
       val avatar = (jsonNode \ "avatar").asOpt[String]
 
+      val operatorId = request.headers.get("UserId").get.toLong
+
       val propMap = scala.collection.mutable.Map[ChatGroupProp, String]()
       if (name.nonEmpty)
         propMap.put(ChatGroupProp.Name, name.get)
@@ -125,7 +127,7 @@ object GroupCtrlScala extends Controller {
         propMap.put(ChatGroupProp.Avatar, avatar.get)
 
       val formatter = FormatterFactory.getInstance(classOf[ChatGroupFormatter])
-      (FinagleFactory.client.updateChatGroup(gid, propMap) map (chatGroup => {
+      (FinagleFactory.client.updateChatGroup(gid, operatorId, propMap) map (chatGroup => {
         val node = formatter.formatNode(chatGroup).asInstanceOf[ObjectNode]
         Utils.status(node.toString).toScala
       })) rescue {
