@@ -495,7 +495,7 @@ public class MiscCtrl extends Controller {
             ImageItem imageItem = getImageFromCallBack(ret);
             if (imageItem == null)
                 return status(500, "Can't get image key!");
-            UserAPI.addUserAlbum(Long.valueOf(userId), imageItem, id);
+            UserUgcAPI.addUserAlbum(Long.valueOf(userId), imageItem, id);
         } else
             UserAPI.resetAvater(Long.valueOf(userId), url);
         ret.put("success", true);

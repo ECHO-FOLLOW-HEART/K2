@@ -1,6 +1,7 @@
 package controllers.app;
 
 import aizou.core.UserAPI;
+import aizou.core.UserUgcAPI;
 import aspectj.CheckUser;
 import com.fasterxml.jackson.databind.JsonNode;
 import exception.AizouException;
@@ -39,7 +40,7 @@ public class UserUgcCtrl extends Controller {
         int imgWidth = 0;
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
-        List<Album> albums = UserAPI.getUserAlbums(id);
+        List<Album> albums = UserUgcAPI.getUserAlbums(id);
         AlbumFormatter formatter = FormatterFactory.getInstance(AlbumFormatter.class, imgWidth);
         return Utils.status(formatter.format(albums));
     }
@@ -55,7 +56,7 @@ public class UserUgcCtrl extends Controller {
     public static Result deleteUserAlbums(@CheckUser Long id, String picId) throws AizouException {
 
         ObjectId oid = new ObjectId(picId);
-        UserAPI.deleteUserAlbums(id, oid);
+        UserUgcAPI.deleteUserAlbums(id, oid);
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
     }
 

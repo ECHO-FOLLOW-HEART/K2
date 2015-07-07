@@ -1,12 +1,14 @@
 package controllers.app
 
-import aizou.core.UserAPI
+import scala.concurrent.ExecutionContext.Implicits.global
+import aizou.core.{UserUgcAPIScala, UserAPI}
 import aizou.core.user.ValFormatterFactory
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ArrayNode, LongNode, ObjectNode, TextNode}
 import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
 import com.lvxingpai.yunkai.{UserInfo => YunkaiUserInfo, _}
+import scala.concurrent.{Await, Future}
 import com.twitter.util.{Future => TwitterFuture}
 import database.MorphiaFactory
 import exception.ErrorCode
@@ -17,15 +19,14 @@ import misc.{FinagleConvert, FinagleFactory}
 import models.misc.ValidationCode
 import models.user.UserInfo
 import org.mongodb.morphia.Datastore
-import play.api.mvc.{Action, Controller, Result, Results}
 import play.libs.Json
 import utils.phone.PhoneParserFactory
 import utils.{MsgConstants, Utils}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.ExecutionContext.Implicits.global
+
+import play.api.mvc.{Action, Controller, Result, Results}
 import scala.concurrent.duration.Duration
-import scala.concurrent.{Await, Future}
 import scala.language.{implicitConversions, postfixOps}
 
 /**
@@ -44,23 +45,25 @@ object UserCtrlScala extends Controller {
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(UserInfoProp.Tel) else Seq())
     formatter.setSelfView(isSelf)
-
-    (FinagleFactory.client.getUserById(userId, Some(fields)) map (user => {
-      val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
-      // TODO 缺少接口 获得其他用户属性
-      node.put("guideCnt", 0) // GuideAPI.getGuideCntByUser(userId))
-      node.put("trackCnt", 0)
-      node.put("travelNoteCnt", 0)
-      node.put("albumnCnt", 0)
-      //      node.set("tracks", new ObjectMapper().createArrayNode())
-      //      node.set("travelNotes", new ObjectMapper().createArrayNode())
-      Utils.status(node.toString).toScala
-    })) rescue {
+    (for {
+      user <- FinagleFactory.client.getUserById(userId, Some(fields))
+      guideCnt <- UserUgcAPIScala.getGuidesCntByUser(user.getUserId)
+      albumCnt <- UserUgcAPIScala.getAlbumsCntByUser(user.getUserId)
+    } yield ({
+        val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
+        node.put("guideCnt", guideCnt)
+        node.put("trackCnt", 0)
+        node.put("travelNoteCnt", 0)
+        node.put("albumCnt", albumCnt)
+        Utils.status(node.toString).toScala
+      })
+      ) rescue {
       case _: NotFoundException =>
         TwitterFuture {
           Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
         }
     }
+
   })
 
   def login() = Action.async(request => {
