@@ -1,7 +1,7 @@
 package misc
 
 import com.lvxingpai.yunkai.Gender
-import com.lvxingpai.yunkai.{UserInfo=>YunkaiUserInfo, ChatGroup=>YunkaiChatGroup}
+import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, ChatGroup => YunkaiChatGroup }
 import models.group.ChatGroup
 import models.user.UserInfo
 import org.bson.types.ObjectId

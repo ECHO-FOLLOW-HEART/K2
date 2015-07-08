@@ -11,7 +11,7 @@ POST          /users                                              controllers.ap
 POST          /users/validation-codes                             controllers.app.UserCtrlScala.sendValidationCode()
 
 #校验验证码，并返回token
-GET           /users/tokens                                       controllers.app.UserCtrlScala.checkValidationCode(action:Int, code:String, userId:Option[Long]?=None, tel:Option[String]?=None, countryCode:Option[Int]?=None)
+GET           /users/tokens                                       controllers.app.UserCtrlScala.checkValidationCode(action:Int, code:String, tel:String, countryCode:Option[Int]?=None)
 
 #修改密码（包括两种方式：通过token重置，或者通过提供旧密码的方式）
 PUT           /users/$uid<\d+>/password                           controllers.app.UserCtrlScala.resetPassword(uid: Long)

@@ -28,6 +28,8 @@ libraryDependencies ++= Seq(
   //  //  "commons-logging" % "commons-logging" % "1.2"
 )
 
+scalariformSettings
+
 aspectjSettings
 
 showWeaveInfo in Aspectj := false

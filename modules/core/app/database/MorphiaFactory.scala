@@ -1,8 +1,8 @@
 package database
 
-import com.mongodb.{MongoClient, MongoClientOptions, MongoCredential, ServerAddress}
+import com.mongodb.{ MongoClient, MongoClientOptions, MongoCredential, ServerAddress }
 import misc.CoreConfig
-import org.mongodb.morphia.{Morphia, ValidationExtension}
+import org.mongodb.morphia.{ Morphia, ValidationExtension }
 
 import scala.collection.JavaConversions._
 

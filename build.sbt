@@ -31,6 +31,8 @@ resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
 // other, legacy style, accesses its actions statically.
 routesGenerator := InjectedRoutesGenerator
 
+scalariformSettings
+
 // AspectJ settings
 
 import com.typesafe.sbt.SbtAspectj.AspectjKeys._
