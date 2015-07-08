@@ -112,37 +112,25 @@ object UserCtrlScala extends Controller {
     val ret = for {
       body <- request.body.asJson
       newPassword <- (body \ "newPassword").asOpt[String]
+      oldPassword <- (body \ "oldPassword").asOpt[String] orElse Some("")
+      token <- (body \ "token").asOpt[String] orElse Some("")
     } yield {
         // 获得旧密码，或者token
-        val oldPassword = (body \ "oldPassword").asOpt[String]
-        val token = (body \ "token").asOpt[String]
-
-        val resetFuture = {
-          if (oldPassword.nonEmpty || token.nonEmpty) {
-            val future = if (oldPassword.nonEmpty)
-              client.resetPassword(userId, oldPassword.get, newPassword)
-            else
-              client.resetPasswordByToken(userId, newPassword, token.get)
-
-            (future map (_ => {
-              Utils.createResponse(ErrorCode.NORMAL).toScala
-            })) rescue {
-              case _: NotFoundException => TwitterFuture(Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala)
-              case _: InvalidArgsException => TwitterFuture(Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala)
-              case _: AuthException => TwitterFuture(Utils.createResponse(ErrorCode.AUTH_ERROR).toScala)
-            }
-          } else TwitterFuture {
-            Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
-          }
+        ((oldPassword, token) match {
+          case item if item._1 nonEmpty =>
+            client.resetPassword(userId, oldPassword, newPassword)
+          case item if item._2 nonEmpty =>
+            client.resetPasswordByToken(userId, newPassword, token)
+          case _ =>
+            throw InvalidArgsException()
+        }) map (_ => K2Result.ok(None)) rescue {
+          case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+          case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
+          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR,""))
         }
-
-        resetFuture
       }
 
-    val future = ret getOrElse TwitterFuture {
-      Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
-    }
-
+    val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })
 
