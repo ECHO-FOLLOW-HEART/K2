@@ -1,7 +1,7 @@
 package utils
 
-import com.fasterxml.jackson.databind.node.{IntNode, LongNode}
-import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
+import com.fasterxml.jackson.databind.node.{ IntNode, LongNode }
+import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
 import exception.ErrorCode
 import play.api.mvc.Results
 

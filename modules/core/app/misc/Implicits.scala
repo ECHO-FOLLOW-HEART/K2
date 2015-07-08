@@ -1,6 +1,6 @@
 package misc
 
-import com.lvxingpai.yunkai.{OperationCode, UserInfo => YunkaiUserInfo}
+import com.lvxingpai.yunkai.{ OperationCode, UserInfo => YunkaiUserInfo }
 import models.user.UserInfo
 
 import scala.language.implicitConversions

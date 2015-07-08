@@ -40,6 +40,8 @@ libraryDependencies ++= Seq(
 
 com.twitter.scrooge.ScroogeSBT.newSettings
 
+scalariformSettings
+
 aspectjSettings
 
 showWeaveInfo in Aspectj := false
