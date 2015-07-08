@@ -13,8 +13,7 @@ import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{FinagleConvert, FinagleFactory}
 import models.user.UserInfo
-import play.api.mvc.{Action, Controller, Result, Results}
-import play.libs.Json
+import play.api.mvc.{Action, Controller, Result}
 import utils.phone.PhoneParserFactory
 import utils.{Result => K2Result, Utils}
 
@@ -126,7 +125,7 @@ object UserCtrlScala extends Controller {
         }) map (_ => K2Result.ok(None)) rescue {
           case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
           case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
-          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR,""))
+          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
         }
       }
 
@@ -141,24 +140,25 @@ object UserCtrlScala extends Controller {
       else
         Some(userId)
 
-    FinagleFactory.client.getContactList(realUserId.get, Some(basicUserInfoFieds), None, None) map (userList => {
+    val future = FinagleFactory.client.getContactList(realUserId.get, Some(basicUserInfoFieds), None, None) map (userList => {
       val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
       formatter.setSelfView(false)
-      val nodeList = userList map (user => {
+
+      val array = new ObjectMapper().createArrayNode()
+      userList foreach (user => {
         val u: UserInfo = user
         u.setMemo("临时备注信息")
-        formatter formatNode u
+        array.add(formatter formatNode u)
       })
 
       val node = new ObjectMapper().createObjectNode()
-      node.set("contacts", Json.toJson(seqAsJavaList(nodeList)))
-      Utils.createResponse(ErrorCode.NORMAL, node).toScala
+      node.set("contacts", array)
+      K2Result.ok(Some(node))
     }) rescue {
-      case _: NotFoundException =>
-        TwitterFuture {
-          Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
-        }
+      case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
     }
+
+    future
   })
 
   def getContact(userId: Long, contactId: Long) = Action.async(request => {
@@ -170,50 +170,32 @@ object UserCtrlScala extends Controller {
       if (isContact) {
         client.getUserById(contactId, Some(basicUserInfoFieds)) map (user => {
           val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
-          val fields = basicUserInfoFieds
           val node = formatter.formatNode(user)
-          Utils.createResponse(ErrorCode.NORMAL, node).toScala
+          K2Result.ok(Some(node))
         })
-      } else TwitterFuture {
-        Results.NotFound
-      }
+      } else TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
     })
 
     future
   })
-
 
   def addContact(userId: Long) = Action.async(request => {
     val ret = (for {
       body <- request.body.asJson
       contactId <- (body \ "userId").asOpt[Long]
     } yield {
-        FinagleFactory.client.addContact(userId, contactId) map (_ => {
-          Utils.createResponse(ErrorCode.NORMAL).toScala
-        }) rescue {
-          case _: NotFoundException =>
-            TwitterFuture {
-              Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
-            }
+        FinagleFactory.client.addContact(userId, contactId) map (_ => K2Result.ok(None)) rescue {
+          case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
         }
-      }) getOrElse {
-      TwitterFuture {
-        Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
-      }
-    }
+      }) getOrElse TwitterFuture(K2Result.unprocessable)
     ret
   })
 
-
   def delContact(userId: Long, contactId: Long) = Action.async(request => {
-    FinagleFactory.client.removeContact(userId, contactId) map (_ => {
-      Utils.createResponse(ErrorCode.NORMAL).toScala
-    }) rescue {
-      case _: NotFoundException =>
-        TwitterFuture {
-          Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
-        }
+    val future = FinagleFactory.client.removeContact(userId, contactId) map (_ => K2Result.ok(None)) rescue {
+      case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
     }
+    future
   })
 
 
@@ -425,12 +407,14 @@ object UserCtrlScala extends Controller {
   })
 
   def checkValidationCode(action: Int, code: String, tel: String, countryCode: Option[Int]) = Action.async(request => {
-    FinagleFactory.client.checkValidationCode(code, action, tel, countryCode) map (token => {
+    val future = FinagleFactory.client.checkValidationCode(code, action, tel, countryCode) map (token => {
       val node = new ObjectMapper().createObjectNode().set("token", TextNode.valueOf(token))
       Utils.createResponse(ErrorCode.NORMAL, node).toScala
     }) rescue {
-      case _: ValidationCodeException => TwitterFuture(Utils.createResponse(ErrorCode.AUTH_ERROR).toScala)
+      case _: ValidationCodeException =>
+        TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid validation code"))
     }
+    future
   })
 
 
