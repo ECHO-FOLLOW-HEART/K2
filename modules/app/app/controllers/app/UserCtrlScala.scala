@@ -92,7 +92,7 @@ object UserCtrlScala extends Controller {
           K2Result.created(Some(node))
         })
       }) rescue {
-        case _: UserExistsException =>
+        case _: ResourceConflictException =>
           TwitterFuture(K2Result.conflict(ErrorCode.USER_EXIST, "Already exists"))
         case _: ValidationCodeException =>
           TwitterFuture(K2Result.unauthorized(ErrorCode.CAPTCHA_ERROR, "The validation code is invalid"))
@@ -277,6 +277,8 @@ object UserCtrlScala extends Controller {
         case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
         case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
         case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
+        case _: ResourceConflictException =>
+          TwitterFuture(K2Result.conflict(ErrorCode.INVALID_ARGUMENT, s"Phone number $tel already exists"))
       }
     }
     ret.get
