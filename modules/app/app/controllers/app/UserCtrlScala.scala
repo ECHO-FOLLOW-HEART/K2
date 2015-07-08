@@ -2,24 +2,24 @@ package controllers.app
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
-import com.fasterxml.jackson.databind.{ JsonSerializer, ObjectMapper, SerializerProvider }
-import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
-import com.twitter.util.{ Future => TwitterFuture }
+import com.fasterxml.jackson.databind.node.{ArrayNode, LongNode, ObjectNode, TextNode}
+import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
+import com.lvxingpai.yunkai.{UserInfo => YunkaiUserInfo, _}
+import com.twitter.util.{Future => TwitterFuture}
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{ UserInfoFormatter, UserLoginFormatter }
+import formatter.taozi.user.{UserInfoFormatter, UserLoginFormatter}
 import misc.Implicits._
 import misc.TwitterConverter._
-import misc.{ FinagleConvert, FinagleFactory }
+import misc.{FinagleConvert, FinagleFactory}
 import models.user.UserInfo
-import play.api.mvc.{ Action, Controller, Result }
+import play.api.mvc.{Action, Controller, Result}
 import utils.phone.PhoneParserFactory
-import utils.{ Result => K2Result, Utils }
+import utils.{Result => K2Result, Utils}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ Future => ScalaFuture }
-import scala.language.{ implicitConversions, postfixOps }
+import scala.concurrent.{Future => ScalaFuture}
+import scala.language.{implicitConversions, postfixOps}
 
 /**
  * Created by zephyre on 6/30/15.
@@ -254,6 +254,8 @@ object UserCtrlScala extends Controller {
           TwitterFuture(K2Result.forbidden(ErrorCode.SMS_QUOTA_ERROR, "Exceeds the SMS sending rate limit"))
         case _: InvalidArgsException =>
           TwitterFuture(K2Result.unprocessable)
+        case _: NotFoundException =>
+          TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
       }
     }
 
@@ -271,12 +273,10 @@ object UserCtrlScala extends Controller {
       tel <- (body \ "tel").asOpt[String] map (PhoneParserFactory.newInstance().parse(_).getPhoneNumber)
       token <- (body \ "token").asOpt[String]
     } yield {
-      FinagleFactory.client.updateTelNumber(userId, tel, token) map (_ => {
-        Utils.createResponse(ErrorCode.NORMAL, "Success!").toScala
-      }) rescue {
-        case _: NotFoundException => TwitterFuture(Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala)
-        case _: AuthException => TwitterFuture(Utils.createResponse(ErrorCode.AUTH_ERROR).toScala)
-        case _: InvalidArgsException => TwitterFuture(Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala)
+      FinagleFactory.client.updateTelNumber(userId, tel, token) map (_ => K2Result.ok(None)) rescue {
+        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+        case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
       }
     }
     ret.get
