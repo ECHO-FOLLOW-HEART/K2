@@ -1,5 +1,7 @@
 package controllers.app
 
+import play.api.libs.json.{JsNull, JsValue}
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import aizou.core.{UserUgcAPIScala, UserAPI}
 import aizou.core.user.ValFormatterFactory
@@ -28,6 +30,7 @@ import scala.collection.JavaConversions._
 import play.api.mvc.{Action, Controller, Result, Results}
 import scala.concurrent.duration.Duration
 import scala.language.{implicitConversions, postfixOps}
+import scala.util.{Failure, Success}
 
 /**
  * Created by zephyre on 6/30/15.
@@ -459,4 +462,13 @@ object UserCtrlScala extends Controller {
 
     ret
   })
+
+  def getUsersInfoValue(userIds: java.util.List[java.lang.Long]): java.util.Map[java.lang.Long, UserInfo] = {
+    val f = FinagleFactory.client.getUsersById(userIds.map(scala.Long.unbox(_)), Some(basicUserInfoFieds)) map (userMap => {
+      for {
+        (k, v) <- userMap
+      } yield (scala.Long.box(k), userInfoYunkai2Model(v))
+    })
+    f.toJavaFuture.get()
+  }
 }

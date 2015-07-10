@@ -60,8 +60,10 @@ GET           /users/$id<[0-9]+>/albums                              controllers
 DELETE        /users/$id<[0-9]+>/albums/:picId                       controllers.app.UserUgcCtrl.deleteUserAlbums(id: Long,picId: String)
 
 #----------用户足迹接口----------
+#获取用户足迹
+GET           /users/$id<[0-9]+>/tracks                              controllers.app.UserUgcCtrl.getUserTracks(id :Long)
 #获取所有达人的足迹
-GET           /users/:userRole/tracks                                controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String,abroad:Boolean?=true)
+GET           /users/:userRole/tracks                                controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
 #获取足迹包含某目的地的所有达人
 POST          /users/:userRole/tracks/users                          controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
 #修改足迹

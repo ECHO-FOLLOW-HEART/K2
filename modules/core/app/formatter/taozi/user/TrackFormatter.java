@@ -1,4 +1,4 @@
-package formatter.taozi.geo;
+package formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -10,32 +10,34 @@ import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
+import models.misc.Track;
+import models.user.UserInfo;
+import utils.TaoziDataFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by zephyre on 1/20/15.
  */
-public class SimpleLocalityWithLocationFormatter extends AizouFormatter<Locality> {
+public class TrackFormatter extends AizouFormatter<Track> {
 
-    public SimpleLocalityWithLocationFormatter(Integer imgWidth) {
-        registerSerializer(Locality.class, new SimpleLocalityWithLocationSerializer());
+    public TrackFormatter(Integer imgWidth) {
+        registerSerializer(Track.class, new TrackSerializer());
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         initObjectMapper(null);
-
-        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation));
+        //filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation));
     }
 
-    class SimpleLocalityWithLocationSerializer extends AizouSerializer<Locality> {
+    class TrackSerializer extends AizouSerializer<Track> {
         @Override
-        public void serialize(Locality locality, JsonGenerator jgen, SerializerProvider serializerProvider)
+        public void serialize(Track track, JsonGenerator jgen, SerializerProvider serializerProvider)
                 throws IOException {
             jgen.writeStartObject();
-
-            writeObjectId(locality, jgen, serializerProvider);
-
+            Locality locality = track.getLocality();
+            writeObjectId(track, jgen, serializerProvider);
             jgen.writeStringField("zhName", getString(locality.getZhName()));
             jgen.writeStringField("enName", getString(locality.getEnName()));
 

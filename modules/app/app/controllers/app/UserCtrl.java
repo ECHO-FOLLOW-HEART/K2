@@ -688,7 +688,8 @@ public class UserCtrl extends Controller {
                 UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnTel,
                 UserInfo.fnDialCode, UserInfo.fnRoles, UserInfo.fnTravelStatus, UserInfo.fnTracks, UserInfo.fnTravelNotes,
                 UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac, UserInfo.fnLevel);
-        List<UserInfo> usersInfo = UserUgcAPI.getExpertUserByTracks(ids, type, fields);
+        //List<UserInfo> usersInfo = UserUgcAPI.getExpertUserByTracks(ids, type, fields);
+        List<UserInfo> usersInfo = null;
         for (UserInfo user : usersInfo)
             // TODO
             UserAPI.fillUserInfo(user);
@@ -707,7 +708,7 @@ public class UserCtrl extends Controller {
         JsonNode data = request().body().asJson();
         Iterator<JsonNode> iterator = data.get("tracks").elements();
         String action = data.get("action").asText();
-        UserUgcAPI.modifyTracks(id, action, iterator);
+        //UserUgcAPI.modifyTracks(id, action, iterator);
 
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
 
