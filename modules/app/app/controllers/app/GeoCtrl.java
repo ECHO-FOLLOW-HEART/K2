@@ -4,10 +4,10 @@ import aizou.core.GeoAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -105,8 +105,8 @@ public class GeoCtrl extends Controller {
                                              @Key(tag = "page") int page,
                                              @Key(tag = "pageSize") int pageSize) throws AizouException {
 //            long t0 = System.currentTimeMillis();
-            Http.Request req = request();
-            Http.Response rsp = response();
+        Http.Request req = request();
+        Http.Response rsp = response();
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
@@ -115,14 +115,18 @@ public class GeoCtrl extends Controller {
         Configuration config = Configuration.root();
         Map destnations = (Map) config.getObject("destinations");
         //TODO 禁用了这里的304机制，统一由ModifiedHandler处理
-            String lastModify = destnations.get("lastModify").toString();
-            //添加缓存用的相应头
+        String lastModify = destnations.get("lastModify").toString();
+        //添加缓存用的相应头
         try {
             Utils.addCacheResponseHeader(rsp, lastModify);
         } catch (ParseException e) {
         }
         if (Utils.useCache(req, lastModify))
-                return status(304, "Content not modified, dude.");
+            return status(304, "Content not modified, dude.");
+        return exportDestinationImpl(imgWidth, destnations, abroad, groupBy, page, pageSize);
+    }
+
+    public static Result exportDestinationImpl(int imgWidth, Map destnations, boolean abroad, boolean groupBy, int page, int pageSize) throws AizouException {
 
         List<ObjectNode> objs = new ArrayList<>();
         // 国外目的地
@@ -139,7 +143,7 @@ public class GeoCtrl extends Controller {
 
             for (Iterator<JsonNode> itr = destResult.elements(); itr.hasNext(); ) {
                 ObjectNode cNode = (ObjectNode) itr.next();
-                JsonNode localities = getDestinationsNodeByCountry(new ObjectId(cNode.get("id").asText()), page, 30);
+                JsonNode localities = getDestinationsNodeByCountry(imgWidth, new ObjectId(cNode.get("id").asText()), page, pageSize);
                 cNode.put("destinations", localities);
             }
 
@@ -196,7 +200,7 @@ public class GeoCtrl extends Controller {
                 for (String str : mapConf.keySet())
                     oid.add(new ObjectId(str));
 
-                Map<String, Locality> locationMap = LocalityAPI.getLocalityMap(oid, Arrays.asList(Locality.FD_ID, Locality.fnLocation), Constants.ZERO_COUNT,
+                Map<String, Locality> locationMap = LocalityAPI.getLocalityMap(oid, Arrays.asList(Locality.FD_ID, Locality.fnLocation, Locality.fnImages), Constants.ZERO_COUNT,
                         Constants.MAX_COUNT);
 
                 //取出配置文件中的数据,并转换为Entity
@@ -263,7 +267,7 @@ public class GeoCtrl extends Controller {
      *
      * @param rmdProvinceList
      */
-    private static void sortByPinyin(List<RmdProvince> rmdProvinceList) {
+    public static void sortByPinyin(List<RmdProvince> rmdProvinceList) {
 
         Collections.sort(rmdProvinceList, new Comparator<RmdProvince>() {
             public int compare(RmdProvince arg0, RmdProvince arg1) {
@@ -277,7 +281,7 @@ public class GeoCtrl extends Controller {
      *
      * @param rmdProvinceList
      */
-    private static void sortLocalityByPinyin(List<RmdProvince> rmdProvinceList) {
+    public static void sortLocalityByPinyin(List<RmdProvince> rmdProvinceList) {
         for (RmdProvince rmdProvince : rmdProvinceList) {
             List<RmdLocality> destinations = rmdProvince.getDestinations();
             Collections.sort(destinations, new Comparator<RmdLocality>() {
@@ -299,11 +303,11 @@ public class GeoCtrl extends Controller {
      * @return
      * @throws exception.AizouException
      */
-    private static JsonNode getDestinationsNodeByCountry(ObjectId id, int page, int pageSize)
+    private static JsonNode getDestinationsNodeByCountry(int imgWidth, ObjectId id, int page, int pageSize)
             throws AizouException {
         List<Locality> localities = GeoAPI.getDestinationsByCountry(id, page, pageSize);
 
-        SimpleLocalityWithLocationFormatter formatter = FormatterFactory.getInstance(SimpleLocalityWithLocationFormatter.class);
+        SimpleLocalityWithLocationFormatter formatter = FormatterFactory.getInstance(SimpleLocalityWithLocationFormatter.class, imgWidth);
         return formatter.formatNode(localities);
     }
 

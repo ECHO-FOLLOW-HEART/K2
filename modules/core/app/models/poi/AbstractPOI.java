@@ -125,6 +125,9 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     @Transient
     public static String FD_RANK = "rank";
 
+    @Transient
+    public static String FD_STYLE = "style";
+
     /**
      * 标识POI的种类，jackson反序列还用
      */
@@ -332,6 +335,11 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     private Integer rank;
 
+    /**
+     * 分类
+     */
+    private String style;
+
     public Integer getRank() {
         return rank;
     }
@@ -442,6 +450,13 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
             return images;
     }
 
+    public String getStyle() {
+        return style;
+    }
+
+    public void setStyle(String style) {
+        this.style = style;
+    }
 
     public JsonNode toJson(int level) {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start();

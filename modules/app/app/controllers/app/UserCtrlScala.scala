@@ -1,5 +1,6 @@
 package controllers.app
 
+import aizou.core.UserUgcAPIScala
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
@@ -18,6 +19,7 @@ import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Future => ScalaFuture }
 import scala.language.{ implicitConversions, postfixOps }
 
@@ -37,22 +39,25 @@ object UserCtrlScala extends Controller {
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(UserInfoProp.Tel) else Seq())
     formatter.setSelfView(isSelf)
-
-    val future = (FinagleFactory.client.getUserById(userId, Some(fields)) map (user => {
+    (for {
+      user <- FinagleFactory.client.getUserById(userId, Some(fields))
+      guideCnt <- UserUgcAPIScala.getGuidesCntByUser(user.getUserId)
+      albumCnt <- UserUgcAPIScala.getAlbumsCntByUser(user.getUserId)
+    } yield ({
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
-      // TODO 缺少接口 获得其他用户属性
-      node.put("guideCnt", 0) // GuideAPI.getGuideCntByUser(userId))
+      node.put("guideCnt", guideCnt)
       node.put("trackCnt", 0)
       node.put("travelNoteCnt", 0)
-      node.put("albumnCnt", 0)
-      //      node.set("tracks", new ObjectMapper().createArrayNode())
-      //      node.set("travelNotes", new ObjectMapper().createArrayNode())
-      K2Result.ok(Some(node))
-    })) rescue {
-      case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, s"Cannt find user $userId"))
+      node.put("albumCnt", albumCnt)
+      Utils.status(node.toString).toScala
+    })
+    ) rescue {
+      case _: NotFoundException =>
+        TwitterFuture {
+          Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+        }
     }
 
-    future
   })
 
   def login() = Action.async(request => {
@@ -423,4 +428,14 @@ object UserCtrlScala extends Controller {
   def searchUser(tel: Option[String] = None, nickName: Option[String] = None, fields: Option[String] = None, offset: Int, limit: Int) = play.mvc.Results.TODO
 
   def setUserMemo(uid: Long, contactId: Long) = play.mvc.Results.TODO
+
+  def getUsersInfoValue(userIds: java.util.List[java.lang.Long]): java.util.Map[java.lang.Long, UserInfo] = {
+    val f = FinagleFactory.client.getUsersById(userIds.map(scala.Long.unbox(_)), Some(basicUserInfoFieds)) map (userMap => {
+      for {
+        (k, v) <- userMap
+      } yield (scala.Long.box(k), userInfoYunkai2Model(v))
+    })
+    f.toJavaFuture.get()
+  }
+
 }

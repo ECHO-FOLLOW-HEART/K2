@@ -86,7 +86,7 @@ object GroupCtrlScala extends Controller {
         val avatar = (jsonNode \ "avatar").asOpt[String].getOrElse("")
         val desc = (jsonNode \ "desc").asOpt[String].getOrElse("")
         val participants = (jsonNode \ "members").asOpt[Array[Long]]
-        val participantsValue = participants.get.toSeq
+        val participantsValue = participants.getOrElse(Array.emptyLongArray).toSeq
         val formatter = FormatterFactory.getInstance(classOf[ChatGroupFormatter])
         val propMap: Map[ChatGroupProp, String] = Map(ChatGroupProp.Name -> name, ChatGroupProp.Avatar -> avatar, ChatGroupProp.GroupDesc -> desc)
 
@@ -203,7 +203,6 @@ object GroupCtrlScala extends Controller {
           val ADD_MEMBER = Value(1)
           val DELETE_MEMBER = Value(2)
         }
-
         val operator = (request.headers.get("UserId") map (_.toLong)).get
         val jsonNode = request.body.asJson.get
         val action = (jsonNode \ "action").asOpt[Int].get

@@ -1,21 +1,25 @@
 package controllers.app;
 
-import aizou.core.UserAPI;
+import aizou.core.UserUgcAPI;
 import aspectj.CheckUser;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
+import formatter.taozi.geo.SimpleLocalityWithLocationFormatter;
 import formatter.taozi.misc.AlbumFormatter;
-import formatter.taozi.user.UserInfoFormatter;
-import models.AizouBaseEntity;
+import formatter.taozi.user.TrackFormatter;
+import formatter.taozi.user.UserInfoSimpleFormatter;
 import models.geo.Locality;
 import models.misc.Album;
+import models.misc.Track;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
+import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.util.*;
@@ -25,6 +29,14 @@ import java.util.*;
  */
 public class UserUgcCtrl extends Controller {
 
+    public static final List<Long> expertUserIds = Arrays.asList(Long.valueOf(11000), Long.valueOf(100000), Long.valueOf(100003),
+            Long.valueOf(100057), Long.valueOf(100076), Long.valueOf(100093), Long.valueOf(100001),
+            Long.valueOf(100015), Long.valueOf(100025), Long.valueOf(100002), Long.valueOf(100004),
+            Long.valueOf(100005), Long.valueOf(100009), Long.valueOf(100010), Long.valueOf(100011),
+            Long.valueOf(100012), Long.valueOf(100014), Long.valueOf(100031), Long.valueOf(100035),
+            Long.valueOf(100040), Long.valueOf(100056), Long.valueOf(100067), Long.valueOf(100068),
+            Long.valueOf(100073), Long.valueOf(100089), Long.valueOf(100090), Long.valueOf(100091));
+
     /**
      * 取得用户的相册
      *
@@ -32,14 +44,14 @@ public class UserUgcCtrl extends Controller {
      * @return
      * @throws AizouException
      */
-    @CheckUser
-    public static Result getUserAlbums(@CheckUser Long id) throws AizouException {
+
+    public static Result getUserAlbums(Long id) throws AizouException {
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
-        List<Album> albums = UserAPI.getUserAlbums(id);
+        List<Album> albums = UserUgcAPI.getUserAlbums(id);
         AlbumFormatter formatter = FormatterFactory.getInstance(AlbumFormatter.class, imgWidth);
         return Utils.status(formatter.format(albums));
     }
@@ -55,9 +67,32 @@ public class UserUgcCtrl extends Controller {
     public static Result deleteUserAlbums(@CheckUser Long id, String picId) throws AizouException {
 
         ObjectId oid = new ObjectId(picId);
-        UserAPI.deleteUserAlbums(id, oid);
+        UserUgcAPI.deleteUserAlbums(id, oid);
         return Utils.createResponse(ErrorCode.NORMAL, Json.toJson("successful"));
     }
+
+    public static Result getUserTracks(Long id) throws AizouException {
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+        List<Track> tracks = UserUgcAPI.getUserTracks(id);
+        List<Locality> localities = new ArrayList<>();
+        for (Track track : tracks)
+            localities.add(track.getLocality());
+
+        Map<String, List<Locality>> map = TaoziDataFilter.transLocalitiesByCountry(localities);
+
+        SimpleLocalityWithLocationFormatter formatter = FormatterFactory.getInstance(SimpleLocalityWithLocationFormatter.class, imgWidth);
+        ObjectNode ob = Json.newObject();
+
+        for (Map.Entry<String, List<Locality>> entry : map.entrySet()) {
+            ob.put(entry.getKey(), formatter.formatNode(entry.getValue()));
+        }
+        return Utils.createResponse(ErrorCode.NORMAL, ob);
+    }
+
 
     /**
      * 取得所有达人用户去过的目的地
@@ -68,19 +103,46 @@ public class UserUgcCtrl extends Controller {
      * @return
      * @throws AizouException
      */
-    public static Result getLocalitiesOfExpertUserTracks(String type, boolean abroad) throws AizouException {
+    public static Result getLocalitiesOfExpertUserTracks(String type) throws AizouException {
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+        List<Track> userTracks = UserUgcAPI.getUserTracks(expertUserIds);
 
-        // TODO 分国内国外
-        // TODO
-        return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
+        Map<ObjectId, Track> map = new HashMap<>();
+        for (Track track : userTracks)
+            map.put(track.getLocality().getId(), track);
+
+        Map<String, List<Track>> mapCountry = new HashMap<>();
+        List<Track> tempList;
+        for (Track track : map.values()) {
+            tempList = mapCountry.get(track.getCountry().getZhName());
+            if (tempList == null) {
+                List<Track> tempTracks = new ArrayList<>();
+                tempTracks.add(track);
+                mapCountry.put(track.getCountry().getZhName(), tempTracks);
+            } else {
+                tempList.add(track);
+                mapCountry.put(track.getCountry().getZhName(), tempList);
+            }
+        }
+        TrackFormatter formatter = FormatterFactory.getInstance(TrackFormatter.class, imgWidth);
+        ObjectNode node = Json.newObject();
+
+        for (Map.Entry<String, List<Track>> entry : mapCountry.entrySet())
+            node.put(entry.getKey(), formatter.formatNode(entry.getValue()));
+        return Utils.createResponse(ErrorCode.NORMAL, node);
     }
+
 
     /**
      * 根据拼音排序（未完成）
      *
      * @param rmdProvinceList
      */
-    private static List<Locality> sortLocalityByPinyin(List<Locality> rmdProvinceList) {
+    public static List<Locality> sortLocalityByPinyin(List<Locality> rmdProvinceList) {
         Collections.sort(rmdProvinceList, new Comparator<Locality>() {
             public int compare(Locality arg0, Locality arg1) {
                 return arg0.getZhName().compareTo(arg1.getZhName()) > 0 ? 1 : -1;
@@ -99,23 +161,53 @@ public class UserUgcCtrl extends Controller {
      */
     public static Result getExpertUserByTracks(String type) throws AizouException {
         JsonNode data = request().body().asJson();
-        Iterator<JsonNode> iterator = data.get("locId").iterator();
-        List<ObjectId> ids = new ArrayList<>();
-        while (iterator.hasNext()) {
-            ids.add(new ObjectId(iterator.next().asText()));
-        }
+        List<ObjectId> locIds = new ArrayList<>();
+        List<ObjectId> countryIds = new ArrayList<>();
+        if (data.has("locId"))
+            for (Iterator<JsonNode> iterator = data.get("locId").iterator(); iterator.hasNext(); )
+                locIds.add(new ObjectId(iterator.next().asText()));
+        if (data.has("countryId"))
+            for (Iterator<JsonNode> iterator = data.get("countryId").iterator(); iterator.hasNext(); )
+                countryIds.add(new ObjectId(iterator.next().asText()));
+        // 取得足迹
+        List<Track> expertUserByTracks = UserUgcAPI.getExpertUserByTracks(countryIds, locIds, expertUserIds);
 
-        UserInfoFormatter formatter = FormatterFactory.getInstance(UserInfoFormatter.class);
-        formatter.setSelfView(false);
-        List<String> fields = Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnEasemobUser, UserInfo.fnUserId, UserInfo.fnNickName,
-                UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnTel,
-                UserInfo.fnDialCode, UserInfo.fnRoles, UserInfo.fnTravelStatus, UserInfo.fnTracks, UserInfo.fnTravelNotes,
-                UserInfo.fnResidence, UserInfo.fnBirthday, UserInfo.fnZodiac, UserInfo.fnLevel);
-        // TODO 取得包含此足迹的所有达人
-        // TODO
-        //UserAPI.fillUserInfo(user);
-        return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
+        // 取得用户信息
+        Set<Long> usersUnDup = new HashSet<>();
+        for (Track track : expertUserByTracks)
+            usersUnDup.add(track.getUserId());
+        List<Long> users = new ArrayList(usersUnDup);
+        Map<Long, UserInfo> userInfoMap = UserCtrlScala.getUsersInfoValue(users);
 
+        // 组装信息
+        JsonNode result = Json.newObject();
+        ObjectNode node;
+        List<JsonNode> nodeList = new ArrayList<>();
+        UserInfoSimpleFormatter formatter = new UserInfoSimpleFormatter();
+        if (data.has("countryId")) {
+            Map<Long, List<Track>> mapCountry = new HashMap<>();
+            List<Track> tempList;
+            for (Track track : expertUserByTracks) {
+                tempList = mapCountry.get(track.getUserId());
+                if (tempList == null) {
+                    tempList = new ArrayList();
+                    tempList.add(track);
+                    mapCountry.put(track.getUserId(), tempList);
+                } else {
+                    tempList.add(track);
+                    mapCountry.put(track.getUserId(), tempList);
+                }
+            }
+            for (Map.Entry<Long, List<Track>> entry : mapCountry.entrySet()) {
+                node = (ObjectNode) formatter.formatNode(userInfoMap.get(entry.getKey()));
+                node.put("localityCnt", entry.getValue().size());
+                nodeList.add(node);
+            }
+            result = Json.toJson(nodeList);
+        } else if (data.has("locId"))
+            result = formatter.formatNode(new ArrayList(userInfoMap.values()));
+
+        return Utils.createResponse(ErrorCode.AUTH_ERROR, result);
     }
 
     /**
@@ -129,8 +221,8 @@ public class UserUgcCtrl extends Controller {
         JsonNode data = request().body().asJson();
         Iterator<JsonNode> iterator = data.get("tracks").elements();
         String action = data.get("action").asText();
-        // TODO
-        return Utils.createResponse(ErrorCode.AUTH_ERROR, "接口缺少调用");
+        UserUgcAPI.modifyTracksWithSearch(id, action, iterator);
+        return Utils.createResponse(ErrorCode.AUTH_ERROR, "Success.");
 
     }
 }
