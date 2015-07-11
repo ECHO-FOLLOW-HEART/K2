@@ -50,8 +50,11 @@ object MorphiaFactory {
     m
   }
 
-  def datastore = {
+  lazy val datastore = {
     val dbName = CoreConfig.conf.getString("k2.mongo.db").get
-    morphia.createDatastore(client, dbName)
+    val d = morphia.createDatastore(client, dbName)
+    d.ensureIndexes()
+    d
   }
+
 }
