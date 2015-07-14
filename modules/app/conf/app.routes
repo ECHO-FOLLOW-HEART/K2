@@ -194,6 +194,8 @@ DELETE        /guides/:id                                         controllers.ap
 
 #----------地理信息接口----------
 # 搜索城市
+
+GET           /geo/countrys                                       controllers.app.GeoCtrl.exploreDestinationsByCountry(page:Int?=0, pageSize:Int?=10)
 #展示国内目的地
 GET           /geo/localities/domestic                            controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
 #展示国外目的地

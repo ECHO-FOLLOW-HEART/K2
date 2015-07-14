@@ -1,8 +1,11 @@
 package models.geo;
 
 import models.AizouBaseEntity;
+import models.misc.ImageItem;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
+
+import java.util.List;
 
 /**
  * Created by topy on 2015/3/24.
@@ -50,7 +53,14 @@ public class RmdLocality extends AizouBaseEntity {
      */
     private int sort;
 
+
     private GeoJsonPoint location;
+
+    /**
+     * 照片
+     */
+    private List<ImageItem> images;
+
 
     public GeoJsonPoint getLocation() {
         return location;
@@ -109,4 +119,11 @@ public class RmdLocality extends AizouBaseEntity {
         this.province = province;
     }
 
+    public List<ImageItem> getImages() {
+        return images;
+    }
+
+    public void setImages(List<ImageItem> images) {
+        this.images = images;
+    }
 }

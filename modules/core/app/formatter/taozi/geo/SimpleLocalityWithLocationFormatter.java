@@ -10,6 +10,7 @@ import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
+import utils.TaoziDataFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,7 +26,7 @@ public class SimpleLocalityWithLocationFormatter extends AizouFormatter<Locality
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         initObjectMapper(null);
 
-        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation));
+        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation,Locality.fnImages));
     }
 
     class SimpleLocalityWithLocationSerializer extends AizouSerializer<Locality> {
@@ -41,7 +42,7 @@ public class SimpleLocalityWithLocationFormatter extends AizouFormatter<Locality
 
             // images
             jgen.writeFieldName("images");
-            List<ImageItem> images = locality.getImages();
+            List<ImageItem> images = TaoziDataFilter.getOneImage(locality.getImages());
             jgen.writeStartArray();
             if (images != null && !images.isEmpty()) {
                 JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ImageItem.class, null);

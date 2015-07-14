@@ -161,105 +161,110 @@ public class GeoCtrl extends Controller {
             String zhName = null;
             String pinyin = null;
             String province = null;
-            // V 1.0.0
-            if (!groupBy) {
-                for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
-                    k = entry.getKey();
-                    v = entry.getValue();
-                    if (v != null)
-                        zhName = v.toString();
 
-                    pinyinObj = pinyinConf.get(k);
-                    if (pinyinObj != null)
-                        pinyin = pinyinObj.toString();
-                    provinceObj = provinceConf.get(k);
-                    if (provinceObj != null)
-                        province = provinceObj.toString();
+            RmdLocality locality;
+            RmdProvince rmdProvince;
+            Map<String, List<RmdLocality>> rmdProvinceMap = new HashMap<>();
+            List<RmdLocality> localityList;
+            List<RmdProvince> rmdProvinceList = new ArrayList<>();
 
-                    node = Json.newObject();
-                    node.put("id", k);
-                    node.put("zhName", zhName);
-                    node.put("enName", "");
-                    node.put("pinyin", pinyin);
-                    node.put("province", province);
-                    objs.add(node);
+            Map<String, Object> provincePinyinConf = Configuration.root().getConfig("provincePinyin").asMap();
+
+            List<ObjectId> oid = new ArrayList<>();
+            for (String str : mapConf.keySet())
+                oid.add(new ObjectId(str));
+
+            Map<String, Locality> locationMap = LocalityAPI.getLocalityMap(oid, Arrays.asList(Locality.FD_ID, Locality.fnLocation, Locality.fnImages), Constants.ZERO_COUNT,
+                    Constants.MAX_COUNT);
+
+            //取出配置文件中的数据,并转换为Entity
+            for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
+                k = entry.getKey();
+                v = entry.getValue();
+                if (v != null)
+                    zhName = v.toString();
+
+                pinyinObj = pinyinConf.get(k);
+                if (pinyinObj != null)
+                    pinyin = pinyinObj.toString();
+                provinceObj = provinceConf.get(k);
+                if (provinceObj != null)
+                    province = provinceObj.toString();
+
+                sortObj = sortConf.get(k);
+                if (sortObj != null)
+                    sort = Integer.valueOf(sortObj.toString());
+                locality = new RmdLocality();
+                locality.setId(new ObjectId(k));
+                locality.setZhName(zhName);
+                locality.setEnName("");
+                Locality localityLocation = locationMap.get(locality.getId().toString());
+                if (localityLocation != null) {
+                    locality.setLocation(localityLocation.getLocation());
+                    locality.setImages(localityLocation.getImages());
                 }
-                return new TaoziResBuilder().setBody(Json.toJson(objs)).build();
-                // V 1.0.1
-            } else {
+                locality.setPinyin(pinyin);
+                locality.setProvince(province);
+                locality.setSort(sort);
 
-                RmdLocality locality;
-                RmdProvince rmdProvince;
-                Map<String, List<RmdLocality>> rmdProvinceMap = new HashMap<>();
-                List<RmdLocality> localityList;
-                List<RmdProvince> rmdProvinceList = new ArrayList<>();
-
-                Map<String, Object> provincePinyinConf = Configuration.root().getConfig("provincePinyin").asMap();
-
-                List<ObjectId> oid = new ArrayList<>();
-                for (String str : mapConf.keySet())
-                    oid.add(new ObjectId(str));
-
-                Map<String, Locality> locationMap = LocalityAPI.getLocalityMap(oid, Arrays.asList(Locality.FD_ID, Locality.fnLocation, Locality.fnImages), Constants.ZERO_COUNT,
-                        Constants.MAX_COUNT);
-
-                //取出配置文件中的数据,并转换为Entity
-                for (Map.Entry<String, Object> entry : mapConf.entrySet()) {
-                    k = entry.getKey();
-                    v = entry.getValue();
-                    if (v != null)
-                        zhName = v.toString();
-
-                    pinyinObj = pinyinConf.get(k);
-                    if (pinyinObj != null)
-                        pinyin = pinyinObj.toString();
-                    provinceObj = provinceConf.get(k);
-                    if (provinceObj != null)
-                        province = provinceObj.toString();
-
-                    sortObj = sortConf.get(k);
-                    if (sortObj != null)
-                        sort = Integer.valueOf(sortObj.toString());
-                    locality = new RmdLocality();
-                    locality.setId(new ObjectId(k));
-                    locality.setZhName(zhName);
-                    locality.setEnName("");
-                    Locality localityLocation = locationMap.get(locality.getId().toString());
-                    if (localityLocation != null)
-                        locality.setLocation(localityLocation.getLocation());
-                    locality.setPinyin(pinyin);
-                    locality.setProvince(province);
-                    locality.setSort(sort);
-
-                    localityList = rmdProvinceMap.get(province);
-                    if (localityList == null)
-                        localityList = new ArrayList<>();
-                    localityList.add(locality);
-                    rmdProvinceMap.put(province, localityList);
-                }
-                String proZhName;
-                String proPinyin = null;
-                // 把目的地按照省份分组
-                for (Map.Entry<String, List<RmdLocality>> entry : rmdProvinceMap.entrySet()) {
-                    rmdProvince = new RmdProvince();
-                    proZhName = entry.getKey().toString();
-                    if (provincePinyinConf.get(proZhName) != null)
-                        proPinyin = provincePinyinConf.get(proZhName).toString();
-                    rmdProvince.setPinyin(proPinyin);
-                    rmdProvince.setId(new ObjectId());
-                    rmdProvince.setZhName(entry.getKey());
-                    rmdProvince.setDestinations(entry.getValue());
-                    rmdProvinceList.add(rmdProvince);
-                }
-                // 排序
-                sortByPinyin(rmdProvinceList);
-                sortLocalityByPinyin(rmdProvinceList);
-                RmdProvinceFormatter formatter = new RmdProvinceFormatter();
-
-                JsonNode jsonNode = formatter.formatNode(rmdProvinceList);
-                return new TaoziResBuilder().setBody(jsonNode).build();
+                localityList = rmdProvinceMap.get(province);
+                if (localityList == null)
+                    localityList = new ArrayList<>();
+                localityList.add(locality);
+                rmdProvinceMap.put(province, localityList);
             }
+            String proZhName;
+            String proPinyin = null;
+            // 把目的地按照省份分组
+            for (Map.Entry<String, List<RmdLocality>> entry : rmdProvinceMap.entrySet()) {
+                rmdProvince = new RmdProvince();
+                proZhName = entry.getKey().toString();
+                if (provincePinyinConf.get(proZhName) != null)
+                    proPinyin = provincePinyinConf.get(proZhName).toString();
+                rmdProvince.setPinyin(proPinyin);
+                rmdProvince.setId(new ObjectId());
+                rmdProvince.setZhName(entry.getKey());
+                rmdProvince.setDestinations(entry.getValue());
+                rmdProvinceList.add(rmdProvince);
+            }
+            // 排序
+            sortByPinyin(rmdProvinceList);
+            sortLocalityByPinyin(rmdProvinceList);
+            RmdProvinceFormatter formatter = new RmdProvinceFormatter();
+
+            JsonNode jsonNode = formatter.formatNode(rmdProvinceList);
+            return new TaoziResBuilder().setBody(jsonNode).build();
         }
+    }
+
+
+    public static Result exploreDestinationsByCountry(int page, int pageSize) throws AizouException {
+        Http.Request req = request();
+        Http.Response rsp = response();
+        // 获取图片宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+
+        Configuration config = Configuration.root();
+        Map destnations = (Map) config.getObject("destinations");
+        String countrysStr = destnations.get("country").toString();
+        List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
+        List<Country> countryList = GeoAPI.searchCountryByName(countryNames, Constants.ZERO_COUNT,
+                Constants.MAX_COUNT);
+
+        SimpleCountryFormatter formatter = new SimpleCountryFormatter();
+        if (imgWidth > 0)
+            formatter.setImageWidth(imgWidth);
+        JsonNode destResult = formatter.formatNode(countryList);
+
+        for (Iterator<JsonNode> itr = destResult.elements(); itr.hasNext(); ) {
+            ObjectNode cNode = (ObjectNode) itr.next();
+            cNode.put("expertUserCnt", 3);
+        }
+
+        return new TaoziResBuilder().setBody(destResult).build();
     }
 
     /**

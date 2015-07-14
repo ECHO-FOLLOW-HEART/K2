@@ -13,6 +13,7 @@ import models.geo.RmdProvince;
 import models.guide.ItinerItem;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
+import utils.TaoziDataFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -20,7 +21,7 @@ import java.util.List;
 
 /**
  * 推荐目的地的省份Formatter
- *
+ * <p>
  * Created by topy on 3/24/15.
  */
 public class RmdProvinceFormatter extends AizouFormatter<RmdProvince> {
@@ -76,6 +77,17 @@ public class RmdProvinceFormatter extends AizouFormatter<RmdProvince> {
                 retLocalition = serializerProvider.findNullValueSerializer(null);
                 retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
             }
+
+            // images
+            jsonGenerator.writeFieldName("images");
+            List<ImageItem> images = TaoziDataFilter.getOneImage(rmdLocality.getImages());
+            jsonGenerator.writeStartArray();
+            if (images != null && !images.isEmpty()) {
+                JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ImageItem.class, null);
+                for (ImageItem image : images)
+                    ret.serialize(image, jsonGenerator, serializerProvider);
+            }
+            jsonGenerator.writeEndArray();
             jsonGenerator.writeEndObject();
 
         }
