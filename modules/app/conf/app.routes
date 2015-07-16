@@ -194,6 +194,11 @@ DELETE        /guides/:id                                         controllers.ap
 
 #----------地理信息接口----------
 # 搜索城市
+GET           /geo/countries                                      controllers.app.GeoCtrl.getCountries(page:Int?=0, pageSize: Int?=20)
+
+GET           /geo/countries/$id<[0-9a-f]{24}>                    controllers.app.GeoCtrl.getCountyById(id: String)
+
+GET           /geo/countries/$id<[0-9a-f]{24}>/experts            controllers.app.GeoCtrl.getExpertsByCountry(id: String, page: Int?=0, pageSize: Int?=20)
 
 GET           /geo/countrys                                       controllers.app.GeoCtrl.exploreDestinationsByCountry(page:Int?=0, pageSize:Int?=10)
 #展示国内目的地
@@ -203,7 +208,9 @@ GET           /geo/localities/abroad                              controllers.ap
 #查看目的地详情
 GET           /geo/localities/:id                                 controllers.app.GeoCtrl.getLocality(id: String)
 #查看目的地详情图集
-GET           /geo/localities/:id/album                           controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=200)
+GET           /geo/localities/:id/album                           controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=20)
+
+GET           /geo/localities/$id<[0-9a-f]{24}>/comments          controllers.app.GeoCtrl.getLocalityComments(commentType: String?="comment", id: String, page:Int?=0, pageSize: Int?=20)
 #获取景点的深度介绍-概况（H5）
 GET           /geo/localities/$id<[0-9a-f]{24}>/outLine           controllers.app.GeoCtrl.getTravelGuideOutLine(id: String)
 #获取景点的深度介绍（H5）

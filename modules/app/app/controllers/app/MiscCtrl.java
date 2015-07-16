@@ -806,6 +806,10 @@ public class MiscCtrl extends Controller {
         result.put("albumCnt", amount);
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
+    public static Result getLocalityComments(String commentType, String id, int page, int pageSize){
+        Result result = null;
+        return result;
+    }
 
     /**
      * 获得更新信息
