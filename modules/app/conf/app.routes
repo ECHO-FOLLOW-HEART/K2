@@ -2,52 +2,52 @@
 #----------用户接口----------
 
 #手机号登录
-POST          /users/signin                                       controllers.app.UserCtrlScala.login()
+POST          /users/signin                                            controllers.app.UserCtrlScala.login()
 
 #手机注册
-POST          /users                                              controllers.app.UserCtrlScala.signup()
+POST          /users                                                   controllers.app.UserCtrlScala.signup()
 
 #发送手机验证码
-POST          /users/validation-codes                             controllers.app.UserCtrlScala.sendValidationCode()
+POST          /users/validation-codes                                  controllers.app.UserCtrlScala.sendValidationCode()
 
 #校验验证码，并返回token
-GET           /users/tokens                                       controllers.app.UserCtrlScala.checkValidationCode(action:Int, code:String, tel:String, countryCode:Option[Int]?=None)
+GET           /users/tokens                                            controllers.app.UserCtrlScala.checkValidationCode(action:Int, code:String, tel:String, countryCode:Option[Int]?=None)
 
 #修改密码（包括两种方式：通过token重置，或者通过提供旧密码的方式）
-PUT           /users/$uid<\d+>/password                           controllers.app.UserCtrlScala.resetPassword(uid: Long)
+PUT           /users/$uid<\d+>/password                                controllers.app.UserCtrlScala.resetPassword(uid: Long)
 
 #绑定手机
-PUT           /users/$uid<\d+>/tel                                controllers.app.UserCtrlScala.bindCellPhone(uid: Long)
+PUT           /users/$uid<\d+>/tel                                     controllers.app.UserCtrlScala.bindCellPhone(uid: Long)
 
 #获取用户信息
-GET           /users/$uid<\d+>                                    controllers.app.UserCtrlScala.getUserInfo(uid: Long)
+GET           /users/$uid<\d+>                                         controllers.app.UserCtrlScala.getUserInfo(uid: Long)
 
 #搜索用户
-GET           /users                                              controllers.app.UserCtrlScala.searchUser(tel:Option[String]?=None, nickName:Option[String]?=None, fields:Option[String]=None, offset:Int?=0, limit:Int?=10)
+GET           /users                                                   controllers.app.UserCtrlScala.searchUser(tel:Option[String]?=None, nickName:Option[String]?=None, fields:Option[String]=None, offset:Int?=0, limit:Int?=10)
 
 #好友请求的列表
-GET           /users/$uid<\d+>/contact-requests                   controllers.app.UserCtrlScala.getContactRequests(uid: Long, offset: Int?=0, limit: Int?=50)
+GET           /users/$uid<\d+>/contact-requests                        controllers.app.UserCtrlScala.getContactRequests(uid: Long, offset: Int?=0, limit: Int?=50)
 
 #请求添加好友
-POST          /users/$uid<\d+>/contact-requests                   controllers.app.UserCtrlScala.requestContact(uid: Long)
+POST          /users/$uid<\d+>/contact-requests                        controllers.app.UserCtrlScala.requestContact(uid: Long)
 
 #接受或拒绝好友请求
-PATCH         /users/$uid<\d+>/contact-requests/:requestId        controllers.app.UserCtrlScala.updateContactRequest(uid: Long, requestId: String)
+PATCH         /users/$uid<\d+>/contact-requests/:requestId             controllers.app.UserCtrlScala.updateContactRequest(uid: Long, requestId: String)
 
 #添加好友
-POST          /users/$uid<\d+>/contacts                           controllers.app.UserCtrlScala.addContact(uid:Long)
+POST          /users/$uid<\d+>/contacts                                controllers.app.UserCtrlScala.addContact(uid:Long)
 
 #删除好友
-DELETE        /users/$uid<\d+>/contacts/$cid<\d+>                 controllers.app.UserCtrlScala.delContact(uid:Long, cid:Long)
+DELETE        /users/$uid<\d+>/contacts/$cid<\d+>                      controllers.app.UserCtrlScala.delContact(uid:Long, cid:Long)
 
 #获得好友列表
-GET           /users/$uid<\d+>/contacts                           controllers.app.UserCtrlScala.getContactList(uid: Long)
+GET           /users/$uid<\d+>/contacts                                controllers.app.UserCtrlScala.getContactList(uid: Long)
 
 #获得好友信息
-GET           /users/$uid<\d+>/contacts/$cid<\d+>                 controllers.app.UserCtrlScala.getContact(uid:Long, cid:Long)
+GET           /users/$uid<\d+>/contacts/$cid<\d+>                      controllers.app.UserCtrlScala.getContact(uid:Long, cid:Long)
 
 #设置备注信息
-PUT           /users/$uid<\d+>/contacts/$cid<\d+>/memos           controllers.app.UserCtrlScala.setUserMemo(uid:Long, cid:Long)
+PUT           /users/$uid<\d+>/contacts/$cid<\d+>/memos                controllers.app.UserCtrlScala.setUserMemo(uid:Long, cid:Long)
 
 
 ##第三方注册、登录
@@ -67,51 +67,51 @@ PUT           /users/$uid<\d+>/contacts/$cid<\d+>/memos           controllers.ap
 ##搜索用户信息
 #GET           /users/search                                      controllers.app.UserCtrl_V2.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=100)
 #编辑用户信息
-PUT           /users/$uid<\d+>                                    controllers.app.UserCtrlScala.updateUserInfo(uid: Long)
+PUT           /users/$uid<\d+>                                         controllers.app.UserCtrlScala.updateUserInfo(uid: Long)
 ##根据环信用户名列表取得用户名列表
 #POST          /users/easemob                                     controllers.app.UserCtrl_V2.getUsersByEasemob()
 ##根据通讯录进行用户匹配
 #POST          /users/search-by-address-book                      controllers.app.UserCtrl_V2.matchAddressBook()
-GET           /users/$uid<\d+>/address-book                       controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
+GET           /users/$uid<\d+>/address-book                            controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
 #
 ##----------用户好友接口----------
 
 
 #----------用户相册接口----------
 #获取用户个人相册
-GET           /users/$id<\d+>/albums                              controllers.app.UserUgcCtrl.getUserAlbums(id:Long)
+GET           /users/$id<\d+>/albums                                   controllers.app.UserUgcCtrl.getUserAlbums(id:Long)
 #删除用户个人相册
-DELETE        /users/$id<\d+>/albums/:picId                       controllers.app.UserUgcCtrl.deleteUserAlbums(id: Long,picId: String)
+DELETE        /users/$id<\d+>/albums/:picId                            controllers.app.UserUgcCtrl.deleteUserAlbums(id: Long,picId: String)
 
 #----------用户足迹接口----------
 #获取用户足迹
-GET           /users/$id<[0-9]+>/tracks                           controllers.app.UserUgcCtrl.getUserTracks(id :Long)
+GET           /users/$id<[0-9]+>/tracks                                controllers.app.UserUgcCtrl.getUserTracks(id :Long)
 #获取所有达人的足迹
-GET           /users/:userRole/tracks                             controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
+GET           /users/:userRole/tracks                                  controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
 #获取足迹包含某目的地的所有达人
-POST          /users/:userRole/tracks/users                       controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
+POST          /users/:userRole/tracks/users                            controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
 #修改足迹
-POST          /users/$id<\d+>/tracks                              controllers.app.UserUgcCtrl.modifyTracks(id:Long)
+POST          /users/$id<\d+>/tracks                                   controllers.app.UserUgcCtrl.modifyTracks(id:Long)
 
 ##----------用户群组接口----------
 ##取得用户的讨论组
-GET           /users/:uid/chatgroups                              controllers.app.GroupCtrlScala.getUserGroups(uid:Long,page:Int?=0,pageSize:Int?=100)
+GET           /users/:uid/chatgroups                                   controllers.app.GroupCtrlScala.getUserGroups(uid:Long,page:Int?=0,pageSize:Int?=100)
 #
 ##----------用户讨论组接口----------
 #创建讨论组
-POST          /chatgroups                                         controllers.app.GroupCtrlScala.createGroup()
+POST          /chatgroups                                              controllers.app.GroupCtrlScala.createGroup()
 #修改讨论组信息
-PATCH         /chatgroups/:gId                                    controllers.app.GroupCtrlScala.modifyGroup(gId:Long)
+PATCH         /chatgroups/:gId                                         controllers.app.GroupCtrlScala.modifyGroup(gId:Long)
 #取得讨论组信息
-GET           /chatgroups/:gId                                    controllers.app.GroupCtrlScala.getGroup(gId:Long)
+GET           /chatgroups/:gId                                         controllers.app.GroupCtrlScala.getGroup(gId:Long)
 #取得讨论组成员信息
-GET           /chatgroups/:gId/members                            controllers.app.GroupCtrlScala.getGroupUsers(gId:Long)
+GET           /chatgroups/:gId/members                                 controllers.app.GroupCtrlScala.getGroupUsers(gId:Long)
 #添加讨论组成员
-POST          /chatgroups/$gid<\d+>/members                       controllers.app.GroupCtrlScala.addChatGroupMember(gid: Long)
+POST          /chatgroups/$gid<\d+>/members                            controllers.app.GroupCtrlScala.addChatGroupMember(gid: Long)
 #删除讨论组成员
-DELETE        /chatgroups/$gid<\d+>/members/$cid<\d+>             controllers.app.GroupCtrlScala.deleteChatGroupMember(gid: Long, cid: Long)
+DELETE        /chatgroups/$gid<\d+>/members/$cid<\d+>                  controllers.app.GroupCtrlScala.deleteChatGroupMember(gid: Long, cid: Long)
 #操作讨论组，加减成员
-PATCH         /chatgroups/$gid<\d+>/members                       controllers.app.GroupCtrlScala.opGroup(gid:Long)
+PATCH         /chatgroups/$gid<\d+>/members                            controllers.app.GroupCtrlScala.opGroup(gid:Long)
 #退出讨论组
 #POST        /chatgroups/:gId/quit          controllers.GroupCtrl.quitGroup(gId:Long)
 
@@ -119,112 +119,109 @@ PATCH         /chatgroups/$gid<\d+>/members                       controllers.ap
 #----------其他接口----------
 #其他
 #添加收藏
-POST          /misc/favorites                                     controllers.app.MiscCtrl.addFavorite()
+POST          /misc/favorites                                          controllers.app.MiscCtrl.addFavorite()
 #取得收藏
-GET           /misc/favorites                                     controllers.app.MiscCtrl.getFavorite(faType: String?="", page: Int?=0, pageSize: Int?=20)
+GET           /misc/favorites                                          controllers.app.MiscCtrl.getFavorite(faType: String?="", page: Int?=0, pageSize: Int?=20)
 #删除收藏
-DELETE        /misc/favorites/:id                                 controllers.app.MiscCtrl.delFavorite(id: String)
+DELETE        /misc/favorites/:id                                      controllers.app.MiscCtrl.delFavorite(id: String)
 #获得封面故事
-GET           /misc/cover-stories                                 controllers.app.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="png", interlace: Int?=1)
+GET           /misc/cover-stories                                      controllers.app.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="png", interlace: Int?=1)
 #反馈
-POST          /misc/feedback                                      controllers.app.MiscCtrl.postFeedback()
+POST          /misc/feedback                                           controllers.app.MiscCtrl.postFeedback()
 #获得资源上传凭证
-GET           /misc/put-policy/:scenario                          controllers.app.MiscCtrl.putPolicy(scenario:String)
+GET           /misc/put-policy/:scenario                               controllers.app.MiscCtrl.putPolicy(scenario:String)
 #处理资源上传的回调
-POST          /misc/upload-callback                               controllers.app.MiscCtrl.getCallback()
+POST          /misc/upload-callback                                    controllers.app.MiscCtrl.getCallback()
 #推荐
-GET           /recommend                                          controllers.app.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
+GET           /recommend                                               controllers.app.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #搜索
-GET           /search                                             controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
+GET           /search                                                  controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #提示
-GET           /suggestions                                        controllers.app.MiscCtrl.getSuggestions(keyword: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, shopping: Boolean?=false,pageSize: Int?=5)
+GET           /suggestions                                             controllers.app.MiscCtrl.getSuggestions(keyword: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, shopping: Boolean?=false,pageSize: Int?=5)
 #获得版本信息
-GET           /misc/updates                                       controllers.app.MiscCtrl.getUpdates()
+GET           /misc/updates                                            controllers.app.MiscCtrl.getUpdates()
 #举报
-POST          /misc/tip-offs                                      controllers.app.MiscCtrl.postTipOff()
+POST          /misc/tip-offs                                           controllers.app.MiscCtrl.postTipOff()
 #热门搜索
-GET           /misc/hot-searchs                                   controllers.app.MiscCtrl.getHotSearchs()
+GET           /misc/hot-searchs                                        controllers.app.MiscCtrl.getHotSearchs()
 
 #----------POI接口----------
 #查看POI详情
 # 景点详情
-GET           /poi/vs/$spotId<[0-9a-f]{24}>                       controllers.app.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=false)
+GET           /poi/viewspots/$spotId<[0-9a-f]{24}>                     controllers.app.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 # 景点详情(H5)
-GET           /poi/vs/$spotId<[0-9a-f]{24}>/description           controllers.app.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=true)
+GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptions        controllers.app.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍(H5)
-GET           /poi/vs/$id<[0-9a-f]{24}>/details                   controllers.app.POICtrl.getTravelGuide(id: String, field: String,poiDesc: String="vs")
+GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                 controllers.app.POICtrl.getTravelGuide(id: String, category: String,poiDesc: String="vs")
+
 # 酒店详情
-GET           /poi/hotel/$spotId<[0-9a-f]{24}>                    controllers.app.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=false)
+GET           /poi/hotels/$spotId<[0-9a-f]{24}>                        controllers.app.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #美食详情
-GET           /poi/restaurant/:spotId                             controllers.app.POICtrl.viewPOIInfo(poiDesc: String="restaurant", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=false)
+GET           /poi/restaurants/:spotId                                 controllers.app.POICtrl.viewPOIInfo(poiDesc: String="restaurant", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #购物详情
-GET           /poi/shopping/:spotId                               controllers.app.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10,isWeb: Boolean?=false)
-# POI的搜索
-GET           /poi/search                                         controllers.app.POICtrl.poiSearch(poiType: String,tag: String?="", keyword: String?="", page: Int?=0, pageSize: Int?=20,sortField: String?="hotness", sort: String?="desc",hotelType: String?="")
+GET           /poi/shoppings/:spotId                                   controllers.app.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+#景点搜索
+GET           /poi/viewspots                                           controllers.app.POICtrl.poiSearch(poiType: String="viewspot", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 # 酒店列表
-GET           /poi/hotel/localities/:locId                        controllers.app.POICtrl.viewPoiList(poiDesc: String="hotel",locId: String, tagFilter: String?="", sortField: String?="rating",sortType:String?="desc",page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
+GET           /poi/hotels                                              controllers.app.POICtrl.poiSearch(poiType: String="hotel", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 # 美食列表
-GET           /poi/restaurant/localities/:locId                   controllers.app.POICtrl.viewPoiList(poiDesc: String="restaurant",locId: String, tagFilter: String?="", sortFilter: String?="hotness", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
+GET           /poi/restaurants                                         controllers.app.POICtrl.poiSearch(poiType: String="restaurant", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 # 购物列表
-GET           /poi/shopping/localities/:locId                     controllers.app.POICtrl.viewPoiList(poiDesc: String="shopping",locId: String, tagFilter: String?="", sortFilter: String?="hotness", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
-# 景点列表
-GET           /poi/vs/localities/:locId                           controllers.app.POICtrl.viewPoiList(poiDesc: String="vs",locId: String, tagFilter: String?="", sortFilter: String?="hotness", sort: String?="desc", page: Int?=0, pageSize: Int?=20,commentPage: Int?=0, commentPageSize: Int?=10)
-#获得景点周边的POI列表
-GET           /poi/nearby                                         controllers.app.POICtrl.getPoiNear(lng: Double, lat: Double, maxDist: Double?=50, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false,shopping: Boolean?=false, page: Int?=0, pageSize: Int?=10,commentPage: Int?=0, commentPageSize: Int?=10)
+GET           /poi/shoppings                                           controllers.app.POICtrl.poiSearch(poiType: String="shopping", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 
 #----------攻略接口----------
 #根据目的地获得攻略
-POST          /create-guide                                       controllers.app.GuideCtrl.createGuide()
+POST          /create-guide                                            controllers.app.GuideCtrl.createGuide()
 #复制攻略
-GET           /copy-guide/:id                                     controllers.app.GuideCtrl.copyGuide(id: String)
+GET           /copy-guide/:id                                          controllers.app.GuideCtrl.copyGuide(id: String)
 #获得攻略列表
-GET           /guides                                             controllers.app.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
+GET           /guides                                                  controllers.app.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
 #更新行程单
-POST          /guides                                             controllers.app.GuideCtrl.saveGuide()
+POST          /guides                                                  controllers.app.GuideCtrl.saveGuide()
 #查看完整攻略详情
-GET           /guides/:id                                         controllers.app.GuideCtrl.getGuideInfo(id: String, part: String="all")
+GET           /guides/:id                                              controllers.app.GuideCtrl.getGuideInfo(id: String, part: String="all")
 #查看攻略详情
-GET           /guides/:id/:part                                   controllers.app.GuideCtrl.getGuideInfo(id: String, part: String)
+GET           /guides/:id/:part                                        controllers.app.GuideCtrl.getGuideInfo(id: String, part: String)
 #获得目的地的攻略信息
-GET           /guides/locality/:id/:part                          controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
+GET           /guides/locality/:id/:part                               controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
 #修改攻略标题
-PUT           /guides/info/:id                                    controllers.app.GuideCtrl.setGuideTitle(id:String)
+PUT           /guides/info/:id                                         controllers.app.GuideCtrl.setGuideTitle(id:String)
 #删除攻略
-DELETE        /guides/:id                                         controllers.app.GuideCtrl.deleteGuide(id: String)
+DELETE        /guides/:id                                              controllers.app.GuideCtrl.deleteGuide(id: String)
 
 #----------地理信息接口----------
 # 搜索城市
 
-GET           /geo/countrys                                       controllers.app.GeoCtrl.exploreDestinationsByCountry(page:Int?=0, pageSize:Int?=10)
+GET           /geo/countrys                                            controllers.app.GeoCtrl.exploreDestinationsByCountry(page:Int?=0, pageSize:Int?=10)
 #展示国内目的地
-GET           /geo/localities/domestic                            controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
+GET           /geo/localities/domestic                                 controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
 #展示国外目的地
-GET           /geo/localities/abroad                              controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=true,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
+GET           /geo/localities/abroad                                   controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=true,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
 #查看目的地详情
-GET           /geo/localities/:id                                 controllers.app.GeoCtrl.getLocality(id: String)
+GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
 #查看目的地详情图集
-GET           /geo/localities/:id/album                           controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=200)
+GET           /geo/localities/:id/album                                controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=200)
 #获取景点的深度介绍-概况（H5）
-GET           /geo/localities/$id<[0-9a-f]{24}>/outLine           controllers.app.GeoCtrl.getTravelGuideOutLine(id: String)
+GET           /geo/localities/$id<[0-9a-f]{24}>/outLine                controllers.app.GeoCtrl.getTravelGuideOutLine(id: String)
 #获取景点的深度介绍（H5）
-GET           /geo/localities/$id<[0-9a-f]{24}>/details           controllers.app.GeoCtrl.getTravelGuide(id: String, field: String)
+GET           /geo/localities/$id<[0-9a-f]{24}>/details                controllers.app.GeoCtrl.getTravelGuide(id: String, field: String)
 
 #----------用户评价接口----------
 #保存用户的评价(H5)
-POST          /poi/view-spots/$id<[0-9a-f]{24}>/comments          controllers.app.MiscCtrl.saveComment(id: String)
+POST          /poi/view-spots/$id<[0-9a-f]{24}>/comments               controllers.app.MiscCtrl.saveComment(id: String)
 #查看景点的评价(H5)
-GET           /poi/view-spots/$id<[0-9a-f]{24}>/comments          controllers.app.MiscCtrl.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+GET           /poi/view-spots/$id<[0-9a-f]{24}>/comments               controllers.app.MiscCtrl.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 #查看餐厅的评价(H5)
-GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments         controllers.app.MiscCtrl.displayComment(poiType: String="restaurant",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments              controllers.app.MiscCtrl.displayComment(poiType: String="restaurant",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 #查看餐厅的评价(H5)
-GET           /poi/shoppings/$id<[0-9a-f]{24}>/comments           controllers.app.MiscCtrl.displayComment(poiType: String="shopping",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+GET           /poi/shoppings/$id<[0-9a-f]{24}>/comments                controllers.app.MiscCtrl.displayComment(poiType: String="shopping",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 
 #旅行专栏
-GET           /columns                                            controllers.app.MiscCtrl.getColumns(itemType: String?="homepage", id: String?="")
+GET           /columns                                                 controllers.app.MiscCtrl.getColumns(itemType: String?="homepage", id: String?="")
 #更多精选游记
-GET           /travel-notes/search                                controllers.app.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
+GET           /travel-notes/search                                     controllers.app.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情(H5)
-GET           /travel-notes/$id<[0-9a-f]{24}>                     controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
+GET           /travel-notes/$id<[0-9a-f]{24}>                          controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
 
 
 
