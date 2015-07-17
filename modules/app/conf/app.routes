@@ -98,6 +98,8 @@ POST          /users/$id<\d+>/tracks                                   controlle
 GET           /users/:uid/chatgroups                                   controllers.app.GroupCtrlScala.getUserGroups(uid:Long,page:Int?=0,pageSize:Int?=100)
 #
 ##----------用户讨论组接口----------
+#搜索讨论组
+GET           /chatgroups                                              controllers.app.GroupCtrlScala.searchChatGroups(query: String?="", tags: String?="", visible: Boolean?=true, page: Int?=0, pageSize: Int?=20)
 #创建讨论组
 POST          /chatgroups                                              controllers.app.GroupCtrlScala.createGroup()
 #修改讨论组信息

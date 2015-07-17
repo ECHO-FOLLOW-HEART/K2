@@ -273,4 +273,11 @@ object GroupCtrlScala extends Controller {
 
     future
   })
+
+  // 讨论组搜索, 后面再做
+  def searchChatGroups(query: String, tags: String, visible: Boolean, page: Int, pageSize:Int) = Action.async(request => {
+    Future{
+      Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+    }
+  })
 }
