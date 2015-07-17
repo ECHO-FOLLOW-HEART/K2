@@ -248,7 +248,9 @@ public class GeoCtrl extends Controller {
     public static Result getCountries(@Key(tag = "page") int page,
                                       @Key(tag = "pageSize") int pageSize) throws AizouException{
         List<Country> countries = GeoAPI.getAllCountryList();
+
         ObjectNode response = new ObjectMapper().createObjectNode();
+
         response.put("success", "ok");
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }

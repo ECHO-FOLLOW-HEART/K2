@@ -28,15 +28,15 @@ public class TravelNoteCtrl extends Controller {
     /**
      * 游记搜索
      *
-     * @param keyWord
-     * @param locId
+     * @param query
+     * @param locality
      * @param page
      * @param pageSize
      * @return
      */
     //@UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
     public static Result searchTravelNotes(@Key(tag = "query") String query,
-                                           @Key(tag = "locId") String locId,
+                                           @Key(tag = "locId") String locality,
                                            @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)
             throws AizouException {
         List<TravelNote> noteList;
@@ -63,8 +63,8 @@ public class TravelNoteCtrl extends Controller {
                 MiscAPI.isFavorite(noteList, userId);
                 result = travelNoteFormatter.formatNode(noteList);
                 return Utils.createResponse(ErrorCode.NORMAL, result);
-            } else if (locId != null && !locId.isEmpty()) {
-                noteList = TravelNoteAPI.searchNoteByLocId(locId, page, pageSize);
+            } else if (locality != null && !locality.isEmpty()) {
+                noteList = TravelNoteAPI.searchNoteByLocId(locality, page, pageSize);
                 // 判断是否被收藏
                 MiscAPI.isFavorite(noteList, userId);
                 result = travelNoteFormatter.formatNode(noteList);
