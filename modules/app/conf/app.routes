@@ -123,27 +123,26 @@ POST          /misc/favorites                                          controlle
 GET           /misc/favorites                                          controllers.app.MiscCtrl.getFavorite(faType: String?="", page: Int?=0, pageSize: Int?=20)
 #删除收藏
 DELETE        /misc/favorites/:id                                      controllers.app.MiscCtrl.delFavorite(id: String)
-#获得封面故事
+#封面故事
 GET           /misc/cover-stories                                      controllers.app.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="png", interlace: Int?=1)
-#反馈
-POST          /misc/feedback                                           controllers.app.MiscCtrl.postFeedback()
 #获得资源上传凭证
-GET           /misc/put-policy/:scenario                               controllers.app.MiscCtrl.putPolicy(scenario:String)
+GET           /misc/upload-tokens/:scenario                            controllers.app.MiscCtrl.putPolicy(scenario:String)
 #处理资源上传的回调
 POST          /misc/upload-callback                                    controllers.app.MiscCtrl.getCallback()
 #推荐
-GET           /recommend                                               controllers.app.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
-#搜索
-GET           /search                                                  controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
-#提示
-GET           /suggestions                                             controllers.app.MiscCtrl.getSuggestions(keyword: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, shopping: Boolean?=false,pageSize: Int?=5)
+GET           /misc/recommendations                                    controllers.app.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #获得版本信息
 GET           /misc/updates                                            controllers.app.MiscCtrl.getUpdates()
+#反馈
+POST          /misc/feedback                                           controllers.app.MiscCtrl.postFeedback()
 #举报
 POST          /misc/tip-offs                                           controllers.app.MiscCtrl.postTipOff()
 #热门搜索
 GET           /misc/hot-searchs                                        controllers.app.MiscCtrl.getHotSearchs()
-
+#搜索
+GET           /search                                                  controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
+#提示
+GET           /suggestions                                             controllers.app.MiscCtrl.getSuggestions(keyword: String, loc: Boolean?=false, vs: Boolean?=false, hotel: Boolean?=false, restaurant: Boolean?=false, shopping: Boolean?=false,pageSize: Int?=5)
 #----------POI接口----------
 #查看POI详情
 # 景点详情
