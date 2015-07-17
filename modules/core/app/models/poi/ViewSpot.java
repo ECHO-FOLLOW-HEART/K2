@@ -51,11 +51,6 @@ public class ViewSpot extends AbstractPOI {
     public String guide;
 
     /**
-     * 防坑攻略
-     */
-    public String kengdie;
-
-    /**
      * AAA景区：3
      * AAAA景区：4
      */
@@ -76,23 +71,11 @@ public class ViewSpot extends AbstractPOI {
      */
     public String timeCostDesc;
 
-    /**
-     * 标识Description各项是否存在
-     */
-    public Description descriptionFlag;
-
     @Transient
     private String guideUrl;
 
     @Transient
     private String kengdieUrl;
-
-    public static List<String> getRetrievedFields(int level) {
-        List<String> fieldList = AbstractPOI.getRetrievedFields(level);
-        if (level > 2)
-            fieldList.addAll(Arrays.asList("rankingA", "openTime", "timeCost"));
-        return fieldList;
-    }
 
     public String getZhName() {
         return zhName;
@@ -126,13 +109,6 @@ public class ViewSpot extends AbstractPOI {
         this.guideUrl = guideUrl;
     }
 
-    public String getKengdieUrl() {
-        return kengdieUrl;
-    }
-
-    public void setKengdieUrl(String kengdieUrl) {
-        this.kengdieUrl = kengdieUrl;
-    }
 
     public String getPriceDesc() {
         return priceDesc;
