@@ -42,7 +42,7 @@ public class POICtrl extends Controller {
 
         // 处理价格
         //poiInfo.priceDesc = TaoziDataFilter.getPriceDesc(poiInfo);
-        poiInfo.desc = StringUtils.abbreviate(poiInfo.desc, Constants.ABBREVIATE_LEN);
+        //poiInfo.desc = StringUtils.abbreviate(poiInfo.desc, Constants.ABBREVIATE_LEN);
         //是否被收藏
         MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.formatNode(poiInfo);
