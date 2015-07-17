@@ -11,15 +11,12 @@ import formatter.FormatterFactory;
 import formatter.taozi.geo.DetailsEntryFormatter;
 import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
-import formatter.taozi.poi.POIRmdFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import models.poi.*;
-import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.Constants;
 import utils.Utils;
 
 import java.util.ArrayList;
@@ -44,13 +41,13 @@ public class POICtrl extends Controller {
         //poiInfo.priceDesc = TaoziDataFilter.getPriceDesc(poiInfo);
         //poiInfo.desc = StringUtils.abbreviate(poiInfo.desc, Constants.ABBREVIATE_LEN);
         //是否被收藏
-        MiscAPI.isFavorite(poiInfo, userId);
+//        MiscAPI.isFavorite(poiInfo, userId);
         JsonNode info = poiFormatter.formatNode(poiInfo);
 
         //取得推荐
         List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
-        POIRmdFormatter formatter = FormatterFactory.getInstance(POIRmdFormatter.class);
-        JsonNode recommends = formatter.formatNode(rmdEntities);
+//        POIRmdFormatter formatter = FormatterFactory.getInstance(POIRmdFormatter.class);
+//        JsonNode recommends = formatter.formatNode(rmdEntities);
 
         // 取得评论
 
@@ -60,14 +57,14 @@ public class POICtrl extends Controller {
 
         ObjectNode ret = (ObjectNode) info;
         ret.put("comments", comments);
-        int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
-        ret.put("commentCnt", commCnt);
+//        int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
+//        ret.put("commentCnt", commCnt);
 
 
         if (poiClass == Shopping.class || poiClass == Restaurant.class) {
             // 添加H5接口 更多评论
             ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/poi/morecomment.php?pid=" + spotId + "&poiType=" + poiDesc);
-            ret.put("recommends", recommends);
+//            ret.put("recommends", recommends);
         } else if (poiClass == ViewSpot.class) {
             // 获得同城的销售数据
             LyMapping lyMapping = PoiAPI.getTongChenPOI(poiInfo.getId());

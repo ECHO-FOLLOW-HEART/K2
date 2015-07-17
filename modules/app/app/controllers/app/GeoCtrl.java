@@ -2,7 +2,6 @@ package controllers.app;
 
 import aizou.core.GeoAPI;
 import aizou.core.LocalityAPI;
-import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
@@ -21,7 +20,6 @@ import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
 import utils.Constants;
-import utils.TaoziDataFilter;
 import utils.Utils;
 import utils.results.TaoziResBuilder;
 
@@ -59,14 +57,14 @@ public class GeoCtrl extends Controller {
         //locality.setDesc(StringUtils.abbreviate(locality.getDesc(), Constants.ABBREVIATE_LEN));
         //locality.setImages(TaoziDataFilter.getOneImage(locality.getImages()));
         //是否被收藏
-        MiscAPI.isFavorite(locality, userId);
+//        MiscAPI.isFavorite(locality, userId);
 
         LocalityFormatter localityFormatter = FormatterFactory.getInstance(LocalityFormatter.class, imgWidth);
         ObjectNode response = (ObjectNode) localityFormatter.formatNode(locality);
         // 显示图集的数量
-        response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
+//        response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
         response.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + id);
-        response.put("diningTitles", contentsTitles(locality.getCuisines()));
+//        response.put("diningTitles", contentsTitles(locality.getCuisines()));
         response.put("shoppingTitles", contentsTitles(locality.getCommodities()));
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
