@@ -35,7 +35,7 @@ public class TravelNoteCtrl extends Controller {
      * @return
      */
     //@UsingOcsCache(key = "searchTravelNotes({keyword},{locId},{page},{pageSize})", expireTime = 3600)
-    public static Result searchTravelNotes(@Key(tag = "keyword") String keyWord,
+    public static Result searchTravelNotes(@Key(tag = "query") String query,
                                            @Key(tag = "locId") String locId,
                                            @Key(tag = "page") int page, @Key(tag = "pageSize") int pageSize)
             throws AizouException {
@@ -57,8 +57,8 @@ public class TravelNoteCtrl extends Controller {
             userId = Long.parseLong(request().getHeader("UserId"));
 
         try {
-            if (!keyWord.isEmpty()) {
-                noteList = TravelNoteAPI.searchNotesByWord(keyWord, page, pageSize);
+            if (!query.isEmpty()) {
+                noteList = TravelNoteAPI.searchNotesByWord(query, page, pageSize);
                 // 判断是否被收藏
                 MiscAPI.isFavorite(noteList, userId);
                 result = travelNoteFormatter.formatNode(noteList);

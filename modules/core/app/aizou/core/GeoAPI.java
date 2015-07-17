@@ -1,10 +1,12 @@
 package aizou.core;
 
+import com.lvxingpai.yunkai.UserInfo;
 import exception.AizouException;
 import models.AizouBaseEntity;
 import database.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
+import models.misc.Track;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -34,6 +36,33 @@ public class GeoAPI {
             query.retrievedFields(true, field.toArray(new String[field.size()]));
 
         return query.get();
+    }
+
+    public static Country countryDetails(String countryId) throws AizouException {
+        return countryDetails(new ObjectId(countryId), null);
+    }
+
+    public static List<Country> getAllCountryList(List<String> field) throws AizouException {
+        Datastore ds = MorphiaFactory.datastore();
+        Query<Country> query = ds.createQuery(Country.class);
+        if (field != null && !field.isEmpty())
+            query.retrievedFields(true, field.toArray(new String[field.size()]));
+        return query.asList();
+    }
+
+    public static List<Country> getAllCountryList() throws AizouException {
+        return getAllCountryList(null);
+    }
+
+    // 后续通过配置做，目前只是写一个接口
+    public static List<UserInfo> getExpertsByCountry(String countryId) throws AizouException {
+        Datastore ds = MorphiaFactory.datastore();
+        // 通过国家ID找到所有的足迹
+        Query<Track> query = ds.createQuery(Track.class);
+        // 得到所有足迹后，找到userId
+        // 根据userId找到达人信息
+        List<UserInfo> experts = null;
+        return experts;
     }
 
     /**

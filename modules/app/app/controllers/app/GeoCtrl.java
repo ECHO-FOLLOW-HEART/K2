@@ -7,6 +7,7 @@ import aizou.core.PoiAPI;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
@@ -83,6 +84,13 @@ public class GeoCtrl extends Controller {
                                            @Key(tag = "page") int page,
                                            @Key(tag = "pageSize") int pageSize) throws AizouException {
         return MiscCtrl.getAlbums(id, page, pageSize);
+    }
+
+    public static Result getLocalityComments(@Key(tag = "type") String commentType,
+                                             @Key(tag = "id") String id,
+                                             @Key(tag = "page") int page,
+                                             @Key(tag = "pageSize") int pageSize) throws AizouException{
+        return MiscCtrl.getLocalityComments(commentType, id, page, pageSize);
     }
 
     @UsingOcsCache(key = "getLMD()", expireTime = 30)
@@ -237,6 +245,40 @@ public class GeoCtrl extends Controller {
         }
     }
 
+    public static Result getCountries(@Key(tag = "page") int page,
+                                      @Key(tag = "pageSize") int pageSize) throws AizouException{
+        List<Country> countries = GeoAPI.getAllCountryList();
+        ObjectNode response = new ObjectMapper().createObjectNode();
+        response.put("success", "ok");
+        return Utils.createResponse(ErrorCode.NORMAL, response);
+    }
+
+    public static Result getCountyById(String id) throws AizouException{
+        Country country = GeoAPI.countryDetails(id);
+        if (country == null)
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Country not exist.");
+
+        ObjectNode response = new ObjectMapper().createObjectNode();
+        response.put("zhName", country.getZhName());
+        return Utils.createResponse(ErrorCode.NORMAL, response);
+    }
+
+    public static Result getExpertsByCountry(String countryId, int page, int pageSize) throws AizouException {
+        Http.Request req = request();
+        Http.Response rsp = response();
+        // 获取头像宽度
+        String imgWidthStr = request().getQueryString("imgWidth");
+        int imgWidth = 0;
+        if (imgWidthStr != null)
+            imgWidth = Integer.valueOf(imgWidthStr);
+        // 取得达人配置
+
+        // 根据配置取得达人信息
+
+        ObjectNode result = new ObjectMapper().createObjectNode();
+        result.put("success","200OK");
+        return Utils.createResponse(ErrorCode.NORMAL, result);
+    }
 
     public static Result exploreDestinationsByCountry(int page, int pageSize) throws AizouException {
         Http.Request req = request();

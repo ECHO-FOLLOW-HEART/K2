@@ -115,7 +115,6 @@ PATCH         /chatgroups/$gid<\d+>/members                            controlle
 #退出讨论组
 #POST        /chatgroups/:gId/quit          controllers.GroupCtrl.quitGroup(gId:Long)
 
-
 #----------其他接口----------
 #其他
 #添加收藏
@@ -153,7 +152,6 @@ GET           /poi/viewspots/$spotId<[0-9a-f]{24}>                     controlle
 GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptions        controllers.app.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍(H5)
 GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                 controllers.app.POICtrl.getTravelGuide(id: String, category: String,poiDesc: String="vs")
-
 # 酒店详情
 GET           /poi/hotels/$spotId<[0-9a-f]{24}>                        controllers.app.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #美食详情
@@ -191,6 +189,12 @@ DELETE        /guides/:id                                              controlle
 
 #----------地理信息接口----------
 # 搜索城市
+#国家列表
+GET           /geo/countries                                           controllers.app.GeoCtrl.getCountries(page:Int?=0, pageSize: Int?=20)
+#国家详情
+GET           /geo/countries/$id<[0-9a-f]{24}>                         controllers.app.GeoCtrl.getCountyById(id: String)
+#某个国家的旅行达人
+GET           /geo/countries/$id<[0-9a-f]{24}>/experts                 controllers.app.GeoCtrl.getExpertsByCountry(id: String, page: Int?=0, pageSize: Int?=20)
 
 GET           /geo/countrys                                            controllers.app.GeoCtrl.exploreDestinationsByCountry(page:Int?=0, pageSize:Int?=10)
 #展示国内目的地
@@ -200,7 +204,9 @@ GET           /geo/localities/abroad                                   controlle
 #查看目的地详情
 GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
 #查看目的地详情图集
-GET           /geo/localities/:id/album                                controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=200)
+GET           /geo/localities/:id/album                                controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=20)
+#查看目的地评论
+GET           /geo/localities/$id<[0-9a-f]{24}>/comments               controllers.app.GeoCtrl.getLocalityComments(commentType: String?="comment", id: String, page:Int?=0, pageSize: Int?=20)
 #获取景点的深度介绍-概况（H5）
 GET           /geo/localities/$id<[0-9a-f]{24}>/outLine                controllers.app.GeoCtrl.getTravelGuideOutLine(id: String)
 #获取景点的深度介绍（H5）
@@ -215,13 +221,12 @@ GET           /poi/view-spots/$id<[0-9a-f]{24}>/comments               controlle
 GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments              controllers.app.MiscCtrl.displayComment(poiType: String="restaurant",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 #查看餐厅的评价(H5)
 GET           /poi/shoppings/$id<[0-9a-f]{24}>/comments                controllers.app.MiscCtrl.displayComment(poiType: String="shopping",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
-
 #旅行专栏
 GET           /columns                                                 controllers.app.MiscCtrl.getColumns(itemType: String?="homepage", id: String?="")
 #更多精选游记
-GET           /travel-notes/search                                     controllers.app.TravelNoteCtrl.searchTravelNotes(keyword: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
+GET           /travelnotes                                             controllers.app.TravelNoteCtrl.searchTravelNotes(query: String?="", locId: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情(H5)
-GET           /travel-notes/$id<[0-9a-f]{24}>                          controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
+GET           /travelnotes/$id<[0-9a-f]{24}>                           controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
 
 
 
