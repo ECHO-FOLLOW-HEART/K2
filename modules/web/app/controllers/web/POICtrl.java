@@ -74,23 +74,26 @@ public class POICtrl extends Controller {
                 List<JsonNode> vsList = new ArrayList<>();
                 final ObjectId locId = poiInfo.addr.loc.id;
                 final ObjectId vsId = poiInfo.getId();
-                for (Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(poiType, locId,
-                        null, null, null, true, 0, pageSize, false,
-                        new HashMap<String, Object>() {
-                            {
-                                put("_id !=", vsId);
-                                put("imageList !=", null);
-                            }
-                        }, 0); it.hasNext(); ) {
+                // TODO
+//                for (Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(poiType, locId,
+//                        null, null, null, true, 0, pageSize, false,
+//                        new HashMap<String, Object>() {
+//                            {
+//                                put("_id !=", vsId);
+//                                put("imageList !=", null);
+//                            }
+//                        }, 0); it.hasNext(); ) {
+                    for (Iterator<? extends AbstractPOI> it = null; it.hasNext(); ) {
                     AbstractPOI vs = it.next();
                     vsList.add(vs.toJson(1));
                 }
                 results.put("related", Json.toJson(vsList));
             } catch (NullPointerException e) {
                 throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
-            } catch (AizouException e) {
-                throw new AizouException(e.getErrCode(), e.getMessage());
             }
+//            catch (AizouException e) {
+//                throw new AizouException(e.getErrCode(), e.getMessage());
+//            }
         }
         JsonNode result = DataFilter.appJsonFilter(Json.toJson(results), request(), Constants.BIG_PIC);
         return Utils.createResponse(ErrorCode.NORMAL, DataFilter.appDescFilter(result, request()));
@@ -283,7 +286,9 @@ public class POICtrl extends Controller {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid locality ID: %s", locId));
         }
         List<JsonNode> results = new ArrayList<>();
-        Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
+        // TODO
+        Iterator<? extends AbstractPOI> it = null;
+                //PoiAPI.poiSearch(type, locOid, tag, keyword, sf, sort, page, pageSize, true, null, hotelType);
         while (it.hasNext())
             results.add(new WebPOIFormatter(poiClass).format(it.next()));
 
