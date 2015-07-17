@@ -152,7 +152,7 @@ object UserCtrlScala extends Controller {
       val array = new ObjectMapper().createArrayNode()
       userList foreach (user => {
         val u: UserInfo = user
-        u.setMemo("临时备注信息")
+        u.setMemo("")
         array.add(formatter formatNode u)
       })
 
