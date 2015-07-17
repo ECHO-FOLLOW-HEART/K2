@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
+import formatter.taozi.ImageItemSerializer;
 import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
@@ -25,9 +26,10 @@ import java.util.List;
  * Created by topy on 3/24/15.
  */
 public class RmdProvinceFormatter extends AizouFormatter<RmdProvince> {
-    public RmdProvinceFormatter() {
+    public RmdProvinceFormatter(int imgWidth) {
         registerSerializer(RmdProvince.class, new RmdProvinceSerializer());
         registerSerializer(RmdLocality.class, new RmdLocalitySerializer());
+        registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         initObjectMapper(null);
         filteredFields.addAll(Arrays.asList(RmdProvince.FD_ID, RmdProvince.FD_ZH_NAME, RmdProvince.FD_EN_NAME));
     }

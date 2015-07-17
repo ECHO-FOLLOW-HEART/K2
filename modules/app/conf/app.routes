@@ -156,7 +156,7 @@ GET           /poi/hotels/$spotId<[0-9a-f]{24}>                        controlle
 #美食详情
 GET           /poi/restaurants/:spotId                                 controllers.app.POICtrl.viewPOIInfo(poiDesc: String="restaurant", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #购物详情
-GET           /poi/shoppings/:spotId                                   controllers.app.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/shopping/:spotId                                    controllers.app.POICtrl.viewPOIInfo(poiDesc: String="shopping", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #景点搜索
 GET           /poi/viewspots                                           controllers.app.POICtrl.poiSearch(poiType: String="viewspot", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 # 酒店列表
@@ -164,7 +164,7 @@ GET           /poi/hotels                                              controlle
 # 美食列表
 GET           /poi/restaurants                                         controllers.app.POICtrl.poiSearch(poiType: String="restaurant", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 # 购物列表
-GET           /poi/shoppings                                           controllers.app.POICtrl.poiSearch(poiType: String="shopping", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
+GET           /poi/shopping                                            controllers.app.POICtrl.poiSearch(poiType: String="shopping", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 
 #----------攻略接口----------
 #根据目的地获得攻略

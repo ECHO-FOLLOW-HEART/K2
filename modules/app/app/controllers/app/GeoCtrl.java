@@ -89,7 +89,7 @@ public class GeoCtrl extends Controller {
     public static Result getLocalityComments(@Key(tag = "type") String commentType,
                                              @Key(tag = "id") String id,
                                              @Key(tag = "page") int page,
-                                             @Key(tag = "pageSize") int pageSize) throws AizouException{
+                                             @Key(tag = "pageSize") int pageSize) throws AizouException {
         return MiscCtrl.getLocalityComments(commentType, id, page, pageSize);
     }
 
@@ -136,7 +136,6 @@ public class GeoCtrl extends Controller {
 
     public static Result exportDestinationImpl(int imgWidth, Map destnations, boolean abroad, boolean groupBy, int page, int pageSize) throws AizouException {
 
-        List<ObjectNode> objs = new ArrayList<>();
         // 国外目的地
         if (abroad) {
             String countrysStr = destnations.get("country").toString();
@@ -165,7 +164,6 @@ public class GeoCtrl extends Controller {
             String k;
             int sort = 0;
             Object v, pinyinObj, provinceObj, sortObj;
-            ObjectNode node;
             String zhName = null;
             String pinyin = null;
             String province = null;
@@ -238,7 +236,7 @@ public class GeoCtrl extends Controller {
             // 排序
             sortByPinyin(rmdProvinceList);
             sortLocalityByPinyin(rmdProvinceList);
-            RmdProvinceFormatter formatter = new RmdProvinceFormatter();
+            RmdProvinceFormatter formatter = new RmdProvinceFormatter(imgWidth);
 
             JsonNode jsonNode = formatter.formatNode(rmdProvinceList);
             return new TaoziResBuilder().setBody(jsonNode).build();
@@ -246,7 +244,7 @@ public class GeoCtrl extends Controller {
     }
 
     public static Result getCountries(@Key(tag = "page") int page,
-                                      @Key(tag = "pageSize") int pageSize) throws AizouException{
+                                      @Key(tag = "pageSize") int pageSize) throws AizouException {
         List<Country> countries = GeoAPI.getAllCountryList();
 
         ObjectNode response = new ObjectMapper().createObjectNode();
@@ -255,7 +253,7 @@ public class GeoCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
 
-    public static Result getCountyById(String id) throws AizouException{
+    public static Result getCountyById(String id) throws AizouException {
         Country country = GeoAPI.countryDetails(id);
         if (country == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Country not exist.");
@@ -278,7 +276,7 @@ public class GeoCtrl extends Controller {
         // 根据配置取得达人信息
 
         ObjectNode result = new ObjectMapper().createObjectNode();
-        result.put("success","200OK");
+        result.put("success", "200OK");
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
