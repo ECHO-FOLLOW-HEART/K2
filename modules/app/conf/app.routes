@@ -28,6 +28,9 @@ GET           /users/$uid<\d+>                                         controlle
 #搜索用户
 GET           /users                                                   controllers.app.UserCtrlScala.searchUser(tel:Option[String]?=None, nickName:Option[String]?=None, userId:Option[Long]?=None, query:Option[String], fields:Option[String]=None, offset:Int?=0, limit:Int?=10)
 
+# 修改用户的badge值
+PUT           /users/$uid<\d+>/badge                                   controllers.app.UserCtrlScala.setBadge(uid: Long)
+
 #好友请求的列表
 GET           /users/$uid<\d+>/contact-requests                        controllers.app.UserCtrlScala.getContactRequests(uid: Long, offset: Int?=0, limit: Int?=50)
 
