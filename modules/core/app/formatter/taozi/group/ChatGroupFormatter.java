@@ -1,25 +1,15 @@
 package formatter.taozi.group;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
-import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.ObjectIdSerializer;
-import models.geo.GeoJsonPoint;
 import models.group.ChatGroup;
-import models.guide.AbstractGuide;
-import models.guide.Guide;
-import models.misc.ImageItem;
-import org.bson.types.ObjectId;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
 
 /**
  * 返回攻略的摘要
@@ -33,7 +23,7 @@ public class ChatGroupFormatter extends AizouFormatter<ChatGroup> {
         initObjectMapper();
         filteredFields = new HashSet<>();
         Collections.addAll(filteredFields,
-                ChatGroup.FD_GROUPID, ChatGroup.FD_NAME,
+                ChatGroup.FD_GROUPID, ChatGroup.FD_CREATOR, ChatGroup.FD_NAME,
                 ChatGroup.FD_AVATAR, ChatGroup.FD_DESC, ChatGroup.FD_MAXUSERS
 
         );
@@ -45,6 +35,7 @@ public class ChatGroupFormatter extends AizouFormatter<ChatGroup> {
                 throws IOException {
             jgen.writeStartObject();
             jgen.writeObjectField(ChatGroup.FD_GROUPID, getValue(chatGroup.getGroupId()));
+            jgen.writeObjectField(ChatGroup.FD_CREATOR, getValue(chatGroup.getCreator()));
             jgen.writeStringField(ChatGroup.FD_NAME, getString(chatGroup.getName()));
             jgen.writeStringField(ChatGroup.FD_AVATAR, getString(chatGroup.getAvatar()));
             jgen.writeStringField(ChatGroup.FD_DESC, getString(chatGroup.getDesc()));
