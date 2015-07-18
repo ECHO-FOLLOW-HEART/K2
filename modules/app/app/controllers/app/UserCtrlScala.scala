@@ -60,6 +60,21 @@ object UserCtrlScala extends Controller {
 
   })
 
+  /**
+   * 注销
+   * @return
+   */
+  def logout() = Action.async(request => {
+    val future = (for {
+      body <- request.body.asJson
+      userId <- (body \ "userId").asOpt[Long]
+    } yield {
+      TwitterFuture(K2Result.ok(None))
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+
+    future
+  })
+
   def login() = Action.async(request => {
     val ret = for {
       body <- request.body.asJson

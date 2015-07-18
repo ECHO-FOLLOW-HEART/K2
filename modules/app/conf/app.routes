@@ -4,6 +4,9 @@
 #手机号登录
 POST          /users/signin                                            controllers.app.UserCtrlScala.login()
 
+# 注销
+POST          /users/logout                                            controllers.app.UserCtrlScala.logout()
+
 #手机注册
 POST          /users                                                   controllers.app.UserCtrlScala.signup()
 
