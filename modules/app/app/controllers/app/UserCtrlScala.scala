@@ -425,7 +425,76 @@ object UserCtrlScala extends Controller {
 
   def matchAddressBook(uid: Long) = play.mvc.Results.TODO
 
-  def searchUser(tel: Option[String] = None, nickName: Option[String] = None, fields: Option[String] = None, offset: Int, limit: Int) = play.mvc.Results.TODO
+  /**
+   * 搜索用户
+   * @return
+   */
+  def searchUser(tel: Option[String] = None, nickName: Option[String] = None, userId: Option[Long] = None,
+    query: Option[String],
+    fields: Option[String] = None, offset: Int, limit: Int) = Action.async(request => {
+    val client = FinagleFactory.client
+
+    // 如果指定了query，则优先使用query的值
+    val querySet = query map (v => {
+      val userIdOpt = try {
+        Some(v.toLong)
+      } catch {
+        case _: NumberFormatException => None
+      }
+      (Some(v), Some(v), userIdOpt)
+    }) getOrElse (tel, nickName, userId)
+
+    // 通过UserId进行搜索
+    val future1 = querySet._3 map (v => {
+      client.getUserById(v, Some(basicUserInfoFieds)) map (Some(_)) rescue {
+        case _: NotFoundException => TwitterFuture(None)
+      }
+    }) getOrElse TwitterFuture(None)
+
+    // 通过其它字段进行搜索
+    val queryMap: Map[UserInfoProp, String] = Map(UserInfoProp.Tel -> querySet._1,
+      UserInfoProp.NickName -> querySet._2) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
+    val future2 = FinagleFactory.client.searchUserInfo(queryMap, Some(basicUserInfoFieds), None, None)
+
+    val ret = for {
+      userOpt <- future1
+      userSeq <- future2
+    } yield {
+      if (userOpt nonEmpty) {
+        val userIdSet = userSeq map (_.userId) toSet
+        val user = userOpt.get
+        if (userIdSet contains user.userId)
+          userSeq
+        else
+          userSeq :+ user
+      } else
+        userSeq
+    }
+
+    val future = ret map (userSeq => {
+      val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
+      formatter.setSelfView(false)
+
+      val mapper = new ObjectMapper()
+      val searchResult = mapper.createArrayNode()
+
+      userSeq foreach (user => {
+        val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
+        val guideCnt = 0
+        val albumCnt = 0
+        node.put("guideCnt", guideCnt)
+        node.put("trackCnt", 0)
+        node.put("travelNoteCnt", 0)
+        node.put("albumCnt", albumCnt)
+
+        searchResult.add(node)
+      })
+
+      K2Result.ok(Some(searchResult))
+    })
+
+    future
+  })
 
   def setUserMemo(uid: Long, contactId: Long) = play.mvc.Results.TODO
 
