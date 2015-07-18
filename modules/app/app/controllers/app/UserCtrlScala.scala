@@ -3,25 +3,25 @@ package controllers.app
 import aizou.core.UserUgcAPIScala
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.node.{ArrayNode, LongNode, ObjectNode, TextNode}
-import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
-import com.lvxingpai.yunkai.{UserInfo => YunkaiUserInfo, _}
-import com.twitter.util.{Future => TwitterFuture}
+import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
+import com.fasterxml.jackson.databind.{ JsonSerializer, ObjectMapper, SerializerProvider }
+import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
+import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{UserInfoFormatter, UserLoginFormatter}
+import formatter.taozi.user.{ UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
-import misc.{FinagleConvert, FinagleFactory}
+import misc.{ FinagleConvert, FinagleFactory }
 import models.user.UserInfo
-import play.api.mvc.{Action, Controller, Result}
+import play.api.mvc.{ Action, Controller, Result }
 import utils.phone.PhoneParserFactory
-import utils.{Result => K2Result, Utils}
+import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Future => ScalaFuture}
-import scala.language.{implicitConversions, postfixOps}
+import scala.concurrent.{ Future => ScalaFuture }
+import scala.language.{ implicitConversions, postfixOps }
 
 /**
  * Created by zephyre on 6/30/15.
@@ -139,30 +139,52 @@ object UserCtrlScala extends Controller {
     future
   })
 
+  /**
+   * 通过token修改密码
+   */
+  def resetPasswordByToken() = Action.async(request => {
+    val client = FinagleFactory.client
+
+    val future = (for {
+      body <- request.body.asJson
+      tel <- (body \ "tel").asOpt[String]
+      newPassword <- (body \ "newPassword").asOpt[String]
+      token <- (body \ "token").asOpt[String]
+    } yield {
+      val ret1 = (for {
+        userList <- client.searchUserInfo(Map(UserInfoProp.Tel -> tel), None, None, None)
+      } yield {
+        userList.headOption map (u => client.resetPasswordByToken(u.userId, newPassword, token))
+        K2Result.ok(None)
+      }) rescue {
+        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+        case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
+        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+      }
+      ret1
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+
+    future
+  })
+
+  /**
+   * 通过旧密码重置密码
+   * @return
+   */
   def resetPassword(userId: Long) = Action.async(request => {
     val client = FinagleFactory.client
 
     val ret = for {
       body <- request.body.asJson
       newPassword <- (body \ "newPassword").asOpt[String]
-      oldPassword <- (body \ "oldPassword").asOpt[String] orElse Some("")
-      token <- (body \ "token").asOpt[String] orElse Some("")
+      oldPassword <- (body \ "oldPassword").asOpt[String]
     } yield {
-      // 获得旧密码，或者token
-      ((oldPassword, token) match {
-        case item if item._1 nonEmpty =>
-          client.resetPassword(userId, oldPassword, newPassword)
-        case item if item._2 nonEmpty =>
-          client.resetPasswordByToken(userId, newPassword, token)
-        case _ =>
-          throw InvalidArgsException()
-      }) map (_ => K2Result.ok(None)) rescue {
+      client.resetPassword(userId, oldPassword, newPassword) map (_ => K2Result.ok(None)) rescue {
         case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
         case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
         case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
       }
     }
-
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })
@@ -439,14 +461,22 @@ object UserCtrlScala extends Controller {
     ret
   })
 
-  def checkValidationCode(action: Int, code: String, tel: String, countryCode: Option[Int]) = Action.async(request => {
-    val future = FinagleFactory.client.checkValidationCode(code, action, tel, countryCode) map (token => {
-      val node = new ObjectMapper().createObjectNode().set("token", TextNode.valueOf(token))
-      Utils.createResponse(ErrorCode.NORMAL, node).toScala
-    }) rescue {
-      case _: ValidationCodeException =>
-        TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid validation code"))
-    }
+  def checkValidationCode() = Action.async(request => {
+    val future = (for {
+      body <- request.body.asJson
+      action <- (body \ "action").asOpt[Int]
+      code <- (body \ "validationCode").asOpt[String]
+      tel <- (body \ "tel").asOpt[String]
+    } yield {
+      FinagleFactory.client.checkValidationCode(code, action, tel, None) map (token => {
+        val node = new ObjectMapper().createObjectNode().set("token", TextNode.valueOf(token))
+        Utils.createResponse(ErrorCode.NORMAL, node).toScala
+      }) rescue {
+        case _: ValidationCodeException =>
+          TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid validation code"))
+      }
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+
     future
   })
 
