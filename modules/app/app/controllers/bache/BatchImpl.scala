@@ -19,7 +19,7 @@ import scala.collection.JavaConversions._
  */
 object BatchImpl {
 
-  def getCountryToUserCntMap(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Map[Object, Int] = {
+  def getCountryToUserCntMap(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Map[ObjectId, Int] = {
     val query = ds.createQuery(classOf[Track])
     query.field(Track.fnCountry + ".id").in(ids)
     val tracks = query.asList()
