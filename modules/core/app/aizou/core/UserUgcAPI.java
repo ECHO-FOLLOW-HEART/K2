@@ -33,7 +33,7 @@ public class UserUgcAPI {
     public static List<Album> getUserAlbums(Long userId) throws AizouException {
         Datastore dsUser = MorphiaFactory.datastore();
         Query<Album> query = dsUser.createQuery(Album.class);
-        query.field(Album.FD_USERID).equal(userId).field(Album.FD_TAOZIENA).equal(true);
+        query.field(Album.FD_USERID).equal(userId).field(Album.FD_TAOZIENA).equal(true).order("-cTime");
         return query.asList();
     }
 
