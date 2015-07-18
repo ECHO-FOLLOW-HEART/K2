@@ -75,7 +75,7 @@ PUT           /users/$uid<\d+>/contacts/$cid<\d+>/memos                controlle
 ##搜索用户信息
 #GET           /users/search                                      controllers.app.UserCtrl_V2.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=100)
 #编辑用户信息
-PUT           /users/$uid<\d+>                                         controllers.app.UserCtrlScala.updateUserInfo(uid: Long)
+PATCH          /users/$uid<\d+>                                         controllers.app.UserCtrlScala.updateUserInfo(uid: Long)
 ##根据环信用户名列表取得用户名列表
 #POST          /users/easemob                                     controllers.app.UserCtrl_V2.getUsersByEasemob()
 ##根据通讯录进行用户匹配

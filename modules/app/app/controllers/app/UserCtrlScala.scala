@@ -480,7 +480,27 @@ object UserCtrlScala extends Controller {
     future
   })
 
-  def updateUserInfo(uid: Long) = play.mvc.Results.TODO
+  def updateUserInfo(uid: Long) = Action.async(request => {
+    val client = FinagleFactory.client
+
+    val future = (for {
+      body <- request.body.asJson
+    } yield {
+      val nickNameOpt = (body \ "nickName").asOpt[String]
+      val signatureOpt = (body \ "signature").asOpt[String]
+      val updateMap: Map[UserInfoProp, String] = Map(UserInfoProp.NickName -> nickNameOpt,
+        UserInfoProp.Signature -> signatureOpt) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
+
+      val ret = if (updateMap nonEmpty) {
+        client.updateUserInfo(uid, updateMap) map (_ => ())
+      } else
+        TwitterFuture(())
+
+      ret map (_ => K2Result.ok(None))
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+
+    future
+  })
 
   def matchAddressBook(uid: Long) = play.mvc.Results.TODO
 
