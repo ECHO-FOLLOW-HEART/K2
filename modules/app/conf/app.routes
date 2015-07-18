@@ -51,6 +51,9 @@ DELETE        /users/$uid<\d+>/contacts/$cid<\d+>                      controlle
 #获得好友列表
 GET           /users/$uid<\d+>/contacts                                controllers.app.UserCtrlScala.getContactList(uid: Long)
 
+#修改好友备注
+PUT           /users/$uid<\d+>/contacts/memo                           controllers.app.UserCtrlScala.updateContactMemo(uid: Long)
+
 #获得好友信息
 GET           /users/$uid<\d+>/contacts/$cid<\d+>                      controllers.app.UserCtrlScala.getContact(uid:Long, cid:Long)
 
