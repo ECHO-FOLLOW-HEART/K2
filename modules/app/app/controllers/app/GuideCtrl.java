@@ -132,17 +132,18 @@ public class GuideCtrl extends Controller {
      * @param pageSize
      * @return
      */
-    public static Result getGuidesByUser(int page, int pageSize) throws AizouException {
+    public static Result getGuidesByUser(Long uid, int page, int pageSize) throws AizouException {
 
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
         int imgWidth = 0;
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
-        String tmp = request().getHeader("UserId");
-        if (tmp == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
-        Long selfId = Long.parseLong(tmp);
+//        String tmp = request().getHeader("UserId");
+//        if (tmp == null)
+//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
+
+        Long selfId = uid;
 
         String targetIdStr = request().getQueryString("userId");
         Long resultUserId;
@@ -208,7 +209,7 @@ public class GuideCtrl extends Controller {
      * @param part 攻略部分
      * @return
      */
-    public static Result getGuideInfo(String id, String part) throws AizouException {
+    public static Result getGuideInfo(int uid, String id, String part) throws AizouException {
 
         // 获取图片宽度
         String imgWidthStr = request().getQueryString("imgWidth");
