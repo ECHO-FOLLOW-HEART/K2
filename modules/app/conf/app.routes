@@ -170,9 +170,11 @@ GET           /poi/shopping                                            controlle
 
 #----------攻略接口----------
 #根据目的地获得攻略
-POST          /create-guide                                            controllers.app.GuideCtrl.createGuide()
 #复制攻略
-GET           /copy-guide/:id                                          controllers.app.GuideCtrl.copyGuide(id: String)
+POST          /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.guides(uid: Int)
+#POST          /create-guide                                            controllers.app.GuideCtrl.createGuide()
+#复制攻略
+#GET           /copy-guide/:id                                          controllers.app.GuideCtrl.copyGuide(id: String)
 #获得攻略列表
 GET           /guides                                                  controllers.app.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
 #更新行程单

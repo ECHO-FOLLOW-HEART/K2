@@ -36,13 +36,24 @@ public class GuideCtrl extends Controller {
 
     public static final String GUIDE_DETAIL_URL = "http://h5.taozilvxing.com/planshare.php?pid=";
 
+    public static Result guides(int uid) throws AizouException {
+        JsonNode data = request().body().asJson();
+        String action = data.has("action") ? data.get("action").asText() : "";
+        if(action.equals("create")){
+            return createGuide(uid, data);
+        } else if(action.equals("fork"))
+        {
+            return copyGuide(uid, data);
+        } else {
+            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "action is wrong");
+        }
+    }
     /**
      * 更新攻略中相应信息
      *
      * @return
      */
-    public static Result createGuide() throws AizouException {
-        JsonNode data = request().body().asJson();
+    public static Result createGuide(int uid, JsonNode data) throws AizouException {
         ObjectNode node;
         Guide result;
 
@@ -51,18 +62,15 @@ public class GuideCtrl extends Controller {
         int imgWidth = 0;
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
-        String tmp = request().getHeader("UserId");
-        if (tmp == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
-        Integer selfId = Integer.parseInt(tmp);
-        String action = data.has("action") ? data.get("action").asText() : "";
+        Integer selfId = Integer.valueOf(uid);//tmp);
         Iterator<JsonNode> iterator = data.get("locId").iterator();
+        Boolean initViewSpots = data.has("initViewSpots")?data.get("initViewSpots").asBoolean() : false;
         List<ObjectId> ids = new ArrayList<>();
         while (iterator.hasNext()) {
             ids.add(new ObjectId(iterator.next().asText()));
         }
         // 如果用户需要推荐攻略，就根据目的地推荐攻略
-        if (action.equals(HAS_RECOMMENDATION)) {
+        if (initViewSpots) {//action.equals(HAS_RECOMMENDATION)) {
             result = GuideAPI.getGuideByDestination(ids, selfId);
             GuideAPI.fillGuideInfo(result);
         } else
@@ -74,7 +82,26 @@ public class GuideCtrl extends Controller {
 
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
+    /**
+     * 复制攻略
+     *
+     * @param uid
+     * @return
+     */
+//    public static Result copyGuide(String guideId) throws AizouException {
+    public static Result copyGuide(int uid, JsonNode data) throws AizouException {
+        Integer selfId = uid;//Integer.parseInt(request().getHeader("UserId"));
+        String guideId = data.has("guideId") ? data.get("guideId").asText() : "";
 
+        ObjectId oGuideId = new ObjectId(guideId);
+        Guide guide = GuideAPI.getGuideById(oGuideId, null);
+        GuideAPI.saveGuideByUser(guide, selfId);
+        ObjectNode result = Json.newObject();
+        result.put("id", guide.getId().toString());
+        result.put("detailUrl", GUIDE_DETAIL_URL + guideId);
+
+        return Utils.createResponse(ErrorCode.NORMAL, result);
+    }
     /**
      * 保存攻略或更新攻略
      *
@@ -286,26 +313,5 @@ public class GuideCtrl extends Controller {
         return content;
     }
 
-    /**
-     * 复制攻略
-     *
-     * @param guideId
-     * @return
-     */
-    public static Result copyGuide(String guideId) throws AizouException {
-        Integer selfId = Integer.parseInt(request().getHeader("UserId"));
 
-        ObjectId oGuideId = new ObjectId(guideId);
-
-        Guide guide = GuideAPI.getGuideById(oGuideId, null);
-
-        GuideAPI.saveGuideByUser(guide, selfId);
-
-        ObjectNode result = Json.newObject();
-
-        result.put("id", guide.getId().toString());
-        result.put("detailUrl", GUIDE_DETAIL_URL + guideId);
-
-        return Utils.createResponse(ErrorCode.NORMAL, result);
-    }
 }

@@ -26,6 +26,7 @@ object FinagleConvert {
     val result: ChatGroup = new ChatGroup
     result.setId(new ObjectId(chatGroup.id))
     result.setGroupId(chatGroup.chatGroupId)
+    result.setCreator(chatGroup.creator)
     result.setName(Option(chatGroup.name) getOrElse "")
     result.setDesc(chatGroup.groupDesc getOrElse "")
     result.setAvatar(chatGroup.avatar getOrElse "")
