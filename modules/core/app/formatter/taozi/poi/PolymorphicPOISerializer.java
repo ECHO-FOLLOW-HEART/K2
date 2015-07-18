@@ -1,6 +1,5 @@
 package formatter.taozi.poi;
 
-import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -13,11 +12,11 @@ import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.*;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.types.ObjectId;
 import utils.Constants;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,8 +50,12 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
         jsonGenerator.writeObjectField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
         jsonGenerator.writeStringField(AbstractPOI.FD_ADDRESS, getString(abstractPOI.address));
-        jsonGenerator.writeStringField(AbstractPOI.FD_STYLE, getString(abstractPOI.getStyle()));
+//        jsonGenerator.writeStringField(AbstractPOI.FD_STYLE, getString(abstractPOI.getStyle()));
 
+        jsonGenerator.writeFieldName("style");
+        List<String> styles = new ArrayList<String>();
+        String temp = abstractPOI.getStyle();
+        styles.add(abstractPOI.getStyle());
 
         jsonGenerator.writeFieldName("images");
         List<ImageItem> images = abstractPOI.getImages();
@@ -63,6 +66,12 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
             JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ImageItem.class, null);
             for (ImageItem image : images)
                 ret.serialize(image, jsonGenerator, serializerProvider);
+        }
+        if (styles !=null && !styles.isEmpty())
+        {
+            JsonSerializer<Object> ret = serializerProvider.findValueSerializer(String.class, null);
+            for(String style : styles)
+                ret.serialize(style, jsonGenerator, serializerProvider);
         }
         jsonGenerator.writeEndArray();
 
