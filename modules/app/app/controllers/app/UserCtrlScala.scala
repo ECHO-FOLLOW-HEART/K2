@@ -294,7 +294,7 @@ object UserCtrlScala extends Controller {
 
     val ret = for {
       body <- request.body.asJson
-      actionCode <- (body \ "actionCode").asOpt[Int]
+      actionCode <- (body \ "action").asOpt[Int]
       userId <- (body \ "userId").asOpt[Long] orElse Option(-1L)
       tel <- (body \ "tel").asOpt[String] map (PhoneParserFactory.newInstance().parse(_).getPhoneNumber) orElse Some("")
     } yield {
