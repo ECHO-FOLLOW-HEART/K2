@@ -33,8 +33,8 @@ public class SimpleCountrySerializer extends AizouSerializer<Country> {
 
         jgen.writeStringField("zhName", getString(country.getZhName()));
         jgen.writeStringField("enName", getString(country.getEnName()));
-        jgen.writeStringField("code", getString(country.getCode()).toUpperCase());
-        jgen.writeStringField("desc", getString(country.getDesc()));
+//        jgen.writeStringField("code", getString(country.getCode()).toUpperCase());
+//        jgen.writeStringField("desc", getString(country.getDesc()));
 
         jgen.writeEndObject();
     }
