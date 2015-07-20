@@ -100,7 +100,7 @@ GET           /users/$id<[0-9]+>/footprints                            controlle
 #获取所有达人的足迹
 GET           /users/:userRole/footprints                              controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
 #获取足迹包含某目的地的所有达人
-POST          /users/:userRole/footprints/users                        controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
+#POST          /users/:userRole/footprints/users                        controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
 #修改足迹
 POST          /users/$id<\d+>/footprints                               controllers.app.UserUgcCtrl.modifyTracks(id:Long)
 
@@ -214,6 +214,7 @@ GET           /geo/countries/$id<[0-9a-f]{24}>                         controlle
 GET           /geo/countries/$id<[0-9a-f]{24}>/experts                 controllers.app.GeoCtrl.getExpertsByCountry(id: String, page: Int?=0, pageSize: Int?=20)
 
 GET           /geo/countries                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
+GET           /geo/countries/:code/expert                              controllers.app.UserUgcCtrl.getExpertUserByTracks(code:String)
 #展示国内目的地
 GET           /geo/localities/domestic                                 controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
 #展示国外目的地

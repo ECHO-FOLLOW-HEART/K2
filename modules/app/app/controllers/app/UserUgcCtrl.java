@@ -156,26 +156,68 @@ public class UserUgcCtrl extends Controller {
     /**
      * 取得包含此足迹的所有达人
      *
-     * @param type
      * @return
      * @throws AizouException
      */
-    public static Result getExpertUserByTracks(String type) throws AizouException {
+//    public static Result getExpertUserByTracks(String code) throws AizouException {
+//        JsonNode data = request().body().asJson();
+//        List<ObjectId> locIds = new ArrayList<>();
+//        List<ObjectId> countryIds = new ArrayList<>();
+//        if (data.has("locId"))
+//            for (Iterator<JsonNode> iterator = data.get("locId").iterator(); iterator.hasNext(); )
+//                locIds.add(new ObjectId(iterator.next().asText()));
+//        if (data.has("countryId"))
+//            for (Iterator<JsonNode> iterator = data.get("countryId").iterator(); iterator.hasNext(); )
+//                countryIds.add(new ObjectId(iterator.next().asText()));
+//        // 取得足迹
+//        List<Track> expertUserByTracks = UserUgcAPI.getExpertUserByTracks(countryIds, locIds, expertUserIds);
+//
+//        // 取得用户信息
+//        Set<Long> usersUnDup = new HashSet<>();
+//        for (Track track : expertUserByTracks)
+//            usersUnDup.add(track.getUserId());
+//        List<Long> users = new ArrayList(usersUnDup);
+//        Map<Long, UserInfo> userInfoMap = UserCtrlScala.getUsersInfoValue(users);
+//
+//        // 组装信息
+//        JsonNode result = Json.newObject();
+//        ObjectNode node;
+//        List<JsonNode> nodeList = new ArrayList<>();
+//        UserInfoSimpleFormatter formatter = new UserInfoSimpleFormatter();
+//        if (data.has("countryId")) {
+//            Map<Long, List<Track>> mapCountry = new HashMap<>();
+//            List<Track> tempList;
+//            for (Track track : expertUserByTracks) {
+//                tempList = mapCountry.get(track.getUserId());
+//                if (tempList == null) {
+//                    tempList = new ArrayList();
+//                    tempList.add(track);
+//                    mapCountry.put(track.getUserId(), tempList);
+//                } else {
+//                    tempList.add(track);
+//                    mapCountry.put(track.getUserId(), tempList);
+//                }
+//            }
+//            for (Map.Entry<Long, List<Track>> entry : mapCountry.entrySet()) {
+//                node = (ObjectNode) formatter.formatNode(userInfoMap.get(entry.getKey()));
+//                node.put("localityCnt", entry.getValue().size());
+//                nodeList.add(node);
+//            }
+//            result = Json.toJson(nodeList);
+//        } else if (data.has("locId"))
+//            result = formatter.formatNode(new ArrayList(userInfoMap.values()));
+//
+//        return Utils.createResponse(ErrorCode.AUTH_ERROR, result);
+//    }
+    public static Result getExpertUserByTracks(String code) throws AizouException {
         JsonNode data = request().body().asJson();
-        List<ObjectId> locIds = new ArrayList<>();
-        List<ObjectId> countryIds = new ArrayList<>();
-        if (data.has("locId"))
-            for (Iterator<JsonNode> iterator = data.get("locId").iterator(); iterator.hasNext(); )
-                locIds.add(new ObjectId(iterator.next().asText()));
-        if (data.has("countryId"))
-            for (Iterator<JsonNode> iterator = data.get("countryId").iterator(); iterator.hasNext(); )
-                countryIds.add(new ObjectId(iterator.next().asText()));
+        List<ObjectId> countryIds = Arrays.asList(new ObjectId(code));
         // 取得足迹
-        List<Track> expertUserByTracks = UserUgcAPI.getExpertUserByTracks(countryIds, locIds, expertUserIds);
+        List<Track> expertUserByCountry = UserUgcAPI.getExpertUserByCountry(countryIds, expertUserIds);
 
         // 取得用户信息
         Set<Long> usersUnDup = new HashSet<>();
-        for (Track track : expertUserByTracks)
+        for (Track track : expertUserByCountry)
             usersUnDup.add(track.getUserId());
         List<Long> users = new ArrayList(usersUnDup);
         Map<Long, UserInfo> userInfoMap = UserCtrlScala.getUsersInfoValue(users);
@@ -185,28 +227,25 @@ public class UserUgcCtrl extends Controller {
         ObjectNode node;
         List<JsonNode> nodeList = new ArrayList<>();
         UserInfoSimpleFormatter formatter = new UserInfoSimpleFormatter();
-        if (data.has("countryId")) {
-            Map<Long, List<Track>> mapCountry = new HashMap<>();
-            List<Track> tempList;
-            for (Track track : expertUserByTracks) {
-                tempList = mapCountry.get(track.getUserId());
-                if (tempList == null) {
-                    tempList = new ArrayList();
-                    tempList.add(track);
-                    mapCountry.put(track.getUserId(), tempList);
-                } else {
-                    tempList.add(track);
-                    mapCountry.put(track.getUserId(), tempList);
-                }
+        Map<Long, List<Track>> mapCountry = new HashMap<>();
+        List<Track> tempList;
+        for (Track track : expertUserByCountry) {
+            tempList = mapCountry.get(track.getUserId());
+            if (tempList == null) {
+                tempList = new ArrayList();
+                tempList.add(track);
+                mapCountry.put(track.getUserId(), tempList);
+            } else {
+                tempList.add(track);
+                mapCountry.put(track.getUserId(), tempList);
             }
-            for (Map.Entry<Long, List<Track>> entry : mapCountry.entrySet()) {
-                node = (ObjectNode) formatter.formatNode(userInfoMap.get(entry.getKey()));
-                node.put("localityCnt", entry.getValue().size());
-                nodeList.add(node);
-            }
-            result = Json.toJson(nodeList);
-        } else if (data.has("locId"))
-            result = formatter.formatNode(new ArrayList(userInfoMap.values()));
+        }
+        for (Map.Entry<Long, List<Track>> entry : mapCountry.entrySet()) {
+            node = (ObjectNode) formatter.formatNode(userInfoMap.get(entry.getKey()));
+            node.put("localityCnt", entry.getValue().size());
+            nodeList.add(node);
+        }
+        result = Json.toJson(nodeList);
 
         return Utils.createResponse(ErrorCode.AUTH_ERROR, result);
     }

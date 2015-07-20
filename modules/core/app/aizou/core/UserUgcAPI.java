@@ -111,6 +111,19 @@ public class UserUgcAPI {
         return query.asList();
     }
 
+    public static List<Track> getExpertUserByCountry(List<ObjectId> codes, List<Long> userIds) throws AizouException {
+        Datastore dsUser = MorphiaFactory.datastore();
+        Query<Track> query = dsUser.createQuery(Track.class);
+        // query.field(UserInfo.fnTracks).hasAnyOf(localities).field(UserInfo.fnRoles).hasThisOne(role);
+        if (codes != null && !codes.isEmpty())
+            query.field(Track.fnCountry + ".id").in(codes);
+        query.field(Track.fnUserId).in(userIds).field(Track.FD_TAOZIENA).equal(true);
+        Collection<String> fieldList = Arrays.asList(Track.fnUserId, Track.fnCountry, Track.fnLocality);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        return query.asList();
+    }
+
     /**
      * 添加一张用户上传的图片
      *

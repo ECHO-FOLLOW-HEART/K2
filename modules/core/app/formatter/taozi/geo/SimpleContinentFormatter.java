@@ -1,13 +1,9 @@
 package formatter.taozi.geo;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouFormatter;
-import formatter.AizouSerializer;
 import models.AizouBaseEntity;
 import models.geo.Continent;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 /**
