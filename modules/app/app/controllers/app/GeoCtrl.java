@@ -187,7 +187,6 @@ public class GeoCtrl extends Controller {
                 v = entry.getValue();
                 if (v != null)
                     zhName = v.toString();
-
                 pinyinObj = pinyinConf.get(k);
                 if (pinyinObj != null)
                     pinyin = pinyinObj.toString();
@@ -278,7 +277,7 @@ public class GeoCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
-    public static Result exploreDestinationsByCountry(int page, int pageSize) throws AizouException {
+    public static Result exploreDestinationsByCountry(boolean withExperts,int page, int pageSize) throws AizouException {
         Http.Request req = request();
         Http.Response rsp = response();
         // 获取图片宽度

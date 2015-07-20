@@ -48,7 +48,8 @@ struct UserInfo {
   8: bool loginStatus,
   9: optional i64 loginTime,
   10: optional i64 logoutTime,
-  11: list<string> loginSource
+  11: list<string> loginSource,
+  20: optional string memo,
   100: list<Role> roles
 }
 
@@ -97,6 +98,10 @@ enum UserInfoProp {
   GENDER,
   SIGNATURE,
   TEL,
+  LOGIN_STATUS,
+  LOGIN_TIME,
+  LOGOUT_TIME,
+  LOGIN_SOURCE,
   ROLES
 }
 
@@ -205,6 +210,9 @@ service userservice {
   // 获得用户的好友列表
   list<UserInfo> getContactList(1:i64 userId, 2: optional list<UserInfoProp> fields, 3:optional i32 offset,
     4:optional i32 count) throws (1:NotFoundException ex)
+
+  // 修改用户备注
+  void updateMemo(1: i64 userA, 2: i64 userB, 3: string memo) throws (1:NotFoundException ex)
 
   // 获得用户的好友个数
   i32 getContactCount(1:i64 userId) throws (1:NotFoundException ex)

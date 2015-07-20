@@ -1,6 +1,5 @@
 package formatter.taozi.poi;
 
-import com.ctc.wstx.util.StringUtil;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
@@ -12,12 +11,14 @@ import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.*;
+import models.user.UserInfo;
 import org.apache.commons.lang3.StringUtils;
-import org.bson.types.ObjectId;
 import utils.Constants;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -51,8 +52,18 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
         jsonGenerator.writeObjectField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
         jsonGenerator.writeStringField(AbstractPOI.FD_ADDRESS, getString(abstractPOI.address));
-        jsonGenerator.writeStringField(AbstractPOI.FD_STYLE, getString(abstractPOI.getStyle()));
+//        jsonGenerator.writeStringField(AbstractPOI.FD_STYLE, getString(abstractPOI.getStyle()));
 
+        jsonGenerator.writeFieldName("style");
+        jsonGenerator.writeStartArray();
+        String style = abstractPOI.getStyle();
+        if (style != null) {
+            JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(String.class, null);
+            for (String s : Arrays.asList(style)) {
+                retLocality.serialize(s, jsonGenerator, serializerProvider);
+            }
+        }
+        jsonGenerator.writeEndArray();
 
         jsonGenerator.writeFieldName("images");
         List<ImageItem> images = abstractPOI.getImages();
@@ -169,7 +180,18 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         jsonGenerator.writeStringField(AbstractPOI.FD_EN_NAME, getString(abstractPOI.enName));
         jsonGenerator.writeObjectField(AbstractPOI.FD_RATING, getValue(abstractPOI.rating));
         jsonGenerator.writeStringField(AbstractPOI.FD_ADDRESS, getString(abstractPOI.address));
-        jsonGenerator.writeStringField(AbstractPOI.FD_STYLE, getString(abstractPOI.getStyle()));
+        // jsonGenerator.writeStringField(AbstractPOI.FD_STYLE, getString(abstractPOI.getStyle()));
+
+        jsonGenerator.writeFieldName("style");
+        jsonGenerator.writeStartArray();
+        String style = abstractPOI.getStyle();
+        if (style != null) {
+            JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(String.class, null);
+            for (String s : Arrays.asList(style)) {
+                retLocality.serialize(s, jsonGenerator, serializerProvider);
+            }
+        }
+        jsonGenerator.writeEndArray();
 
 
         jsonGenerator.writeFieldName("images");

@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
+import models.geo.Continent;
 import models.geo.Country;
+import models.geo.Locality;
 import models.misc.ImageItem;
 
 import java.io.IOException;
@@ -33,8 +35,28 @@ public class SimpleCountrySerializer extends AizouSerializer<Country> {
 
         jgen.writeStringField("zhName", getString(country.getZhName()));
         jgen.writeStringField("enName", getString(country.getEnName()));
-        jgen.writeStringField("code", getString(country.getCode()).toUpperCase());
-        jgen.writeStringField("desc", getString(country.getDesc()));
+
+        jgen.writeFieldName("continents");
+        String code = country.getContCode();
+        String zhCont = country.getZhCont();
+        String enCont = country.getEnCont();
+        if (code != null && zhCont != null && enCont != null) {
+            Continent continent = new Continent();
+            continent.setCode(code);
+            continent.setZhName(zhCont);
+            continent.setEnName(enCont);
+            JsonSerializer<Object> retCountry;
+            if (country != null) {
+                retCountry = serializerProvider.findValueSerializer(Country.class, null);
+                retCountry.serialize(country, jgen, serializerProvider);
+            } else {
+                retCountry = serializerProvider.findNullValueSerializer(null);
+                retCountry.serialize(country, jgen, serializerProvider);
+            }
+        }
+
+//        jgen.writeStringField("code", getString(country.getCode()).toUpperCase());
+//        jgen.writeStringField("desc", getString(country.getDesc()));
 
         jgen.writeEndObject();
     }

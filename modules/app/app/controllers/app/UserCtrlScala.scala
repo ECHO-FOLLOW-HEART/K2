@@ -47,6 +47,7 @@ object UserCtrlScala extends Controller {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", 0)
+      node.put("countryCnt", 0)
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
       Utils.status(node.toString).toScala
@@ -189,6 +190,26 @@ object UserCtrlScala extends Controller {
     future
   })
 
+  /**
+   * userA为修改人, memo为备注
+   * @param uid 被修改人
+   * @return
+   */
+  def updateContactMemo(uid: Long) = Action.async(request => {
+    val ret = for {
+      body <- request.body.asJson
+      userA <- (body \ "userA").asOpt[Long]
+      memo <- (body \ "memo").asOpt[String]
+    } yield {
+      FinagleFactory.client.updateMemo(userA, uid, memo) map (_ => K2Result.ok(None)) rescue {
+        case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
+        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+      }
+    }
+    val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
+    future
+  })
+
   def getContactList(userId: Long) = Action.async(request => {
     val realUserId =
       if (userId == 0)
@@ -202,9 +223,7 @@ object UserCtrlScala extends Controller {
 
       val array = new ObjectMapper().createArrayNode()
       userList foreach (user => {
-        val u: UserInfo = user
-        u.setMemo("")
-        array.add(formatter formatNode u)
+        array.add(formatter formatNode user)
       })
 
       val node = new ObjectMapper().createObjectNode()
@@ -294,7 +313,7 @@ object UserCtrlScala extends Controller {
 
     val ret = for {
       body <- request.body.asJson
-      actionCode <- (body \ "actionCode").asOpt[Int]
+      actionCode <- (body \ "action").asOpt[Int]
       userId <- (body \ "userId").asOpt[Long] orElse Option(-1L)
       tel <- (body \ "tel").asOpt[String] map (PhoneParserFactory.newInstance().parse(_).getPhoneNumber) orElse Some("")
     } yield {

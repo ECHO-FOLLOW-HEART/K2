@@ -7,6 +7,7 @@ import formatter.AizouFormatter;
 import formatter.AizouSerializer;
 import formatter.taozi.ImageItemSerializer;
 import models.AizouBaseEntity;
+import models.geo.Country;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
@@ -23,10 +24,11 @@ public class SimpleLocalityWithLocationFormatter extends AizouFormatter<Locality
 
     public SimpleLocalityWithLocationFormatter(Integer imgWidth) {
         registerSerializer(Locality.class, new SimpleLocalityWithLocationSerializer());
+        registerSerializer(Country.class, new SimpleCountrySerializer());
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         initObjectMapper(null);
 
-        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation,Locality.fnImages));
+        filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation, Locality.fnImages));
     }
 
     class SimpleLocalityWithLocationSerializer extends AizouSerializer<Locality> {
@@ -61,6 +63,18 @@ public class SimpleLocalityWithLocationFormatter extends AizouFormatter<Locality
             } else {
                 retLocalition = serializerProvider.findNullValueSerializer(null);
                 retLocalition.serialize(geoJsonPoint, jgen, serializerProvider);
+            }
+
+            // Country
+            jgen.writeFieldName(Locality.fnCountry);
+            Country country = locality.getCountry();
+            JsonSerializer<Object> retCountry;
+            if (country != null) {
+                retCountry = serializerProvider.findValueSerializer(Country.class, null);
+                retCountry.serialize(country, jgen, serializerProvider);
+            } else {
+                retCountry = serializerProvider.findNullValueSerializer(null);
+                retCountry.serialize(country, jgen, serializerProvider);
             }
 
             jgen.writeEndObject();
