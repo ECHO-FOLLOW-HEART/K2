@@ -191,17 +191,17 @@ object UserCtrlScala extends Controller {
   })
 
   /**
-   * userA为修改人, memo为备注
-   * @param uid 被修改人
+   * 修改好友的备注信息
+   *
+   * @param selfId 被修改人
    * @return
    */
-  def updateContactMemo(uid: Long) = Action.async(request => {
+  def updateContactMemo(selfId: Long, contactId: Long) = Action.async(request => {
     val ret = for {
       body <- request.body.asJson
-      userA <- (body \ "userA").asOpt[Long]
       memo <- (body \ "memo").asOpt[String]
     } yield {
-      FinagleFactory.client.updateMemo(userA, uid, memo) map (_ => K2Result.ok(None)) rescue {
+      FinagleFactory.client.updateMemo(contactId, selfId, memo) map (_ => K2Result.ok(None)) rescue {
         case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
         case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
       }

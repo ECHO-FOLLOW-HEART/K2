@@ -52,14 +52,10 @@ DELETE        /users/$uid<\d+>/contacts/$cid<\d+>                      controlle
 GET           /users/$uid<\d+>/contacts                                controllers.app.UserCtrlScala.getContactList(uid: Long)
 
 #修改好友备注
-PUT           /users/$uid<\d+>/contacts/memo                           controllers.app.UserCtrlScala.updateContactMemo(uid: Long)
+PUT           /users/$uid<\d+>/contacts/$contactId<\d+>/memo           controllers.app.UserCtrlScala.updateContactMemo(uid: Long, contactId: Long)
 
 #获得好友信息
 GET           /users/$uid<\d+>/contacts/$cid<\d+>                      controllers.app.UserCtrlScala.getContact(uid:Long, cid:Long)
-
-#设置备注信息
-PUT           /users/$uid<\d+>/contacts/$cid<\d+>/memos                controllers.app.UserCtrlScala.setUserMemo(uid:Long, cid:Long)
-
 
 ##第三方注册、登录
 #POST          /users/auth-signup                                 controllers.app.UserCtrl_V2.authRegister()
