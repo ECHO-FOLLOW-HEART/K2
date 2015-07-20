@@ -247,7 +247,7 @@ public class UserUgcCtrl extends Controller {
         }
         result = Json.toJson(nodeList);
 
-        return Utils.createResponse(ErrorCode.AUTH_ERROR, result);
+        return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
     /**
