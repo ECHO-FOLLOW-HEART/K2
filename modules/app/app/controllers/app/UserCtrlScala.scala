@@ -201,7 +201,7 @@ object UserCtrlScala extends Controller {
       body <- request.body.asJson
       memo <- (body \ "memo").asOpt[String]
     } yield {
-      FinagleFactory.client.updateMemo(contactId, selfId, memo) map (_ => K2Result.ok(None)) rescue {
+      FinagleFactory.client.updateMemo(selfId, contactId, memo) map (_ => K2Result.ok(None)) rescue {
         case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
         case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
       }
@@ -217,7 +217,7 @@ object UserCtrlScala extends Controller {
       else
         Some(userId)
 
-    val future = FinagleFactory.client.getContactList(realUserId.get, Some(basicUserInfoFieds), None, None) map (userList => {
+    val future = FinagleFactory.client.getContactList(realUserId.get, Some(basicUserInfoFieds ++ Seq(UserInfoProp.Memo)), None, None) map (userList => {
       val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
       formatter.setSelfView(false)
 

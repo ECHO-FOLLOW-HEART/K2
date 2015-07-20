@@ -19,6 +19,7 @@ object FinagleConvert {
     result.setGender(userInfo.gender map convertUserGender getOrElse "")
     result.setSignature(userInfo.signature getOrElse "")
     result.setTel(userInfo.tel getOrElse "")
+    result.setMemo(userInfo.memo getOrElse "")
     result
   }
 
