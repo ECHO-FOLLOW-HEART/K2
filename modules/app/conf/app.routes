@@ -78,7 +78,7 @@ PUT           /users/$uid<\d+>/contacts/$cid<\d+>/memos                controlle
 ##搜索用户信息
 #GET           /users/search                                      controllers.app.UserCtrl_V2.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=100)
 #编辑用户信息
-PATCH          /users/$uid<\d+>                                         controllers.app.UserCtrlScala.updateUserInfo(uid: Long)
+PATCH         /users/$uid<\d+>                                         controllers.app.UserCtrlScala.updateUserInfo(uid: Long)
 ##根据环信用户名列表取得用户名列表
 #POST          /users/easemob                                     controllers.app.UserCtrl_V2.getUsersByEasemob()
 ##根据通讯录进行用户匹配
@@ -96,13 +96,13 @@ DELETE        /users/$id<\d+>/albums/:picId                            controlle
 
 #----------用户足迹接口----------
 #获取用户足迹
-GET           /users/$id<[0-9]+>/tracks                                controllers.app.UserUgcCtrl.getUserTracks(id :Long)
+GET           /users/$id<[0-9]+>/footprints                            controllers.app.UserUgcCtrl.getUserTracks(id :Long)
 #获取所有达人的足迹
-GET           /users/:userRole/tracks                                  controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
+GET           /users/:userRole/footprints                              controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
 #获取足迹包含某目的地的所有达人
-POST          /users/:userRole/tracks/users                            controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
+POST          /users/:userRole/footprints/users                        controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
 #修改足迹
-POST          /users/$id<\d+>/tracks                                   controllers.app.UserUgcCtrl.modifyTracks(id:Long)
+POST          /users/$id<\d+>/footprints                               controllers.app.UserUgcCtrl.modifyTracks(id:Long)
 
 ##----------用户群组接口----------
 ##取得用户的讨论组
@@ -207,13 +207,13 @@ DELETE        /guides/:id                                              controlle
 #----------地理信息接口----------
 # 搜索城市
 #国家列表
-GET           /geo/countries                                           controllers.app.GeoCtrl.getCountries(page:Int?=0, pageSize: Int?=20)
+#GET           /geo/countries                                           controllers.app.GeoCtrl.getCountries(page:Int?=0, pageSize: Int?=20)
 #国家详情
 GET           /geo/countries/$id<[0-9a-f]{24}>                         controllers.app.GeoCtrl.getCountyById(id: String)
 #某个国家的旅行达人
 GET           /geo/countries/$id<[0-9a-f]{24}>/experts                 controllers.app.GeoCtrl.getExpertsByCountry(id: String, page: Int?=0, pageSize: Int?=20)
 
-GET           /geo/countrys                                            controllers.app.GeoCtrl.exploreDestinationsByCountry(page:Int?=0, pageSize:Int?=10)
+GET           /geo/countrise                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
 #展示国内目的地
 GET           /geo/localities/domestic                                 controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
 #展示国外目的地

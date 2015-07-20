@@ -47,6 +47,7 @@ object UserCtrlScala extends Controller {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", 0)
+      node.put("countryCnt", 0)
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
       Utils.status(node.toString).toScala
