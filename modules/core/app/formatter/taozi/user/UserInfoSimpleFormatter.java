@@ -31,8 +31,8 @@ public class UserInfoSimpleFormatter extends AizouFormatter<UserInfo> {
         initObjectMapper();
 
         filteredFields.addAll(Arrays.asList(AizouBaseEntity.FD_ID, UserInfo.fnUserId, UserInfo.fnNickName,
-                UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature, UserInfo.fnRoles, UserInfo.fnLevel));
-
+                UserInfo.fnAvatar, UserInfo.fnAvatarSmall, UserInfo.fnGender, UserInfo.fnSignature,
+                UserInfo.fnRoles, UserInfo.fnLevel, UserInfo.fnResidence, UserInfo.fnBirthday));
     }
 
     protected ObjectMapper initObjectMapper() {
@@ -74,6 +74,8 @@ public class UserInfoSimpleFormatter extends AizouFormatter<UserInfo> {
             jgen.writeEndArray();
 
             jgen.writeNumberField(UserInfo.fnLevel, userInfo.getLevel());
+            jgen.writeStringField(UserInfo.fnResidence, getString(userInfo.getResidence()));
+            jgen.writeStringField(UserInfo.fnBirthday, getDate(userInfo.getBirthday()));
 
             jgen.writeEndObject();
         }

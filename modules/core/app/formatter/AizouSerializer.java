@@ -44,7 +44,7 @@ public abstract class AizouSerializer<T extends AizouBaseItem> extends JsonSeria
 
     protected String getDate(Date val) {
         DateFormat dayFormat = new SimpleDateFormat("yyyy-MM-dd");
-        return (val != null) ? dayFormat.format(val) : null;
+        return (val != null) ? dayFormat.format(val) : "";
     }
 
     /**
