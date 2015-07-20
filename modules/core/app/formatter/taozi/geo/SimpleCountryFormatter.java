@@ -3,6 +3,7 @@ package formatter.taozi.geo;
 import formatter.AizouFormatter;
 import formatter.taozi.ImageItemSerializer;
 import models.AizouBaseEntity;
+import models.geo.Continent;
 import models.geo.Country;
 import models.misc.ImageItem;
 
@@ -21,6 +22,7 @@ public class SimpleCountryFormatter extends AizouFormatter<Country> {
 
     public SimpleCountryFormatter() {
         registerSerializer(Country.class, new SimpleCountrySerializer());
+        registerSerializer(Continent.class, new SimpleContinentSerializer());
 
         imageItemSerializer = new ImageItemSerializer();
         registerSerializer(ImageItem.class, imageItemSerializer);

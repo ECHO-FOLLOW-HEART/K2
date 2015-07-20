@@ -8,6 +8,7 @@ import models.geo.Continent;
 import models.geo.Country;
 import models.geo.Locality;
 import models.misc.ImageItem;
+import org.bson.types.ObjectId;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,19 +41,18 @@ public class SimpleCountrySerializer extends AizouSerializer<Country> {
         String code = country.getContCode();
         String zhCont = country.getZhCont();
         String enCont = country.getEnCont();
+        Continent continent = new Continent();
+        continent.setId(new ObjectId());
+        continent.setCode(code);
+        continent.setZhName(zhCont);
+        continent.setEnName(enCont);
+        JsonSerializer<Object> retContinent;
         if (code != null && zhCont != null && enCont != null) {
-            Continent continent = new Continent();
-            continent.setCode(code);
-            continent.setZhName(zhCont);
-            continent.setEnName(enCont);
-            JsonSerializer<Object> retCountry;
-            if (country != null) {
-                retCountry = serializerProvider.findValueSerializer(Country.class, null);
-                retCountry.serialize(country, jgen, serializerProvider);
-            } else {
-                retCountry = serializerProvider.findNullValueSerializer(null);
-                retCountry.serialize(country, jgen, serializerProvider);
-            }
+            retContinent = serializerProvider.findValueSerializer(Continent.class, null);
+            retContinent.serialize(continent, jgen, serializerProvider);
+        } else {
+            retContinent = serializerProvider.findNullValueSerializer(null);
+            retContinent.serialize(continent, jgen, serializerProvider);
         }
 
 //        jgen.writeStringField("code", getString(country.getCode()).toUpperCase());

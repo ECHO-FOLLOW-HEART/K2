@@ -1,5 +1,6 @@
 package models.geo;
 
+import models.AizouBaseEntity;
 import models.AizouBaseItem;
 import org.mongodb.morphia.annotations.Embedded;
 
@@ -7,7 +8,7 @@ import org.mongodb.morphia.annotations.Embedded;
  * Created by topy on 2015/7/20.
  */
 @Embedded
-public class Continent extends AizouBaseItem {
+public class Continent extends AizouBaseEntity {
 
     String zhName;
 

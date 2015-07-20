@@ -213,7 +213,7 @@ GET           /geo/countries/$id<[0-9a-f]{24}>                         controlle
 #某个国家的旅行达人
 GET           /geo/countries/$id<[0-9a-f]{24}>/experts                 controllers.app.GeoCtrl.getExpertsByCountry(id: String, page: Int?=0, pageSize: Int?=20)
 
-GET           /geo/countrise                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
+GET           /geo/countries                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
 #展示国内目的地
 GET           /geo/localities/domestic                                 controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
 #展示国外目的地
