@@ -9,6 +9,7 @@ import models.geo.Country;
 import models.geo.Locality;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
+import utils.TaoziDataFilter;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,7 +26,7 @@ public class SimpleCountrySerializer extends AizouSerializer<Country> {
         writeObjectId(country, jgen, serializerProvider);
 
         jgen.writeFieldName("images");
-        List<ImageItem> images = country.getImages();
+        List<ImageItem> images = TaoziDataFilter.getOneImage(country.getImages());
         jgen.writeStartArray();
         if (images != null && !images.isEmpty()) {
             JsonSerializer<Object> ret = serializerProvider.findValueSerializer(ImageItem.class, null);
@@ -36,6 +37,7 @@ public class SimpleCountrySerializer extends AizouSerializer<Country> {
 
         jgen.writeStringField("zhName", getString(country.getZhName()));
         jgen.writeStringField("enName", getString(country.getEnName()));
+        jgen.writeStringField("code", getString(country.getCode()));
 
         jgen.writeFieldName("continents");
         String code = country.getContCode();
