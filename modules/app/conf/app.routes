@@ -1,3 +1,6 @@
+# Map static resources from the /public folder to the /assets URL path
+
+GET           /comments/:id                                            controllers.Application.comments(id:String)
 
 #----------用户接口----------
 

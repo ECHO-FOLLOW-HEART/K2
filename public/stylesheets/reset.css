@@ -1,0 +1,80 @@
+
+body, div, dl, dt, dd, ul, ol, li,
+h1, h2, h3, h4, h5, h6, pre, code,
+form, fieldset, legend, input, button,
+textarea, p, blockquote, th, td,
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section  {
+    margin: 0;
+    padding: 0;
+    -webkit-tap-highlight-color:rgba(0,0,0,0);
+    border:0;
+}
+fieldset, img {
+    border: 0;
+}
+html, body, form, fieldset, p, div, h1, h2, h3, h4, h5, h6 {
+    -webkit-text-size-adjust: none;
+    -webkit-user-select : none;
+}
+:focus {
+    outline: 0;
+}
+address, caption, cite, code, dfn,
+em, b, i, strong, th, var, optgroup {
+    font-style: normal;
+    font-weight: normal;
+}
+ 
+h1, h2, h3, h4, h5, h6 {
+    font-size: 100%;
+    font-weight: normal;
+}
+abbr, acronym {
+    border: none;
+    font-variant: normal;
+}
+button,
+input,
+select,
+textarea {
+    vertical-align: middle;
+    -webkit-box-sizing: border-box;
+    -ms-box-sizing: border-box;
+    box-sizing: border-box;
+}
+button,
+input {
+    line-height: normal;
+}
+input, button, textarea,
+select, optgroup, option {
+    font-family: inherit;
+    font-size: inherit;
+    font-style: inherit;
+    font-weight: inherit;
+}
+code, kbd, samp, tt {
+    font-size: 100%;
+}
+body {
+    line-height: 1.5;
+    font-size:16px;
+    font-family: 'Microsoft YaHei',sans-serif;
+}
+ol, ul {
+    list-style: none;
+}
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+caption, th {
+    text-align: left;
+}
+sup, sub {
+    font-size: 100%;
+    vertical-align: baseline;
+}
+:link, :visited , ins {
+    text-decoration: none;
+}
