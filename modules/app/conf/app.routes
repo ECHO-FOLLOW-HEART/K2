@@ -180,6 +180,9 @@ GET           /poi/shopping                                            controlle
 # 新建行程单（包括新建和fork两种模式）
 POST          /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.guides(uid: Int)
 
+#保存攻略
+PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.GuideCtrlScala.saveGuideInfo(uid: Long, guideId: String)
+
 # 获得攻略列表
 GET           /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.getGuidesByUser(uid: Long, page: Int?=0, pageSize: Int?=20)
 
