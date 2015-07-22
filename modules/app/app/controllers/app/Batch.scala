@@ -8,6 +8,7 @@ import com.twitter.util.Future
 import controllers.bache.{ BatchImpl, BatchUtils }
 import formatter.FormatterFactory
 import formatter.taozi.geo.SimpleCountryFormatter
+import formatter.taozi.user.TrackFormatter
 import misc.FinagleConvert
 import misc.TwitterConverter._
 import models.geo.{ Locality, Country }
@@ -32,12 +33,13 @@ object Batch extends Controller {
     track.setCountry(locality.getCountry)
 
     val tempLoc = new Locality()
+    tempLoc.setId(locality.getId)
     tempLoc.setZhName(locality.getZhName)
     tempLoc.setEnName(locality.getEnName)
     tempLoc.setImages(util.Arrays.asList(locality.getImages.get(0)))
     tempLoc.setLocation(locality.getLocation)
     track.setLocality(tempLoc)
-    //track.setItemId()
+    track.setItemId()
     track.setEnabled(true)
     track
   }
@@ -51,7 +53,8 @@ object Batch extends Controller {
     request => {
       val formatter = FormatterFactory.getInstance(classOf[SimpleCountryFormatter])
       for {
-        countries <- BatchImpl.getCountriesByNames(Seq("日本", "韩国", "中国"), 0, 999)
+        countries <- BatchImpl.getCountriesByNames(Seq("日本", "韩国", "中国", "泰国", "马来西亚", "新加坡", "印度尼西亚", "越南",
+          "斯里兰卡", "阿联酋", "尼泊尔", "柬埔寨", "法国", "希腊", "意大利", "瑞士", "美国", "英国", "西班牙"), 0, 999)
       } yield {
         val node = formatter.formatNode(countries).asInstanceOf[ArrayNode]
         dealWithCountries(countries)
@@ -72,8 +75,8 @@ object Batch extends Controller {
     def writeOneCountry(country: Country, userCnt: Map[ObjectId, Int]): Seq[String] = {
       val imageUrl = country.getImages match {
         case null => "null"
-        case _ if country.getImages.get(0) == null => "null"
-        case _ if country.getImages.get(0) != null => String.format("http://images.taozilvxing.com/%s?imageView2/2/w/ 640", country.getImages.get(0).getKey)
+        case _ if country.getImages.size() == 0 => "null"
+        case _ if country.getImages.size() > 0 => String.format("\"http://images.taozilvxing.com/%s?imageView2/2/w/640\"", country.getImages.get(0).getKey)
       }
       Seq(
         BatchUtils.writeLine(keys._1 + keyMid + country.getId.toString, country.getZhName),
@@ -92,20 +95,23 @@ object Batch extends Controller {
         users <- BatchImpl.getTracksFromUserInfo()
         map <- usersToMap(users)
       } yield {
-        map.foreach(
-          kv => {
-            val localityFuture = for (userId <- kv._1; localities <- kv._2) yield localities.map(locality2Track(_, userId))
-            for {
-              locality <- localityFuture
-              re <- BatchImpl.saveTracks(locality)
-            } yield Utils.status("").toScala
-          }
-        )
-        Utils.status("").toScala
+        mapToSave(map)
+        Utils.status("Success").toScala
       }
-
     }
   )
+
+  def mapToSave(map: Map[Future[lang.Long], Future[Seq[Locality]]]) = {
+    map.foreach(
+      kv => {
+        val localityFuture = for (userId <- kv._1; localities <- kv._2) yield localities.map(locality2Track(_, userId))
+        for {
+          locality <- localityFuture
+          re <- BatchImpl.saveTracks(locality)
+        } yield re
+      }
+    )
+  }
 
   def usersToMap(users: Seq[K2UserInfo]): Future[Map[Future[lang.Long], Future[Seq[Locality]]]] = {
     Future {
