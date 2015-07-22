@@ -34,7 +34,7 @@ object BatchImpl {
     val query = ds.createQuery(classOf[Country])
     query.field(Country.fnAlias).hasAnyOf(keywords)
     //query.field(AizouBaseEntity.FD_TAOZIENA).equal(true)
-    query.retrievedFields(true, Arrays.asList(Country.FN_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME, Country.fnImages, Country.fnCode, "zhCont", "enCont", "contCode"): _*)
+    query.retrievedFields(true, Arrays.asList(Country.FN_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME, Country.fnImages, Country.fnCode, "zhCont", "enCont", "contCode", "rank"): _*)
     query.offset(page * pageSize).limit(pageSize)
     futurePool {
       query.asList().toSeq
