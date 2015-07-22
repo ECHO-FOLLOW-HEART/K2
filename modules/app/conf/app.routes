@@ -243,7 +243,8 @@ GET           /travelnotes                                             controlle
 GET           /travelnotes/$id<[0-9a-f]{24}>                           controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
 
 
-
+GET           /createCountries                                    controllers.app.Batch.createExpertTrackByCountry()
+GET           /createTracks                                       controllers.app.Batch.userInfoToTrack()
 
 
 
