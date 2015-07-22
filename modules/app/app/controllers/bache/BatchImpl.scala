@@ -1,13 +1,15 @@
 package controllers.bache
 
+import java.lang
 import java.util.Arrays
 
 import akka.actor.FSM.->
 import com.twitter.util.{ Future, FuturePool }
 import exception.AizouException
 import models.AizouBaseEntity
-import models.geo.Country
+import models.geo.{ Locality, Country }
 import models.misc.{ Track, Album }
+import models.user.UserInfo
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
 import org.mongodb.morphia.query.Query
@@ -36,6 +38,32 @@ object BatchImpl {
     query.offset(page * pageSize).limit(pageSize)
     futurePool {
       query.asList().toSeq
+    }
+  }
+
+  def getTracksFromUserInfo()(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[UserInfo]] = {
+    val query = ds.createQuery(classOf[UserInfo])
+    query.field(UserInfo.fnTracks).exists()
+    query.retrievedFields(true, Arrays.asList(UserInfo.fnUserId, UserInfo.fnTracks): _*)
+    futurePool {
+      query.asList().toSeq
+    }
+  }
+
+  def getLocalitiesByIds(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
+    val query = ds.createQuery(classOf[Locality])
+    query.field(AizouBaseEntity.FD_ID).in(ids)
+    //query.field(AizouBaseEntity.FD_TAOZIENA)
+    query.retrievedFields(true, Arrays.asList(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME,
+      Locality.fnCountry, Locality.fnLocation, Locality.fnImages): _*)
+    futurePool {
+      query.asList().toSeq
+    }
+  }
+
+  def saveTracks(tracks: Seq[Track])(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
+    futurePool {
+      ds.save(tracks)
     }
   }
 
