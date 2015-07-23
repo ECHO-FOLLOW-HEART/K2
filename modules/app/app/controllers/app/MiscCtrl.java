@@ -379,10 +379,9 @@ public class MiscCtrl extends Controller {
         StringBuilder stringBuilder = new StringBuilder();
         if (scenario.equals("portrait") || scenario.equals("album")) {
             scope = qiniu.get("taoziAvaterScope").toString();
-            //callbackUrl = qiniu.get("callbackUrl").toString();
-            stringBuilder.append("http://");
-            stringBuilder.append("api.lvxingpai.com/app/misc/upload-callback");
-            //stringBuilder.append("182.92.150.243:9000/app/misc/upload-callback");
+            stringBuilder.append(routes.MiscCtrl.getCallback().absoluteURL(request()));
+//            stringBuilder.append("http://");
+//            stringBuilder.append("api.lvxingpai.com/app/misc/upload-callback");
             callbackUrl = stringBuilder.toString();
             LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);
         } else
@@ -485,8 +484,6 @@ public class MiscCtrl extends Controller {
                 scenario = value[0];
                 // LogUtils.info(MiscCtrl.class, "Test Upload CallBack.Scenario:" + scenario, key + "&&" + value[0]);
             }
-//            if (key.equals(UPLOAD_URL_SMALL))
-//                urlSmall = value[0];
             ret.put(key, value[0]);
         }
 
@@ -806,7 +803,8 @@ public class MiscCtrl extends Controller {
         result.put("albumCnt", amount);
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
-    public static Result getLocalityComments(String commentType, String id, int page, int pageSize){
+
+    public static Result getLocalityComments(String commentType, String id, int page, int pageSize) {
         Result result = null;
         return result;
     }
