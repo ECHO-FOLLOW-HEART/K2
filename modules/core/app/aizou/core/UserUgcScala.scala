@@ -1,10 +1,10 @@
 package aizou.core
 
-import com.twitter.util.{Future, FuturePool}
+import com.twitter.util.{ Future, FuturePool }
 import exception.AizouException
 import models.AizouBaseEntity
 import models.guide.Guide
-import models.misc.{Track, Album}
+import models.misc.{ Track, Album }
 import org.mongodb.morphia.Datastore
 import org.mongodb.morphia.query.Query
 import scala.collection.JavaConversions
