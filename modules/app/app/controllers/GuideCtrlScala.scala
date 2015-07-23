@@ -2,12 +2,12 @@ package controllers
 
 import api.GuideAPI
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.twitter.util.{Future => TwitterFuture}
+import com.twitter.util.{ Future => TwitterFuture }
 import database.MorphiaFactory
 import misc.TwitterConverter._
 import models.guide.Guide
-import play.api.mvc.{Action, Controller}
-import utils.{Result => K2Result}
+import play.api.mvc.{ Action, Controller }
+import utils.{ Result => K2Result }
 import scala.collection.JavaConversions._
 
 import scala.language.postfixOps
@@ -32,24 +32,24 @@ object GuideCtrlScala extends Controller {
       data <- request.body.asJson
       status <- (data \ "status").asOpt[String]
     } yield {
-        val entries = Seq("status", "title") map (v => {
-          val key = GuideAPI.GuideProps withName v
-          val value = (data \ v).asOpt[String]
+      val entries = Seq("status", "title") map (v => {
+        val key = GuideAPI.GuideProps withName v
+        val value = (data \ v).asOpt[String]
 
-          key -> value
-        }) filter (_._2 nonEmpty) map (v => v._1 -> v._2.get)
+        key -> value
+      }) filter (_._2 nonEmpty) map (v => v._1 -> v._2.get)
 
-        val update = Map(entries: _*)
+      val update = Map(entries: _*)
 
-        // 转换
-        (try {
-          GuideAPI.updateGuideInfo(guideId, update) map (_ => K2Result.ok(None))
-        } catch {
-          case _: NoSuchElementException => TwitterFuture(K2Result.unprocessable)
-        }) rescue {
-          case _: IllegalArgumentException => TwitterFuture(K2Result.unprocessable)
-        }
-      }) getOrElse TwitterFuture(K2Result.unprocessable)
+      // 转换
+      (try {
+        GuideAPI.updateGuideInfo(guideId, update) map (_ => K2Result.ok(None))
+      } catch {
+        case _: NoSuchElementException => TwitterFuture(K2Result.unprocessable)
+      }) rescue {
+        case _: IllegalArgumentException => TwitterFuture(K2Result.unprocessable)
+      }
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
 
     future
   })
@@ -63,16 +63,16 @@ object GuideCtrlScala extends Controller {
     val future = (for {
       data <- request.body.asJson
     } yield {
-        val m: ObjectMapper = new ObjectMapper
-        val guideUpdate: Guide = m.convertValue(data, classOf[Guide])
-        (try {
-          GuideAPI.updateGuide(guideId, guideUpdate, uid) map (_ => K2Result.ok(None))
-        } catch {
-          case _: NoSuchElementException => TwitterFuture(K2Result.unprocessable)
-        }) rescue {
-          case _: IllegalArgumentException => TwitterFuture(K2Result.unprocessable)
-        }
-      }) getOrElse TwitterFuture(K2Result.unprocessable)
+      val m: ObjectMapper = new ObjectMapper
+      val guideUpdate: Guide = m.convertValue(data, classOf[Guide])
+      (try {
+        GuideAPI.updateGuide(guideId, guideUpdate, uid) map (_ => K2Result.ok(None))
+      } catch {
+        case _: NoSuchElementException => TwitterFuture(K2Result.unprocessable)
+      }) rescue {
+        case _: IllegalArgumentException => TwitterFuture(K2Result.unprocessable)
+      }
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })
 }

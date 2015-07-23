@@ -39,15 +39,15 @@ public class GuideCtrl extends Controller {
     public static Result guides(int uid) throws AizouException {
         JsonNode data = request().body().asJson();
         String action = data.has("action") ? data.get("action").asText() : "";
-        if(action.equals("create")){
+        if (action.equals("create")) {
             return createGuide(uid, data);
-        } else if(action.equals("fork"))
-        {
+        } else if (action.equals("fork")) {
             return copyGuide(uid, data);
         } else {
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "action is wrong");
         }
     }
+
     /**
      * 更新攻略中相应信息
      *
@@ -64,7 +64,7 @@ public class GuideCtrl extends Controller {
             imgWidth = Integer.valueOf(imgWidthStr);
         Integer selfId = Integer.valueOf(uid);//tmp);
         Iterator<JsonNode> iterator = data.get("locId").iterator();
-        Boolean initViewSpots = data.has("initViewSpots")?data.get("initViewSpots").asBoolean() : false;
+        Boolean initViewSpots = data.has("initViewSpots") ? data.get("initViewSpots").asBoolean() : false;
         List<ObjectId> ids = new ArrayList<>();
         while (iterator.hasNext()) {
             ids.add(new ObjectId(iterator.next().asText()));
@@ -82,6 +82,7 @@ public class GuideCtrl extends Controller {
 
         return Utils.createResponse(ErrorCode.NORMAL, node);
     }
+
     /**
      * 复制攻略
      *
@@ -102,6 +103,7 @@ public class GuideCtrl extends Controller {
 
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
+
     /**
      * 保存攻略或更新攻略
      *
@@ -139,9 +141,6 @@ public class GuideCtrl extends Controller {
         int imgWidth = 0;
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
-//        String tmp = request().getHeader("UserId");
-//        if (tmp == null)
-//            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
 
         Long selfId = uid;
 
@@ -160,8 +159,8 @@ public class GuideCtrl extends Controller {
         String statusStr = request().getQueryString("status");
 
         List<String> fields = Arrays.asList(Guide.fdId, Guide.fnTitle, Guide.fnUpdateTime,
-                Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays,Guide.fnStatus);
-        List<Guide> guides = GuideAPI.getGuideByUser(resultUserId, fields, isSelf,statusStr, page, pageSize);
+                Guide.fnLocalities, Guide.fnImages, Guide.fnItineraryDays, Guide.fnStatus);
+        List<Guide> guides = GuideAPI.getGuideByUser(resultUserId, fields, isSelf, statusStr, page, pageSize);
         List<Guide> result = new ArrayList<>();
         for (Guide guide : guides) {
             guide.images = TaoziDataFilter.getOneImage(guide.images);
@@ -193,12 +192,12 @@ public class GuideCtrl extends Controller {
 
         for (Locality des : dests) {
             sb.append(des.getZhName());
-            sb.append(Constants.SYMBOL_DASH);
+            sb.append(Constants.SYMBOL_BLANK + Constants.SYMBOL_BIG + Constants.SYMBOL_BLANK);
             if (des.getImages() != null)
                 images.addAll(des.getImages());
         }
         String summary = sb.toString();
-        guide.setSummary(summary.substring(0, summary.length() - 1));
+        guide.setSummary(summary.substring(0, summary.length() - 3));
 
     }
 
@@ -219,7 +218,7 @@ public class GuideCtrl extends Controller {
         ObjectId guideId = new ObjectId(id);
         List<String> fields = new ArrayList<>();
         Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime,
-                Guide.fnImages,Guide.fnStatus);
+                Guide.fnImages, Guide.fnStatus);
         switch (part) {
             case AbstractGuide.fnItinerary:
                 fields.add(Guide.fnItinerary);

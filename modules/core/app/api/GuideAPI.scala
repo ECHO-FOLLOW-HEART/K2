@@ -1,8 +1,8 @@
 package api
 
-import com.twitter.util.{Future => TwitterFuture, FuturePool}
-import exception.{AizouException, ErrorCode}
-import models.guide.{AbstractGuide, Guide, ItinerItem}
+import com.twitter.util.{ Future => TwitterFuture, FuturePool }
+import exception.{ AizouException, ErrorCode }
+import models.guide.{ AbstractGuide, Guide, ItinerItem }
 import models.poi._
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
@@ -94,12 +94,11 @@ object GuideAPI {
     for (item <- itinerary) {
       val poi = item.poi
       poi match {
-        case ViewSpot => item.poi.`type` = "vs"
-        case Restaurant => item.poi.`type` = "restaurant"
-        case Shopping => item.poi.`type` = "shopping"
-        case Hotel => item.poi.`type` = "hotel"
+        case poi: ViewSpot => item.poi.`type` = "vs"
+        case poi: Restaurant => item.poi.`type` = "restaurant"
+        case poi: Shopping => item.poi.`type` = "shopping"
+        case poi: Hotel => item.poi.`type` = "hotel"
       }
-
     }
   }
 

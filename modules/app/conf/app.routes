@@ -181,7 +181,7 @@ GET           /poi/shopping                                            controlle
 POST          /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.guides(uid: Int)
 
 #保存攻略
-PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.GuideCtrlScala.saveGuideInfo(uid: Long, guideId: String)
+PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.GuideCtrlScala.saveGuideInfo(uid: Long, id: String)
 
 # 获得攻略列表
 GET           /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.getGuidesByUser(uid: Long, page: Int?=0, pageSize: Int?=20)
@@ -194,13 +194,12 @@ PATCH         /users/$uid<\d+>/guides/$guideId<[0-9a-f]{24}>           controlle
 
 #查看攻略详情
 GET           /users/$uid<\d+>/guides/:id/:part                        controllers.app.GuideCtrl.getGuideInfo(uid: Int, id: String, part: String)
-#GET           /guides/:id/:part                                        controllers.app.GuideCtrl.getGuideInfo(id: String, part: String)
-#获得目的地的攻略信息
-GET           /guides/locality/:id/:part                               controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
-#修改攻略标题
-PUT           /guides/info/:id                                         controllers.app.GuideCtrl.setGuideTitle(id:String)
+##修改攻略标题
+#PUT           /guides/info/:id                                         controllers.app.GuideCtrl.setGuideTitle(id:String)
 #删除攻略
 DELETE        /guides/:id                                              controllers.app.GuideCtrl.deleteGuide(id: String)
+#获得目的地的攻略信息
+GET           /guides/locality/:id/:part                               controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
 
 #----------地理信息接口----------
 # 搜索城市

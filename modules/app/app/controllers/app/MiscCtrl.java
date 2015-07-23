@@ -370,7 +370,7 @@ public class MiscCtrl extends Controller {
     public static Result putPolicy(String scenario) throws InvalidKeyException, NoSuchAlgorithmException, AizouException {
         Configuration config = Configuration.root();
 
-        String userId = request().getHeader("UserId");
+            String userId = request().getHeader("UserId");
         String picName = getPicName(Integer.parseInt(request().getHeader("UserId")));
         Map qiniu = (Map) config.getObject("qiniu");
         String secretKey = qiniu.get("secertKey").toString();
