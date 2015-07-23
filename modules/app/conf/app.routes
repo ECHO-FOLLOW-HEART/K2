@@ -202,14 +202,12 @@ DELETE        /guides/:id                                              controlle
 
 #----------地理信息接口----------
 # 搜索城市
-#国家列表
-#GET           /geo/countries                                           controllers.app.GeoCtrl.getCountries(page:Int?=0, pageSize: Int?=20)
 #国家详情
 GET           /geo/countries/$id<[0-9a-f]{24}>                         controllers.app.GeoCtrl.getCountyById(id: String)
-#某个国家的旅行达人
-GET           /geo/countries/$id<[0-9a-f]{24}>/experts                 controllers.app.GeoCtrl.getExpertsByCountry(id: String, page: Int?=0, pageSize: Int?=20)
-
-GET           /geo/countries                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
+#获得国家列表
+#GET           /geo/countries                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
+GET           /geo/countries                                           controllers.app.GeoCtrlScala.getCountryExperts(withExperts:Boolean=true)
+#获得国家达人列表
 GET           /geo/countries/:code/expert                              controllers.app.UserUgcCtrl.getExpertUserByTracks(code:String)
 #展示国内目的地
 GET           /geo/localities/domestic                                 controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
@@ -243,8 +241,8 @@ GET           /travelnotes                                             controlle
 GET           /travelnotes/$id<[0-9a-f]{24}>                           controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
 
 
-GET           /createCountries                                    controllers.app.Batch.createExpertTrackByCountry()
-GET           /createTracks                                       controllers.app.Batch.userInfoToTrack()
+GET           /createCountries                                         controllers.app.Batch.createExpertTrackByCountry()
+GET           /createTracks                                            controllers.app.Batch.userInfoToTrack()
 
 
 

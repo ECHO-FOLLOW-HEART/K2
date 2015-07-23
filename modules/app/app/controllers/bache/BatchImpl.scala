@@ -7,7 +7,7 @@ import akka.actor.FSM.->
 import com.twitter.util.{ Future, FuturePool }
 import exception.AizouException
 import models.AizouBaseEntity
-import models.geo.{ Locality, Country }
+import models.geo.{ CountryExpert, Locality, Country }
 import models.misc.{ Track, Album }
 import models.user.UserInfo
 import org.bson.types.ObjectId
@@ -34,7 +34,7 @@ object BatchImpl {
     val query = ds.createQuery(classOf[Country])
     query.field(Country.fnAlias).hasAnyOf(keywords)
     //query.field(AizouBaseEntity.FD_TAOZIENA).equal(true)
-    query.retrievedFields(true, Arrays.asList(Country.FN_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME, Country.fnImages): _*)
+    query.retrievedFields(true, Arrays.asList(Country.FN_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME, Country.fnImages, Country.fnCode, "zhCont", "enCont", "contCode", "rank"): _*)
     query.offset(page * pageSize).limit(pageSize)
     futurePool {
       query.asList().toSeq
@@ -64,6 +64,12 @@ object BatchImpl {
   def saveTracks(tracks: Seq[Track])(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
     futurePool {
       ds.save(tracks)
+    }
+  }
+
+  def saveCountryExpert(cExperts: Seq[CountryExpert])(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
+    futurePool {
+      ds.save(cExperts)
     }
   }
 

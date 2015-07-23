@@ -11,15 +11,17 @@ import formatter.taozi.geo.SimpleCountryFormatter
 import formatter.taozi.user.TrackFormatter
 import misc.FinagleConvert
 import misc.TwitterConverter._
-import models.geo.{ Locality, Country }
+import models.geo._
 import models.misc.Track
 import models.user.{ UserInfo => K2UserInfo }
 import org.bson.types.ObjectId
 import play.api.mvc.{ Action, Controller }
 import utils.Implicits._
-import utils.Utils
+import utils.{ TaoziDataFilter, Utils }
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
+import scala.Option
 
 /**
  * Created by topy on 2015/7/14.
@@ -64,9 +66,43 @@ object Batch extends Controller {
 
   def dealWithCountries(countries: Seq[Country]): Unit = {
     val userCnt = BatchImpl.getCountryToUserCntMap(countries.map(_.getId))
-    writeCountries(countries, userCnt)
+    saveCountries(countries, userCnt)
+    //writeCountries(countries, userCnt)
   }
 
+  def saveCountries(countries: Seq[Country], userCnt: Map[ObjectId, Int]): Unit = {
+
+    def country2CountryExpert(country: Country, userCnt: Map[ObjectId, Int]): CountryExpert = {
+      val countryExpert = new CountryExpert()
+      countryExpert.setId(country.getId)
+      countryExpert.setZhName(country.getZhName)
+      countryExpert.setEnName(country.getEnName)
+      countryExpert.setImages(country.getImages)
+      countryExpert.setCode(country.getCode)
+      countryExpert.setRank(country.getRank)
+      countryExpert.setImages(TaoziDataFilter.getOneImage(country.getImages))
+      countryExpert.setExpertCnt(scala.Int.box(userCnt.get(country.getId).getOrElse(0)))
+
+      val continent = new Continent()
+      continent.setId(new ObjectId)
+      continent.setZhName(country.getZhCont)
+      continent.setEnName(country.getEnCont)
+      continent.setCode(country.getContCode)
+      countryExpert.setContinent(continent)
+
+      countryExpert
+    }
+    val contents = countries map (country2CountryExpert(_, userCnt))
+    BatchImpl.saveCountryExpert(contents)
+    //BatchUtils.makeConfFile(contents)
+  }
+
+  /**
+   * 把国家达人信息写入配置文件
+   *
+   * @param countries
+   * @param userCnt
+   */
   def writeCountries(countries: Seq[Country], userCnt: Map[ObjectId, Int]): Unit = {
     val subKey = "country"
     val keyMid = "."

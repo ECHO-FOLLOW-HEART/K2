@@ -4,6 +4,8 @@ import aizou.core.UserUgcAPI;
 import aspectj.CheckUser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -16,6 +18,7 @@ import models.misc.Album;
 import models.misc.Track;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
+import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
@@ -110,6 +113,7 @@ public class UserUgcCtrl extends Controller {
         int imgWidth = 0;
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
+
         List<Track> userTracks = UserUgcAPI.getUserTracks(expertUserIds);
 
         Map<ObjectId, Track> map = new HashMap<>();
@@ -212,8 +216,11 @@ public class UserUgcCtrl extends Controller {
     public static Result getExpertUserByTracks(String code) throws AizouException {
         JsonNode data = request().body().asJson();
         List<ObjectId> countryIds = Arrays.asList(new ObjectId(code));
+
+        Config config = ConfigFactory.load();
+        List experts = config.getLongList("experts.id");
         // 取得足迹
-        List<Track> expertUserByCountry = UserUgcAPI.getExpertUserByCountry(countryIds, expertUserIds);
+        List<Track> expertUserByCountry = UserUgcAPI.getExpertUserByCountry(countryIds, experts);
 
         // 取得用户信息
         Set<Long> usersUnDup = new HashSet<>();
