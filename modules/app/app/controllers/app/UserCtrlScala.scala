@@ -40,7 +40,7 @@ object UserCtrlScala extends Controller {
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(UserInfoProp.Tel) else Seq())
     formatter.setSelfView(isSelf)
     (for {
-      user <- FinagleFactory.client.getUserById(userId, Some(fields),None)
+      user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
       guideCnt <- UserUgcAPIScala.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPIScala.getAlbumsCntByUser(user.getUserId)
     } yield ({
