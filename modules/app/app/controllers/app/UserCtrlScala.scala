@@ -40,7 +40,7 @@ object UserCtrlScala extends Controller {
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(UserInfoProp.Tel) else Seq())
     formatter.setSelfView(isSelf)
     (for {
-      user <- FinagleFactory.client.getUserById(userId, Some(fields))
+      user <- FinagleFactory.client.getUserById(userId, Some(fields),None)
       guideCnt <- UserUgcAPIScala.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPIScala.getAlbumsCntByUser(user.getUserId)
     } yield ({
@@ -243,7 +243,7 @@ object UserCtrlScala extends Controller {
 
     val future: TwitterFuture[Result] = isContactFuture flatMap (isContact => {
       if (isContact) {
-        client.getUserById(contactId, Some(basicUserInfoFieds)) map (user => {
+        client.getUserById(contactId, Some(basicUserInfoFieds), Some(userId)) map (user => {
           val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
           val node = formatter.formatNode(user)
           K2Result.ok(Some(node))
@@ -289,7 +289,7 @@ object UserCtrlScala extends Controller {
     def sendOtherValidationCode(action: OperationCode, userId: Long): TwitterFuture[Result] = {
       // 发送验证码。如果用户的tel不存在，则返回INVALID_ARGUMENT
       for {
-        telOpt <- client.getUserById(userId, Some(Seq(UserInfoProp.Tel))) map (_.tel)
+        telOpt <- client.getUserById(userId, Some(Seq(UserInfoProp.Tel)), None) map (_.tel)
         result <- {
           if (telOpt isEmpty)
             TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
@@ -544,7 +544,7 @@ object UserCtrlScala extends Controller {
 
     // 通过UserId进行搜索
     val future1 = querySet._3 map (v => {
-      client.getUserById(v, Some(basicUserInfoFieds)) map (Some(_)) rescue {
+      client.getUserById(v, Some(basicUserInfoFieds), None) map (Some(_)) rescue {
         case _: NotFoundException => TwitterFuture(None)
       }
     }) getOrElse TwitterFuture(None)
@@ -597,7 +597,7 @@ object UserCtrlScala extends Controller {
   def setUserMemo(uid: Long, contactId: Long) = play.mvc.Results.TODO
 
   def getUsersInfoValue(userIds: java.util.List[java.lang.Long]): java.util.Map[java.lang.Long, UserInfo] = {
-    val f = FinagleFactory.client.getUsersById(userIds.map(scala.Long.unbox(_)), Some(basicUserInfoFieds)) map (userMap => {
+    val f = FinagleFactory.client.getUsersById(userIds.map(scala.Long.unbox(_)), Some(basicUserInfoFieds), None) map (userMap => {
       for {
         (k, v) <- userMap
       } yield (scala.Long.box(k), userInfoYunkai2Model(v))

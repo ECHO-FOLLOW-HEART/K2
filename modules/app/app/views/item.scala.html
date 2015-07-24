@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <title>旅行派——城市详情</title>
+    <link href="../css/reset.css" rel="stylesheet"/>
+    <link href="../css/app.css" rel="stylesheet"/>
+    <style>
+    .content{
+    background-color: #f9faf9;
+    padding: 14px 18px;
+    }
+    .p2:first-child .t2{
+    margin-top: 0px;
+    }
+    img{
+    width: 100%;
+    height: auto;
+    }
+    </style>
+  </head>
+  <body class="bg_color">
+  <?php
+		try{
+			$result = '';
+			//if(!isset($_GET["tid"]))
+				//return;
+			$cid = $_GET["cid"];
+			$fid = $_GET["field"];
+			$url = 'http://api.taozilvxing.cn/taozi/geo/localities/'.$cid.'/details?field='.$fid;
+			$fp = fopen($url, 'r');	
+			stream_get_meta_data($fp);
+			while(!feof($fp)) {
+				$result .= fgets($fp, 1024);
+			}
+			$v = json_decode($result);
+			echo('<article id="tab-item-01" class="content">');
+    $contents = $v->result->contents;
+    $maxLine = count($contents);
+    echo('<p ><div class="p2">'.$v->result->desc.'</div></p>');
+    for($i = 0;$i < $maxLine; $i++){
+    echo('
+  <div class="p2">
+    <h1 class="t2 base_text_color_medium">'.$contents[$i]->title.'</h1>');
+    echo('
+    <p>'.$contents[$i]->desc.'</p>
+  </div>');
+    }
+    echo('</article>' );
+    }catch(Exception $e){
+
+    }
+    ?>
+  </body>
+  <script src="js/zepto.min.js"></script>
+  <script src="js/app.js"></script>
+</html>

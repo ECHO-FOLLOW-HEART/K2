@@ -256,7 +256,7 @@ object GroupCtrlScala extends Controller {
 
     val operator = (request.headers.get("UserId") map (_.toLong)).get
     val futureGroup = client.getChatGroup(groupId, None)
-    val futureUser = client.getUserById(memberId, None)
+    val futureUser = client.getUserById(memberId, None, None)
 
     val future = (for {
       _ <- futureGroup
