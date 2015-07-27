@@ -510,8 +510,9 @@ object UserCtrlScala extends Controller {
     } yield {
       val nickNameOpt = (body \ "nickName").asOpt[String]
       val signatureOpt = (body \ "signature").asOpt[String]
+      val genderOpt = (body \ "gender").asOpt[String]
       val updateMap: Map[UserInfoProp, String] = Map(UserInfoProp.NickName -> nickNameOpt,
-        UserInfoProp.Signature -> signatureOpt) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
+        UserInfoProp.Signature -> signatureOpt, UserInfoProp.Gender -> genderOpt) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
 
       val ret = if (updateMap nonEmpty) {
         client.updateUserInfo(uid, updateMap) map (_ => ())
