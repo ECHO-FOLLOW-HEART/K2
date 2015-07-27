@@ -1,41 +1,34 @@
 @(author: String, avatar: String, rating: Double, contents: String, publishTime: Long)
 
+
+@buildFullStars(rating: Double) = {
+@for(p <- 0 until (Math.round(rating / 0.1).toInt / 2)) {
+    <i class="ui-ico-02 ui-ico-02-star-full"></i>
+}
+}
+
+@buildHalfStars(rating: Double) = {
+@for(p <- 0 until Math.round(rating / 0.1).toInt % 2) {
+    <i class="ui-ico-02 ui-ico-02-star-half"></i>
+}
+}
+
+@buildEmptyStars(rating: Double) = {
+@for(p <- 0 until (5 - Math.ceil(Math.round(rating / 0.1).toInt / 2.0).toInt)) {
+    <i class="ui-ico-02 ui-ico-02-star-empty"></i>
+}
+}
+
+
 <li>
     <div class="avatar"><img src="@avatar"></div>
     <div class="info">
         <div class="title">
             <h1 class="author">@author | <em class="txt01-01">@(new org.joda.time.DateTime(publishTime).toString("yyyy/MM/dd"))</em></h1>
             <h2>
-            @{
-                var full = 0
-                var half = 0
-                if(rating > 1) {
-                    full = 0
-                    half = 0
-                } else {
-                    val x = rating * 5
-                    val z = Math.floor(x)
-                    val r = x - z
-                    val r_x = r * 4
-                    if(r_x < 1){
-                        full = z.toInt
-                        half = 0
-                    } else if (r_x < 3){
-                        full = z.toInt
-                        half = 1
-                    } else {
-                        full = z.toInt + 1
-                        half = 0
-                    }
-                }
-                var empty = 5 - full - half
-                for(j <- 0 to full)
-                    <i class="ui-ico-02 ui-ico-02-star-full"></i>
-                for(j <- 0 to half)
-                    <i class="ui-ico-02 ui-ico-02-star-half"></i>
-                for(j <- 0 to empty)
-                    <i class="ui-ico-02 ui-ico-02-star-empty"></i>
-            }
+                @buildFullStars(rating)
+                @buildHalfStars(rating)
+                @buildEmptyStars(rating)
             </h2>
         </div>
         <div class="chat"><img src="/assets/images/chat_arrow.png"/><p class="p1">@contents</p>

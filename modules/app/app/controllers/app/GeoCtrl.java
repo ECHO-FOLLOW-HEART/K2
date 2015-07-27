@@ -497,8 +497,8 @@ public class GeoCtrl extends Controller {
         result.add(node);
 
         node = Json.newObject();
-        node.put("title", "节庆与民俗活动");
-        node.put("fields", Json.toJson(Arrays.asList("activities")));
+        node.put("title", "不可错过的游玩体验");
+        node.put("fields", Json.toJson(Arrays.asList("specials")));
         result.add(node);
 
         node = Json.newObject();
@@ -507,14 +507,15 @@ public class GeoCtrl extends Controller {
         result.add(node);
 
         node = Json.newObject();
+        node.put("title", "节庆与民俗活动");
+        node.put("fields", Json.toJson(Arrays.asList("activities")));
+        result.add(node);
+
+        node = Json.newObject();
         node.put("title", "宗教、文化与历史");
         node.put("fields", Json.toJson(Arrays.asList("geoHistory")));
         result.add(node);
 
-        node = Json.newObject();
-        node.put("title", "不可错过的游玩体验");
-        node.put("fields", Json.toJson(Arrays.asList("specials")));
-        result.add(node);
 
 //        node = Json.newObject();
 //        node.put("title", "描述");

@@ -1,4 +1,4 @@
-package controllers
+package controllers.app
 
 import aizou.core.MiscAPI
 import exception.ErrorCode
@@ -12,9 +12,9 @@ import utils.Utils
 import scala.collection.JavaConversions._
 
 /**
- * Created by zephyre on 7/21/15.
+ * Created by pengyt on 7/24/15.
  */
-object Application extends Controller {
+object MiscCtrlScala extends Controller {
 
   def index = Action {
     Ok(views.html.index("Your new application is ready."))
@@ -52,4 +52,12 @@ object Application extends Controller {
       }
   }
 
+  // 协议
+  def agreement() = Action {
+    Ok(views.html.agreement())
+  }
+  //公司介绍
+  def about(version: String) = Action {
+    Ok(views.html.about(version))
+  }
 }

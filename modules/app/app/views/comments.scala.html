@@ -1,58 +1,58 @@
-@(pid: String, page: Int, comments: Seq[models.poi.RestaurantComment])
+@(pid: String, page: Int, pageSize: Int, poiType: String, comments: Seq[models.poi.RestaurantComment])
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8"/>
-        <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
-        <meta name="format-detection" content="telephone=no"/>
-        <title>旅行派——景点更多点评</title>
-        <link rel="stylesheet" href="/assets/stylesheets/app.css">
-        <link rel="stylesheet" href="/assets/stylesheets/reset.css">
-        <style>
-        body{
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <meta name="format-detection" content="telephone=no"/>
+    <title>旅行派——景点更多点评</title>
+    <link rel="stylesheet" href="/assets/stylesheets/app.css">
+    <link rel="stylesheet" href="/assets/stylesheets/reset.css">
+    <style>
+    body{
         background: #f9faf9;
-        }
-        .ui-list-03 li{
+    }
+    .ui-list-03 li{
         padding: 14px 18px 14px 18px;
         box-shadow: 1px 1px 1px #eee;
         border-radius: 0;
         margin-bottom: 1px;
-        }
-        .ui-list-03 li h2{
+    }
+    .ui-list-03 li h2{
         height: 20px;
         float: right;
         vertical-align: middle;
-        }
-        .ui-list-03 .p1{
-            padding: 10px;
-            height: auto;
-            color: rgb(59,50,50);
-            font-size: 16px;
-            line-height: 28px;
-            border: 1px solid #e2e2e2;
-            border-radius: 5px;
-            margin-left:5px;
-            display: inline-block;
-        }
-        .ui-ico-02{
+    }
+    .ui-list-03 .p1{
+        padding: 10px;
+        height: auto;
+        color: rgb(59,50,50);
+        font-size: 16px;
+        line-height: 28px;
+        border: 1px solid #e2e2e2;
+        border-radius: 5px;
+        margin-left:5px;
+        display: inline-block;
+    }
+    .ui-ico-02{
         margin-right: .3em;
         width: 14px;
         height: 14px;
         display: inline-block;
         position: relative;
         background-size: cover;
-        }
-        .ui-ico-02-star-full{
+    }
+    .ui-ico-02-star-full{
         background-image: url("/assets/images/star-full.png");
-        }
-        .ui-ico-02-star-half{
+    }
+    .ui-ico-02-star-half{
         background-image: url("/assets/images/star-half.png");
-        }
-        .ui-ico-02-star-empty{
+    }
+    .ui-ico-02-star-empty{
         background-image: url("/assets/images/star-empty.png");
-        }
-        h1.author{
+    }
+    h1.author{
         color: rgb(150,150,150);
         font-size: 10px;
         line-height: 20px;
@@ -64,8 +64,8 @@
         float: left;
         vertical-align: middle;
         margin-top: 2px;
-        }
-        .time{
+    }
+    .time{
         right: 0px;
         position: absolute;
         color: rgb(150,150,150);
@@ -73,114 +73,116 @@
         line-height: 28px;
         margin-top: 0px;
         top: 0px;
-        }
-        .ft{
+    }
+    .ft{
         background-color: #f4f4f4;
         color: rgb(150,150,150);
         height: 2em;
         line-height: 1.5;
         margin-top: -5px;
         font-size: 12px;
-        }
-        .bd{
+    }
+    .bd{
         padding:0px;
-        }
-        .chat{
+    }
+    .chat{
         position: relative;
         margin-top: 5px;
-        }
-        .chat img{
+    }
+    .chat img{
         width:6px;
         height:10px;
         position: absolute;
         left: 0px;
         top:12px;
-        }
-        .title{
+    }
+    .title{
         width: 100%;
         overflow: hidden;
-        }
-        .info{
+    }
+    .info{
         float: left;
         margin-left: 10px;
-        }
-        .avatar{
+    }
+    .avatar{
         float: left;
         text-align: center;
         width: 57px;
         height: 57px;
-        }
-        .avatar img{
+    }
+    .avatar img{
         -moz-border-radius:30px;
         -webkit-border-radius:30px;
         border-radius: 30px;
-        }
-        </style>
-    </head>
-    <body class="bg_color">
-        <section class="bd">
-            <ul id="comment_listwrap" class="ui-list ui-list-03">
-                @for(c <- comments) {
-                    @commentEntry(c.getAuthorName, c.getAuthorAvatar, c.getRating, c.getContents, c.getPublishTime)
-                }
-            </ul>
-        </section>
-        <footer id="comment_loadmore" class="ft">小派正在努力的读取点评数据>_<</footer>
-    </body>
-    <script src="/assets/javascripts/jquery-1.11.1.min.js"></script>
-    <script>
-
-        var pid="@pid";
-        var pageId=@page;
-        var poiType="restaurant";
-
-        var finish = false;
-        var locked = false;
-        // 当显示"点击加载更多"的时候，滚动仍可加载！
-        function getComments(){
-            pageId = pageId + 1;
-            $.ajax({ //ajax获取加载的数据
-                type: "get",
-                url : "/comments.php?pageId=" + pageId + "&pageSize=20&pid=" + pid + "&poiType=" + poiType,
-                // url: "/h5/comments.php?pageId=" + pageId + "&pageSize=10&pid=" + pid,
-                success: function (msg) {  //成功返回后删除加载状态样式，插入dom
-                    if (msg){
-                        $("#comment_listwrap").append(msg);
-                        locked = false;
-                    }else{
-                        $('.ft').text('讨厌！评论都被你看完了～');
-                        finish = true;
-                    }
-                },
-                error: function () {
-                    //alert("参数出错，刷新后重试");
-                    $('.ft').text('点击可以查看更多评论哦～');
-                    pageId = pageId - 1;
-                    locked = false;
-                }
-            });
-        }
-        $('.ft').on('click', function(){
-            if (!locked){
-                locked = true;
-                $('.ft').text('小派正在努力的读取点评数据>_<');
-                getComments();
+    }
+    </style>
+</head>
+<body class="bg_color">
+    <section class="bd">
+        <ul id="comment_listwrap" class="ui-list ui-list-03">
+            @for(c <- comments) {
+                @commentEntry(c.getAuthorName, c.getAuthorAvatar, c.getRating, c.getContents, c.getPublishTime)
             }
-        })
-        $(window).on("scroll", function(){
-            if (!finish && !locked){
-                locked = true;
-                var top = document.documentElement.scrollTop + document.body.scrollTop;
-                var textheight = $(document).height();
-                if (textheight - top - $(window).height() <= 100){
-                    getComments();
+        </ul>
+    </section>
+    <footer id="comment_loadmore" class="ft">小派正在努力的读取点评数据>_<</footer>
+</body>
+<script src="/assets/javascripts/jquery-1.11.1.min.js"></script>
+<script>
+    var pid="@pid";
+    var pageId=@page;
+    var pageSize=@pageSize;
+    var poiType=@poiType;
+
+    var finish = false;
+    var locked = false;
+    // 当显示"点击加载更多"的时候，滚动仍可加载！
+    function getComments(){
+        pageId = pageId + 1;
+        $.ajax({ //ajax获取加载的数据
+            type: "get",
+            beforeSend: function(req) {
+                req.setRequestHeader("Accept", "text/html");
+            },
+            url : "http://api-dev.lvxingpai.com/app/poi/restaurants/" + pid +"/comments?pageId=" + pageId + "&pageSize=" + pageSize + "&poiType=" + poiType,
+            success: function (msg) {  //成功返回后删除加载状态样式，插入dom
+                if (msg){
+                    $("#comment_listwrap").append(msg);
+                    locked = false;
                 }else{
-                    locked = false;
+                    $('.ft').text('讨厌！评论都被你看完了～');
+                    finish = true;
                 }
+            },
+            error: function () {
+                //alert("参数出错，刷新后重试");
+                $('.ft').text('点击可以查看更多评论哦～');
+                pageId = pageId - 1;
+                locked = false;
             }
         });
-        $(function(){
-           $('.info').css('width',($('li').width()-70));
-        });
-    </script>
+    }
+    $('.ft').on('click', function(){
+        if (!locked){
+            locked = true;
+            $('.ft').text('小派正在努力的读取点评数据>_<');
+            getComments();
+        }
+    })
+    $(window).on("scroll", function(){
+        if (!finish && !locked){
+            locked = true;
+            var top = document.documentElement.scrollTop + document.body.scrollTop;
+            var textheight = $(document).height();
+            if (textheight - top - $(window).height() <= 100){
+                getComments();
+            }else{
+                locked = false;
+            }
+        }
+    });
+    $(function(){
+       $('.info').css('width',($('li').width()-70));
+    });
+</script>
 </html>
