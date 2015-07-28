@@ -42,7 +42,9 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
     @Transient
     public static String fnGender_M = "M";
     @Transient
-    public static String fnGender_S = "Secret";
+    public static String fnGender_S = "S";
+    @Transient
+    public static String fnGender_B = "B";
     @Transient
     public static String fnGender_None = "None";
 
