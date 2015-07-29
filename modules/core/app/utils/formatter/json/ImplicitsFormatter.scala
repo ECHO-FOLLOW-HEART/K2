@@ -1,6 +1,6 @@
 package utils.formatter.json
 
-import models.geo.{Locality => K2Locality}
+import models.geo.{ Locality => K2Locality }
 import org.bson.types.ObjectId
 import org.mongodb.morphia.annotations.Entity
 import play.api.libs.json.Json

@@ -20,6 +20,8 @@ import formatter.taozi.poi.BriefPOIFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
 import database.MorphiaFactory;
+import misc.FinagleUtils;
+import misc.FinagleUtils$;
 import models.geo.Locality;
 import models.misc.*;
 import models.poi.AbstractPOI;
@@ -370,7 +372,7 @@ public class MiscCtrl extends Controller {
     public static Result putPolicy(String scenario) throws InvalidKeyException, NoSuchAlgorithmException, AizouException {
         Configuration config = Configuration.root();
 
-            String userId = request().getHeader("UserId");
+        String userId = request().getHeader("UserId");
         String picName = getPicName(Integer.parseInt(request().getHeader("UserId")));
         Map qiniu = (Map) config.getObject("qiniu");
         String secretKey = qiniu.get("secertKey").toString();
@@ -494,7 +496,8 @@ public class MiscCtrl extends Controller {
                 return status(500, "Can't get image key!");
             UserUgcAPI.addUserAlbum(Long.valueOf(userId), imageItem, id);
         } else
-            UserAPI.resetAvater(Long.valueOf(userId), url);
+            FinagleUtils$.MODULE$.updateUserAvatar(userId, url);
+        //UserAPI.resetAvater(Long.valueOf(userId), url);
         ret.put("success", true);
 
         return ok(ret);
