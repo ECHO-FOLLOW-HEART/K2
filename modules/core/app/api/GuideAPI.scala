@@ -1,8 +1,9 @@
 package api
 
-import com.twitter.util.{ Future => TwitterFuture, FuturePool }
-import exception.{ AizouException, ErrorCode }
-import models.guide.{ AbstractGuide, Guide, ItinerItem }
+import com.twitter.util.{Future => TwitterFuture, FuturePool}
+import exception.{AizouException, ErrorCode}
+import models.geo.Locality
+import models.guide.{AbstractGuide, Guide, ItinerItem}
 import models.poi._
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
@@ -24,13 +25,14 @@ object GuideAPI {
   object GuideProps extends Enumeration {
     val Status = Value("status")
     val Title = Value("title")
+    val Localities = Value("localities")
   }
 
   /**
    * 修改行程单
    * @return
    */
-  def updateGuideInfo(guideId: String, updateInfo: Map[GuideProps.Value, String])(implicit ds: Datastore, futurePool: FuturePool) = {
+  def updateGuideInfo(guideId: String, updateInfo: Map[GuideProps.Value, Any])(implicit ds: Datastore, futurePool: FuturePool) = {
     if (updateInfo isEmpty)
       TwitterFuture(())
     else {
@@ -38,8 +40,9 @@ object GuideAPI {
         val query = ds.createQuery(classOf[Guide]) field "id" equal new ObjectId(guideId)
         val ops = updateInfo.foldLeft(ds.createUpdateOperations(classOf[Guide]))((ops, entry) => {
           entry._1 match {
-            case item if item.id == GuideProps.Status.id => ops.set(Guide.fnStatus, GuideStatus withName entry._2 toString)
-            case item if item.id == GuideProps.Title.id => ops.set(AbstractGuide.fnTitle, entry._2.trim)
+            case item if item.id == GuideProps.Status.id => ops.set(Guide.fnStatus, GuideStatus withName entry._2.asInstanceOf[String] toString)
+            case item if item.id == GuideProps.Title.id => ops.set(AbstractGuide.fnTitle, entry._2.asInstanceOf[String] trim)
+            case item if item.id == GuideProps.Localities.id => ops.set(AbstractGuide.fnLocalities, entry._2.asInstanceOf[Array[Locality]])
           }
         })
 
@@ -81,7 +84,7 @@ object GuideAPI {
         if (guide.shopping != null) update.set(AbstractGuide.fnShopping, guide.shopping)
         if (guide.restaurant != null) update.set(AbstractGuide.fnRestaurant, guide.restaurant)
         if (guide.images != null) update.set(AbstractGuide.fnImages, guide.images)
-        //if (guide.localities != null) update.set(Guide.fnLocalities, guide.localities)
+        if (guide.localities != null) update.set(AbstractGuide.fnLocalities, guide.localities)
         if (guide.getVisibility != null) update.set(Guide.fnVisibility, guide.getVisibility)
         if (guide.getStatus != null) update.set(Guide.fnStatus, guide.getStatus)
         if (guide.getUpdateTime != null) update.set(Guide.fnUpdateTime, System.currentTimeMillis)

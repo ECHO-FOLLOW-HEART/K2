@@ -181,7 +181,7 @@ GET           /poi/shopping                                            controlle
 POST          /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.guides(uid: Int)
 
 #保存攻略
-PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.app.GuideCtrlScala.saveGuideInfo(uid: Long, id: String)
+PUT           /users/$uid<\d+>/temp/$id<[0-9a-f]{24}>                  controllers.app.GuideCtrlScala.saveGuideInfo(uid: Long, id: String)
 
 # 获得攻略列表
 GET           /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.getGuidesByUser(uid: Long, page: Int?=0, pageSize: Int?=20)
@@ -191,6 +191,7 @@ GET           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controlle
 
 # 修改行程单详情
 PATCH         /users/$uid<\d+>/guides/$guideId<[0-9a-f]{24}>           controllers.app.GuideCtrlScala.updateGuideInfo(uid: Long, guideId: String)
+PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.app.GuideCtrl.saveGuide(uid: Long, id: String)
 
 #查看攻略详情
 GET           /users/$uid<\d+>/guides/:id/:part                        controllers.app.GuideCtrl.getGuideInfo(uid: Int, id: String, part: String)

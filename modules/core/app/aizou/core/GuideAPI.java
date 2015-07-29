@@ -296,7 +296,7 @@ public class GuideAPI {
      * @param guide
      * @throws exception.AizouException
      */
-    public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws AizouException {
+    public static void updateGuide(ObjectId guideId, Guide guide, Long userId) throws AizouException {
         Datastore ds = MorphiaFactory.datastore();
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
         if (userId != null)

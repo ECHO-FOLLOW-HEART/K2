@@ -109,20 +109,15 @@ public class GuideCtrl extends Controller {
      *
      * @return
      */
-    public static Result saveGuide() throws AizouException {
+    public static Result saveGuide(Long userId,String guideIdStr) throws AizouException {
 
         JsonNode data = request().body().asJson();
-        LogUtils.info(GuideCtrl.class, request());
 
-        String tmp = request().getHeader("UserId");
-        if (tmp == null)
-            return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "User id is null.");
-        Integer selfId = Integer.parseInt(tmp);
-        ObjectId guideId = new ObjectId(data.get("id").asText());
+        ObjectId guideId = new ObjectId(guideIdStr);
         ObjectMapper m = new ObjectMapper();
         Guide guideUpdate = m.convertValue(data, Guide.class);
         //保存攻略
-        GuideAPI.updateGuide(guideId, guideUpdate, selfId);
+        GuideAPI.updateGuide(guideId, guideUpdate, userId);
 
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
