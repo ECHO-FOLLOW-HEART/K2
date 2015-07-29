@@ -100,7 +100,8 @@ public class GuideAPI {
         ugcGuide.setItineraryDays(0);
         if (destinations != null && destinations.get(0) != null && destinations.get(0).getImages() != null)
             ugcGuide.images = TaoziDataFilter.getOneImage(destinations.get(0).getImages());
-        ugcGuide.title = getUgcGuideTitle(destinations);
+        //ugcGuide.title = getUgcGuideTitle(destinations);
+        ugcGuide.title = "我的旅行计划";
         //设置攻略可见性
         ugcGuide.setVisibility(Guide.fnVisibilityPublic);
         //设置攻略状态
@@ -125,7 +126,7 @@ public class GuideAPI {
             titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_DASH);
         String titleStr = titlesBuffer.toString();
         titleStr = titleStr.substring(0, titleStr.length() - 1);
-        titleStr = "我的行程计划";
+        titleStr = "我的旅行计划";
         return titleStr;
     }
 

@@ -1,6 +1,6 @@
 package controllers.app
 
-import aizou.core.UserUgcAPIScala
+import api.UserUgcAPI
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
@@ -43,9 +43,9 @@ object UserCtrlScala extends Controller {
     formatter.setSelfView(isSelf)
     (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
-      guideCnt <- UserUgcAPIScala.getGuidesCntByUser(user.getUserId)
-      albumCnt <- UserUgcAPIScala.getAlbumsCntByUser(user.getUserId)
-      trackCntAndCountryCnt <- UserUgcAPIScala.getTrackCntAndCountryCntByUser(user.getUserId)
+      guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
+      albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
+      trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
     } yield ({
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("guideCnt", guideCnt)

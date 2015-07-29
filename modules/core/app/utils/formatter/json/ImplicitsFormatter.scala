@@ -1,7 +1,8 @@
 package utils.formatter.json
 
-import models.geo.{ Locality => K2Locality }
+import models.geo.{Locality => K2Locality}
 import org.bson.types.ObjectId
+import org.mongodb.morphia.annotations.Entity
 import play.api.libs.json.Json
 
 /**
@@ -9,6 +10,7 @@ import play.api.libs.json.Json
  */
 object ImplicitsFormatter {
 
+  @Entity(noClassnameStored = true)
   case class Locality(id: String, zhName: String, enName: String)
 
   implicit def locality2Model(locality: Locality): K2Locality = {

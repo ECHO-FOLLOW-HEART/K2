@@ -1,22 +1,19 @@
-package aizou.core
+package api
 
 import com.twitter.util.{ Future, FuturePool }
 import exception.AizouException
 import models.AizouBaseEntity
 import models.guide.Guide
-import models.misc.{ Track, Album }
+import models.misc.{ Album, Track }
 import org.mongodb.morphia.Datastore
 import org.mongodb.morphia.query.Query
-import scala.collection.JavaConversions
-import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.collection.JavaConversions
 
 /**
  * Created by topy on 2015/7/7.
  */
-object UserUgcAPIScala {
+object UserUgcAPI {
 
   @throws(classOf[AizouException])
   def getGuidesCntByUser(uid: Long)(implicit ds: Datastore, futurePool: FuturePool): Future[Long] = {
