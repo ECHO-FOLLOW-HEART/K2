@@ -285,9 +285,9 @@ object UserCtrlScala extends Controller {
 
     val client = FinagleFactory.client
 
-    def sendSignupValidationCode(tel: String): TwitterFuture[Result] = sendValidationCodesImpl(Signup, None, tel)
+    def sendSignupValidationCode(tel: String): TwitterFuture[Result] = sendValidationCodesImpl(Signup, None, None, tel)
 
-    def sendResetPassword(tel: String) = sendValidationCodesImpl(ResetPassword, None, tel)
+    def sendResetPassword(tel: String) = sendValidationCodesImpl(ResetPassword, None, None, tel)
 
     def sendOtherValidationCode(action: OperationCode, userId: Long): TwitterFuture[Result] = {
       // 发送验证码。如果用户的tel不存在，则返回INVALID_ARGUMENT
@@ -297,17 +297,17 @@ object UserCtrlScala extends Controller {
           if (telOpt isEmpty)
             TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
           else
-            sendValidationCodesImpl(action, None, telOpt.get)
+            sendValidationCodesImpl(action, Some(userId), None, telOpt.get)
         }
       } yield result
     }
 
     // 真正发送验证码的代码
-    def sendValidationCodesImpl(action: OperationCode, countryCode: Option[Int], tel: String): TwitterFuture[Result] = {
+    def sendValidationCodesImpl(action: OperationCode, uid: Option[Long], countryCode: Option[Int], tel: String): TwitterFuture[Result] = {
       if (tel isEmpty)
         TwitterFuture(throw InvalidArgsException(Some("The phone number is invalid")))
 
-      client.sendValidationCode(action, tel, countryCode) map (_ => {
+      client.sendValidationCode(action, uid, tel, countryCode) map (_ => {
         val node = new ObjectMapper().createObjectNode()
         node.set("coolDown", LongNode.valueOf(60))
         K2Result.ok(Some(node))
