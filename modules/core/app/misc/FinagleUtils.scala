@@ -9,7 +9,6 @@ object FinagleUtils {
 
   def updateUserAvatar(userId: String, url: String) {
     val map: Map[UserInfoProp, String] = Map(UserInfoProp.Avatar -> url)
-    val userId: Long = userId
-    FinagleFactory.client.updateUserInfo(userId, map)
+    FinagleFactory.client.updateUserInfo(userId.toLong, map)
   }
 }
