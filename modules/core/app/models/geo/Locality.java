@@ -161,10 +161,7 @@ public class Locality extends AizouBaseEntity {
     /**
      * 是否为热门城市
      */
-    public Boolean isHot;
-    public List<String> pinyin;
     public List<String> imageList;
-    public boolean provCap;
     /**
      * 中文名称
      */

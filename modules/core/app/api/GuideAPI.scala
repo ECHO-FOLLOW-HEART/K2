@@ -42,7 +42,7 @@ object GuideAPI {
           entry._1 match {
             case item if item.id == GuideProps.Status.id => ops.set(Guide.fnStatus, GuideStatus withName entry._2.asInstanceOf[String] toString)
             case item if item.id == GuideProps.Title.id => ops.set(AbstractGuide.fnTitle, entry._2.asInstanceOf[String] trim)
-            case item if item.id == GuideProps.Localities.id => ops.set(AbstractGuide.fnLocalities, entry._2.asInstanceOf[Array[Locality]])
+            case item if item.id == GuideProps.Localities.id => ops.set(AbstractGuide.fnLocalities, localities2Model(entry._2.asInstanceOf[Array[Locality]]))
           }
         })
 
