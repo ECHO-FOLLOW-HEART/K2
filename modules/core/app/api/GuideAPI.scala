@@ -1,14 +1,14 @@
 package api
 
-import com.twitter.util.{Future => TwitterFuture, FuturePool}
-import exception.{AizouException, ErrorCode}
-import models.geo.Locality
-import models.guide.{AbstractGuide, Guide, ItinerItem}
+import com.twitter.util.{ Future => TwitterFuture, FuturePool }
+import exception.{ AizouException, ErrorCode }
+import models.guide.{ AbstractGuide, Guide, ItinerItem }
 import models.poi._
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
 import org.mongodb.morphia.query.UpdateOperations
 import scala.collection.JavaConversions._
+import utils.formatter.json.ImplicitsFormatter._
 
 import scala.language.postfixOps
 

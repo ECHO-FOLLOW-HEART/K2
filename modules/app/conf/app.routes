@@ -176,12 +176,12 @@ GET           /poi/restaurants                                         controlle
 GET           /poi/shopping                                            controllers.app.POICtrl.poiSearch(poiType: String="shopping", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 
 #----------攻略接口----------
-#根据目的地获得攻略
 # 新建行程单（包括新建和fork两种模式）
 POST          /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.guides(uid: Int)
 
 #保存攻略
-PUT           /users/$uid<\d+>/temp/$id<[0-9a-f]{24}>                  controllers.app.GuideCtrlScala.saveGuideInfo(uid: Long, id: String)
+PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.app.GuideCtrl.saveGuide(uid: Long, id: String)
+#PUT           /users/$uid<\d+>/temp/$id<[0-9a-f]{24}>                  controllers.app.GuideCtrlScala.saveGuideInfo(uid: Long, id: String)
 
 # 获得攻略列表
 GET           /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.getGuidesByUser(uid: Long, page: Int?=0, pageSize: Int?=20)
@@ -191,14 +191,13 @@ GET           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controlle
 
 # 修改行程单详情
 PATCH         /users/$uid<\d+>/guides/$guideId<[0-9a-f]{24}>           controllers.app.GuideCtrlScala.updateGuideInfo(uid: Long, guideId: String)
-PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.app.GuideCtrl.saveGuide(uid: Long, id: String)
 
 #查看攻略详情
 GET           /users/$uid<\d+>/guides/:id/:part                        controllers.app.GuideCtrl.getGuideInfo(uid: Int, id: String, part: String)
-##修改攻略标题
-#PUT           /guides/info/:id                                         controllers.app.GuideCtrl.setGuideTitle(id:String)
+
 #删除攻略
 DELETE        /guides/:id                                              controllers.app.GuideCtrl.deleteGuide(id: String)
+
 #获得目的地的攻略信息
 GET           /guides/locality/:id/:part                               controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
 
