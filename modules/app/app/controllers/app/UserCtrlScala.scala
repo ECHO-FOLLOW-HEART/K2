@@ -82,22 +82,22 @@ object UserCtrlScala extends Controller {
   def login() = Action.async(request => {
     val ret = for {
       body <- request.body.asJson
-      password <- (body \ "password").asOpt[String]
-      loginName <- (body \ "loginName").asOpt[String]
-      authCode <- (body \ "authCode").asOpt[String]
-      provider <- (body \ "provider").asOpt[String]
     } yield {
-        if (password != null && loginName != null) {
-          val telEntry = PhoneParserFactory.newInstance().parse(loginName)
-          val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password, "app") map (user => {
+        val password = (body \ "password").asOpt[String]
+        val loginName = (body \ "loginName").asOpt[String]
+        val authCode = (body \ "authCode").asOpt[String]
+        val provider = (body \ "provider").asOpt[String]
+        if (password.nonEmpty && loginName.nonEmpty) {
+          val telEntry = PhoneParserFactory.newInstance().parse(loginName.get)
+          val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
             val userFormatter = new UserLoginFormatter(true)
             K2Result.ok(Some(userFormatter.format(user)))
           })
           future rescue {
             case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid loginName/password"))
           }
-        } else if (authCode != null && provider != null) {
-          val future = FinagleFactory.client.loginByOAuth(authCode, provider) map (user => {
+        } else if (authCode.nonEmpty && provider.nonEmpty) {
+          val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
             val userFormatter = new UserLoginFormatter(true)
             K2Result.ok(Some(userFormatter.format(user)))
           })

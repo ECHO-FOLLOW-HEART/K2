@@ -495,8 +495,11 @@ public class MiscCtrl extends Controller {
             if (imageItem == null)
                 return status(500, "Can't get image key!");
             UserUgcAPI.addUserAlbum(Long.valueOf(userId), imageItem, id);
-        } else
+        } else {
+            LogUtils.info(MiscCtrl.class, "Start." + userId.toString() + url);
             FinagleUtils$.MODULE$.updateUserAvatar(userId, url);
+            LogUtils.info(MiscCtrl.class, "End." + userId.toString() + url);
+        }
         //UserAPI.resetAvater(Long.valueOf(userId), url);
         ret.put("success", true);
 
