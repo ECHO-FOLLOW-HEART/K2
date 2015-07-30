@@ -84,31 +84,33 @@ object UserCtrlScala extends Controller {
   def login() = Action.async(request => {
     val ret = for {
       body <- request.body.asJson
-      password <- (body \ "password").asOpt[String]
-      loginName <- (body \ "loginName").asOpt[String]
-      authCode <- (body \ "authCode").asOpt[String]
-      provider <- (body \ "provider").asOpt[String]
     } yield {
-      if (password != null && loginName != null) {
-        val telEntry = PhoneParserFactory.newInstance().parse(loginName)
-        val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password, "app") map (user => {
-          val userFormatter = new UserLoginFormatter(true)
-          K2Result.ok(Some(userFormatter.format(user)))
-        })
-        future rescue {
-          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid loginName/password"))
-        }
-      } else if (authCode != null && provider != null) {
-        val future = FinagleFactory.client.loginByOAuth(authCode, provider) map (user => {
-          val userFormatter = new UserLoginFormatter(true)
-          K2Result.ok(Some(userFormatter.format(user)))
-        })
-        future rescue {
-          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid authCode/authProvider"))
-        }
-      } else
-        TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Lack of login information"))
-    }
+
+        val password = (body \ "password").asOpt[String]
+        val loginName = (body \ "loginName").asOpt[String]
+        val authCode = (body \ "authCode").asOpt[String]
+        val provider = (body \ "provider").asOpt[String]
+        if (password.nonEmpty && loginName.nonEmpty) {
+          val telEntry = PhoneParserFactory.newInstance().parse(loginName.get)
+          val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
+            val userFormatter = new UserLoginFormatter(true)
+            K2Result.ok(Some(userFormatter.format(user)))
+          })
+          future rescue {
+            case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid loginName/password"))
+          }
+        } else if (authCode.nonEmpty && provider.nonEmpty) {
+          val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
+            val userFormatter = new UserLoginFormatter(true)
+            K2Result.ok(Some(userFormatter.format(user)))
+          })
+          future rescue {
+            case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid authCode/authProvider"))
+          }
+        } else
+          TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Lack of login information"))
+      }
+
 
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
@@ -304,15 +306,15 @@ object UserCtrlScala extends Controller {
 
     def sendResetPassword(tel: String) = sendValidationCodesImpl(ResetPassword, None, None, tel)
 
-    def sendOtherValidationCode(action: OperationCode, userId: Long): TwitterFuture[Result] = {
+    def sendOtherValidationCode(action: OperationCode, userId: Long, tel: String): TwitterFuture[Result] = {
       // 发送验证码。如果用户的tel不存在，则返回INVALID_ARGUMENT
       for {
-        telOpt <- client.getUserById(userId, Some(Seq(UserInfoProp.Tel)), None) map (_.tel)
+        userOpt <- client.getUserById(userId, Some(Seq()), None)
         result <- {
-          if (telOpt isEmpty)
+          if (userOpt == null)
             TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
           else
-            sendValidationCodesImpl(action, Some(userId), None, telOpt.get)
+            sendValidationCodesImpl(action, Some(userId), None, tel)
         }
       } yield result
     }
@@ -335,23 +337,22 @@ object UserCtrlScala extends Controller {
       userId <- (body \ "userId").asOpt[Long] orElse Option(-1L)
       tel <- (body \ "tel").asOpt[String] map (PhoneParserFactory.newInstance().parse(_).getPhoneNumber) orElse Some("")
     } yield {
-      // 根据action code的不同，分别调用对应的操作
-      (actionCode match {
-        case item if item == OperationCode.Signup.value => sendSignupValidationCode(tel)
-        case item if item == OperationCode.ResetPassword.value => sendResetPassword(tel)
-        case item if item == OperationCode.UpdateTel.value => sendOtherValidationCode(UpdateTel, userId)
-        case _ =>
-          TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.INVALID_ARGUMENT, s"Invalid action code: $actionCode"))
-      }) rescue {
-        case _: OverQuotaLimitException =>
-          TwitterFuture(K2Result.forbidden(ErrorCode.SMS_QUOTA_ERROR, "Exceeds the SMS sending rate limit"))
-        case _: InvalidArgsException =>
-          TwitterFuture(K2Result.unprocessable)
-        case _: NotFoundException =>
-          TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
+        // 根据action code的不同，分别调用对应的操作
+        (actionCode match {
+          case item if item == OperationCode.Signup.value => sendSignupValidationCode(tel)
+          case item if item == OperationCode.ResetPassword.value => sendResetPassword(tel)
+          case item if item == OperationCode.UpdateTel.value => sendOtherValidationCode(UpdateTel, userId, tel)
+          case _ =>
+            TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.INVALID_ARGUMENT, s"Invalid action code: $actionCode"))
+        }) rescue {
+          case _: OverQuotaLimitException =>
+            TwitterFuture(K2Result.forbidden(ErrorCode.SMS_QUOTA_ERROR, "Exceeds the SMS sending rate limit"))
+          case _: InvalidArgsException =>
+            TwitterFuture(K2Result.unprocessable)
+          case _: NotFoundException =>
+            TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
       }
     }
-
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })
