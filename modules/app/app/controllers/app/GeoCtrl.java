@@ -227,6 +227,7 @@ public class GeoCtrl extends Controller {
                 rmdProvince.setPinyin(proPinyin);
                 rmdProvince.setId(new ObjectId());
                 rmdProvince.setZhName(entry.getKey());
+                rmdProvince.setEnName("");
                 rmdProvince.setDestinations(entry.getValue());
                 rmdProvinceList.add(rmdProvince);
             }
@@ -277,7 +278,7 @@ public class GeoCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
-    public static Result exploreDestinationsByCountry(boolean withExperts,int page, int pageSize) throws AizouException {
+    public static Result exploreDestinationsByCountry(boolean withExperts, int page, int pageSize) throws AizouException {
         Http.Request req = request();
         Http.Response rsp = response();
         // 获取图片宽度
