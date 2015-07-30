@@ -368,7 +368,7 @@ public class MiscCtrl extends Controller {
      * @param scenario 上传场景: PORTRAIT-上传头像
      * @return
      */
-    @CheckUser
+    //@CheckUser
     public static Result putPolicy(String scenario) throws InvalidKeyException, NoSuchAlgorithmException, AizouException {
         Configuration config = Configuration.root();
 
