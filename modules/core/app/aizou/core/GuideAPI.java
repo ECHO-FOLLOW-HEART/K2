@@ -120,12 +120,13 @@ public class GuideAPI {
      * @return
      */
     private static String getUgcGuideTitle(List<Locality> destinations) {
-        StringBuffer titlesBuffer = new StringBuffer();
+        StringBuilder titlesBuilder = new StringBuilder();
         for (Locality locality : destinations)
-            titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_DASH);
-        String titleStr = titlesBuffer.toString();
-        titleStr = titleStr.substring(0, titleStr.length() - 1);
-        titleStr = "我的" + titleStr + "行程";
+            //titlesBuffer.append(locality.getZhName()).append(Constants.SYMBOL_DASH);
+            titlesBuilder.append(locality.getZhName());
+        String titleStr = titlesBuilder.toString() + "之旅";
+        //titleStr = titleStr.substring(0, titleStr.length() - 1);
+        //titleStr = "我的旅行计划";
         return titleStr;
     }
 
@@ -296,7 +297,7 @@ public class GuideAPI {
      * @param guide
      * @throws exception.AizouException
      */
-    public static void updateGuide(ObjectId guideId, Guide guide, Integer userId) throws AizouException {
+    public static void updateGuide(ObjectId guideId, Guide guide, Long userId) throws AizouException {
         Datastore ds = MorphiaFactory.datastore();
         Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guideId);
         if (userId != null)

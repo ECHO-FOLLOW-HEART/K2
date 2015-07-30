@@ -38,6 +38,8 @@ object FinagleConvert {
   def convertUserGender(value: Gender): String = {
     if (Gender.Male.value == value.value) return models.user.UserInfo.fnGender_M
     else if (Gender.Female.value == value.value) return models.user.UserInfo.fnGender_F
+    else if (Gender.Secret.value == value.value) return models.user.UserInfo.fnGender_S
+    else if (Gender.Both.value == value.value) return models.user.UserInfo.fnGender_B
     else return models.user.UserInfo.fnGender_None
   }
 

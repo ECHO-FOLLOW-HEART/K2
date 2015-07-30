@@ -30,10 +30,12 @@ public class Constants {
      * 符号
      */
     public static String SYMBOL_QUESTION = "?";
+    public static String SYMBOL_BLANK = " ";
     public static String SYMBOL_BAR = "|";
     public static String SYMBOL_SLASH = "/";
     public static String SYMBOL_NEWTON = "、";
     public static String SYMBOL_DASH = "-";
+    public static String SYMBOL_BIG = ">";
 
 
 

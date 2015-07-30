@@ -149,9 +149,10 @@ object GroupCtrlScala extends Controller {
   def getGroupUsers(gid: Long) = Action.async {
     request =>
       {
-        val uid = request.headers.get("chatGroupId").get.toLong
+
+        val selfId = request.headers.get("UserId").get.toLong
         val formatter = FormatterFactory.getInstance(classOf[UserInfoSimpleFormatter])
-        (FinagleFactory.client.getChatGroupMembers(gid, Some(UserCtrlScala.basicUserInfoFieds), Some(uid)) map (users => {
+        (FinagleFactory.client.getChatGroupMembers(gid, Some(UserCtrlScala.basicUserInfoFieds), Some(selfId)) map (users => {
           val usersList = users map (user => {
             UserCtrlScala.userInfoYunkai2Model(user)
           })

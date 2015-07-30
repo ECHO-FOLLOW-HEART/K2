@@ -180,40 +180,39 @@ GET           /poi/restaurants                                         controlle
 GET           /poi/shopping                                            controllers.app.POICtrl.poiSearch(poiType: String="shopping", query: String?="",locality:String?="",lng: Double?=0, lat: Double?=0, maxDist: Double?=20,tag: String?="",hotelType: String?="",sortby: String?="", sort: String?="desc", page: Int?=0, pageSize: Int?=10)
 
 #----------攻略接口----------
-#根据目的地获得攻略
-#复制攻略
+# 新建行程单（包括新建和fork两种模式）
 POST          /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.guides(uid: Int)
-#POST          /create-guide                                            controllers.app.GuideCtrl.createGuide()
-#复制攻略
-#GET           /copy-guide/:id                                          controllers.app.GuideCtrl.copyGuide(id: String)
-#获得攻略列表
+
+#保存攻略
+PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.app.GuideCtrl.saveGuide(uid: Long, id: String)
+#PUT           /users/$uid<\d+>/temp/$id<[0-9a-f]{24}>                  controllers.app.GuideCtrlScala.saveGuideInfo(uid: Long, id: String)
+
+# 获得攻略列表
 GET           /users/$uid<\d+>/guides                                  controllers.app.GuideCtrl.getGuidesByUser(uid: Long, page: Int?=0, pageSize: Int?=20)
-#GET           /guides                                                  controllers.app.GuideCtrl.getGuidesByUser(page:Int?=0,pageSize: Int?=20)
-#更新行程单
-POST          /guides                                                  controllers.app.GuideCtrl.saveGuide()
-#查看完整攻略详情
+
+# 查看完整攻略详情
 GET           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                controllers.app.GuideCtrl.getGuideInfo(uid: Int, id: String, part: String="all")
-#GET           /guides/:id                                              controllers.app.GuideCtrl.getGuideInfo(id: String, part: String="all")
+
+# 修改行程单详情
+PATCH         /users/$uid<\d+>/guides/$guideId<[0-9a-f]{24}>           controllers.app.GuideCtrlScala.updateGuideInfo(uid: Long, guideId: String)
+
 #查看攻略详情
 GET           /users/$uid<\d+>/guides/:id/:part                        controllers.app.GuideCtrl.getGuideInfo(uid: Int, id: String, part: String)
-#GET           /guides/:id/:part                                        controllers.app.GuideCtrl.getGuideInfo(id: String, part: String)
-#获得目的地的攻略信息
-GET           /guides/locality/:id/:part                               controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
-#修改攻略标题
-PUT           /guides/info/:id                                         controllers.app.GuideCtrl.setGuideTitle(id:String)
+
 #删除攻略
 DELETE        /guides/:id                                              controllers.app.GuideCtrl.deleteGuide(id: String)
 
+#获得目的地的攻略信息
+GET           /guides/locality/:id/:part                               controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
+
 #----------地理信息接口----------
 # 搜索城市
-#国家列表
-#GET           /geo/countries                                           controllers.app.GeoCtrl.getCountries(page:Int?=0, pageSize: Int?=20)
 #国家详情
 GET           /geo/countries/$id<[0-9a-f]{24}>                         controllers.app.GeoCtrl.getCountyById(id: String)
-#某个国家的旅行达人
-GET           /geo/countries/$id<[0-9a-f]{24}>/experts                 controllers.app.GeoCtrl.getExpertsByCountry(id: String, page: Int?=0, pageSize: Int?=20)
-
-GET           /geo/countries                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
+#获得国家列表
+#GET           /geo/countries                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
+GET           /geo/countries                                           controllers.app.GeoCtrlScala.getCountryExperts(withExperts:Boolean=true)
+#获得国家达人列表
 GET           /geo/countries/:code/expert                              controllers.app.UserUgcCtrl.getExpertUserByTracks(code:String)
 #展示国内目的地
 GET           /geo/localities/domestic                                 controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=10)
@@ -253,7 +252,8 @@ GET           /travelnotes                                             controlle
 GET           /travelnotes/$id<[0-9a-f]{24}>                           controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
 
 
-
+GET           /createCountries                                         controllers.app.Batch.createExpertTrackByCountry()
+GET           /createTracks                                            controllers.app.Batch.userInfoToTrack()
 
 
 

@@ -1,6 +1,6 @@
 package controllers.app
 
-import aizou.core.UserUgcAPIScala
+import api.UserUgcAPI
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
@@ -11,6 +11,7 @@ import exception.ErrorCode
 import formatter.FormatterFactory
 import formatter.taozi.user.{ UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
+import utils.Implicits._
 import misc.TwitterConverter._
 import misc.{ FinagleConvert, FinagleFactory }
 import models.user.UserInfo
@@ -21,6 +22,7 @@ import utils.{ Result => K2Result, Utils }
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Future => ScalaFuture }
+import scala.language.{ implicitConversions, postfixOps }
 import scala.language.{ implicitConversions, postfixOps }
 
 /**
@@ -41,13 +43,16 @@ object UserCtrlScala extends Controller {
     formatter.setSelfView(isSelf)
     (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
-      guideCnt <- UserUgcAPIScala.getGuidesCntByUser(user.getUserId)
-      albumCnt <- UserUgcAPIScala.getAlbumsCntByUser(user.getUserId)
+
+      guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
+      albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
+      trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
+
     } yield ({
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("guideCnt", guideCnt)
-      node.put("trackCnt", 0)
-      node.put("countryCnt", 0)
+      node.put("trackCnt", trackCntAndCountryCnt._1)
+      node.put("countryCnt", trackCntAndCountryCnt._2)
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
       Utils.status(node.toString).toScala
@@ -81,15 +86,28 @@ object UserCtrlScala extends Controller {
       body <- request.body.asJson
       password <- (body \ "password").asOpt[String]
       loginName <- (body \ "loginName").asOpt[String]
+      authCode <- (body \ "authCode").asOpt[String]
+      provider <- (body \ "provider").asOpt[String]
     } yield {
-      val telEntry = PhoneParserFactory.newInstance().parse(loginName)
-      val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password, "app") map (user => {
-        val userFormatter = new UserLoginFormatter(true)
-        K2Result.ok(Some(userFormatter.format(user)))
-      })
-      future rescue {
-        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid loginName/password"))
-      }
+      if (password != null && loginName != null) {
+        val telEntry = PhoneParserFactory.newInstance().parse(loginName)
+        val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password, "app") map (user => {
+          val userFormatter = new UserLoginFormatter(true)
+          K2Result.ok(Some(userFormatter.format(user)))
+        })
+        future rescue {
+          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid loginName/password"))
+        }
+      } else if (authCode != null && provider != null) {
+        val future = FinagleFactory.client.loginByOAuth(authCode, provider) map (user => {
+          val userFormatter = new UserLoginFormatter(true)
+          K2Result.ok(Some(userFormatter.format(user)))
+        })
+        future rescue {
+          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid authCode/authProvider"))
+        }
+      } else
+        TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Lack of login information"))
     }
 
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
@@ -282,9 +300,9 @@ object UserCtrlScala extends Controller {
 
     val client = FinagleFactory.client
 
-    def sendSignupValidationCode(tel: String): TwitterFuture[Result] = sendValidationCodesImpl(Signup, None, tel)
+    def sendSignupValidationCode(tel: String): TwitterFuture[Result] = sendValidationCodesImpl(Signup, None, None, tel)
 
-    def sendResetPassword(tel: String) = sendValidationCodesImpl(ResetPassword, None, tel)
+    def sendResetPassword(tel: String) = sendValidationCodesImpl(ResetPassword, None, None, tel)
 
     def sendOtherValidationCode(action: OperationCode, userId: Long): TwitterFuture[Result] = {
       // 发送验证码。如果用户的tel不存在，则返回INVALID_ARGUMENT
@@ -294,17 +312,17 @@ object UserCtrlScala extends Controller {
           if (telOpt isEmpty)
             TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
           else
-            sendValidationCodesImpl(action, None, telOpt.get)
+            sendValidationCodesImpl(action, Some(userId), None, telOpt.get)
         }
       } yield result
     }
 
     // 真正发送验证码的代码
-    def sendValidationCodesImpl(action: OperationCode, countryCode: Option[Int], tel: String): TwitterFuture[Result] = {
+    def sendValidationCodesImpl(action: OperationCode, uid: Option[Long], countryCode: Option[Int], tel: String): TwitterFuture[Result] = {
       if (tel isEmpty)
         TwitterFuture(throw InvalidArgsException(Some("The phone number is invalid")))
 
-      client.sendValidationCode(action, tel, countryCode) map (_ => {
+      client.sendValidationCode(action, uid, tel, countryCode) map (_ => {
         val node = new ObjectMapper().createObjectNode()
         node.set("coolDown", LongNode.valueOf(60))
         K2Result.ok(Some(node))
@@ -507,8 +525,10 @@ object UserCtrlScala extends Controller {
     } yield {
       val nickNameOpt = (body \ "nickName").asOpt[String]
       val signatureOpt = (body \ "signature").asOpt[String]
+      val avatar = (body \ "avatar").asOpt[String]
+      val genderOpt = (body \ "gender").asOpt[String]
       val updateMap: Map[UserInfoProp, String] = Map(UserInfoProp.NickName -> nickNameOpt,
-        UserInfoProp.Signature -> signatureOpt) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
+        UserInfoProp.Signature -> signatureOpt, UserInfoProp.Avatar -> avatar, UserInfoProp.Gender -> genderOpt) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
 
       val ret = if (updateMap nonEmpty) {
         client.updateUserInfo(uid, updateMap) map (_ => ())

@@ -5,6 +5,7 @@ import misc.CoreConfig
 import org.mongodb.morphia.{ Morphia, ValidationExtension }
 
 import scala.collection.JavaConversions._
+import scala.language.postfixOps
 
 /**
  * Created by zephyre on 6/28/15.
@@ -19,10 +20,15 @@ object MorphiaFactory {
     })
 
     val mongoConfig = CoreConfig.conf.getConfig("k2.mongo").get
-    val user = mongoConfig.getString("user").get
-    val password = mongoConfig.getString("password").get
+    val user = mongoConfig.getString("user")
+    val password = mongoConfig.getString("password")
     val dbName = mongoConfig.getString("db").get
-    val credential = MongoCredential.createScramSha1Credential(user, dbName, password.toCharArray)
+    val credentialOpt = for {
+      u <- user
+      p <- password
+    } yield {
+      MongoCredential.createScramSha1Credential(u, dbName, p.toCharArray)
+    }
 
     val options = new MongoClientOptions.Builder()
       //连接超时
@@ -35,7 +41,10 @@ object MorphiaFactory {
       .threadsAllowedToBlockForConnectionMultiplier(50)
       .build()
 
-    new MongoClient(serverAddresses, Seq(credential), options)
+    if (credentialOpt nonEmpty)
+      new MongoClient(serverAddresses, Seq(credentialOpt.get), options)
+    else
+      new MongoClient(serverAddresses, options)
   }
 
   lazy val morphia = {

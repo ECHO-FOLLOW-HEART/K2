@@ -67,6 +67,7 @@ public class RmdProvinceFormatter extends AizouFormatter<RmdProvince> {
             jsonGenerator.writeStartObject();
             writeObjectId(rmdLocality, jsonGenerator, serializerProvider);
             jsonGenerator.writeStringField(RmdLocality.FD_ZH_NAME, getString(rmdLocality.getZhName()));
+            jsonGenerator.writeStringField(RmdLocality.FD_EN_NAME, getString(rmdLocality.getEnName()));
 
             // Location
             jsonGenerator.writeFieldName(Locality.fnLocation);

@@ -57,27 +57,27 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
         jgen.writeStringField(UserInfo.fnZodiac, TaoziDataFilter.getZodiac(userInfo.getZodiac()));
 
         // List<Locality>
-        jgen.writeFieldName(UserInfo.fnTracks);
-        jgen.writeStartObject();
-        List<Locality> localities = userInfo.getTracks();
-        List<Locality> localitiesValue;
-        if (localities != null && !localities.isEmpty()) {
-            Map<String, List<Locality>> map = TaoziDataFilter.transLocalitiesByCountry(localities);
-            for (Map.Entry<String, List<Locality>> entry : map.entrySet()) {
-
-                jgen.writeFieldName(entry.getKey());
-                jgen.writeStartArray();
-                localitiesValue = entry.getValue();
-                if (localitiesValue != null && !localitiesValue.isEmpty()) {
-                    JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(Locality.class, null);
-                    for (Locality locality : localitiesValue) {
-                        retLocality.serialize(locality, jgen, serializerProvider);
-                    }
-                }
-                jgen.writeEndArray();
-            }
-        }
-        jgen.writeEndObject();
+//        jgen.writeFieldName(UserInfo.fnTracks);
+//        jgen.writeStartObject();
+//        List<Locality> localities = userInfo.getTracks();
+//        List<Locality> localitiesValue;
+//        if (localities != null && !localities.isEmpty()) {
+//            Map<String, List<Locality>> map = TaoziDataFilter.transLocalitiesByCountry(localities);
+//            for (Map.Entry<String, List<Locality>> entry : map.entrySet()) {
+//
+//                jgen.writeFieldName(entry.getKey());
+//                jgen.writeStartArray();
+//                localitiesValue = entry.getValue();
+//                if (localitiesValue != null && !localitiesValue.isEmpty()) {
+//                    JsonSerializer<Object> retLocality = serializerProvider.findValueSerializer(Locality.class, null);
+//                    for (Locality locality : localitiesValue) {
+//                        retLocality.serialize(locality, jgen, serializerProvider);
+//                    }
+//                }
+//                jgen.writeEndArray();
+//            }
+//        }
+//        jgen.writeEndObject();
 
 //        jgen.writeFieldName(UserInfo.fnTracks);
 //        jgen.writeStartArray();
@@ -110,6 +110,4 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
 
         jgen.writeEndObject();
     }
-
-
 }
