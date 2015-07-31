@@ -124,7 +124,7 @@ public class PoiAPI {
         String stKey = null;
         String defaultSorStr;
         if (sortField == null)
-            defaultSorStr = String.format("-%s, -%s", AbstractPOI.fnHotness, AbstractPOI.fnRating);
+            defaultSorStr = String.format("%s,-%s, -%s", AbstractPOI.FD_RANK, AbstractPOI.fnHotness, AbstractPOI.fnRating);
         else {
             switch (sortField) {
                 case PRICE:
@@ -156,7 +156,7 @@ public class PoiAPI {
             query = query.field("type").equal(hotelType);
 
         String[] fieldList = {AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.fnRating, AbstractPOI.detDesc, AbstractPOI.FD_IMAGES,
-                AbstractPOI.FD_TAGS, AbstractPOI.detContact, AbstractPOI.FD_PRICE, AbstractPOI.FD_ALIAS, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_LOCATION};
+                AbstractPOI.FD_TAGS, AbstractPOI.detContact, AbstractPOI.FD_PRICE, AbstractPOI.FD_ALIAS, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_LOCATION, AbstractPOI.FD_RANK};
         query.retrievedFields(true, fieldList);
         if (lng == 0 && lat == 0)
             query.order(defaultSorStr);

@@ -109,7 +109,7 @@ public class GuideCtrl extends Controller {
      *
      * @return
      */
-    public static Result saveGuide(Long userId,String guideIdStr) throws AizouException {
+    public static Result saveGuide(Long userId, String guideIdStr) throws AizouException {
 
         JsonNode data = request().body().asJson();
 
@@ -241,7 +241,7 @@ public class GuideCtrl extends Controller {
         GuideAPI.fillGuideInfo(guide);
         GuideFormatter formatter = FormatterFactory.getInstance(GuideFormatter.class, imgWidth);
         ObjectNode node = (ObjectNode) formatter.formatNode(guide);
-        node.put("detailUrl", GUIDE_DETAIL_URL + guide.getId());
+        node.put("detailUrl", GUIDE_DETAIL_URL + guide.getId() + "&uid=" + uid);
         return Utils.createResponse(ErrorCode.NORMAL, node);
 
     }
