@@ -157,7 +157,7 @@ public class PoiAPI {
 
         String[] fieldList = {AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.fnRating, AbstractPOI.detDesc, AbstractPOI.FD_IMAGES,
                 AbstractPOI.FD_TAGS, AbstractPOI.detContact, AbstractPOI.FD_PRICE, AbstractPOI.FD_ALIAS, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_LOCATION,
-                AbstractPOI.FD_RANK,AbstractPOI.FD_STYLE};
+                AbstractPOI.FD_RANK, AbstractPOI.FD_STYLE, AbstractPOI.FD_TELEPHONE};
         query.retrievedFields(true, fieldList);
         if (lng == 0 && lat == 0)
             query.order(defaultSorStr);

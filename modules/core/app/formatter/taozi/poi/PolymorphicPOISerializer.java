@@ -338,9 +338,9 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         }
         jsonGenerator.writeEndObject();
     }
-    
-    private int checkRank(int rank) {
-        if (rank >= 1000000)
+
+    private int checkRank(Integer rank) {
+        if (rank == null || rank >= 1000000)
             return 0;
         return rank;
     }
