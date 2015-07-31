@@ -223,7 +223,7 @@ public class POICtrl extends Controller {
 
         switch (field) {
             case "tips":
-                destKeyList.add(AbstractPOI.FD_TIPS);
+                destKeyList.add("miscInfo." + AbstractPOI.FD_TIPS);
                 break;
             case "trafficInfo":
                 destKeyList.add(AbstractPOI.FD_TRAFFICINFO);
