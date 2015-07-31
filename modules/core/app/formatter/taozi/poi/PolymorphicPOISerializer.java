@@ -102,7 +102,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         }
 
         // Rank
-        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(checkRank(abstractPOI.getRank())));
 
         // Locality
         jsonGenerator.writeFieldName(AbstractPOI.FD_LOCALITY);
@@ -213,7 +213,15 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
             // PriceDesc
             jsonGenerator.writeStringField(AbstractPOI.FD_PRICE_DESC, getString(abstractPOI.priceDesc));
 
-
+            // Tel
+            List<String> tels = abstractPOI.tel;
+            jsonGenerator.writeFieldName(AbstractPOI.FD_TELEPHONE);
+            jsonGenerator.writeStartArray();
+            if (tels != null && (!tels.isEmpty())) {
+                for (String tel : tels)
+                    jsonGenerator.writeString(getString(tel));
+            }
+            jsonGenerator.writeEndArray();
         } else if (abstractPOI instanceof Restaurant) {
             // Type use for serialize
             jsonGenerator.writeStringField("type", "restaurant");
@@ -258,7 +266,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
             jsonGenerator.writeEndArray();
         }
         // Rank
-        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(checkRank(abstractPOI.getRank())));
         // Targets
 //        jsonGenerator.writeFieldName(AbstractPOI.detTargets);
 //        List<ObjectId> targets = abstractPOI.targets;
@@ -330,6 +338,11 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         }
         jsonGenerator.writeEndObject();
     }
-
+    
+    private int checkRank(int rank) {
+        if (rank >= 1000000)
+            return 0;
+        return rank;
+    }
 }
 

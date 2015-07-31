@@ -300,15 +300,15 @@ object UserCtrlScala extends Controller {
 
     def sendResetPassword(tel: String) = sendValidationCodesImpl(ResetPassword, None, None, tel)
 
-    def sendOtherValidationCode(action: OperationCode, userId: Long): TwitterFuture[Result] = {
+    def sendOtherValidationCode(action: OperationCode, userId: Long, tel: String): TwitterFuture[Result] = {
       // 发送验证码。如果用户的tel不存在，则返回INVALID_ARGUMENT
       for {
-        telOpt <- client.getUserById(userId, Some(Seq(UserInfoProp.Tel)), None) map (_.tel)
+        userOpt <- client.getUserById(userId, Some(Seq()), None)
         result <- {
-          if (telOpt isEmpty)
+          if (userOpt == null)
             TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
           else
-            sendValidationCodesImpl(action, Some(userId), None, telOpt.get)
+            sendValidationCodesImpl(action, Some(userId), None, tel)
         }
       } yield result
     }
@@ -335,7 +335,7 @@ object UserCtrlScala extends Controller {
       (actionCode match {
         case item if item == OperationCode.Signup.value => sendSignupValidationCode(tel)
         case item if item == OperationCode.ResetPassword.value => sendResetPassword(tel)
-        case item if item == OperationCode.UpdateTel.value => sendOtherValidationCode(UpdateTel, userId)
+        case item if item == OperationCode.UpdateTel.value => sendOtherValidationCode(UpdateTel, userId, tel)
         case _ =>
           TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.INVALID_ARGUMENT, s"Invalid action code: $actionCode"))
       }) rescue {
@@ -347,6 +347,7 @@ object UserCtrlScala extends Controller {
           TwitterFuture(K2Result.conflict(ErrorCode.USER_EXIST, s"The phone number $tel already exists"))
         case _: NotFoundException =>
           TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
+
       }
     }
 

@@ -21,6 +21,7 @@ import utils.Utils;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -183,10 +184,11 @@ public class POICtrl extends Controller {
                 sf = null;
         }
 
-        List<AbstractPOI> results = new ArrayList<>();
+        List<AbstractPOI> results = new LinkedList<>();
         Iterator<? extends AbstractPOI> it = PoiAPI.poiSearch(type, query, locId, lng, lat, maxDist, tag, hotelType, sf, isSortAsc, page, pageSize);
         while (it.hasNext())
             results.add(it.next());
+
         SimplePOIFormatter<? extends AbstractPOI> simplePOIFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
         return Utils.createResponse(ErrorCode.NORMAL, simplePOIFormatter.formatNode(results));
     }
@@ -221,7 +223,7 @@ public class POICtrl extends Controller {
 
         switch (field) {
             case "tips":
-                destKeyList.add(AbstractPOI.FD_TIPS);
+                destKeyList.add("miscInfo." + AbstractPOI.FD_TIPS);
                 break;
             case "trafficInfo":
                 destKeyList.add(AbstractPOI.FD_TRAFFICINFO);
