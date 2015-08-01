@@ -102,7 +102,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         }
 
         // Rank
-        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(checkRank(abstractPOI.getRank())));
 
         // Locality
         jsonGenerator.writeFieldName(AbstractPOI.FD_LOCALITY);
@@ -266,7 +266,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
             jsonGenerator.writeEndArray();
         }
         // Rank
-        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(abstractPOI.getRank()));
+        jsonGenerator.writeObjectField(AbstractPOI.FD_RANK, getValue(checkRank(abstractPOI.getRank())));
         // Targets
 //        jsonGenerator.writeFieldName(AbstractPOI.detTargets);
 //        List<ObjectId> targets = abstractPOI.targets;
@@ -339,5 +339,10 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         jsonGenerator.writeEndObject();
     }
 
+    private int checkRank(Integer rank) {
+        if (rank == null || rank >= 1000000)
+            return 0;
+        return rank;
+    }
 }
 

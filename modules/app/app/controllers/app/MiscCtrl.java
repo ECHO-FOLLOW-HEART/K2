@@ -1,7 +1,6 @@
 package controllers.app;
 
 import aizou.core.*;
-import aspectj.CheckUser;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -20,7 +19,6 @@ import formatter.taozi.poi.BriefPOIFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
 import database.MorphiaFactory;
-import misc.FinagleUtils;
 import misc.FinagleUtils$;
 import models.geo.Locality;
 import models.misc.*;
@@ -378,13 +376,11 @@ public class MiscCtrl extends Controller {
         String secretKey = qiniu.get("secertKey").toString();
         String accessKey = qiniu.get("accessKey").toString();
         String scope, callbackUrl;
-        StringBuilder stringBuilder = new StringBuilder();
         if (scenario.equals("portrait") || scenario.equals("album")) {
             scope = qiniu.get("taoziAvaterScope").toString();
-            stringBuilder.append(routes.MiscCtrl.getCallback().absoluteURL(request()));
-//            stringBuilder.append("http://");
-//            stringBuilder.append("api.lvxingpai.com/app/misc/upload-callback");
-            callbackUrl = stringBuilder.toString();
+            String hostname = "api.lvxingpai.com";
+            String url = routes.MiscCtrl.getCallback().url();
+            callbackUrl = new StringBuilder().append("http://").append(hostname).append(url).toString();
             LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);
         } else
             return new TaoziResBuilder().setCode(ErrorCode.INVALID_ARGUMENT)

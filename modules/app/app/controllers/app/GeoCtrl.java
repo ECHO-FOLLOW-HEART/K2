@@ -110,7 +110,6 @@ public class GeoCtrl extends Controller {
                                              @Key(tag = "groupBy") boolean groupBy,
                                              @Key(tag = "page") int page,
                                              @Key(tag = "pageSize") int pageSize) throws AizouException {
-//            long t0 = System.currentTimeMillis();
         Http.Request req = request();
         Http.Response rsp = response();
         // 获取图片宽度
@@ -241,16 +240,6 @@ public class GeoCtrl extends Controller {
         }
     }
 
-    public static Result getCountries(@Key(tag = "page") int page,
-                                      @Key(tag = "pageSize") int pageSize) throws AizouException {
-        List<Country> countries = GeoAPI.getAllCountryList();
-
-        ObjectNode response = new ObjectMapper().createObjectNode();
-
-        response.put("success", "ok");
-        return Utils.createResponse(ErrorCode.NORMAL, response);
-    }
-
     public static Result getCountyById(String id) throws AizouException {
         Country country = GeoAPI.countryDetails(id);
         if (country == null)
@@ -259,52 +248,6 @@ public class GeoCtrl extends Controller {
         ObjectNode response = new ObjectMapper().createObjectNode();
         response.put("zhName", country.getZhName());
         return Utils.createResponse(ErrorCode.NORMAL, response);
-    }
-
-    public static Result getExpertsByCountry(String countryId, int page, int pageSize) throws AizouException {
-        Http.Request req = request();
-        Http.Response rsp = response();
-        // 获取头像宽度
-        String imgWidthStr = request().getQueryString("imgWidth");
-        int imgWidth = 0;
-        if (imgWidthStr != null)
-            imgWidth = Integer.valueOf(imgWidthStr);
-        // 取得达人配置
-
-        // 根据配置取得达人信息
-
-        ObjectNode result = new ObjectMapper().createObjectNode();
-        result.put("success", "200OK");
-        return Utils.createResponse(ErrorCode.NORMAL, result);
-    }
-
-    public static Result exploreDestinationsByCountry(boolean withExperts, int page, int pageSize) throws AizouException {
-        Http.Request req = request();
-        Http.Response rsp = response();
-        // 获取图片宽度
-        String imgWidthStr = request().getQueryString("imgWidth");
-        int imgWidth = 0;
-        if (imgWidthStr != null)
-            imgWidth = Integer.valueOf(imgWidthStr);
-
-        Configuration config = Configuration.root();
-        Map destnations = (Map) config.getObject("destinations");
-        String countrysStr = destnations.get("country").toString();
-        List<String> countryNames = Arrays.asList(countrysStr.split(Constants.SYMBOL_SLASH));
-        List<Country> countryList = GeoAPI.searchCountryByName(countryNames, Constants.ZERO_COUNT,
-                Constants.MAX_COUNT);
-
-        SimpleCountryFormatter formatter = new SimpleCountryFormatter();
-        if (imgWidth > 0)
-            formatter.setImageWidth(imgWidth);
-        JsonNode destResult = formatter.formatNode(countryList);
-
-        for (Iterator<JsonNode> itr = destResult.elements(); itr.hasNext(); ) {
-            ObjectNode cNode = (ObjectNode) itr.next();
-            cNode.put("expertUserCnt", 3);
-        }
-
-        return new TaoziResBuilder().setBody(destResult).build();
     }
 
     /**

@@ -11,16 +11,16 @@ import exception.ErrorCode
 import formatter.FormatterFactory
 import formatter.taozi.user.{ UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
-import utils.Implicits._
 import misc.TwitterConverter._
 import misc.{ FinagleConvert, FinagleFactory }
 import models.user.UserInfo
 import play.api.mvc.{ Action, Controller, Result }
+
+import utils.Implicits._
 import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
-import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ Future => ScalaFuture }
 import scala.language.{ implicitConversions, postfixOps }
 
@@ -84,7 +84,6 @@ object UserCtrlScala extends Controller {
     val ret = for {
       body <- request.body.asJson
     } yield {
-
       val password = (body \ "password").asOpt[String]
       val loginName = (body \ "loginName").asOpt[String]
       val authCode = (body \ "authCode").asOpt[String]
@@ -347,8 +346,11 @@ object UserCtrlScala extends Controller {
           TwitterFuture(K2Result.forbidden(ErrorCode.SMS_QUOTA_ERROR, "Exceeds the SMS sending rate limit"))
         case _: InvalidArgsException =>
           TwitterFuture(K2Result.unprocessable)
+        case _: ResourceConflictException =>
+          TwitterFuture(K2Result.conflict(ErrorCode.USER_EXIST, s"The phone number $tel already exists"))
         case _: NotFoundException =>
           TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
+
       }
     }
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
