@@ -86,6 +86,16 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
             // PriceDesc
             jsonGenerator.writeStringField(AbstractPOI.FD_PRICE_DESC, getString(abstractPOI.priceDesc));
 
+            // Tel
+            List<String> tels = abstractPOI.tel;
+            jsonGenerator.writeFieldName(AbstractPOI.FD_TELEPHONE);
+            jsonGenerator.writeStartArray();
+            if (tels != null && (!tels.isEmpty())) {
+                for (String tel : tels)
+                    jsonGenerator.writeString(getString(tel));
+            }
+            jsonGenerator.writeEndArray();
+
         } else if (abstractPOI instanceof Restaurant) {
             // Type use for serialize
             jsonGenerator.writeStringField("type", "restaurant");
