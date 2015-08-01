@@ -98,6 +98,12 @@ object GeoCtrlScala extends Controller {
             field.get match {
               case "dining" => Ok(views.html.dining(locality.getDiningIntro, locality.getCuisines.toBuffer.toSeq))
               case "shopping" => Ok(views.html.shopping(locality.getShoppingIntro, locality.getCommodities.toBuffer.toSeq))
+              case "remoteTraffic" => Ok(views.html.item("", locality.getRemoteTraffic.toBuffer.toSeq))
+              case "localTraffic" => Ok(views.html.item("", locality.getLocalTraffic.toBuffer.toSeq))
+              case "activities" => Ok(views.html.item(locality.getActivityIntro, locality.getActivities.toBuffer.toSeq))
+              case "tips" => Ok(views.html.item("", locality.getTips.toBuffer.toSeq))
+              case "geoHistory" => Ok(views.html.item("", locality.getGeoHistory.toBuffer.toSeq))
+              case "specials" => Ok(views.html.item("", locality.getSpecials.toBuffer.toSeq))
               case _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", field.get))
             }
           } else {

@@ -1,0 +1,37 @@
+@(desc: String, contents: Seq[models.geo.DetailsEntry])
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>旅行派——城市详情</title>
+  <link href="/assets/stylesheets/reset.css" rel="stylesheet"/>
+  <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+  <style>
+  .content{
+    background-color: #f9faf9;
+    padding: 14px 18px;
+  }
+  .p2:first-child .t2{
+    margin-top: 0px;
+  }
+  img{
+    width: 100%;
+    height: auto;
+  }
+  </style>
+</head>
+<body class="bg_color">
+  <article id="tab-item-01" class="content">
+    <div class="p2">@desc</div>
+    @for(content <- contents){
+      <div class="p2">
+        <h1 class="t2 base_text_color_medium">@content.getTitle</h1>
+        <p>@content.getDesc</p>
+      </div>
+    }
+  </article>
+</body>
+<script src="/assets/javascripts/zepto.min.js"></script>
+<script src="/assets/javascripts/app.js"></script>
+</html>
