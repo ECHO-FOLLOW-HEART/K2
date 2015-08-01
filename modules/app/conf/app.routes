@@ -228,6 +228,7 @@ GET           /geo/localities/$id<[0-9a-f]{24}>/comments               controlle
 GET           /geo/localities/$id<[0-9a-f]{24}>/outLine                controllers.app.GeoCtrl.getTravelGuideOutLine(id: String)
 #获取景点的深度介绍（H5）
 GET           /geo/localities/$id<[0-9a-f]{24}>/details                controllers.app.GeoCtrl.getTravelGuide(id: String, field: String)
+#GET           /geo/localities/$id<[0-9a-f]{24}>/detailsScala           controllers.app.GeoCtrlScala.getTravelGuide(id: String, field: Option[String]?=None)
 
 #----------用户评价接口----------
 #保存用户的评价(H5)

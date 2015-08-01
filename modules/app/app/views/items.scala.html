@@ -1,0 +1,102 @@
+@(id: String, contents:Seq[(String, String)])
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+    <title>旅行派——城市概况一览</title>
+    <link href="/assets/stylesheets/reset.css" rel="stylesheet"/>
+    <link href="/assets/stylesheets/app.css" rel="stylesheet"/>
+    <script src="/assets/javascripts/jquery-1.11.1.min.js"></script>
+    <style>
+      ul.list-column{
+        font-size: 1em;
+      }
+      ul.list-column p{
+        font-size: 12px;
+        height: 34px;
+        line-height: 34px;
+        margin-left: 14px;
+      }
+      ul.list-column li{
+        position: relative;
+        line-height: 68px;
+        background: #fff;
+      }
+      ul.list-column li a i.icon{
+        width: 27px;
+        height: 27px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      ul.list-column li a{
+        display: block;
+        overflow: hidden;
+        padding-left: 16px;
+      }
+      ul.list-column li:hover{
+        background: rgb(247,250,247);
+      }
+      .ico-01-arr-r{
+        position: absolute;
+        top: 26px;
+        right: 18px;
+        width: 10px;
+        height: 16px;
+      }
+      .t1{
+        font-size: 16px;
+        margin-left: 10px;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      span.line{
+        height:1px;
+        background:#e2e2e2;
+        margin-left:48px;
+        position:absolute;
+        bottom:0px;
+        right: 0px;
+      }
+    </style>
+  </head>
+  <body class="bg_color">
+    <ul class="list-column">
+      @for(j <- 0 until contents.size) {
+        @if(j == 0){
+            <p class="base_text_color_light">交通</p>
+        }
+        @if(j == 2){
+            <p class="base_text_color_light">游玩攻略</p>
+          }
+        @if(j == 4){
+            <p class="base_text_color_light">文化背景</p>
+          }
+        <li onmousedown="lighton(event)" onmouseup="lightoff(event)">
+          <a href="http://api-dev.lvxingpai.com/app/geo/localities/@id/&field=@contents(j)._2">
+            <i class="icon">
+              <img src="/assets/images/items@j .png"/>
+            </i>
+            <h1 class="t1 base_text_color_medium">@contents(j)._1</h1>
+            <i class="ico-01-arr-r">
+              <img src="/assets/images/item_arrow_r.png">
+            </i>
+          </a>
+        </li>
+      }
+    </ul>
+    <script>
+        $(function(){
+            $('li').each(function(index){
+                 if(index%2 == 0){
+                    $(this).css('border-top','1px solid #e2e2e2');
+                    $(this).find('a').after('<span class="line"></span>');
+                 }else{
+                    $(this).css('border-bottom','1px solid #e2e2e2');
+                 }
+            })
+            $('span.line').width($('li').width()-16);
+        })
+    </script>
+  </body>
+</html>

@@ -65,7 +65,7 @@ object POICtrlScala extends Controller {
   //          }
   //          Utils.createResponse(ErrorCode.NORMAL, ret).toScala
   //        } else if (reqDataFormat.contains("text/html")) {
-  //          Ok(views.html.desc(spotId, poiInfo.asInstanceOf[ViewSpot]))
+  //          Ok(views.html.desc(poiInfo.asInstanceOf[ViewSpot]))
   //        } else {
   //          Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid http accept type: %s.", reqDataFormat)).toScala
   //        }
@@ -94,29 +94,33 @@ object POICtrlScala extends Controller {
         if (reqDataFormat.contains("application/json")) {
           // 获取图片宽度
           val imgWidthStr = request.getQueryString("imgWidth")
-          val imgWidth: Integer = if (imgWidthStr nonEmpty) imgWidthStr.get.toInt else 0
+          val imgWidth: Integer = if ((imgWidthStr nonEmpty) && (imgWidthStr != null)) imgWidthStr.get.toInt else 0
           val result = new ObjectMapper().createObjectNode()
           field match {
             case "tips" => {
               result.put("desc", "")
               val detailsEntryFormatter = FormatterFactory.getInstance(classOf[DetailsEntryFormatter], imgWidth)
-              if (poiInfo.getTips() != null) {
+              if (poiInfo.getTips != null) {
                 result.set("contents", new ObjectMapper().createObjectNode())
               } else {
-                result.set("contents", detailsEntryFormatter.formatNode(poiInfo.getTips()))
+                result.set("contents", detailsEntryFormatter.formatNode(poiInfo.getTips))
               }
             }
             case "trafficInfo" => {
-              result.set("contents", new ObjectMapper().valueToTree(poiInfo.getTrafficInfo()))
+              result.set("contents", new ObjectMapper().valueToTree(poiInfo.getTrafficInfo))
             }
             case "visitGuide" => {
-              result.set("contents", new ObjectMapper().valueToTree(poiInfo.getVisitGuide()))
+              result.set("contents", new ObjectMapper().valueToTree(poiInfo.getVisitGuide))
             }
           }
           Utils.createResponse(ErrorCode.NORMAL, result).toScala
         } else if (reqDataFormat.contains("text/html")) {
+
           field match {
-            case "trafficInfo" => Ok(views.html.traffic(poiInfo.getTrafficInfo()))
+            case "trafficInfo" => Ok(views.html.traffic(poiInfo.getTrafficInfo))
+            case "tips" => Ok(views.html.tips(poiInfo.getTips.toBuffer.toSeq))
+            case "visitGuide" => Ok(views.html.experience(poiInfo.getVisitGuide))
+            case _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", field))
           }
         } else {
           Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid http accept type: %s.", reqDataFormat)).toScala
