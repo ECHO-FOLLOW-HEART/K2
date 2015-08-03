@@ -109,15 +109,15 @@
     <article class="content">
         <div class="ui-g-list-bt">
             <section class="ui-g-fly1-b">
-                <p class="t1 base_text_color_medium">@travelNote.getTitle</p>
+                <p class="t1 base_text_color_medium">@Html(travelNote.getTitle)</p>
                 <div class="spend"></div>
             </section>
         </div>
         <article id="tab-item-01" class="contents">
             @for(content <- travelNote.getContents.toSeq){
                 <div class="p2">
-                    <h1 class="t2 base_text_color_light">@content.keySet</h1>
-                    @content.values
+                    <h1 class="t2 base_text_color_light">@Html(content.get("title"))</h1>
+                    @Html(content.get("content"))
                 </div>
             }
         </article>

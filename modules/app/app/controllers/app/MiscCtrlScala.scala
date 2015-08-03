@@ -1,7 +1,7 @@
 package controllers.app
 
 import aizou.core.MiscAPI
-import exception.{AizouException, ErrorCode}
+import exception.{ AizouException, ErrorCode }
 import formatter.FormatterFactory
 import formatter.taozi.misc.CommentFormatter
 import models.poi.RestaurantComment
@@ -29,7 +29,7 @@ object MiscCtrlScala extends Controller {
       {
         val formatter = poiType match {
           case "restaurant" => FormatterFactory.getInstance(classOf[CommentFormatter])
-          case  _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType))
+          case _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiType))
         }
 
         // 判断请求是何种格式

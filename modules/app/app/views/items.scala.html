@@ -1,4 +1,7 @@
 @(id: String, contents:Seq[(String, String)])
+@buildStr(str1: String, j:Int, str2: String) = @{
+  str1 + j + str2
+}
 <!DOCTYPE html>
 <html>
   <head>
@@ -75,7 +78,7 @@
         <li onmousedown="lighton(event)" onmouseup="lightoff(event)">
           <a href="http://api-dev.lvxingpai.com/app/geo/localities/@id/&field=@contents(j)._2">
             <i class="icon">
-              <img src="/assets/images/items@j .png"/>
+              @Html(buildStr("<img src=\"/assets/images/items", j, ".png\"/>"))
             </i>
             <h1 class="t1 base_text_color_medium">@contents(j)._1</h1>
             <i class="ico-01-arr-r">

@@ -161,9 +161,9 @@ GET           /suggestions                                                  cont
 GET           /poi/viewspots/$spotId<[0-9a-f]{24}>                          controllers.app.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 # 景点详情(H5)
 GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptions             controllers.app.POICtrl.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
-GET           /poi/viewspots/&spotId<[0-9a-f]{24}>/descriptionsScala        controllers.app.POICtrlScala.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptionsScala        controllers.app.POICtrlScala.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                      controllers.app.POICtrl.getTravelGuide(id: String, category: String,poiDesc: String="vs")
+GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                      controllers.app.POICtrl.getTravelGuide(id: String, category: String, poiDesc: String="vs")
 GET           /poi/viewspots/$id<[0-9a-f]{24}>/detailsScala                 controllers.app.POICtrlScala.getTravelGuide(id: String, category: String,poiDesc: String="vs")
 # 酒店详情
 GET           /poi/hotels/$spotId<[0-9a-f]{24}>                             controllers.app.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)

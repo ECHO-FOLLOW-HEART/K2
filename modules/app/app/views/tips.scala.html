@@ -27,8 +27,8 @@
         @for(tip <- tips) {
           <li>
             <div class="p2">
-              <h1 class="t2">@tip.getTitle</h1>
-              @tip.getDesc
+              <h1 class="t2">@Html(tip.getTitle)</h1>
+              @Html(tip.getDesc)
             </div>
           </li>
         }

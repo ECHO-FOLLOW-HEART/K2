@@ -54,6 +54,7 @@ object GeoCtrlScala extends Controller {
           }
 
           val locality = PoiAPI.getLocalityByField(new ObjectId(locId), fieldList)
+          //          println("shoppingIntro = " + locality.getShoppingIntro + "   commodities = " + locality.getCommodities)
           if (locality == null) Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality is not exist.ID:" + locId).toScala
 
           // 判断请求是何种格式

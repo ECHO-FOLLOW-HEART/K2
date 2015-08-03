@@ -62,13 +62,13 @@
     <body class="bg_color">
         <ul class="list-column">
             <ul class="content">
-                @if(viewSpot.getTimeCostDesc.nonEmpty){
+                @if(viewSpot.getTimeCostDesc nonEmpty){
                     <li><em>推荐游玩：</em><em class="detail">@viewSpot.getTimeCostDesc</em></li>
                 }
-                @if(viewSpot.getOpenTime.nonEmpty) {
+                @if(viewSpot.getOpenTime nonEmpty) {
                     <li><em>开放时间：</em><em class="detail">@viewSpot.getOpenTime</em></li>
                 }
-                @if(viewSpot.getPriceDesc.nonEmpty) {
+                @if(viewSpot.getPriceDesc nonEmpty) {
                     <li><em>景点门票：</em><em class="detail">@viewSpot.getPriceDesc</em></li>
                 }
                 <div class="p2">

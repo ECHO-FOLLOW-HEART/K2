@@ -26,8 +26,8 @@
     <div class="p2">@desc</div>
     @for(content <- contents){
       <div class="p2">
-        <h1 class="t2 base_text_color_medium">@content.getTitle</h1>
-        <p>@content.getDesc</p>
+        <h1 class="t2 base_text_color_medium">@Html(content.getTitle)</h1>
+        <p>@Html(content.getDesc)</p>
       </div>
     }
   </article>

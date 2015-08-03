@@ -42,11 +42,11 @@
   <body class="bg_color">
     <section class="bd">
       <article id="eat_listwrap" class="content">
-        <div class="p2">@desc</div>
+        <div class="p2">@Html(desc)</div>
         @for(content <- contents){
           <div class="p2">
-            <h1 class="t2">@content.getTitle</h1>
-            <p>@content.getDesc</p>
+            <h1 class="t2">@Html(content.getTitle)</h1>
+            <p>@Html(content.getDesc)</p>
           </div>
         }
       </article>
