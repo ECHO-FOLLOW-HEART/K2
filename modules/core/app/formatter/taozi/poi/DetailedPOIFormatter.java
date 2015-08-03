@@ -61,7 +61,8 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends AizouFormatter<
                 AbstractPOI.FD_VISITGUIDE,
                 AbstractPOI.FD_TRAFFICINFO,
                 AbstractPOI.FD_RANK,
-                AbstractPOI.FD_STYLE
+                AbstractPOI.FD_STYLE,
+                AbstractPOI.FD_TELEPHONE
 
         );
     }
