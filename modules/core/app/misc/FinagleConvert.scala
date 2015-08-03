@@ -5,6 +5,8 @@ import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, ChatGroup => YunkaiCha
 import models.group.ChatGroup
 import models.user.UserInfo
 import org.bson.types.ObjectId
+import org.joda.time.format.DateTimeFormat
+import scala.language.postfixOps
 
 /**
  * Created by zephyre on 6/30/15.
@@ -20,6 +22,12 @@ object FinagleConvert {
     result.setSignature(userInfo.signature getOrElse "")
     result.setTel(userInfo.tel getOrElse "")
     result.setMemo(userInfo.memo getOrElse "")
+    result.setResidence(userInfo.residence getOrElse "")
+    result.setBirthday(userInfo.birth map (input => {
+      // 日期格式转换。将yyyy-MM-dd格式，转换为MM/dd/yyyy格式
+      val fmtInput = DateTimeFormat.forPattern("MM/dd/yyyy")
+      fmtInput.parseDateTime(input).toDate
+    }) orNull)
     result
   }
 

@@ -14,6 +14,7 @@ import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ FinagleConvert, FinagleFactory }
 import models.user.UserInfo
+import org.joda.time.format.DateTimeFormat
 import play.api.mvc.{ Action, Controller, Result }
 import utils.Implicits._
 import utils.phone.PhoneParserFactory
@@ -27,24 +28,25 @@ import scala.language.{ implicitConversions, postfixOps }
  * Created by zephyre on 6/30/15.
  */
 object UserCtrlScala extends Controller {
+  import UserInfoProp._
 
   implicit def userInfoYunkai2Model(userInfo: YunkaiUserInfo): UserInfo = FinagleConvert.convertK2User(userInfo)
 
-  val basicUserInfoFieds = Seq(UserInfoProp.UserId, UserInfoProp.NickName, UserInfoProp.Avatar, UserInfoProp.Gender,
-    UserInfoProp.Signature)
+  val basicUserInfoFieds = Seq(UserId, NickName, Avatar, Gender, Signature, Residence, Birthday)
 
   def getUserInfo(userId: Long) = Action.async(request => {
+
     val isSelf = request.headers.get("UserId").map(_.toLong).getOrElse(0) == userId
 
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
-    val fields = basicUserInfoFieds ++ (if (isSelf) Seq(UserInfoProp.Tel) else Seq())
+    val fields = basicUserInfoFieds ++ (if (isSelf) Seq(Tel) else Seq())
     formatter.setSelfView(isSelf)
     (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
       guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
       trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
-    } yield ({
+    } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", trackCntAndCountryCnt._1)
@@ -52,14 +54,13 @@ object UserCtrlScala extends Controller {
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
       Utils.status(node.toString).toScala
-    })
+    }
     ) rescue {
       case _: NotFoundException =>
         TwitterFuture {
           Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
         }
     }
-
   })
 
   /**
@@ -517,6 +518,19 @@ object UserCtrlScala extends Controller {
   })
 
   def updateUserInfo(uid: Long) = Action.async(request => {
+    import UserInfoProp._
+
+    /**
+     * 日期格式转换。将yyyy-MM-dd格式，转换为MM/dd/yyyy格式
+     * @return
+     */
+    def dateFormatConvert(input: String): String = {
+      val fmtInput = DateTimeFormat.forPattern("yyyy-MM-dd")
+      val fmtOutput = DateTimeFormat.forPattern("MM/dd/yyyy")
+      val date = fmtInput.parseDateTime(input)
+      fmtOutput.print(date)
+    }
+
     val client = FinagleFactory.client
 
     val future = (for {
@@ -526,8 +540,11 @@ object UserCtrlScala extends Controller {
       val signatureOpt = (body \ "signature").asOpt[String]
       val avatar = (body \ "avatar").asOpt[String]
       val genderOpt = (body \ "gender").asOpt[String]
-      val updateMap: Map[UserInfoProp, String] = Map(UserInfoProp.NickName -> nickNameOpt,
-        UserInfoProp.Signature -> signatureOpt, UserInfoProp.Avatar -> avatar, UserInfoProp.Gender -> genderOpt) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
+      val residenceOpt = (body \ "residence").asOpt[String]
+      val birthdayOpt = (body \ "birthday").asOpt[String] map dateFormatConvert
+      val updateMap: Map[UserInfoProp, String] = Map(NickName -> nickNameOpt, Signature -> signatureOpt,
+        Avatar -> avatar, Gender -> genderOpt, Residence -> residenceOpt,
+        Birthday -> birthdayOpt) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
 
       val ret = if (updateMap nonEmpty) {
         client.updateUserInfo(uid, updateMap) map (_ => ())
