@@ -15,6 +15,7 @@ import models.geo._
 import models.misc.Track
 import models.user.{ UserInfo => K2UserInfo }
 import org.bson.types.ObjectId
+import play.Configuration
 import play.api.mvc.{ Action, Controller }
 import utils.Implicits._
 import utils.{ TaoziDataFilter, Utils }
@@ -65,7 +66,16 @@ object Batch extends Controller {
     })
 
   def dealWithCountries(countries: Seq[Country]): Unit = {
-    val userCnt = BatchImpl.getCountryToUserCntMap(countries.map(_.getId))
+    //    val config: Configuration = Configuration.root
+    //    val map = config.getObject("experts")
+    //    val list = map.asInstanceOf[java.util.HashMap].values
+    val userCnt = BatchImpl.getCountryToUserCntMap(countries.map(_.getId), Seq(11000, 100000, 100003, 100057,
+      100076, 100093, 100001, 100015,
+      100025, 100002, 100004, 100005,
+      100009, 100010, 100011, 100012,
+      100014, 100031, 100035, 100040,
+      100056, 100067, 100068, 100073,
+      100089, 100090, 100091))
     saveCountries(countries, userCnt)
     //writeCountries(countries, userCnt)
   }
