@@ -1,6 +1,5 @@
 package controllers.bache
 
-import java.lang
 import java.util.Arrays
 
 import akka.actor.FSM.->
@@ -9,10 +8,11 @@ import exception.AizouException
 import models.AizouBaseEntity
 import models.geo.{ CountryExpert, Locality, Country }
 import models.misc.{ Track, Album }
+import models.poi.{ AbstractPOI, ViewSpot }
 import models.user.UserInfo
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
-import org.mongodb.morphia.query.Query
+import org.mongodb.morphia.query.{ UpdateOperations, Query }
 
 import scala.collection.JavaConversions._
 
@@ -21,9 +21,9 @@ import scala.collection.JavaConversions._
  */
 object BatchImpl {
 
-  def getCountryToUserCntMap(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Map[ObjectId, Int] = {
+  def getCountryToUserCntMap(ids: Seq[ObjectId], uids: Seq[Long])(implicit ds: Datastore, futurePool: FuturePool): Map[ObjectId, Int] = {
     val query = ds.createQuery(classOf[Track])
-    query.field(Track.fnCountry + ".id").in(ids)
+    query.field(Track.fnCountry + ".id").in(ids).field(Track.fnUserId).in(uids)
     val tracks = query.asList()
     val ctMap = tracks.groupBy(_.getCountry.getId)
     for ((k, v) <- ctMap) yield (k, v.groupBy(_.getUserId).size)
@@ -60,6 +60,23 @@ object BatchImpl {
       query.asList().toSeq
     }
   }
+
+  def getViewSportLocalList()(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ViewSpot]] = {
+    val query = ds.createQuery(classOf[ViewSpot])
+    query.retrievedFields(true, Arrays.asList(AizouBaseEntity.FD_ID, AbstractPOI.simplocList): _*)
+    futurePool {
+      query.asList().toSeq
+    }
+  }
+
+  //  def saveViewSportLocality(map: Map[ObjectId, Locality])(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
+  //    val update: UpdateOperations[ViewSpot] = ds.createUpdateOperations(classOf[ViewSpot])
+  //    val query: Query[ViewSpot] = ds.createQuery(classOf[ViewSpot]).field(AizouBaseEntity.FD_ID).in(map.keySet)
+  //    update.set(AbstractPOI.FD_LOCALITY, tuple._2)
+  //    futurePool {
+  //      ds.update(query, update)
+  //    }
+  //  }
 
   def saveTracks(tracks: Seq[Track])(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
     futurePool {
