@@ -24,7 +24,7 @@ object MiscCtrlScala extends Controller {
     val results = MiscAPI.getComments[RestaurantComment](classOf[RestaurantComment], new ObjectId(id), 0.0, 1.0, 0, 0, 15)
     Ok(views.html.comments(id, 1, 20, "restaurant", results))
   }
-  def displayComment(poiType: String, poiId: String, lower: Double, upper: Double, lastUpdate: Long, page: Int, pageSize: Int, isHtmlComplete: Boolean) = Action {
+  def displayComment(poiType: String, poiId: String, lower: Double, upper: Double, lastUpdate: Long, page: Int, pageSize: Int, snippets: Boolean) = Action {
     request =>
       {
         val formatter = poiType match {
@@ -39,7 +39,7 @@ object MiscCtrlScala extends Controller {
           val results = formatter.formatNode((Option(commentList) map (_.toSeq)).get)
           Utils.createResponse(ErrorCode.NORMAL, results).toScala
         } else if (reqDataFormat.contains("text/html")) {
-          if (isHtmlComplete) {
+          if (snippets) {
             val results = MiscAPI.getComments[RestaurantComment](classOf[RestaurantComment], new ObjectId(poiId), lower, upper, lastUpdate, page, pageSize)
             Ok(views.html.comments(poiId, page, pageSize, poiId, results))
           } else {
@@ -53,8 +53,8 @@ object MiscCtrlScala extends Controller {
   }
 
   // 协议
-  def agreement() = Action {
-    Ok(views.html.agreement())
+  def eula() = Action {
+    Ok(views.html.eula())
   }
   //公司介绍
   def about(version: String) = Action {

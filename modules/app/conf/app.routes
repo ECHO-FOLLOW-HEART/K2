@@ -239,10 +239,10 @@ GET           /geo/localities/$id<[0-9a-f]{24}>/detailsScala                cont
 #----------用户评价接口----------
 #保存用户的评价(H5)
 #查看景点的评价(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/commentsScala               controllers.app.MiscCtrlScala.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, isHtmlComplete: Boolean?=true)
-GET           /poi/restaurants/$id<[0-9a-f]{24}>/commentsScala              controllers.app.MiscCtrlScala.displayComment(poiType: String="restaurant", id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, isHtmlComplete: Boolean?=true)
+GET           /poi/viewspots/$id<[0-9a-f]{24}>/commentsScala               controllers.app.MiscCtrlScala.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
+GET           /poi/restaurants/$id<[0-9a-f]{24}>/commentsScala              controllers.app.MiscCtrlScala.displayComment(poiType: String="restaurant", id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
 #协议(H5)
-GET           /agreement                                                    controllers.app.MiscCtrlScala.agreement()
+GET           /eula                                                    controllers.app.MiscCtrlScala.eula()
 #公司介绍(H5)
 GET           /about                                                        controllers.app.MiscCtrlScala.about(version: String?="2.0")
 
