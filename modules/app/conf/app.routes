@@ -79,7 +79,7 @@ PATCH         /users/$uid<\d+>                                         controlle
 #POST          /users/easemob                                     controllers.app.UserCtrl_V2.getUsersByEasemob()
 ##根据通讯录进行用户匹配
 #POST          /users/search-by-address-book                      controllers.app.UserCtrl_V2.matchAddressBook()
-GET           /users/$uid<\d+>/address-book                            controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
+POST          /users/$uid<\d+>/match                                   controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
 #
 ##----------用户好友接口----------
 
@@ -94,7 +94,7 @@ DELETE        /users/$id<\d+>/albums/:picId                            controlle
 #获取用户足迹
 GET           /users/$id<[0-9]+>/footprints                            controllers.app.UserUgcCtrl.getUserTracks(id :Long)
 #获取所有达人的足迹
-GET           /users/:userRole/footprintst                             controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
+GET           /users/:userRole/footprints                              controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
 #获取足迹包含某目的地的所有达人
 #POST          /users/:userRole/footprints/users                        controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
 #修改足迹
