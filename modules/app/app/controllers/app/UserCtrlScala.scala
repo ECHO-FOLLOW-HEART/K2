@@ -16,6 +16,7 @@ import misc.{ FinagleConvert, FinagleFactory }
 import models.user.{ Contact => K2Contact, UserInfo }
 import org.joda.time.format.DateTimeFormat
 import play.api.mvc.{ Action, Controller, Result }
+
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
 import utils.phone.PhoneParserFactory
@@ -46,6 +47,7 @@ object UserCtrlScala extends Controller {
     formatter.setSelfView(isSelf)
     (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
+
       guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
       trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
@@ -354,7 +356,6 @@ object UserCtrlScala extends Controller {
 
       }
     }
-
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })

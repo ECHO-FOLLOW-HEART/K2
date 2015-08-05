@@ -579,7 +579,7 @@ public class MiscCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
-    private static JsonNode getCommentsImpl(Class<? extends Comment> commitClass, String poiId, double lower, double upper, long lastUpdate, int page, int pageSize)
+    public static JsonNode getCommentsImpl(Class<? extends Comment> commitClass, String poiId, double lower, double upper, long lastUpdate, int page, int pageSize)
             throws AizouException {
         CommentFormatter formatter = FormatterFactory.getInstance(CommentFormatter.class);
         List<Comment> commentList = MiscAPI.getComments(commitClass, new ObjectId(poiId), lower, upper, lastUpdate, page, pageSize);

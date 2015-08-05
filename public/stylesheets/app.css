@@ -1,0 +1,682 @@
+/*公用样式*/
+html {
+    height : 100%;
+}
+
+body {
+    width      : 100%;
+}
+
+div, ul, li, a, p, header, section,article {
+    -webkit-box-sizing : border-box;
+    -ms-box-sizing     : border-box;
+    box-sizing         : border-box;
+}
+img{vertical-align:top;width:100%;height:100%}
+/******************
+@框架布局 Grids
+预置最多五列布局
+******************/
+.ui-grid-a, .ui-grid-b, .ui-grid-c, .ui-grid-d {
+    overflow: hidden;
+}
+.ui-block-a, .ui-block-b, .ui-block-c, .ui-block-d, .ui-block-e {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    float: left;
+    min-height: 1px;
+}
+/*两列布局*/
+.ui-grid-a .ui-block-a {
+    clear: left;
+}
+.ui-grid-a .ui-block-a, .ui-grid-a .ui-block-b {
+    width: 49.95%;
+}
+.ui-grid-a>:nth-child(n) {
+    width: 50%;
+    margin-right: -.5px;
+}
+/*三列布局*/
+.ui-grid-b .ui-block-a {
+    clear: left;
+}
+.ui-grid-b .ui-block-a, .ui-grid-b .ui-block-b, .ui-grid-b .ui-block-c {
+    width: 33.25%;
+}
+.ui-grid-b>:nth-child(n) {
+    width: 33.333%;
+    margin-right: -.5px;
+}
+/*四列布局*/
+.ui-grid-c .ui-block-a {
+    clear: left;
+}
+.ui-grid-c .ui-block-a, .ui-grid-c .ui-block-b, .ui-grid-c .ui-block-c, .ui-grid-c .ui-block-d {
+    width: 24.925%;
+}
+.ui-grid-c>:nth-child(n) {
+    width: 25%;
+    margin-right: -.5px;
+}
+/*五列布局*/
+.ui-grid-d .ui-block-a {
+    clear: left;
+}
+.ui-grid-d .ui-block-a, .ui-grid-d .ui-block-b, .ui-grid-d .ui-block-c, .ui-grid-d .ui-block-d, .ui-grid-e .ui-block-d {
+    width: 19.925%;
+}
+.ui-grid-d>:nth-child(n) {
+    width: 20%;
+    margin-right: -.5px;
+}
+/******************
+@列表 list
+******************/
+.ui-list {
+    overflow : hidden;
+}
+
+.ui-list li {
+    position   : relative;
+    overflow   : hidden;
+    background : #fff;
+    min-height : 3.5em;
+}
+.ui-list li.divider {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 2em;
+    line-height: 2;
+    padding-left: .5em;
+    padding-top: 0;
+    padding-bottom: 0;
+    font-family: 黑体;
+}
+.ui-list li:last-child {
+    border-bottom : none;
+}
+
+/*双翼布局*/
+.ui-g-fly0-b {
+    float   : left;
+    width   : 100%;
+    padding : 0 1.5em 0 3.5em;
+}
+
+aside.ui-g-fly0-b-l {
+    float       : left;
+    width       : 3em;
+    margin-left : -100%;
+}
+
+.ui-g-fly0-b-r {
+    float       : right;
+    width       : 1.5em;
+    margin-left : -1.5em;
+}
+
+/*折翼（单翼）布局——左宽度固定*/
+.ui-g-fly1-b {
+    float              : left;
+    width              : 100%;
+    padding: 0 0 0 3em;
+    -webkit-box-sizing : border-box;
+    -ms-box-sizing     : border-box;
+    box-sizing         : border-box;
+}
+
+.ui-g-fly1-b-l {
+    float       : left;
+    width: 3em;
+    margin-left : -100%;
+}
+
+/*经典列表底部*/
+.ui-g-list-bt {
+    position   : absolute;
+    left       : 0;
+    bottom     : 0;
+    width      : 100%;
+    min-height : 2em;
+    padding-right: 1em;
+}
+
+/*图标*/
+.ui-ico-01 {
+    display         : inline-block;
+    position        : relative;
+    width           : .7em;
+    height          : 1.4em;
+    top             : .2em;
+    background-size : cover
+}
+
+.ui-ico-01-arr-l {
+    background-image : url('/assets/images/arr_l.png');
+}
+
+.ui-ico-01-arr-r {
+    background-image : url('/assets/images/arr_r.png');
+    width            : .7em;
+    height           : 1.2em;
+    top              : 1.7em;
+    left: .7em;
+}
+.ui-ico-01-arr-r-01{
+    transform: rotate(90deg);
+    top: .1em;
+    width: .5em;
+    height: .8em;
+}
+.ui-ico-01-arr-d{
+    background-image: url("/assets/images/arr_d.png");
+    width: 1.1em;
+    height: .7em;
+    top: 0;
+}
+.ui-ico-02{
+    display         : inline-block;
+    position        : relative;
+    width: .7em;
+    height: .7em;
+    background-size : cover
+}
+
+/*常用组合——圆圈图*/
+.ui-circle-pic {
+    overflow                   : hidden;
+    display                    : inline-block;
+    width                      : 3em;
+    height                     : 3em;
+    border-top-left-radius     : 999px;
+    border-top-right-radius    : 999px;
+    border-bottom-right-radius : 999px;
+    border-bottom-left-radius  : 999px;
+    border-radius              : 999px;
+    background-color           : #ccc;
+    background-clip            : padding-box;
+}
+
+.ui-circle-pic img {
+    border-radius : 50%;
+    border        : none;
+    max-width     : 100%;
+    max-height    : 100%;
+}
+/*loading*/
+.ui-loading {
+    width: 25px;
+    height: 25px;
+    margin-left: auto;
+    margin-right: auto;
+    text-indent: -10000px;
+    background: url('/assets/images/ui-loading.png') 0 0 no-repeat;
+    -webkit-background-size: 25px 25px;
+    -webkit-animation-name: ui-loading-anim;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: step-start;
+}
+@-webkit-keyframes ui-loading-anim {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    8.32% {
+        -webkit-transform: rotate(0deg);
+    }
+    8.33% {
+        -webkit-transform: rotate(30deg);
+    }
+    16.65% {
+        -webkit-transform: rotate(30deg);
+    }
+    16.66% {
+        -webkit-transform: rotate(60deg);
+    }
+    24.99% {
+        -webkit-transform: rotate(60deg);
+    }
+    25% {
+        -webkit-transform: rotate(90deg);
+    }
+    33.32% {
+        -webkit-transform: rotate(90deg);
+    }
+    33.33% {
+        -webkit-transform: rotate(120deg);
+    }
+    41.65% {
+        -webkit-transform: rotate(120deg);
+    }
+    41.66% {
+        -webkit-transform: rotate(150deg);
+    }
+    49.99% {
+        -webkit-transform: rotate(150deg);
+    }
+    50% {
+        -webkit-transform: rotate(180deg);
+    }
+    58.32% {
+        -webkit-transform: rotate(180deg);
+    }
+    58.33% {
+        -webkit-transform: rotate(210deg);
+    }
+    66.65% {
+        -webkit-transform: rotate(210deg);
+    }
+    66.66% {
+        -webkit-transform: rotate(240deg);
+    }
+    74.99% {
+        -webkit-transform: rotate(240deg);
+    }
+    75% {
+        -webkit-transform: rotate(270deg);
+    }
+    83.32% {
+        -webkit-transform: rotate(270deg);
+    }
+    83.33% {
+        -webkit-transform: rotate(300deg);
+    }
+    91.65% {
+        -webkit-transform: rotate(300deg);
+    }
+    91.66% {
+        -webkit-transform: rotate(330deg);
+    }
+    99.99% {
+        -webkit-transform: rotate(330deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+/*原子类*/
+.fl {
+    float : left
+}
+
+.fr {
+    float : right
+}
+.h1{
+    font-size: 1.3em;
+    text-align: center;
+    padding-bottom: .7em;
+}
+.t1,.t2 {
+    color: #797979;
+}
+.t2{
+   height: 2em;
+   line-height: 2;
+   font-weight: bold;
+   font-size: 1.2em;
+   overflow: hidden;
+}
+.t2-1{
+    border-bottom: 1px dashed #BBB;
+    margin-bottom: .5em;
+}
+.p1 {
+    color    : #777;
+    height   : 3em;
+    overflow : hidden;
+}
+.p2{
+    /*border-bottom: 1px dashed #BBB;
+    color: #555;
+    padding-bottom: 1em;*/
+}
+.p2-1{
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.b1{
+    font-weight: bold;
+}
+.txt01 {
+    font-size    : .8em;
+    color        : #999;
+    font-style   : italic;
+}
+.txt01-01{
+    font-style: normal;
+}
+.txt01-02{
+    color: #333;
+}
+.cl01{
+    color : #1cc091;
+}
+body.app-bd {
+    background : #f4f4f4;
+}
+
+/*header 通用顶部*/
+.hd {
+    overflow      : hidden;
+    width         : 100%;
+    height        : 3.5em;
+    line-height   : 2.5;
+    border-bottom : 1px solid #ddd;
+    background    : #fff;
+    box-shadow    : 1px 1px 3px #eee;
+}
+
+.hd .back {
+    margin-left : 1em;
+    margin-top  : .9em;
+    float       : left;
+}
+
+.hd .title {
+    text-align  : center;
+    /*font-weight : bold;*/
+    font-size   : 1.3em;
+}
+
+/*bd 主体区*/
+.bd {
+    width   : 100%;
+    padding : .1em;
+}
+/*article 内容区 */
+.content{
+    background: #fff;
+    padding: .5em .5em 3em .5em;
+}
+/*footer 页脚‘更多’*/
+.ft{
+    /* position: fixed; */
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    height: 3em;
+    line-height: 3;
+    background: rgba(222, 137, 167, 0.9);
+    text-align: center;
+    color: #fff;
+    z-index: 122;
+}
+.tab a {
+    display       : inline-block;
+    height        : 100%;
+    line-height: 4;
+    background: #fff;
+    color         : #444;
+    border-right  : 0 none;
+    border-bottom: 1px solid #eee;
+    text-align    : center;
+}
+
+.tab a.active {
+    border-bottom: 3px solid #1cc091;
+    background    : #F2F2F1;
+    color: #1cc091;
+}
+/*列表扩展样式*/
+.ui-list-01 {
+    border-radius : 3px;
+}
+
+.ui-list-01 li, .ui-list-02 li {
+    border-bottom : 1px dashed #BBB;
+    padding       : 1em .5em 2em .5em;
+}
+
+.ui-list-02 li {
+    padding-bottom: 4em;
+}
+
+/*msg 消息中心*/
+.ui-g-fly0-b-l .ui-circle-pic {
+    margin-top : .5em
+}
+
+/*more note 更多游记*/
+.ui-list-02 .ui-g-list-bt{
+    padding: .5em;
+}
+.ui-list-02 .ui-g-fly0-b-l .ui-circle-pic{
+    border-radius: 5px;
+    margin-top: 0;
+    width: 4em;
+    height: 4em;
+}
+.ui-list-02 .ui-g-fly0-b-l{
+    width: 4em;
+}
+.ui-list-02 .ui-g-fly0-b{
+    padding-left: 4.5em;
+}
+.ui-list-02 .ui-g-list-bt .ui-circle-pic{
+    width: 2.5em;
+    height: 2.5em;
+}
+.ui-list-02 .ui-g-list-bt .t1{
+    font-size: .9em;
+    color: #333;
+}
+/*more comment 更多点评*/
+.ui-list-03{
+    padding-bottom: 1em;
+}
+.ui-list-03 li{
+    margin-bottom: .5em;
+    border-radius: 4px;
+    box-shadow: 1px 1px 1px #ccc;
+    padding: .5em 1em .5em 2em;
+}
+.ui-list-03 li h2{
+    height: 1.5em;
+}
+.ui-list-03 li .t1{
+    position: relative;
+}
+.ui-list-03 li .t1:before{
+    display: inline-block;
+    content: '';
+    position: absolute;
+    left: -1em;
+    top: .3em;
+    background: #FECD5F;
+    border-radius: 999px;
+    z-index: 111;
+    width: 10px;
+    height: 10px;
+}
+/*eat 吃什么*/
+.content .p2 p{
+    margin-bottom: .5em;
+}
+.content .p2:last-of-type{
+    border-bottom: none;
+}
+/*tab*/
+.tab {
+    overflow : hidden;
+    width    : 100%;
+    height: 4em;
+    font-size: .8em;
+    position: fixed;
+    z-index: 111;
+    left: 0;
+    top: 0;
+}
+/*游记*/
+
+.m-img img{
+    width: 100% !important;
+    height: auto !important;
+    border-radius: 3px;
+}
+/*photo 图集*/
+.photo .img-c{
+    padding: 0 3px;
+    border-radius: 3px;
+    border: 1px solid #eee;
+    background: #fff;
+    display: table-cell;vertical-align:middle;text-align:center;overflow:hidden;
+    height: 5em;
+    float: none;
+}
+.photo .img-c img{
+    max-height: 100%;
+    max-width: 100%;
+    margin-top: 5px;
+    position: static;  top: 0px;  left: 0px;  
+    width: 100%;  z-index: 111;
+}
+.layer{
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+}
+.mt35{
+    padding-top: 3.5em;
+}
+/*游记详情*/
+
+.content .ui-g-list-bt{
+    position: static;
+    padding: 1em 0 1em 0;
+    border-bottom: 1px dashed #BBB;
+    font-size: 18px;
+    line-height: 1.2;
+    overflow: hidden;
+}
+.content .ui-g-list-bt .ui-g-fly1-b{
+    padding-left: 3.5em;
+}
+.content .p2-1 p:first-child{
+    padding-top: 1em;
+}
+.content .article-img{
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+}
+/*旅行圈*/
+#tab-circle {
+    position : static;
+}
+
+#tab-circle a.active {
+    border-bottom : 1px solid #eee;
+    background    : #fff;
+}
+
+.ui-list-04 .ui-g-fly0-b {
+    padding-right : 0;
+    padding-left  : 5em;
+}
+
+
+
+.ui-list-04 .ui-g-fly0-b-l {
+    width : 5em;
+}
+
+.ui-pic {
+    width : 4.5em;
+}
+
+.ui-pic img {
+    max-width  : 100%;
+    max-height : 100%;
+}
+
+.ui-list-04 .ui-pic .pic-layer {
+    background : rgba(0, 0, 0, .1);
+    text-align : center;
+    margin-top : -.5em;
+}
+
+.ui-pic .pic-layer .ui-ico-02 {
+    width  : .5em;
+    height : .5em;
+}
+
+.ui-list-06 {
+    border   : 1px solid #eee;
+    overflow : visible;
+}
+
+.ui-list-06 li {
+    border-bottom : 1px solid #eee;
+    padding       : .5em;
+}
+
+.ui-list-06 li .ui-g-fly0-b {
+    padding-right : 0;
+    padding-left  : 4.5em;
+}
+
+.ui-list-06 .ui-g-fly0-b-l {
+    width : 4em;
+}
+
+.ui-list-06 .ui-g-fly0-b-l .ui-pic {
+    width          : 4em;
+    height         : 3.5em;
+    vertical-align : middle;
+    display        : table-cell;
+}
+
+.bg_color{
+    background: #f9faf9;
+}
+
+.base_text_color_medium{
+    color: rgb(100,100,100);
+}
+
+.base_text_color_light{
+    color: rgb(150,150,150);
+}
+
+.mt18{margin-top: 18px}
+
+.mt72{margin-top: 72px}
+
+
+/*主要控制全文字段落样式，通配修改title/content*/
+h1.t2{
+    font-size: 20px;
+    height: 21px;
+    line-height: 20px;
+    margin-top: 40px;
+    margin-bottom: 18px;
+    font-weight: normal;
+    color: #323232;
+    font-weight: bold;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.content .p2 p,.content .p2 div{
+    font-size: 16px;
+    margin-top: 16px;
+    line-height: 28px;
+    text-indent: 16px;
+    word-wrap:break-word;
+    margin-bottom: 0px; 
+    color: rgb(59,50,50);
+}
+
+
+

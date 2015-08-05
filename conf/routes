@@ -3,7 +3,9 @@
 # ~~~~
 
 # Home page
-->            /app                                                   app.Routes
-->            /core                                                  core.Routes
-->            /web                                                   web.Routes
+->         /app                 app.Routes
+->         /core                core.Routes
+->         /web                 web.Routes
+
+GET        /assets/*file        controllers.Assets.at(path="/public", file)
 
