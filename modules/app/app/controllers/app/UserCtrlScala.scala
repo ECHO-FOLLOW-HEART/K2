@@ -9,19 +9,21 @@ import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{ UserInfoFormatter, UserLoginFormatter }
+import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ FinagleConvert, FinagleFactory }
-import models.user.UserInfo
+import models.user.{ Contact => K2Contact, UserInfo }
 import org.joda.time.format.DateTimeFormat
 import play.api.mvc.{ Action, Controller, Result }
 
 import utils.Implicits._
+import utils.formatter.json.ImplicitsFormatter._
 import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ Future => ScalaFuture }
 import scala.language.{ implicitConversions, postfixOps }
 
@@ -29,6 +31,7 @@ import scala.language.{ implicitConversions, postfixOps }
  * Created by zephyre on 6/30/15.
  */
 object UserCtrlScala extends Controller {
+
   import UserInfoProp._
 
   implicit def userInfoYunkai2Model(userInfo: YunkaiUserInfo): UserInfo = FinagleConvert.convertK2User(userInfo)
@@ -551,14 +554,56 @@ object UserCtrlScala extends Controller {
         client.updateUserInfo(uid, updateMap) map (_ => ())
       } else
         TwitterFuture(())
-
       ret map (_ => K2Result.ok(None))
     }) getOrElse TwitterFuture(K2Result.unprocessable)
 
     future
   })
 
-  def matchAddressBook(uid: Long) = play.mvc.Results.TODO
+  def matchAddressBook(uid: Long) = Action.async(request => {
+
+    def setContact(friends: Map[String, Seq[UserInfo]], contactTel: String): K2Contact = {
+      val contact = new K2Contact()
+      if (friends.containsKey(contactTel)) {
+        contact.setTel(contactTel)
+        contact.setUser(true)
+        contact.setContact(friends.containsKey())
+      } else {
+        contact.setTel(contactTel)
+        contact.setUser(false)
+        contact.setContact(false)
+      }
+      contact
+    }
+
+    val formatter = FormatterFactory.getInstance(classOf[ContactFormatter])
+    val result = (for {
+      body <- request.body.asJson
+      action <- (body \ "action").asOpt[String]
+      contacts <- ((body \ "contacts").asOpt[Seq[JsonContact]])
+    } yield {
+      //val contactsPho = contacts map (PhoneParserFactory.newInstance().parse(_.).getPhoneNumber)
+      val contactsPho = contacts map (x => PhoneParserFactory.newInstance().parse(x.tel).getPhoneNumber)
+      val ret = FinagleFactory.client.getContactList(uid, Some(Seq(UserInfoProp.Tel)), None, None) map (reqSeq => {
+
+        val friendsMap = reqSeq.map(userInfoYunkai2Model(_)).groupBy(_.getTel)
+        val contactsResult = contactsPho.map(setContact(friendsMap, _))
+        val node = formatter.formatNode(contactsResult)
+        Utils.status(node.toString).toScala
+      }) rescue {
+        case _: NotFoundException =>
+          TwitterFuture {
+            Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+          }
+        case _@ (InvalidArgsException() | InvalidStateException()) =>
+          TwitterFuture {
+            Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+          }
+      }
+      ret
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+    result
+  })
 
   /**
    * 搜索用户

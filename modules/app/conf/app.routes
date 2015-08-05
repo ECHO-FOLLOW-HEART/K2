@@ -1,6 +1,6 @@
 # Map static resources from the /public folder to the /assets URL path
 
-#GET           /comments/:id                                            controllers.Application.comments(id:String)
+#GET           /comments/:id                                                controllers.Application.comments(id:String)
 
 #----------用户接口----------
 
@@ -61,28 +61,30 @@ PUT           /users/$uid<\d+>/contacts/$contactId<\d+>/memo                cont
 GET           /users/$uid<\d+>/contacts/$cid<\d+>                           controllers.app.UserCtrlScala.getContact(uid:Long, cid:Long)
 
 ##第三方注册、登录
-#POST          /users/auth-signup                                 controllers.app.UserCtrl_V2.authRegister()
+#POST          /users/auth-signup                                           controllers.app.UserCtrl_V2.authRegister()
 ##检验用户信息的有效性(手机号)
-#GET           /users/validity                                    controllers.app.UserCtrl_V2.validityInfo(tel:String?="",nick:String?="")
+#GET           /users/validity                                              controllers.app.UserCtrl_V2.validityInfo(tel:String?="",nick:String?="")
 
-#POST          /users/send-validation                                 controllers.app.UserCtrlScala.sendValidationCode()
+#POST          /users/send-validation                                       controllers.app.UserCtrlScala.sendValidationCode()
 
 ##验证验证码，重设密码
-#POST          /users/reset-pwd                                   controllers.app.UserCtrl_V2.newPassword()
-#POST          /users/bind                                            controllers.app.UserCtrlScala.bindCellPhone()
+#POST          /users/reset-pwd                                             controllers.app.UserCtrl_V2.newPassword()
+#POST          /users/bind                                                  controllers.app.UserCtrlScala.bindCellPhone()
 
 ##验证验证码,返回token,绑定手机时用
-#POST          /users/check-validation                            controllers.app.UserCtrl_V2.checkCaptcha()
+#POST          /users/check-validation                                      controllers.app.UserCtrl_V2.checkCaptcha()
 
 ##搜索用户信息
-#GET           /users/search                                      controllers.app.UserCtrl_V2.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=100)
+#GET           /users/search                                                controllers.app.UserCtrl_V2.searchUser(keyword: String,field: String?="GUID",page:Int?=0,pageSize:Int?=100)
 #编辑用户信息
 PATCH         /users/$uid<\d+>                                              controllers.app.UserCtrlScala.updateUserInfo(uid: Long)
 ##根据环信用户名列表取得用户名列表
-#POST          /users/easemob                                     controllers.app.UserCtrl_V2.getUsersByEasemob()
+#POST          /users/easemob                                               controllers.app.UserCtrl_V2.getUsersByEasemob()
 ##根据通讯录进行用户匹配
-#POST          /users/search-by-address-book                      controllers.app.UserCtrl_V2.matchAddressBook()
-GET           /users/$uid<\d+>/address-book                                 controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
+#POST          /users/search-by-address-book                                controllers.app.UserCtrl_V2.matchAddressBook()
+
+POST          /users/$uid<\d+>/match                                        controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
+
 #
 ##----------用户好友接口----------
 
@@ -97,9 +99,11 @@ DELETE        /users/$id<\d+>/albums/:picId                                 cont
 #获取用户足迹
 GET           /users/$id<[0-9]+>/footprints                                 controllers.app.UserUgcCtrl.getUserTracks(id :Long)
 #获取所有达人的足迹
+
 GET           /users/:userRole/footprints                                   controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
+
 #获取足迹包含某目的地的所有达人
-#POST          /users/:userRole/footprints/users                        controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
+#POST          /users/:userRole/footprints/users                            controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
 #修改足迹
 POST          /users/$id<\d+>/footprints                                    controllers.app.UserUgcCtrl.modifyTracks(id:Long)
 
@@ -125,7 +129,7 @@ DELETE        /chatgroups/$gid<\d+>/members/$cid<\d+>                       cont
 #操作讨论组，加减成员
 PATCH         /chatgroups/$gid<\d+>/members                                 controllers.app.GroupCtrlScala.opGroup(gid:Long)
 #退出讨论组
-#POST        /chatgroups/:gId/quit          controllers.GroupCtrl.quitGroup(gId:Long)
+#POST         /chatgroups/:gId/quit                                         controllers.GroupCtrl.quitGroup(gId:Long)
 
 #----------其他接口----------
 #其他
@@ -163,11 +167,11 @@ GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptionsScala        cont
 #获取景点的深度介绍(H5)
 GET           /poi/viewspots/$id<[0-9a-f]{24}>/detailsScala                 controllers.app.POICtrlScala.getTravelGuide(id: String, category: String,poiDesc: String="vs")
 
-GET           /poi/viewspots/$spotId<[0-9a-f]{24}>                     controllers.app.POICtrl.viewPOIInfo(poiDesc: String="viewspot", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/viewspots/$spotId<[0-9a-f]{24}>                          controllers.app.POICtrl.viewPOIInfo(poiDesc: String="viewspot", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 # 景点详情(H5)
-GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptions        controllers.app.POICtrl.viewPOIInfo(poiDesc: String="viewspot", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptions             controllers.app.POICtrl.viewPOIInfo(poiDesc: String="viewspot", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                 controllers.app.POICtrl.getTravelGuide(id: String, category: String,poiDesc: String="viewspot")
+GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                      controllers.app.POICtrl.getTravelGuide(id: String, category: String,poiDesc: String="viewspot")
 
 # 酒店详情
 GET           /poi/hotels/$spotId<[0-9a-f]{24}>                             controllers.app.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
@@ -190,7 +194,7 @@ POST          /users/$uid<\d+>/guides                                       cont
 
 #保存攻略
 PUT           /users/$uid<\d+>/guides/$id<[0-9a-f]{24}>                     controllers.app.GuideCtrl.saveGuide(uid: Long, id: String)
-#PUT           /users/$uid<\d+>/temp/$id<[0-9a-f]{24}>                  controllers.app.GuideCtrlScala.saveGuideInfo(uid: Long, id: String)
+#PUT           /users/$uid<\d+>/temp/$id<[0-9a-f]{24}>                      controllers.app.GuideCtrlScala.saveGuideInfo(uid: Long, id: String)
 
 # 获得攻略列表
 GET           /users/$uid<\d+>/guides                                       controllers.app.GuideCtrl.getGuidesByUser(uid: Long, page: Int?=0, pageSize: Int?=20)
@@ -215,7 +219,7 @@ GET           /guides/locality/:id/:part                                    cont
 #国家详情
 GET           /geo/countries/$id<[0-9a-f]{24}>                              controllers.app.GeoCtrl.getCountyById(id: String)
 #获得国家列表
-#GET           /geo/countries                                           controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
+#GET           /geo/countries                                               controllers.app.GeoCtrl.exploreDestinationsByCountry(withExperts:Boolean=true,page:Int?=0, pageSize:Int?=10)
 GET           /geo/countries                                                controllers.app.GeoCtrlScala.getCountryExperts(withExperts:Boolean=true)
 #获得国家达人列表
 GET           /geo/countries/:code/expert                                   controllers.app.UserUgcCtrl.getExpertUserByTracks(code:String)
@@ -239,20 +243,20 @@ GET           /geo/localities/$id<[0-9a-f]{24}>/detailsScala                cont
 #----------用户评价接口----------
 #保存用户的评价(H5)
 #查看景点的评价(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/commentsScala               controllers.app.MiscCtrlScala.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
+GET           /poi/viewspots/$id<[0-9a-f]{24}>/commentsScala                controllers.app.MiscCtrlScala.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
 GET           /poi/restaurants/$id<[0-9a-f]{24}>/commentsScala              controllers.app.MiscCtrlScala.displayComment(poiType: String="restaurant", id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
 #协议(H5)
-GET           /eula                                                    controllers.app.MiscCtrlScala.eula()
+GET           /eula                                                         controllers.app.MiscCtrlScala.eula()
 #公司介绍(H5)
 GET           /about                                                        controllers.app.MiscCtrlScala.about(version: String?="2.0")
 
-POST          /poi/viewspots/$id<[0-9a-f]{24}>/comments                controllers.app.MiscCtrl.saveComment(id: String)
+POST          /poi/viewspots/$id<[0-9a-f]{24}>/comments                     controllers.app.MiscCtrl.saveComment(id: String)
 #查看景点的评价(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/comments                controllers.app.MiscCtrl.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+GET           /poi/viewspots/$id<[0-9a-f]{24}>/comments                     controllers.app.MiscCtrl.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 #查看餐厅的评价(H5)
-GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments              controllers.app.MiscCtrl.displayComment(poiType: String="restaurant",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments                   controllers.app.MiscCtrl.displayComment(poiType: String="restaurant",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 #查看商店的评价(H5)
-GET           /poi/shopping/$id<[0-9a-f]{24}>/comments                 controllers.app.MiscCtrl.displayComment(poiType: String="shopping",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+GET           /poi/shopping/$id<[0-9a-f]{24}>/comments                      controllers.app.MiscCtrl.displayComment(poiType: String="shopping",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 
 #旅行专栏
 GET           /columns                                                      controllers.app.MiscCtrl.getColumns(itemType: String?="homepage", id: String?="")

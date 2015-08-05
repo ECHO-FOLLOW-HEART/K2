@@ -66,8 +66,8 @@ public class UserUgcCtrl extends Controller {
      * @return
      * @throws AizouException
      */
-    @CheckUser
-    public static Result deleteUserAlbums(@CheckUser Long id, String picId) throws AizouException {
+    //@CheckUser
+    public static Result deleteUserAlbums(Long id, String picId) throws AizouException {
 
         ObjectId oid = new ObjectId(picId);
         UserUgcAPI.deleteUserAlbums(id, oid);
