@@ -527,7 +527,7 @@ object UserCtrlScala extends Controller {
     def dateFormatConvert(input: String): String = {
       val fmtInput = DateTimeFormat.forPattern("yyyy-MM-dd")
       val fmtOutput = DateTimeFormat.forPattern("MM/dd/yyyy")
-      val date = fmtInput.parseDateTime(input)
+      val date = fmtInput.parseLocalDate(input)
       fmtOutput.print(date)
     }
 
