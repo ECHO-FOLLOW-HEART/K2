@@ -1,4 +1,0 @@
-@(pid: String, page: Int, pageSize: Int, poiType: String, comments: Seq[models.poi.RestaurantComment])
-@for(c <- comments) {
-    @commentEntry(c.getAuthorName, c.getAuthorAvatar, c.getRating, c.getContents, c.getPublishTime)
-}
