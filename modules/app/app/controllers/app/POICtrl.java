@@ -107,6 +107,7 @@ public class POICtrl extends Controller {
         switch (poiDesc) {
             case "viewspot":
                 poiClass = ViewSpot.class;
+                commentClass = Comment.class;
                 break;
             case "hotel":
                 poiClass = Hotel.class;
