@@ -61,11 +61,37 @@ object BatchImpl {
     }
   }
 
-  def getViewSportLocalList()(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ViewSpot]] = {
+  val capIdList = Arrays.asList(new ObjectId("5473ccd7b8ce043a64108c46"), new ObjectId("546f2daab8ce0440eddb2aff"),
+    new ObjectId("5473ccd7b8ce043a64108c4d"), new ObjectId("5473ccd6b8ce043a64108c08"))
+
+  def getViewSportLocalList(isChina: Boolean)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ViewSpot]] = {
     val query = ds.createQuery(classOf[ViewSpot])
-    query.retrievedFields(true, Arrays.asList(AizouBaseEntity.FD_ID, AbstractPOI.simplocList): _*)
+    query.retrievedFields(true, Arrays.asList(AizouBaseEntity.FD_ID, AbstractPOI.simplocList, AbstractPOI.detTargets): _*)
+    if (isChina) {
+      query.field("zhName").equal("芙蓉镇")
+      query.field("country.zhName").equal("中国").field(AbstractPOI.simplocList).notEqual(null)
+      query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd7b8ce043a64108c46"))
+      query.field(AbstractPOI.detTargets).notEqual(new ObjectId("546f2daab8ce0440eddb2aff"))
+      query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd7b8ce043a64108c4d"))
+      query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd6b8ce043a64108c08"))
+      query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd7b8ce043a64108c45"))
+      query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd6b8ce043a64108c09"))
+    } else
+      query.field("country").notEqual(null).field("country.zhName").notEqual("中国").field(AbstractPOI.simplocList).notEqual(null)
+
     futurePool {
       query.asList().toSeq
+    }
+  }
+
+  def saveViewSportLocalityChina(vs: ViewSpot)(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
+    val query = ds.createQuery(classOf[ViewSpot]).field(AizouBaseEntity.FD_ID).equal(vs.getId)
+    // val index = if (vs.locList.size() > 2) vs.locList.get(2) else vs.locList.get(vs.locList.size() - 1)
+    val index = vs.locList.get(vs.locList.size() - 1)
+    val update = ds.createUpdateOperations(classOf[ViewSpot]).set(AbstractPOI.FD_LOCALITY, index)
+
+    futurePool {
+      ds.update(query, update)
     }
   }
 

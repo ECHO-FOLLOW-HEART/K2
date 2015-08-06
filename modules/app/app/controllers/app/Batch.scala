@@ -168,4 +168,15 @@ object Batch extends Controller {
       }: _*)
     }
   }
+
+  def checkVsLocality() = Action.async(
+    request => {
+      for {
+        viewSpots <- BatchImpl.getViewSportLocalList(false)
+      } yield {
+        viewSpots map (BatchImpl.saveViewSportLocalityChina(_))
+        Utils.status("Success").toScala
+      }
+    }
+  )
 }

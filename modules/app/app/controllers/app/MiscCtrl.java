@@ -601,7 +601,7 @@ public class MiscCtrl extends Controller {
         Class<? extends Comment> commentClass = Comment.class;
         switch (poiType) {
             case "vs":
-                //commentClass = ViewSpotComment.class;
+                commentClass = Comment.class;
                 break;
             case "hotel":
                 //commentClass = HotelComment.class;
