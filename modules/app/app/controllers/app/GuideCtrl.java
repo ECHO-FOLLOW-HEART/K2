@@ -21,7 +21,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
-import utils.LogUtils;
 import utils.TaoziDataFilter;
 import utils.Utils;
 
@@ -286,14 +285,19 @@ public class GuideCtrl extends Controller {
         Locality locality = GeoAPI.locDetails(new ObjectId(id), fields);
         String content = null;
         ObjectNode result = Json.newObject();
+        String hostName = "api.lvxingpai.com";
         if (guidePart.equals("shopping")) {
             content = locality.getShoppingIntro();
             // 显示城市购物介绍URL
-            result.put("detailUrl", "http://h5.taozilvxing.com/city/shopping.php?tid=" + id);
+            String url1 = routes.GeoCtrlScala.getTravelGuide(id, "shopping").url();
+            result.put("detailUrl", "http://" + hostName + url1);
+//            result.put("detailUrl", "http://h5.taozilvxing.com/city/shopping.php?tid=" + id);
         } else if (guidePart.equals("restaurant")) {
             content = locality.getDiningIntro();
             // 显示城市美食介绍URL
-            result.put("detailUrl", "http://h5.taozilvxing.com/city/dining.php?tid=" + id);
+            String url2 = routes.GeoCtrlScala.getTravelGuide(id, "dining").url();
+            result.put("detailUrl", "http://" + hostName + url2);
+//            result.put("detailUrl", "http://h5.taozilvxing.com/city/dining.php?tid=" + id);
         }
         result.put("desc", content != null ? removeH5Label(content) : "");
         return Utils.createResponse(ErrorCode.NORMAL, result);

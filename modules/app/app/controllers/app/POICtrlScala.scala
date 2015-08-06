@@ -49,7 +49,9 @@ object POICtrlScala extends Controller {
           val ret = new ObjectMapper().createObjectNode
           ret.set("comments", comments)
           if (poiDesc.equals("restaurant")) {
-            ret.put("moreCommentsUrl", "http://api-dev.lvxingpai.com/poi/restaurants/" + spotId + "/commentsScala?poiType=" + poiDesc)
+            val hostName = "api.lvxingpai.com"
+            val url = routes.MiscCtrlScala.displayComment(poiDesc, spotId, 0, 1, 0, commentPage, commentPageSize, false).url
+            ret.put("moreCommentsUrl", "http://" + hostName + url)
           } else if (poiDesc.equals("vs")) {
             // 获得同城的销售数据
             val lyMapping = PoiAPI.getTongChenPOI(poiInfo.getId)

@@ -63,7 +63,9 @@ public class GeoCtrl extends Controller {
         ObjectNode response = (ObjectNode) localityFormatter.formatNode(locality);
         // 显示图集的数量
 //        response.put("imageCnt", MiscAPI.getLocalityAlbumCount(locality.getId()));
-        response.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + id);
+        String hostName = "api.lvxingpai.com";
+        String url = routes.GeoCtrlScala.getTravelGuideOutLine(id).url();
+        response.put("playGuide", "http://" + hostName + url);
 //        response.put("diningTitles", contentsTitles(locality.getCuisines()));
         response.put("shoppingTitles", contentsTitles(locality.getCommodities()));
         return Utils.createResponse(ErrorCode.NORMAL, response);
@@ -362,39 +364,39 @@ public class GeoCtrl extends Controller {
         switch (field) {
             case "remoteTraffic":
                 result.put("desc", "");
-                result.put("contents", detailsEntryFormatter.formatNode(locality.getRemoteTraffic()));
+                result.set("contents", detailsEntryFormatter.formatNode(locality.getRemoteTraffic()));
                 break;
             case "localTraffic":
                 result.put("desc", "");
-                result.put("contents", detailsEntryFormatter.formatNode(locality.getLocalTraffic()));
+                result.set("contents", detailsEntryFormatter.formatNode(locality.getLocalTraffic()));
                 break;
             case "activities":
                 result.put("desc", locality.getActivityIntro());
-                result.put("contents", detailsEntryFormatter.formatNode(locality.getActivities()));
+                result.set("contents", detailsEntryFormatter.formatNode(locality.getActivities()));
                 break;
             case "tips":
                 result.put("desc", "");
-                result.put("contents", detailsEntryFormatter.formatNode(locality.getTips()));
+                result.set("contents", detailsEntryFormatter.formatNode(locality.getTips()));
                 break;
             case "geoHistory":
                 result.put("desc", "");
-                result.put("contents", detailsEntryFormatter.formatNode(locality.getGeoHistory()));
+                result.set("contents", detailsEntryFormatter.formatNode(locality.getGeoHistory()));
                 break;
             case "specials":
                 result.put("desc", "");
-                result.put("contents", detailsEntryFormatter.formatNode(locality.getSpecials()));
+                result.set("contents", detailsEntryFormatter.formatNode(locality.getSpecials()));
                 break;
             case "desc":
                 result.put("desc", locality.getDesc());
-                result.put("contents", Json.toJson(new ArrayList<>()));
+                result.set("contents", Json.toJson(new ArrayList<>()));
                 break;
             case "dining":
                 result.put("desc", locality.getDiningIntro());
-                result.put("contents", detailsEntryFormatter.formatNode(locality.getCuisines()));
+                result.set("contents", detailsEntryFormatter.formatNode(locality.getCuisines()));
                 break;
             case "shopping":
                 result.put("desc", locality.getShoppingIntro());
-                result.put("contents", detailsEntryFormatter.formatNode(locality.getCommodities()));
+                result.set("contents", detailsEntryFormatter.formatNode(locality.getCommodities()));
                 break;
             case "diningTitles":
                 result.put("contentsTitles", contentsTitles(locality.getCuisines()));
@@ -432,32 +434,32 @@ public class GeoCtrl extends Controller {
         List<ObjectNode> result = new ArrayList<>();
         node = Json.newObject();
         node.put("title", "到达" + (loc == null ? "" : loc.getZhName()));
-        node.put("fields", Json.toJson(Arrays.asList("remoteTraffic")));
+        node.set("fields", Json.toJson(Arrays.asList("remoteTraffic")));
         result.add(node);
 
         node = Json.newObject();
         node.put("title", "当地交通");
-        node.put("fields", Json.toJson(Arrays.asList("localTraffic")));
+        node.set("fields", Json.toJson(Arrays.asList("localTraffic")));
         result.add(node);
 
         node = Json.newObject();
         node.put("title", "不可错过的游玩体验");
-        node.put("fields", Json.toJson(Arrays.asList("specials")));
+        node.set("fields", Json.toJson(Arrays.asList("specials")));
         result.add(node);
 
         node = Json.newObject();
         node.put("title", "旅行小贴士");
-        node.put("fields", Json.toJson(Arrays.asList("tips")));
+        node.set("fields", Json.toJson(Arrays.asList("tips")));
         result.add(node);
 
         node = Json.newObject();
         node.put("title", "节庆与民俗活动");
-        node.put("fields", Json.toJson(Arrays.asList("activities")));
+        node.set("fields", Json.toJson(Arrays.asList("activities")));
         result.add(node);
 
         node = Json.newObject();
         node.put("title", "宗教、文化与历史");
-        node.put("fields", Json.toJson(Arrays.asList("geoHistory")));
+        node.set("fields", Json.toJson(Arrays.asList("geoHistory")));
         result.add(node);
 
 

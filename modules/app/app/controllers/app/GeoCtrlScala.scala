@@ -31,14 +31,14 @@ object GeoCtrlScala extends Controller {
       }
     })
 
-  def getTravelGuide(locId: String, field: Option[String]) = Action {
+  def getTravelGuide(locId: String, field: String) = Action {
     request =>
       {
-        if (field nonEmpty) {
+        if (field != null) {
           // 获取图片宽度
           val imgWidthStr = request.getQueryString("imgWidth")
           val imgWidth: Integer = if (imgWidthStr nonEmpty) imgWidthStr.get.toInt else 0
-          val fieldList: java.util.List[String] = field.get match {
+          val fieldList: java.util.List[String] = field match {
             case "remoteTraffic" => seqAsJavaList(Seq(Locality.fnRemoteTraffic))
             case "localTraffic" => seqAsJavaList(Seq(Locality.fnLocalTraffic))
             case "activities" => seqAsJavaList(Seq(Locality.fnActivityIntro, Locality.fnActivities))
@@ -62,7 +62,7 @@ object GeoCtrlScala extends Controller {
           if (reqDataFormat.contains("application/json")) {
             val result = new ObjectMapper().createObjectNode()
             val detailsEntryFormatter = FormatterFactory.getInstance(classOf[DetailsEntryFormatter], imgWidth)
-            field.get match {
+            field match {
               case "remoteTraffic" =>
                 result.put("desc", "")
                 result.set("contents", detailsEntryFormatter.formatNode(locality.getRemoteTraffic))
@@ -92,11 +92,11 @@ object GeoCtrlScala extends Controller {
                 result.set("contents", detailsEntryFormatter.formatNode(locality.getCommodities))
               case "diningTitles" => result.put("contentsTitles", contentsTitles(locality.getCuisines.toBuffer.toSeq))
               case "shoppingTitles" => result.put("contentsTitles", contentsTitles(locality.getCommodities.toBuffer.toSeq))
-              case _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", field.get))
+              case _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", field))
             }
             Utils.createResponse(ErrorCode.NORMAL, result).toScala
           } else if (reqDataFormat.contains("text/html")) {
-            field.get match {
+            field match {
               case "dining" => Ok(views.html.dining(locality.getDiningIntro, locality.getCuisines.toBuffer.toSeq))
               case "shopping" => Ok(views.html.shopping(locality.getShoppingIntro, locality.getCommodities.toBuffer.toSeq))
               case "remoteTraffic" => Ok(views.html.item("", locality.getRemoteTraffic.toBuffer.toSeq))
@@ -105,7 +105,7 @@ object GeoCtrlScala extends Controller {
               case "tips" => Ok(views.html.item("", locality.getTips.toBuffer.toSeq))
               case "geoHistory" => Ok(views.html.item("", locality.getGeoHistory.toBuffer.toSeq))
               case "specials" => Ok(views.html.item("", locality.getSpecials.toBuffer.toSeq))
-              case _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", field.get))
+              case _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", field))
             }
           } else {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT, String.format("Invalid http accept type: %s.", reqDataFormat)).toScala

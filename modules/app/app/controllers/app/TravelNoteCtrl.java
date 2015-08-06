@@ -42,7 +42,7 @@ public class TravelNoteCtrl extends Controller {
         List<TravelNote> noteList;
         JsonNode result;
         JsonNode note;
-        String url = "http://h5.taozilvxing.com/city/noteDetail.php?id=";
+//        String url = "http://h5.taozilvxing.com/city/noteDetail.php?id=";
 
         //通过关键字查询游记
         String imgWidthStr = request().getQueryString("imgWidth");

@@ -64,7 +64,10 @@ public class POICtrl extends Controller {
 
         if (poiClass == Shopping.class || poiClass == Restaurant.class) {
             // 添加H5接口 更多评论
-            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/poi/morecomment.php?pid=" + spotId + "&poiType=" + poiDesc);
+            String hostName = "api.lvxingpai.com";
+            String url = routes.MiscCtrlScala.displayComment(poiDesc, spotId, 0, 1, 0, commentPage, commentPageSize, false).url();
+            ret.put("moreCommentsUrl", "http://" + hostName + url);
+//            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/poi/morecomment.php?pid=" + spotId + "&poiType=" + poiDesc);
 //            ret.put("recommends", recommends);
         } else if (poiClass == ViewSpot.class) {
             // 获得同城的销售数据

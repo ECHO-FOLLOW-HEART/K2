@@ -163,15 +163,15 @@ GET           /suggestions                                                  cont
 #查看POI详情
 # 景点详情
 # 景点详情(H5)
-GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptionsScala        controllers.app.POICtrlScala.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptions             controllers.app.POICtrlScala.viewPOIInfo(poiDesc: String="vs", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/detailsScala                 controllers.app.POICtrlScala.getTravelGuide(id: String, category: String,poiDesc: String="vs")
+GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                      controllers.app.POICtrlScala.getTravelGuide(id: String, category: String,poiDesc: String="vs")
 
 GET           /poi/viewspots/$spotId<[0-9a-f]{24}>                          controllers.app.POICtrl.viewPOIInfo(poiDesc: String="viewspot", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 # 景点详情(H5)
-GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptions             controllers.app.POICtrl.viewPOIInfo(poiDesc: String="viewspot", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
+#GET           /poi/viewspots/$spotId<[0-9a-f]{24}>/descriptions            controllers.app.POICtrl.viewPOIInfo(poiDesc: String="viewspot", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
 #获取景点的深度介绍(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                      controllers.app.POICtrl.getTravelGuide(id: String, category: String,poiDesc: String="viewspot")
+#GET           /poi/viewspots/$id<[0-9a-f]{24}>/details                     controllers.app.POICtrl.getTravelGuide(id: String, category: String,poiDesc: String="viewspot")
 
 # 酒店详情
 GET           /poi/hotels/$spotId<[0-9a-f]{24}>                             controllers.app.POICtrl.viewPOIInfo(poiDesc: String="hotel", spotId: String, commentPage: Int?=0, commentPageSize: Int?=2,rmdPage: Int?=0, rmdPageSize: Int?=10)
@@ -234,17 +234,17 @@ GET           /geo/localities/:id/albums                                    cont
 #查看目的地评论
 GET           /geo/localities/$id<[0-9a-f]{24}>/comments                    controllers.app.GeoCtrl.getLocalityComments(commentType: String?="comment", id: String, page:Int?=0, pageSize: Int?=20)
 #获取景点的深度介绍-概况（H5）
-GET           /geo/localities/$id<[0-9a-f]{24}>/outLine                     controllers.app.GeoCtrl.getTravelGuideOutLine(id: String)
-GET           /geo/localities/$id<[0-9a-f]{24}>/outLineScala                controllers.app.GeoCtrlScala.getTravelGuideOutLine(id: String)
+#GET           /geo/localities/$id<[0-9a-f]{24}>/outLine                     controllers.app.GeoCtrl.getTravelGuideOutLine(id: String)
+GET           /geo/localities/$id<[0-9a-f]{24}>/outLine                     controllers.app.GeoCtrlScala.getTravelGuideOutLine(id: String)
 #获取景点的深度介绍（H5）
-GET           /geo/localities/$id<[0-9a-f]{24}>/details                     controllers.app.GeoCtrl.getTravelGuide(id: String, field: String)
-GET           /geo/localities/$id<[0-9a-f]{24}>/detailsScala                controllers.app.GeoCtrlScala.getTravelGuide(id: String, field: Option[String]?=None)
+#GET           /geo/localities/$id<[0-9a-f]{24}>/details                     controllers.app.GeoCtrl.getTravelGuide(id: String, field: String)
+GET           /geo/localities/$id<[0-9a-f]{24}>/details                     controllers.app.GeoCtrlScala.getTravelGuide(id: String, field: String?="")
 
 #----------用户评价接口----------
 #保存用户的评价(H5)
 #查看景点的评价(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/commentsScala                controllers.app.MiscCtrlScala.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
-GET           /poi/restaurants/$id<[0-9a-f]{24}>/commentsScala              controllers.app.MiscCtrlScala.displayComment(poiType: String="restaurant", id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
+GET           /poi/viewspots/$id<[0-9a-f]{24}>/comments                     controllers.app.MiscCtrlScala.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
+GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments                   controllers.app.MiscCtrlScala.displayComment(poiType: String="restaurant", id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15, snippets: Boolean?=true)
 #协议(H5)
 GET           /eula                                                         controllers.app.MiscCtrlScala.eula()
 #公司介绍(H5)
@@ -252,9 +252,9 @@ GET           /about                                                        cont
 
 POST          /poi/viewspots/$id<[0-9a-f]{24}>/comments                     controllers.app.MiscCtrl.saveComment(id: String)
 #查看景点的评价(H5)
-GET           /poi/viewspots/$id<[0-9a-f]{24}>/comments                     controllers.app.MiscCtrl.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+#GET           /poi/viewspots/$id<[0-9a-f]{24}>/comments                     controllers.app.MiscCtrl.displayComment(poiType: String="vs",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 #查看餐厅的评价(H5)
-GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments                   controllers.app.MiscCtrl.displayComment(poiType: String="restaurant",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
+#GET           /poi/restaurants/$id<[0-9a-f]{24}>/comments                   controllers.app.MiscCtrl.displayComment(poiType: String="restaurant",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 #查看商店的评价(H5)
 GET           /poi/shopping/$id<[0-9a-f]{24}>/comments                      controllers.app.MiscCtrl.displayComment(poiType: String="shopping",id: String, minRating: Double?=0, maxRating: Double?=1, lastUpdate: Long?=0,page:Int?=0, pageSize: Int?=15)
 
@@ -264,8 +264,8 @@ GET           /columns                                                      cont
 GET           /travelnotes                                                  controllers.app.TravelNoteCtrl.searchTravelNotes(query: String?="", locality: String?="", page: Int?=0, pageSize: Int?=10)
 
 #返回单篇游记详情(H5)
-GET           /travelnotes/$id<[0-9a-f]{24}>                                controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
-GET           /travelnotesScala/$id<[0-9a-f]{24}>                           controllers.app.TravelNoteCtrlScala.travelNoteDetail(id:String)
+#GET           /travelnotes/$id<[0-9a-f]{24}>                                controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
+GET           /travelnotes/$id<[0-9a-f]{24}>                                controllers.app.TravelNoteCtrlScala.travelNoteDetail(id:String)
 
 
 

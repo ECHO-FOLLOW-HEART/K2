@@ -1149,7 +1149,7 @@ public class PlanCtrl extends Controller {
         List<JsonNode> retDetails = new ArrayList<>();
         for (PlanDayEntry dayEntry : dayEntryList) retDetails.add(dayEntry.toJson());
         ObjectNode ret = Json.newObject();
-        ret.put("details", Json.toJson(retDetails));
+        ret.set("details", Json.toJson(retDetails));
         try {
             fullfill(ret);
         } catch (AizouException e) {
@@ -1161,7 +1161,7 @@ public class PlanCtrl extends Controller {
             //WEB分支
             String uid = rawPlan.get("uid") == null ? "" : rawPlan.get("uid").asText();
             ObjectNode planNode = (ObjectNode) rawPlan;
-            planNode.put("details", Json.toJson(ret.get("details")));
+            planNode.set("details", Json.toJson(ret.get("details")));
             try {
                 updatePlanByNode(Json.toJson(planNode), uid);
                 return Utils.createResponse(ErrorCode.NORMAL, "Success");
