@@ -257,7 +257,8 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public String getTipsUrl() {
         if (tips == null)
             return "";
-        return "http://h5.taozilvxing.com/poi_tips.php?tid=" + this.getId().toString();
+        return "http://api.lvxingpai.com//app/poi/viewspots/" + this.getId().toString() + "/detailsScala?category=tips";
+//        return "http://h5.taozilvxing.com/poi_tips.php?tid=" + this.getId().toString();
     }
 
     public List<DetailsEntry> getTips() {
@@ -279,7 +280,8 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public String getVisitGuideUrl() {
         if (visitGuide == null || visitGuide.equals(""))
             return "";
-        return "http://h5.taozilvxing.com/poi_play.php?tid=" + this.getId().toString();
+        return "http://api.lvxingpai.com/app/poi/viewspots/" + this.getId().toString() + "/detailsScala?category=visitGuide";
+//        return "http://h5.taozilvxing.com/poi_play.php?tid=" + this.getId().toString();
     }
 
     /**
@@ -310,7 +312,8 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
     public String getTrafficInfoUrl() {
         if (trafficInfo == null || trafficInfo.equals(""))
             return "";
-        return "http://h5.taozilvxing.com/poi_traffic.php?tid=" + this.getId().toString();
+        return "http://api.lvxingpai.com/app/poi/viewspots/" + this.getId().toString() + "/detailsScala?category=trafficInfo";
+//        return "http://h5.taozilvxing.com/poi_traffic.php?tid=" + this.getId().toString();
     }
 
     public String getVisitGuide() {

@@ -25,6 +25,12 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
 
     private Level level;
 
+    private String host;
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
     public POISerializer() {
         this(Level.SIMPLE);
     }
@@ -138,26 +144,30 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
             retLocalition = serializerProvider.findNullValueSerializer(null);
             retLocalition.serialize(geoJsonPoint, jsonGenerator, serializerProvider);
         }
-
+//String url = routes.
         if (level.equals(Level.DETAILED)) {
             String id = abstractPOI.getId().toString();
             jsonGenerator.writeBooleanField(AizouBaseEntity.FD_IS_FAVORITE, getValue(abstractPOI.getIsFavorite()));
             jsonGenerator.writeStringField(AbstractPOI.FD_PRICE_DESC, getString(TaoziDataFilter.getPriceDesc(abstractPOI)));
 
+            // TODO 修改接口调用，用反向路由的方式代替hardcode
             if (abstractPOI.getTrafficInfo() == null || abstractPOI.getTrafficInfo().equals(""))
                 jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "");
             else
-                jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "http://h5.taozilvxing.com/poi_traffic.php?tid=" + id);
+                jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "http://api.lvxingpai.com/app/poi/viewspots/" + id + "/detailsScala?category=trafficInfo");
+//                jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO_URL, "http://h5.taozilvxing.com/poi_traffic.php?tid=" + id);
 
             if (abstractPOI.getVisitGuide() == null || abstractPOI.getVisitGuide().equals(""))
                 jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "");
             else
-                jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://h5.taozilvxing.com/poi_play.php?tid=" + id);
+                jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://api.lvxingpai.com/app/poi/viewspots/" + id + "/detailsScala?category=visitGuide");
+            //jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://h5.taozilvxing.com/poi_play.php?tid=" + id);
 
             if (abstractPOI.getTips() == null || abstractPOI.getTips().equals(""))
                 jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "");
             else
-                jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL,"http://h5.taozilvxing.com/poi_tips.php?tid="+id);
+                jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL,"http://api.lvxingpai.com/app/poi/viewspots/" + id + "/detailsScala?category=tips");
+            //jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL,"http://h5.taozilvxing.com/poi_tips.php?tid="+id);
         }
         jsonGenerator.writeEndObject();
     }

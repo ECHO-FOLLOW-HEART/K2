@@ -136,7 +136,8 @@ public class TravelNoteFormatter extends AizouFormatter<TravelNote> {
                 jgen.writeEndArray();
             } else {
                 // Travel detailed info
-                jgen.writeStringField("detailUrl", "http://h5.taozilvxing.com/dayDetail.php?id=" + getString(travelNote.getId().toString()));
+                jgen.writeStringField("detailUrl", "http://api.lvxingpai.com/app/travelnotesScala/" + getString(travelNote.getId().toString()));
+//                jgen.writeStringField("detailUrl", "http://h5.taozilvxing.com/dayDetail.php?id=" + getString(travelNote.getId().toString()));
             }
 
             jgen.writeEndObject();
