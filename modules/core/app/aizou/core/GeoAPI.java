@@ -179,8 +179,8 @@ public class GeoAPI {
         Datastore ds = MorphiaFactory.datastore();
         Query<Locality> query = ds.createQuery(Locality.class);
         query.field("country._id").equal(countryID).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
-        query.order("-hotness");
-        query.offset(page * pageSize).limit(pageSize);
+        //query.order("-hotness");
+        //query.offset(page * pageSize).limit(pageSize);
         query.retrievedFields(true, AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation, Locality.fnImages);
         return query.asList();
     }
