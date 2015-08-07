@@ -1,11 +1,11 @@
 package controllers.app
 
-import java.{ util, lang }
+import java.{util, lang}
 
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.lvxingpai.yunkai.UserInfo
 import com.twitter.util.Future
-import controllers.bache.{ BatchImpl, BatchUtils }
+import controllers.bache.{BatchImpl, BatchUtils}
 import formatter.FormatterFactory
 import formatter.taozi.geo.SimpleCountryFormatter
 import formatter.taozi.user.TrackFormatter
@@ -13,12 +13,12 @@ import misc.FinagleConvert
 import misc.TwitterConverter._
 import models.geo._
 import models.misc.Track
-import models.user.{ UserInfo => K2UserInfo }
+import models.user.{UserInfo => K2UserInfo}
 import org.bson.types.ObjectId
 import play.Configuration
-import play.api.mvc.{ Action, Controller }
+import play.api.mvc.{Action, Controller}
 import utils.Implicits._
-import utils.{ TaoziDataFilter, Utils }
+import utils.{TaoziDataFilter, Utils}
 
 import scala.collection.JavaConversions._
 import scala.collection.JavaConverters._
@@ -57,7 +57,9 @@ object Batch extends Controller {
       val formatter = FormatterFactory.getInstance(classOf[SimpleCountryFormatter])
       for {
         countries <- BatchImpl.getCountriesByNames(Seq("日本", "韩国", "中国", "泰国", "马来西亚", "新加坡", "印度尼西亚", "越南",
-          "斯里兰卡", "阿联酋", "尼泊尔", "柬埔寨", "法国", "希腊", "意大利", "瑞士", "美国", "英国", "西班牙"), 0, 999)
+          "斯里兰卡", "阿联酋", "尼泊尔", "柬埔寨", "法国", "希腊", "意大利", "瑞士", "美国", "英国", "西班牙", "智利", "阿根廷",
+          "巴西", "新西兰", "澳大利亚", "加拿大", "墨西哥", "毛里求斯", "塞舌尔", "肯尼亚", "南非", "埃及", "卢森堡", "瑞典", "丹麦", "芬兰",
+          "葡萄牙", "比利时", "奥地利", "挪威", "土耳其", "荷兰", "俄罗斯", "德国"), 0, 999)
       } yield {
         val node = formatter.formatNode(countries).asInstanceOf[ArrayNode]
         dealWithCountries(countries)
