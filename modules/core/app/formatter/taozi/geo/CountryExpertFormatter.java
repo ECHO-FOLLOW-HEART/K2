@@ -62,7 +62,7 @@ public class CountryExpertFormatter extends AizouFormatter<CountryExpert> {
             jgen.writeStringField("zhName", getString(country.getZhName()));
             jgen.writeStringField("enName", getString(country.getEnName()));
             jgen.writeStringField("code", getString(country.getCode()));
-            jgen.writeNumberField("rank", getValue(country.getRank()));
+            jgen.writeNumberField("rank", country.getRank() == null ? 100 : country.getRank());
             jgen.writeNumberField("expertCnt", getValue(country.getExpertCnt()));
 
             jgen.writeFieldName("continents");
