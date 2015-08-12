@@ -17,6 +17,9 @@ public class Track extends AizouBaseEntity {
     public static String fnLocality = "locality";
 
     @Transient
+    public static String fnLocalityId = "locality.id";
+
+    @Transient
     public static String fnCountry = "country";
 
     /**

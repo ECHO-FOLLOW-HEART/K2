@@ -1,19 +1,40 @@
 package api
 
+import java.util.Arrays
+
+import com.lvxingpai.yunkai.UserInfo
 import com.twitter.util.{ Future, FuturePool }
+import database.MorphiaFactory
 import exception.AizouException
 import models.AizouBaseEntity
+import models.geo.Locality
 import models.guide.Guide
 import models.misc.{ Album, Track }
+import models.user.UserInfo
+import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
-import org.mongodb.morphia.query.Query
-
+import org.mongodb.morphia.query.{ CriteriaContainerImpl, Query }
+import utils.TaoziDataFilter
 import scala.collection.JavaConversions
+import scala.collection.JavaConversions._
+import scala.collection.mutable.ArrayBuffer
 
 /**
  * Created by topy on 2015/7/7.
  */
 object UserUgcAPI {
+
+  implicit def userInfoYunkai2Model(locality: Locality, userId: Long): Track = {
+    val result = new Track()
+    result.setId(new ObjectId)
+    locality.setImages(TaoziDataFilter.getOneImage(locality.getImages))
+    result.setLocality(locality)
+    result.setCountry(locality.getCountry)
+    result.setUserId(userId)
+    result.setTaoziEna(true)
+    result.setItemId
+    return result
+  }
 
   @throws(classOf[AizouException])
   def getGuidesCntByUser(uid: Long)(implicit ds: Datastore, futurePool: FuturePool): Future[Long] = {
@@ -44,4 +65,14 @@ object UserUgcAPI {
     }
   }
 
+  def fillTracks(userId: Long, ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Track]] = {
+    val query: Query[Locality] = ds.createQuery(classOf[Locality])
+    val clist = for { tempId <- ids } yield query.criteria("_id").equal(tempId)
+    futurePool {
+      val fieldList = Seq(AizouBaseEntity.FD_ID, Locality.fnLocation, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnImages, Locality.fnCountry)
+      query.or(clist: _*)
+      query.retrievedFields(true, fieldList: _*)
+      query.asList().map(userInfoYunkai2Model(_, userId))
+    }
+  }
 }

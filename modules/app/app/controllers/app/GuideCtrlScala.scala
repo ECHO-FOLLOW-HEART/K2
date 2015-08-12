@@ -1,6 +1,6 @@
 package controllers.app
 
-import api.GuideAPI
+import api.{ UserUgcAPI, GuideAPI }
 import api.GuideAPI.GuideProps
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.twitter.util.{ Future => TwitterFuture }
@@ -13,6 +13,7 @@ import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
 
 import scala.language.postfixOps
+import scala.collection.JavaConversions._
 
 /**
  * Created by zephyre on 7/20/15.
@@ -45,7 +46,10 @@ object GuideCtrlScala extends Controller {
       val update = Map(entries: _*)
       // 转换
       (try {
-        GuideAPI.updateGuideInfo(guideId, update) map (_ => K2Result.ok(None))
+        for {
+          updateInfo <- GuideAPI.updateGuideInfo(guideId, update)
+          guide <- GuideAPI.updateTracks(uid, guideId, update)
+        } yield K2Result.ok(None)
       } catch {
         case _: NoSuchElementException => TwitterFuture(K2Result.unprocessable)
       }) rescue {

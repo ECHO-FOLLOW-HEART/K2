@@ -1,8 +1,11 @@
 package api
 
 import com.twitter.util.{ Future => TwitterFuture, FuturePool }
-import exception.{ AizouException, ErrorCode }
+import models.AizouBaseEntity
 import models.guide.{ AbstractGuide, Guide, ItinerItem }
+import models.geo.{ Locality => K2Locality }
+import models.misc.Track
+import utils.Implicits._
 import models.poi._
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
@@ -28,6 +31,25 @@ object GuideAPI {
     val Localities = Value("localities")
   }
 
+  def updateTracks(uid: Long, guideId: String, updateInfo: Map[GuideProps.Value, Any]) = {
+    if (updateInfo isEmpty)
+      TwitterFuture()
+    else {
+      for {
+        guide <- GuideAPI.getGuide(guideId)
+        tracks <- UserUgcAPI.fillTracks(uid, guide.localities.map(_.getId))
+        updateFp <- GuideAPI.updateFootprints(uid, updateInfo, tracks)
+      } yield TwitterFuture()
+    }
+  }
+
+  def getGuide(guideId: String)(implicit ds: Datastore, futurePool: FuturePool) = {
+    futurePool {
+      val query = ds.createQuery(classOf[Guide]) field "id" equal new ObjectId(guideId)
+      query.get()
+    }
+  }
+
   /**
    * 修改行程单
    * @return
@@ -45,9 +67,25 @@ object GuideAPI {
             case item if item.id == GuideProps.Localities.id => ops.set(AbstractGuide.fnLocalities, localities2Model(entry._2.asInstanceOf[Array[Locality]]))
           }
         })
-
         ds.updateFirst(query, ops)
         ()
+      }
+    }
+  }
+
+  def updateFootprints(userId: Long, updateInfo: Map[GuideProps.Value, Any], tracks: Seq[Track])(implicit ds: Datastore, futurePool: FuturePool) = {
+    futurePool {
+      if (updateInfo.get(GuideProps.Status) isEmpty)
+        TwitterFuture()
+      else {
+        val status = updateInfo.get(GuideProps.Status)
+        if (status.get.equals(GuideStatus.traveled))
+          ds.save(tracks)
+        else {
+          val query = ds.createQuery(classOf[Track]).field(Track.fnUserId).equal(userId).field(Track.fnLocalityId).in(tracks map (_.getLocality.getId))
+          val ops = ds.createUpdateOperations(classOf[Track]).set(AizouBaseEntity.FD_TAOZIENA, true)
+          ds.update(query, ops)
+        }
       }
     }
   }
