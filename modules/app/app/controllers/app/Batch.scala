@@ -184,7 +184,7 @@ object Batch extends Controller {
         viewSpots <- BatchImpl.getViewSportLocalList(abroad)
       } yield {
         viewSpots map (BatchImpl.saveViewSportLocalityChina(_))
-        Utils.status("Success").toScala
+        Utils.status("Success" + viewSpots.size).toScala
       }
     }
   )

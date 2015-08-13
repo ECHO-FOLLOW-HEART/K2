@@ -32,7 +32,7 @@ object GuideAPI {
   }
 
   def updateTracks(uid: Long, guideId: String, updateInfo: Map[GuideProps.Value, Any]) = {
-    if (updateInfo isEmpty)
+    if (updateInfo.get(GuideProps.Status) isEmpty)
       TwitterFuture()
     else {
       for {
@@ -79,7 +79,7 @@ object GuideAPI {
         TwitterFuture()
       else {
         val status = updateInfo.get(GuideProps.Status)
-        if (status.get.equals(GuideStatus.traveled))
+        if (status.get.equals(GuideStatus.traveled.toString))
           ds.save(tracks)
         else {
           val query = ds.createQuery(classOf[Track]).field(Track.fnUserId).equal(userId).field(Track.fnLocalityId).in(tracks map (_.getLocality.getId))
