@@ -1,9 +1,9 @@
 package api
 
-import com.twitter.util.{ Future => TwitterFuture, FuturePool }
+import com.twitter.util.{Future => TwitterFuture, FuturePool}
 import models.AizouBaseEntity
-import models.guide.{ AbstractGuide, Guide, ItinerItem }
-import models.geo.{ Locality => K2Locality }
+import models.guide.{GuideTemplate, AbstractGuide, Guide, ItinerItem}
+import models.geo.{Locality => K2Locality}
 import models.misc.Track
 import utils.Implicits._
 import models.poi._
@@ -19,6 +19,21 @@ import scala.language.postfixOps
  * Created by zephyre on 7/20/15.
  */
 object GuideAPI {
+
+  implicit def guide2UgcGuide(guide: GuideTemplate, userId: Long): Guide = {
+    val result = new Guide()
+    result.setUserId(userId.toInt)
+    result.setId(new ObjectId)
+    result.localities = guide.localities
+    result.setUpdateTime(System.currentTimeMillis)
+    result.itinerary = guide.itinerary
+    result.shopping = guide.shopping
+    result.restaurant = guide.restaurant
+    result.setItineraryDays(0)
+    result.images = guide.getImages
+    return result
+
+  }
 
   object GuideStatus extends Enumeration {
     val planned = Value("planned")
@@ -47,6 +62,28 @@ object GuideAPI {
     futurePool {
       val query = ds.createQuery(classOf[Guide]) field "id" equal new ObjectId(guideId)
       query.get()
+    }
+  }
+
+  def addGuideToUser(uid: Long) = {
+    for {
+      guide <- GuideAPI.getGuideTemplate()
+      result <- GuideAPI.addGuideTemplate(uid, guide)
+    } yield TwitterFuture()
+  }
+
+  def getGuideTemplate()(implicit ds: Datastore, futurePool: FuturePool) = {
+    futurePool {
+      val fieldList = Seq(AizouBaseEntity.FD_ID, K2Locality.fnLocation, K2Locality.FD_ZH_NAME, K2Locality.FD_EN_NAME, K2Locality.fnImages, K2Locality.fnCountry)
+      val query = ds.createQuery(classOf[GuideTemplate]).field("locId").equal(new ObjectId("5473ccd7b8ce043a64108c46"))
+        .retrievedFields(true, fieldList: _*)
+      query.get()
+    }
+  }
+
+  def addGuideTemplate(uid: Long, guide: GuideTemplate)(implicit ds: Datastore, futurePool: FuturePool) = {
+    futurePool {
+      ds.save(guide2UgcGuide(guide, uid))
     }
   }
 
@@ -83,7 +120,7 @@ object GuideAPI {
           ds.save(tracks)
         else {
           val query = ds.createQuery(classOf[Track]).field(Track.fnUserId).equal(userId).field(Track.fnLocalityId).in(tracks map (_.getLocality.getId))
-          val ops = ds.createUpdateOperations(classOf[Track]).set(AizouBaseEntity.FD_TAOZIENA, true)
+          val ops = ds.createUpdateOperations(classOf[Track]).set(AizouBaseEntity.FD_TAOZIENA, false)
           ds.update(query, ops)
         }
       }
