@@ -22,6 +22,9 @@ public class Track extends AizouBaseEntity {
     @Transient
     public static String fnCountry = "country";
 
+    @Transient
+    public static String fnItemId = "itemId";
+
     /**
      * 用户ID
      */

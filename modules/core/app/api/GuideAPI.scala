@@ -1,9 +1,9 @@
 package api
 
-import com.twitter.util.{Future => TwitterFuture, FuturePool}
+import com.twitter.util.{ Future => TwitterFuture, FuturePool }
 import models.AizouBaseEntity
-import models.guide.{GuideTemplate, AbstractGuide, Guide, ItinerItem}
-import models.geo.{Locality => K2Locality}
+import models.guide.{ GuideTemplate, AbstractGuide, Guide, ItinerItem }
+import models.geo.{ Locality => K2Locality }
 import models.misc.Track
 import utils.Implicits._
 import models.poi._
@@ -31,8 +31,7 @@ object GuideAPI {
     result.restaurant = guide.restaurant
     result.setItineraryDays(0)
     result.images = guide.getImages
-    return result
-
+    result
   }
 
   object GuideStatus extends Enumeration {
@@ -83,7 +82,7 @@ object GuideAPI {
 
   def addGuideTemplate(uid: Long, guide: GuideTemplate)(implicit ds: Datastore, futurePool: FuturePool) = {
     futurePool {
-      ds.save(guide2UgcGuide(guide, uid))
+      ds.save[Guide](guide2UgcGuide(guide, uid))
     }
   }
 
@@ -116,9 +115,10 @@ object GuideAPI {
         TwitterFuture()
       else {
         val status = updateInfo.get(GuideProps.Status)
-        if (status.get.equals(GuideStatus.traveled.toString))
-          ds.save(tracks)
-        else {
+        if (status.get.equals(GuideStatus.traveled.toString)) {
+          ds.findAndDelete[Track](ds.createQuery(classOf[Track]).field(Track.fnItemId).in(tracks.map(_.getItemId)))
+          ds.save[Track](tracks)
+        } else {
           val query = ds.createQuery(classOf[Track]).field(Track.fnUserId).equal(userId).field(Track.fnLocalityId).in(tracks map (_.getLocality.getId))
           val ops = ds.createUpdateOperations(classOf[Track]).set(AizouBaseEntity.FD_TAOZIENA, false)
           ds.update(query, ops)
