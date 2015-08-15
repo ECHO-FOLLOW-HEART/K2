@@ -93,33 +93,19 @@ object UserCtrlScala extends Controller {
       val provider = (body \ "provider").asOpt[String]
       if (password.nonEmpty && loginName.nonEmpty) {
         val telEntry = PhoneParserFactory.newInstance().parse(loginName.get)
-        //          val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
-        //            val userFormatter = new UserLoginFormatter(true)
-        //            K2Result.ok(Some(userFormatter.format(user)))
-        //          })
-        val future = for {
-          user <- FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app")
-          result <- GuideAPI.addGuideToUser(user.getUserId)
-        } yield {
+        val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
           val userFormatter = new UserLoginFormatter(true)
           K2Result.ok(Some(userFormatter.format(user)))
-        }
+        })
         future rescue {
           case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid loginName/password"))
         }
       } else if (authCode.nonEmpty && provider.nonEmpty) {
-        //          val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
-        //
-        //            val userFormatter = new UserLoginFormatter(true)
-        //            K2Result.ok(Some(userFormatter.format(user)))
-        //          })
-        val future = for {
-          user <- FinagleFactory.client.loginByOAuth(authCode.get, provider.get)
-          result <- GuideAPI.addGuideToUser(user.getUserId)
-        } yield {
+        val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
+
           val userFormatter = new UserLoginFormatter(true)
           K2Result.ok(Some(userFormatter.format(user)))
-        }
+        })
         future rescue {
           case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid authCode/authProvider"))
         }
@@ -142,7 +128,7 @@ object UserCtrlScala extends Controller {
       tel <- (body \ "tel").asOpt[String] map PhoneParserFactory.newInstance().parse
     } yield {
       client.checkValidationCode(valCode, action, tel.getPhoneNumber, None) flatMap (_ => {
-        val nickName = "旅行派_" + tel.getPhoneNumber
+        val nickName = "旅行派" + tel.getPhoneNumber
         FinagleFactory.client.createUser(nickName, password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber))) map (user => {
           val node = new UserLoginFormatter(true).format(user)
           K2Result.created(Some(node))

@@ -1,6 +1,8 @@
 package api
 
 import com.twitter.util.{ Future => TwitterFuture, FuturePool }
+
+import database.MorphiaFactory
 import models.AizouBaseEntity
 import models.guide.{ GuideTemplate, AbstractGuide, Guide, ItinerItem }
 import models.geo.{ Locality => K2Locality }
@@ -31,6 +33,12 @@ object GuideAPI {
     result.restaurant = guide.restaurant
     result.setItineraryDays(0)
     result.images = guide.getImages
+    //设置攻略可见性
+    result.setVisibility(Guide.fnVisibilityPublic)
+    //设置攻略状态
+    result.setStatus(Guide.fnStatusPlanned)
+    // 保存攻略时，置为可用
+    result.setTaoziEna(true)
     result
   }
 

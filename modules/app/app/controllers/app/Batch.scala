@@ -83,7 +83,7 @@ object Batch extends Controller {
       201099, 201101, 201097, 201033,
       201117, 201118, 201119, 201120,
       201121, 201122, 201123, 201124,
-      201125, 201126
+      201125, 201126, 201206
     ))
     saveCountries(countries, userCnt)
     //writeCountries(countries, userCnt)

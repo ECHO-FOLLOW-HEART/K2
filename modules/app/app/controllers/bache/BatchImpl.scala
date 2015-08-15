@@ -2,17 +2,15 @@ package controllers.bache
 
 import java.util.Arrays
 
-import akka.actor.FSM.->
 import com.twitter.util.{ Future, FuturePool }
 import exception.AizouException
 import models.AizouBaseEntity
 import models.geo.{ CountryExpert, Locality, Country }
-import models.misc.{ Track, Album }
+import models.misc.Track
 import models.poi.{ AbstractPOI, ViewSpot }
 import models.user.UserInfo
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
-import org.mongodb.morphia.query.{ UpdateOperations, Query }
 
 import scala.collection.JavaConversions._
 
@@ -51,6 +49,7 @@ object BatchImpl {
   }
 
   def getLocalitiesByIds(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
+
     val query = ds.createQuery(classOf[Locality])
     query.field(AizouBaseEntity.FD_ID).in(ids)
     //query.field(AizouBaseEntity.FD_TAOZIENA)
@@ -64,11 +63,10 @@ object BatchImpl {
   val capIdList = Arrays.asList(new ObjectId("5473ccd7b8ce043a64108c46"), new ObjectId("546f2daab8ce0440eddb2aff"),
     new ObjectId("5473ccd7b8ce043a64108c4d"), new ObjectId("5473ccd6b8ce043a64108c08"))
 
-  def getViewSportLocalList(isChina: Boolean)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ViewSpot]] = {
+  def getViewSportLocalList(abroad: Boolean)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ViewSpot]] = {
     val query = ds.createQuery(classOf[ViewSpot])
     query.retrievedFields(true, Arrays.asList(AizouBaseEntity.FD_ID, AbstractPOI.simplocList, AbstractPOI.detTargets): _*)
-    if (isChina) {
-      //query.field("zhName").equal("芙蓉镇")
+    if (!abroad) {
       query.field("country.zhName").equal("中国").field(AbstractPOI.simplocList).notEqual(null)
       query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd7b8ce043a64108c46"))
       query.field(AbstractPOI.detTargets).notEqual(new ObjectId("546f2daab8ce0440eddb2aff"))
@@ -76,9 +74,13 @@ object BatchImpl {
       query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd6b8ce043a64108c08"))
       query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd7b8ce043a64108c45"))
       query.field(AbstractPOI.detTargets).notEqual(new ObjectId("5473ccd6b8ce043a64108c09"))
-    } else
-      query.field("zhName").equal("海军码头")
-    query.field("country").notEqual(null).field("country.zhName").notEqual("中国").field(AbstractPOI.simplocList).notEqual(null)
+    } else {
+      query.field(AbstractPOI.simplocList).notEqual(null).field("zhName").in(Seq("格兰维尔岛", "好运岛和帕斯巨石公园"))
+      query.or(
+        query.criteria("country").notEqual(null).criteria("country.id").notEqual(new ObjectId("5434d70e10114e684bb1b4ee")),
+        query.criteria(AbstractPOI.simplocList).notEqual(null).criteria("locList.id").notEqual(new ObjectId("5434d70e10114e684bb1b4ee")))
+      //query.field("country").notEqual(null).field("country.zhName").notEqual("中国").field(AbstractPOI.simplocList).notEqual(null)
+    }
 
     futurePool {
       query.asList().toSeq
@@ -86,13 +88,17 @@ object BatchImpl {
   }
 
   def saveViewSportLocalityChina(vs: ViewSpot)(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
-    val query = ds.createQuery(classOf[ViewSpot]).field(AizouBaseEntity.FD_ID).equal(vs.getId)
-    // val index = if (vs.locList.size() > 2) vs.locList.get(2) else vs.locList.get(vs.locList.size() - 1)
-    val index = vs.locList.get(vs.locList.size() - 1)
-    val update = ds.createUpdateOperations(classOf[ViewSpot]).set(AbstractPOI.FD_LOCALITY, index)
+    if (vs.locList == null)
+      Future()
+    else {
+      val query = ds.createQuery(classOf[ViewSpot]).field(AizouBaseEntity.FD_ID).equal(vs.getId)
+      // val index = if (vs.locList.size() > 2) vs.locList.get(2) else vs.locList.get(vs.locList.size() - 1)
+      val index = vs.locList.get(vs.locList.size() - 1)
+      val update = ds.createUpdateOperations(classOf[ViewSpot]).set(AbstractPOI.FD_LOCALITY, index)
 
-    futurePool {
-      ds.update(query, update)
+      futurePool {
+        ds.update(query, update)
+      }
     }
   }
 
