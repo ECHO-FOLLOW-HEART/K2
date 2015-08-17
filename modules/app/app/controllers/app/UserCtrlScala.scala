@@ -130,7 +130,7 @@ object UserCtrlScala extends Controller {
         val future = for {
           check <- client.checkValidationCode(valCode, action, tel.getPhoneNumber, None)
           user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)))
-          FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
+          updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
         } yield {
             val node = new UserLoginFormatter(true).format(user)
             K2Result.created(Some(node))
