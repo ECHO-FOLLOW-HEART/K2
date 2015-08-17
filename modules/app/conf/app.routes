@@ -154,7 +154,7 @@ POST          /misc/feedback                                           controlle
 #举报
 POST          /misc/tip-offs                                           controllers.app.MiscCtrl.postTipOff()
 #热门搜索
-GET           /misc/hot-searchs                                        controllers.app.MiscCtrl.getHotSearchs()
+GET           /misc/hot-searches                                       controllers.app.MiscCtrl.getHotSearchs()
 #搜索
 GET           /search                                                  controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #提示
