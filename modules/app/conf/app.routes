@@ -57,6 +57,9 @@ GET           /users/$uid<\d+>/contacts                                controlle
 #修改好友备注
 PUT           /users/$uid<\d+>/contacts/$contactId<\d+>/memo           controllers.app.UserCtrlScala.updateContactMemo(uid: Long, contactId: Long)
 
+#修改好友备注
+PUT           /users/$uid<\d+>/contacts/$contactId<\d+>/block          controllers.app.UserCtrlScala.updateBlockList(uid: Long, contactId: Long)
+
 #获得好友信息
 GET           /users/$uid<\d+>/contacts/$cid<\d+>                      controllers.app.UserCtrlScala.getContact(uid:Long, cid:Long)
 
