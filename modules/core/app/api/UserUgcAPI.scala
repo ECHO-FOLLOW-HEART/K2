@@ -1,23 +1,19 @@
 package api
 
-import java.util.Arrays
-
-import com.lvxingpai.yunkai.UserInfo
 import com.twitter.util.{ Future, FuturePool }
-import database.MorphiaFactory
 import exception.AizouException
 import models.AizouBaseEntity
 import models.geo.Locality
 import models.guide.Guide
 import models.misc.{ Album, Track }
-import models.user.UserInfo
+import models.user.UgcInfo
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
-import org.mongodb.morphia.query.{ CriteriaContainerImpl, Query }
+import org.mongodb.morphia.query.Query
 import utils.TaoziDataFilter
+
 import scala.collection.JavaConversions
 import scala.collection.JavaConversions._
-import scala.collection.mutable.ArrayBuffer
 
 /**
  * Created by topy on 2015/7/7.
@@ -73,6 +69,36 @@ object UserUgcAPI {
       query.or(clist: _*)
       query.retrievedFields(true, fieldList: _*)
       query.asList().map(userInfoYunkai2Model(_, userId))
+    }
+  }
+
+  object ActionCode extends Enumeration {
+
+    case class ActionCode(value: String) extends Val(value)
+
+    val LIKE = ActionCode("like")
+    val UNLIKE = ActionCode("unlike")
+  }
+
+  object ItemTypeCode extends Enumeration {
+
+    case class ItemTypeCode(value: String) extends Val(value)
+
+    val LOCALITY = ItemTypeCode("locality")
+  }
+
+  def updateUgcInfo(userId: Long, action: String, itemType: String, itemId: ObjectId)(implicit ds: Datastore, futurePool: FuturePool) = {
+    futurePool {
+      val query = ds.createQuery(classOf[UgcInfo]).field(UgcInfo.fnUserId).equal(userId)
+      if (itemType.equals(ItemTypeCode.LOCALITY.value)) {
+        if (action.equals(ActionCode.LIKE.value)) {
+          val update = ds.createUpdateOperations(classOf[UgcInfo]).add(UgcInfo.fnLikeLocalities, itemId, false)
+          ds.findAndModify(query, update, false, true)
+        } else {
+          val update = ds.createUpdateOperations(classOf[UgcInfo]).removeAll(UgcInfo.fnLikeLocalities, itemId)
+          ds.update(query, update)
+        }
+      }
     }
   }
 }
