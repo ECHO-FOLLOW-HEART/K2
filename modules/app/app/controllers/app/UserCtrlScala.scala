@@ -1,6 +1,6 @@
 package controllers.app
 
-import api.{GuideAPI, UserUgcAPI}
+import api.UserUgcAPI
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ArrayNode, LongNode, ObjectNode, TextNode}
@@ -598,7 +598,7 @@ object UserCtrlScala extends Controller {
       contacts <- ((body \ "contacts").asOpt[Seq[JsonContact]])
     } yield {
         //val contactsPho = contacts map (PhoneParserFactory.newInstance().parse(_.).getPhoneNumber)
-        val contactsPho = contacts map (x => PhoneParserFactory.newInstance().parse(x.tel).getPhoneNumber)
+        val contactsPho = contacts map (x => x.tel)
         val ret = FinagleFactory.client.getContactList(uid, Some(Seq(UserInfoProp.Tel)), None, None) map (reqSeq => {
 
           val friendsMap = reqSeq.map(userInfoYunkai2Model(_)).groupBy(_.getTel)

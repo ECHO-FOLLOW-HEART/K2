@@ -3,6 +3,7 @@ package controllers.app;
 import aizou.core.GeoAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
+import aizou.core.UserUgcAPI;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,6 +67,9 @@ public class GeoCtrl extends Controller {
         response.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + id);
 //        response.put("diningTitles", contentsTitles(locality.getCuisines()));
         response.put("shoppingTitles", contentsTitles(locality.getCommodities()));
+
+        response.put("like", UserUgcAPI.hasTraveled(userId, locality.getId()));
+        response.put("traveled", UserUgcAPI.isLike(userId, locality.getId()));
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
 

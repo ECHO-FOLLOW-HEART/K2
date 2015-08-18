@@ -4,10 +4,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import database.MorphiaFactory;
 import exception.AizouException;
 import exception.ErrorCode;
+import models.AizouBaseEntity;
 import models.geo.Locality;
 import models.misc.Album;
 import models.misc.ImageItem;
 import models.misc.Track;
+import models.user.UgcInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -223,5 +225,19 @@ public class UserUgcAPI {
             tracks.add(tempTrack);
         }
         return tracks;
+    }
+
+    public static boolean hasTraveled(Long userId, ObjectId locId) {
+        Datastore dsUser = MorphiaFactory.datastore();
+        Query<Track> query = dsUser.createQuery(Track.class);
+        query.field(Track.fnLocalityId).equal(locId).field(Track.fnUserId).equal(userId).field(AizouBaseEntity.FD_ENABLED).equal(true);
+        return query.countAll() > 0 ? true : false;
+    }
+
+    public static boolean isLike(Long userId, ObjectId locId) {
+        Datastore dsUser = MorphiaFactory.datastore();
+        Query<UgcInfo> query = dsUser.createQuery(UgcInfo.class);
+        query.field(UgcInfo.fnLikeLocalities).hasThisOne(locId).field(UgcInfo.fnUserId).equal(userId).field(AizouBaseEntity.FD_ENABLED).equal(true);
+        return query.countAll() > 0 ? true : false;
     }
 }

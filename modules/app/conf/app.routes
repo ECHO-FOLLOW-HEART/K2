@@ -99,13 +99,13 @@ DELETE        /users/$id<\d+>/albums/:picId                            controlle
 #获取用户足迹
 GET           /users/$id<[0-9]+>/footprints                            controllers.app.UserUgcCtrl.getUserTracks(id :Long)
 #获取所有达人的足迹
-
 GET           /users/:userRole/footprints                              controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
-
-#获取足迹包含某目的地的所有达人
-#POST          /users/:userRole/footprints/users                            controllers.app.UserUgcCtrl.getExpertUserByTracks(userRole:String)
 #修改足迹
 POST          /users/$id<\d+>/footprints                               controllers.app.UserUgcCtrl.modifyTracks(id:Long)
+
+#----------用户足迹接口----------
+#用户喜欢
+POST          /users/$id<\d+>/likes                                    controllers.app.UgcCtrlScala.updateUgcInfo(id:Long)
 
 ##----------用户群组接口----------
 ##取得用户的讨论组

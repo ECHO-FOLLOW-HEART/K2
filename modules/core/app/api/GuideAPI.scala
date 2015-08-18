@@ -72,27 +72,27 @@ object GuideAPI {
     }
   }
 
-  def addGuideToUser(uid: Long) = {
-    for {
-      guide <- GuideAPI.getGuideTemplate()
-      result <- GuideAPI.addGuideTemplate(uid, guide)
-    } yield TwitterFuture()
-  }
+  //  def addGuideToUser(uid: Long) = {
+  //    for {
+  //      guide <- GuideAPI.getGuideTemplate()
+  //      result <- GuideAPI.addGuideTemplate(uid, guide)
+  //    } yield TwitterFuture()
+  //  }
+  //
+  //  def getGuideTemplate()(implicit ds: Datastore, futurePool: FuturePool) = {
+  //    futurePool {
+  //      val fieldList = Seq(AizouBaseEntity.FD_ID, K2Locality.fnLocation, K2Locality.FD_ZH_NAME, K2Locality.FD_EN_NAME, K2Locality.fnImages, K2Locality.fnCountry)
+  //      val query = ds.createQuery(classOf[GuideTemplate]).field("locId").equal(new ObjectId("5473ccd7b8ce043a64108c46"))
+  //        .retrievedFields(true, fieldList: _*)
+  //      query.get()
+  //    }
+  //  }
 
-  def getGuideTemplate()(implicit ds: Datastore, futurePool: FuturePool) = {
-    futurePool {
-      val fieldList = Seq(AizouBaseEntity.FD_ID, K2Locality.fnLocation, K2Locality.FD_ZH_NAME, K2Locality.FD_EN_NAME, K2Locality.fnImages, K2Locality.fnCountry)
-      val query = ds.createQuery(classOf[GuideTemplate]).field("locId").equal(new ObjectId("5473ccd7b8ce043a64108c46"))
-        .retrievedFields(true, fieldList: _*)
-      query.get()
-    }
-  }
-
-  def addGuideTemplate(uid: Long, guide: GuideTemplate)(implicit ds: Datastore, futurePool: FuturePool) = {
-    futurePool {
-      ds.save[Guide](guide2UgcGuide(guide, uid))
-    }
-  }
+  //  def addGuideTemplate(uid: Long, guide: GuideTemplate)(implicit ds: Datastore, futurePool: FuturePool) = {
+  //    futurePool {
+  //      ds.save[Guide](guide2UgcGuide(guide, uid))
+  //    }
+  //  }
 
   /**
    * 修改行程单
@@ -112,7 +112,6 @@ object GuideAPI {
           }
         })
         ds.updateFirst(query, ops)
-        ()
       }
     }
   }
