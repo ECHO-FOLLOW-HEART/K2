@@ -279,7 +279,6 @@ object UserCtrlScala extends Controller {
     } yield {
       updateBlackList(selfId, userId, block = true)
     }
-
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })
@@ -635,18 +634,23 @@ object UserCtrlScala extends Controller {
 
   def matchAddressBook(uid: Long) = Action.async(request => {
 
-    def setContact(friends: Map[String, Seq[UserInfo]], contactTel: String): K2Contact = {
-      val contact = new K2Contact()
-      if (friends.containsKey(contactTel)) {
-        contact.setTel(contactTel)
-        contact.setUser(true)
-        contact.setContact(friends.containsKey())
+    def setContact(userMap: Map[String, Seq[UserInfo]], contacts: Seq[UserInfo], contact: JsonContact): K2Contact = {
+      val result = new K2Contact()
+      val contactTel = contact.getTel
+      result.setTel(contactTel)
+      result.setEntryId(contact.entryId)
+      result.setSourceId(contact.sourceId)
+      result.setName(contact.name)
+      if (userMap.containsKey(contactTel)) {
+        val userInfo = userMap.get(contactTel).get(0)
+        result.setUser(true)
+        result.setUserId(userInfo.getUserId)
+        result.setContact(contacts.map(_.getUserId).contains(userInfo.getUserId))
       } else {
-        contact.setTel(contactTel)
-        contact.setUser(false)
-        contact.setContact(false)
+        result.setUser(false)
+        result.setContact(false)
       }
-      contact
+      result
     }
 
     val formatter = FormatterFactory.getInstance(classOf[ContactFormatter])
@@ -657,10 +661,12 @@ object UserCtrlScala extends Controller {
     } yield {
       //val contactsPho = contacts map (PhoneParserFactory.newInstance().parse(_.).getPhoneNumber)
       val contactsPho = contacts map (x => x.tel)
-      val ret = FinagleFactory.client.getContactList(uid, Some(Seq(UserInfoProp.Tel)), None, None) map (reqSeq => {
-
-        val friendsMap = reqSeq.map(userInfoYunkai2Model(_)).groupBy(_.getTel)
-        val contactsResult = contactsPho.map(setContact(friendsMap, _))
+      (for {
+        myContact <- FinagleFactory.client.getContactList(uid, Some(Seq(UserInfoProp.Tel)), None, None)
+        uploadContact <- FinagleFactory.client.getUsersByTelList(Some(Seq(UserInfoProp.Tel, UserInfoProp.UserId)), contactsPho)
+      } yield {
+        val userMap = uploadContact map userInfoYunkai2Model groupBy (_.getTel)
+        val contactsResult = contacts.map(setContact(userMap, myContact map userInfoYunkai2Model, _))
         val node = formatter.formatNode(contactsResult)
         Utils.status(node.toString).toScala
       }) rescue {
@@ -673,7 +679,6 @@ object UserCtrlScala extends Controller {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
           }
       }
-      ret
     }) getOrElse TwitterFuture(K2Result.unprocessable)
     result
   })
