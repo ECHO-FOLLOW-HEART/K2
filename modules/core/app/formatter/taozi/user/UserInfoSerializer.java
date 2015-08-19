@@ -37,6 +37,7 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
         jgen.writeStringField("gender", getString(userInfo.getGender()));
         jgen.writeStringField("signature", getString(userInfo.getSignature()));
         jgen.writeNumberField("userId", userInfo.getUserId());
+        jgen.writeBooleanField("isBlocked", false);
 
         // roles
         jgen.writeFieldName(UserInfo.fnRoles);
