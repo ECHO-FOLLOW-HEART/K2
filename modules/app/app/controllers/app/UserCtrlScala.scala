@@ -38,32 +38,40 @@ object UserCtrlScala extends Controller {
 
   def getUserInfo(userId: Long) = Action.async(request => {
 
-    val isSelf = request.headers.get("UserId").map(_.toLong).getOrElse(0) == userId
+    val userIdOpt = request.headers.get("UserId") map (_.toLong)
+    val isSelf = (userIdOpt getOrElse 0) == userId
 
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(Tel) else Seq())
     formatter.setSelfView(isSelf)
-    (for {
-      user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
 
+    val future = (for {
+      user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
+      isBlocked <- {
+        // 如果Header中包括了UserId，则需要检查用户的屏蔽关系，否则为false
+        userIdOpt map (selfId => {
+          FinagleFactory.client.isBlocked(selfId, userId)
+        }) getOrElse TwitterFuture(false)
+      }
       guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
       trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
     } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
+      node.put("isBlocked", isBlocked)
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", trackCntAndCountryCnt._1)
       node.put("countryCnt", trackCntAndCountryCnt._2)
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
       Utils.status(node.toString).toScala
-    }
-    ) rescue {
+    }) rescue {
       case _: NotFoundException =>
         TwitterFuture {
           Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
         }
     }
+    future
   })
 
   /**
@@ -321,11 +329,15 @@ object UserCtrlScala extends Controller {
 
     val future: TwitterFuture[Result] = isContactFuture flatMap (isContact => {
       if (isContact) {
-        client.getUserById(contactId, Some(basicUserInfoFieds), Some(userId)) map (user => {
+        for {
+          user <- client.getUserById(contactId, Some(basicUserInfoFieds), Some(userId))
+          isBlocked <- client.isBlocked(userId, contactId)
+        } yield {
           val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
           val node = formatter.formatNode(user)
+          node.asInstanceOf[ObjectNode].put("isBlocked", isBlocked)
           K2Result.ok(Some(node))
-        })
+        }
       } else TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
     })
 
