@@ -57,6 +57,12 @@ GET           /users/$uid<\d+>/contacts                                controlle
 #修改好友备注
 PUT           /users/$uid<\d+>/contacts/$contactId<\d+>/memo           controllers.app.UserCtrlScala.updateContactMemo(uid: Long, contactId: Long)
 
+# 将用户添加到黑名单
+POST          /users/$uid<\d+>/blacklist                               controllers.app.UserCtrlScala.blockUser(uid: Long)
+
+# 将用户移出黑名单
+DELETE        /users/$uid<\d+>/blacklist/$targetId<\d+>                controllers.app.UserCtrlScala.deblockUser(uid: Long, targetId: Long)
+
 #获得好友信息
 GET           /users/$uid<\d+>/contacts/$cid<\d+>                      controllers.app.UserCtrlScala.getContact(uid:Long, cid:Long)
 
