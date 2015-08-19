@@ -16,14 +16,12 @@ import misc.{ FinagleConvert, FinagleFactory }
 import models.user.{ Contact => K2Contact, UserInfo }
 import org.joda.time.format.DateTimeFormat
 import play.api.mvc.{ Action, Controller, Result }
-
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
 import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
-import scala.collection.JavaConverters._
 import scala.concurrent.{ Future => ScalaFuture }
 import scala.language.{ implicitConversions, postfixOps }
 
@@ -243,22 +241,50 @@ object UserCtrlScala extends Controller {
   })
 
   /**
-   * 屏蔽好友
+   * update用户的黑名单列表
    *
-   * @param selfId 被修改人
+   * @param selfId 自己的ID
+   * @param targetId 目标用户的ID
+   * @param block 是屏蔽用户，还是接触屏蔽？
    * @return
    */
-  def updateBlockList(selfId: Long, contactId: Long) = Action.async(request => {
+  def updateBlackList(selfId: Long, targetId: Long, block: Boolean) = {
+    val future = (for {
+      _ <- FinagleFactory.client.updateBlackList(selfId, targetId, block)
+    } yield K2Result.ok(None)) rescue {
+      case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
+      case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+    }
+    future
+  }
+
+  /**
+   * 屏蔽某个用户的handler
+   *
+   * @param selfId 自己的ID
+   * @return
+   */
+  def blockUser(selfId: Long) = Action.async(request => {
     val ret = for {
       body <- request.body.asJson
-      block <- (body \ "block").asOpt[Boolean]
+      userId <- (body \ "userId").asOpt[Long]
     } yield {
-      FinagleFactory.client.updateBlockList(selfId, contactId, block) map (_ => K2Result.ok(None)) rescue {
-        case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
-        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
-      }
+      updateBlackList(selfId, userId, block = true)
     }
+
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
+    future
+  })
+
+  /**
+   * 将某个用户解除屏蔽的handler
+   *
+   * @param selfId 自己的ID
+   * @param targetId 目标用户的ID
+   * @return
+   */
+  def deblockUser(selfId: Long, targetId: Long) = Action.async(request => {
+    val future = updateBlackList(selfId, targetId, block = false)
     future
   })
 
