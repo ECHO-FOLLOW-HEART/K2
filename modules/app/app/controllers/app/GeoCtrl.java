@@ -3,6 +3,7 @@ package controllers.app;
 import aizou.core.GeoAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
+import aizou.core.UserUgcAPI;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,6 +67,9 @@ public class GeoCtrl extends Controller {
         response.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + id);
 //        response.put("diningTitles", contentsTitles(locality.getCuisines()));
         response.put("shoppingTitles", contentsTitles(locality.getCommodities()));
+
+        response.put("like", UserUgcAPI.hasTraveled(userId, locality.getId()));
+        response.put("traveled", UserUgcAPI.isLike(userId, locality.getId()));
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
 
@@ -441,8 +445,8 @@ public class GeoCtrl extends Controller {
         result.add(node);
 
         node = Json.newObject();
-        node.put("title", "节庆与民俗活动");
-        node.put("fields", Json.toJson(Arrays.asList("activities")));
+        node.put("title", "不可错过的游玩体验");
+        node.put("fields", Json.toJson(Arrays.asList("specials")));
         result.add(node);
 
         node = Json.newObject();
@@ -451,14 +455,15 @@ public class GeoCtrl extends Controller {
         result.add(node);
 
         node = Json.newObject();
+        node.put("title", "节庆与民俗活动");
+        node.put("fields", Json.toJson(Arrays.asList("activities")));
+        result.add(node);
+
+        node = Json.newObject();
         node.put("title", "宗教、文化与历史");
         node.put("fields", Json.toJson(Arrays.asList("geoHistory")));
         result.add(node);
 
-        node = Json.newObject();
-        node.put("title", "不可错过的游玩体验");
-        node.put("fields", Json.toJson(Arrays.asList("specials")));
-        result.add(node);
 
 //        node = Json.newObject();
 //        node.put("title", "描述");

@@ -67,6 +67,7 @@ public class POICtrl extends Controller {
             ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/poi/morecomment.php?pid=" + spotId + "&poiType=" + poiDesc);
 //            ret.put("recommends", recommends);
         } else if (poiClass == ViewSpot.class) {
+            ret.put("moreCommentsUrl", "http://h5.taozilvxing.com/poi/morecomment.php?pid=" + spotId + "&poiType=" + poiDesc);
             // 获得同城的销售数据
             LyMapping lyMapping = PoiAPI.getTongChenPOI(poiInfo.getId());
             if (lyMapping == null)
@@ -106,6 +107,7 @@ public class POICtrl extends Controller {
         switch (poiDesc) {
             case "viewspot":
                 poiClass = ViewSpot.class;
+                commentClass = Comment.class;
                 break;
             case "hotel":
                 poiClass = Hotel.class;
@@ -205,7 +207,7 @@ public class POICtrl extends Controller {
 
         Class<? extends AbstractPOI> poiClass;
         switch (poiDesc) {
-            case "vs":
+            case "viewspot":
                 poiClass = ViewSpot.class;
                 break;
             case "hotel":

@@ -57,7 +57,10 @@ object Batch extends Controller {
       val formatter = FormatterFactory.getInstance(classOf[SimpleCountryFormatter])
       for {
         countries <- BatchImpl.getCountriesByNames(Seq("日本", "韩国", "中国", "泰国", "马来西亚", "新加坡", "印度尼西亚", "越南",
-          "斯里兰卡", "阿联酋", "尼泊尔", "柬埔寨", "法国", "希腊", "意大利", "瑞士", "美国", "英国", "西班牙"), 0, 999)
+          "斯里兰卡", "阿联酋", "尼泊尔", "柬埔寨", "法国", "希腊", "意大利", "瑞士", "美国", "英国", "西班牙"
+        //,"智利", "阿根廷", "巴西", "新西兰", "澳大利亚", "加拿大", "墨西哥", "毛里求斯", "塞舌尔", "肯尼亚", "南非", "埃及", "卢森堡", "瑞典", "丹麦", "芬兰",
+        //"葡萄牙", "比利时", "奥地利", "挪威", "土耳其", "荷兰", "俄罗斯", "德国"
+        ), 0, 999)
       } yield {
         val node = formatter.formatNode(countries).asInstanceOf[ArrayNode]
         dealWithCountries(countries)
@@ -69,13 +72,19 @@ object Batch extends Controller {
     //    val config: Configuration = Configuration.root
     //    val map = config.getObject("experts")
     //    val list = map.asInstanceOf[java.util.HashMap].values
-    val userCnt = BatchImpl.getCountryToUserCntMap(countries.map(_.getId), Seq(11000, 100000, 100003, 100057,
+    val userCnt = BatchImpl.getCountryToUserCntMap(countries.map(_.getId), Seq(
+      11000, 100000, 100003, 100057,
       100076, 100093, 100001, 100015,
       100025, 100002, 100004, 100005,
       100009, 100010, 100011, 100012,
       100014, 100031, 100035, 100040,
       100056, 100067, 100068, 100073,
-      100089, 100090, 100091))
+      100089, 100090, 100091, 201098,
+      201099, 201101, 201097, 201033,
+      201117, 201118, 201119, 201120,
+      201121, 201122, 201123, 201124,
+      201125, 201126, 201206
+    ))
     saveCountries(countries, userCnt)
     //writeCountries(countries, userCnt)
   }
@@ -168,4 +177,15 @@ object Batch extends Controller {
       }: _*)
     }
   }
+
+  def checkVsLocality(abroad: Boolean) = Action.async(
+    request => {
+      for {
+        viewSpots <- BatchImpl.getViewSportLocalList(abroad)
+      } yield {
+        viewSpots map (BatchImpl.saveViewSportLocalityChina(_))
+        Utils.status("Success" + viewSpots.size).toScala
+      }
+    }
+  )
 }

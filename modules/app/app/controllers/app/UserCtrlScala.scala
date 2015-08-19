@@ -9,18 +9,21 @@ import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{ UserInfoFormatter, UserLoginFormatter }
+import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ FinagleConvert, FinagleFactory }
-import models.user.UserInfo
+import models.user.{ Contact => K2Contact, UserInfo }
 import org.joda.time.format.DateTimeFormat
 import play.api.mvc.{ Action, Controller, Result }
+
 import utils.Implicits._
+import utils.formatter.json.ImplicitsFormatter._
 import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.concurrent.{ Future => ScalaFuture }
 import scala.language.{ implicitConversions, postfixOps }
 
@@ -28,6 +31,7 @@ import scala.language.{ implicitConversions, postfixOps }
  * Created by zephyre on 6/30/15.
  */
 object UserCtrlScala extends Controller {
+
   import UserInfoProp._
 
   implicit def userInfoYunkai2Model(userInfo: YunkaiUserInfo): UserInfo = FinagleConvert.convertK2User(userInfo)
@@ -43,6 +47,7 @@ object UserCtrlScala extends Controller {
     formatter.setSelfView(isSelf)
     (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
+
       guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
       trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
@@ -97,6 +102,7 @@ object UserCtrlScala extends Controller {
         }
       } else if (authCode.nonEmpty && provider.nonEmpty) {
         val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
+
           val userFormatter = new UserLoginFormatter(true)
           K2Result.ok(Some(userFormatter.format(user)))
         })
@@ -121,13 +127,22 @@ object UserCtrlScala extends Controller {
       valCode <- (body \ "captcha").asOpt[String] orElse (body \ "validationCode").asOpt[String]
       tel <- (body \ "tel").asOpt[String] map PhoneParserFactory.newInstance().parse
     } yield {
-      client.checkValidationCode(valCode, action, tel.getPhoneNumber, None) flatMap (_ => {
-        val nickName = "旅行派_" + tel.getPhoneNumber
-        FinagleFactory.client.createUser(nickName, password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber))) map (user => {
-          val node = new UserLoginFormatter(true).format(user)
-          K2Result.created(Some(node))
-        })
-      }) rescue {
+      val future = for {
+        check <- client.checkValidationCode(valCode, action, tel.getPhoneNumber, None)
+        user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)))
+        updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
+      } yield {
+        val node = new UserLoginFormatter(true).format(user)
+        K2Result.created(Some(node))
+      }
+      //        val ee = client.checkValidationCode(valCode, action, tel.getPhoneNumber, None) flatMap (_ => {
+      //          val nickName = "用户" + tel.getPhoneNumber
+      //          FinagleFactory.client.createUser(nickName, password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber))) map (user => {
+      //            val node = new UserLoginFormatter(true).format(user)
+      //            K2Result.created(Some(node))
+      //          })
+      //        })
+      future rescue {
         case _: ResourceConflictException =>
           TwitterFuture(K2Result.conflict(ErrorCode.USER_EXIST, "Already exists"))
         case _: ValidationCodeException =>
@@ -139,7 +154,9 @@ object UserCtrlScala extends Controller {
 
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
-  })
+  }
+
+  )
 
   /**
    * 设置badge值
@@ -225,6 +242,26 @@ object UserCtrlScala extends Controller {
     future
   })
 
+  /**
+   * 屏蔽好友
+   *
+   * @param selfId 被修改人
+   * @return
+   */
+  def updateBlockList(selfId: Long, contactId: Long) = Action.async(request => {
+    val ret = for {
+      body <- request.body.asJson
+      block <- (body \ "block").asOpt[Boolean]
+    } yield {
+      FinagleFactory.client.updateBlockList(selfId, contactId, block) map (_ => K2Result.ok(None)) rescue {
+        case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
+        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+      }
+    }
+    val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
+    future
+  })
+
   def getContactList(userId: Long) = Action.async(request => {
     val realUserId =
       if (userId == 0)
@@ -293,6 +330,7 @@ object UserCtrlScala extends Controller {
    * @return
    */
   def sendValidationCode() = Action.async(request => {
+
     import com.lvxingpai.yunkai.OperationCode._
 
     val client = FinagleFactory.client
@@ -351,7 +389,6 @@ object UserCtrlScala extends Controller {
 
       }
     }
-
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })
@@ -462,6 +499,7 @@ object UserCtrlScala extends Controller {
    * @return
    */
   def updateContactRequest(userId: Long, requestId: String) = Action.async(request => {
+
     object ActionCode extends Enumeration {
       val ACCEPT = Value(1)
       val REJECT = Value(2)
@@ -518,6 +556,7 @@ object UserCtrlScala extends Controller {
   })
 
   def updateUserInfo(uid: Long) = Action.async(request => {
+
     import UserInfoProp._
 
     /**
@@ -550,14 +589,56 @@ object UserCtrlScala extends Controller {
         client.updateUserInfo(uid, updateMap) map (_ => ())
       } else
         TwitterFuture(())
-
       ret map (_ => K2Result.ok(None))
     }) getOrElse TwitterFuture(K2Result.unprocessable)
 
     future
   })
 
-  def matchAddressBook(uid: Long) = play.mvc.Results.TODO
+  def matchAddressBook(uid: Long) = Action.async(request => {
+
+    def setContact(friends: Map[String, Seq[UserInfo]], contactTel: String): K2Contact = {
+      val contact = new K2Contact()
+      if (friends.containsKey(contactTel)) {
+        contact.setTel(contactTel)
+        contact.setUser(true)
+        contact.setContact(friends.containsKey())
+      } else {
+        contact.setTel(contactTel)
+        contact.setUser(false)
+        contact.setContact(false)
+      }
+      contact
+    }
+
+    val formatter = FormatterFactory.getInstance(classOf[ContactFormatter])
+    val result = (for {
+      body <- request.body.asJson
+      action <- (body \ "action").asOpt[String]
+      contacts <- ((body \ "contacts").asOpt[Seq[JsonContact]])
+    } yield {
+      //val contactsPho = contacts map (PhoneParserFactory.newInstance().parse(_.).getPhoneNumber)
+      val contactsPho = contacts map (x => x.tel)
+      val ret = FinagleFactory.client.getContactList(uid, Some(Seq(UserInfoProp.Tel)), None, None) map (reqSeq => {
+
+        val friendsMap = reqSeq.map(userInfoYunkai2Model(_)).groupBy(_.getTel)
+        val contactsResult = contactsPho.map(setContact(friendsMap, _))
+        val node = formatter.formatNode(contactsResult)
+        Utils.status(node.toString).toScala
+      }) rescue {
+        case _: NotFoundException =>
+          TwitterFuture {
+            Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+          }
+        case _@ (InvalidArgsException() | InvalidStateException()) =>
+          TwitterFuture {
+            Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+          }
+      }
+      ret
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+    result
+  })
 
   /**
    * 搜索用户
