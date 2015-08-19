@@ -165,13 +165,11 @@ exception OverQuotaLimitException {
 }
 
 service userservice {
-
   # 获得单个用户信息
   UserInfo getUserById(1:i64 userId, 2: optional list<UserInfoProp> fields, 3: optional i64 selfId) throws (1:NotFoundException ex)
 
   # 获得多个用户的信息
   # 返回值是key-value结构。key表示用户的ID，value为用户信息。如果某个key对应的value为null，说明没有找到对应的用户
-
   map<i64, UserInfo> getUsersById(1:list<i64> userIdList, 2: optional list<UserInfoProp> fields, 3: optional i64 selfId)
 
   # 更新用户的信息。支持的UserInfoProp有：nickName, signature, gender和avatar
@@ -264,6 +262,9 @@ service userservice {
   # 第三方用户(微信)登录
   UserInfo loginByOAuth(1: string code, 2:string source)
 
+  #检查黑名单
+  bool checkBlackList(1: i64 senderId, 2: i64 receiverId)
+
   # 用户退出登录
   # void logout(1: i64 userId)
 
@@ -298,4 +299,9 @@ service userservice {
 
   # 获得讨论组成员
   list<UserInfo> getChatGroupMembers(1:i64 chatGroupId, 2:optional list<UserInfoProp> fields, 3:optional i64 selfId) throws (1:NotFoundException ex)
+
+  # 用户是否在某个群中
+  bool isMember(1: i64 userId, 2: i64 chatGroupId)
+
+  list<UserInfo> getUsersByTelList(1: optional list<UserInfoProp> fields, 2: list<string> tels)
 }

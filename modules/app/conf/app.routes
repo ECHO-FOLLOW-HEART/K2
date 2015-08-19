@@ -99,7 +99,7 @@ DELETE        /users/$id<\d+>/albums/:picId                            controlle
 #获取用户足迹
 GET           /users/$id<[0-9]+>/footprints                            controllers.app.UserUgcCtrl.getUserTracks(id :Long)
 #获取所有达人的足迹
-GET           /users/:userRole/footprints                              controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
+#GET           /users/:userRole/footprints                              controllers.app.UserUgcCtrl.getLocalitiesOfExpertUserTracks(userRole:String)
 #修改足迹
 POST          /users/$id<\d+>/footprints                               controllers.app.UserUgcCtrl.modifyTracks(id:Long)
 
