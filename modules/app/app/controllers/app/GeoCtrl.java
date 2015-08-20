@@ -4,6 +4,7 @@ import aizou.core.GeoAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
 import aizou.core.UserUgcAPI;
+import api.MiscAPI;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,8 +56,6 @@ public class GeoCtrl extends Controller {
         Locality locality = GeoAPI.locDetails(id);
         if (locality == null)
             return Utils.createResponse(ErrorCode.INVALID_ARGUMENT, "Locality not exist.");
-        //locality.setDesc(StringUtils.abbreviate(locality.getDesc(), Constants.ABBREVIATE_LEN));
-        //locality.setImages(TaoziDataFilter.getOneImage(locality.getImages()));
         //是否被收藏
 //        MiscAPI.isFavorite(locality, userId);
 
@@ -67,9 +66,9 @@ public class GeoCtrl extends Controller {
         response.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + id);
 //        response.put("diningTitles", contentsTitles(locality.getCuisines()));
         response.put("shoppingTitles", contentsTitles(locality.getCommodities()));
-
-        response.put("like", UserUgcAPI.hasTraveled(userId, locality.getId()));
-        response.put("traveled", UserUgcAPI.isLike(userId, locality.getId()));
+        response.put("isVote", locality.getVotes().contains(userId));
+        response.put("voteCnt", locality.getVotes().size());
+        response.put("traveled", UserUgcAPI.hasTraveled(userId, locality.getId()));
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
 
