@@ -102,6 +102,8 @@ public class Locality extends AizouBaseEntity {
 
     @Transient
     public static String fnGeoHistory = "geoHistory";
+    @Transient
+    public static String fnVotes = "votes";
 
     /**
      * 外部交通信息。每个entry都是一个tip，为HTML格式
@@ -254,6 +256,7 @@ public class Locality extends AizouBaseEntity {
      * 建议游玩时间
      */
     private Integer timeCost;
+    private List<Long> votes;
 
     public Locality getSuperAdm() {
         return superAdm;
@@ -461,5 +464,13 @@ public class Locality extends AizouBaseEntity {
 
     public void setDiningIntro(String diningIntro) {
         this.diningIntro = diningIntro;
+    }
+
+    public List<Long> getVotes() {
+        return votes;
+    }
+
+    public void setVotes(List<Long> votes) {
+        this.votes = votes;
     }
 }

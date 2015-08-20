@@ -239,6 +239,11 @@ GET           /geo/localities/:id                                      controlle
 GET           /geo/localities/:id/albums                               controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=20)
 #查看目的地评论
 GET           /geo/localities/$id<[0-9a-f]{24}>/comments               controllers.app.GeoCtrl.getLocalityComments(commentType: String?="comment", id: String, page:Int?=0, pageSize: Int?=20)
+#赞
+POST          /geo/localities/$id<[0-9a-f]{24}>/votes                  controllers.app.MiscCtrlScala.vote(itemType:String ="localities",id:String,userId:Long?=0)
+#不赞了
+DELETE        /geo/localities/$id<[0-9a-f]{24}>/votes/$uid<\d+>        controllers.app.MiscCtrlScala.noVote(itemType:String ="localities",id:String,uid:Long)
+
 #获取景点的深度介绍-概况（H5）
 GET           /geo/localities/$id<[0-9a-f]{24}>/outLine                controllers.app.GeoCtrl.getTravelGuideOutLine(id: String)
 
