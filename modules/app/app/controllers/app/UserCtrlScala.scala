@@ -42,11 +42,11 @@ object UserCtrlScala extends Controller {
     val isSelf = (userIdOpt getOrElse 0) == userId
 
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
-    val fields = basicUserInfoFieds ++ (if (isSelf) Seq(Tel) else Seq())
+    val fields = basicUserInfoFieds ++ (if (isSelf) Seq(Tel) else Seq()) ++ Seq(Memo)
     formatter.setSelfView(isSelf)
 
     val future = (for {
-      user <- FinagleFactory.client.getUserById(userId, Some(fields), None)
+      user <- FinagleFactory.client.getUserById(userId, Some(fields), userIdOpt)
       isBlocked <- {
         // 如果Header中包括了UserId，则需要检查用户的屏蔽关系，否则为false
         userIdOpt map (selfId => {
@@ -58,6 +58,7 @@ object UserCtrlScala extends Controller {
       trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
     } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
+      node.put("memo", user.memo.getOrElse(null))
       node.put("isBlocked", isBlocked)
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", trackCntAndCountryCnt._1)
