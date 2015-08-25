@@ -161,13 +161,21 @@ public class UserUgcAPI {
         UpdateOperations<Track> ops = dsTrack.createUpdateOperations(Track.class);
         if (action.equals("add")) {
             List<Track> tracks = fillTracks(userId, allLocalities);
+            dsTrack.findAndDelete(dsTrack.createQuery(Track.class).field(Track.fnLocalityId).in(getItemIds(tracks)).field(Track.fnUserId).equal(userId));
             dsTrack.save(tracks);
         } else if (action.equals("del")) {
             Query<Track> query = dsTrack.createQuery(Track.class);
-            query.field(Track.fnUserId).equal(userId).field(Track.fnLocality + ".id").in(allLocalities);
+            query.field(Track.fnUserId).equal(userId).field(Track.fnLocalityId).in(allLocalities);
             dsTrack.delete(query);
         } else
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid action");
+    }
+
+    private static List<ObjectId> getItemIds(List<Track> tracks) {
+        List<ObjectId> result = new ArrayList<>();
+        for (Track track : tracks)
+            result.add(track.getLocality().getId());
+        return result;
     }
 
     /**
