@@ -1,13 +1,10 @@
 package api
 
 import com.twitter.util.FuturePool
-import database.MorphiaFactory
 import models.AizouBaseEntity
 import models.geo.Locality
-import models.user.UgcInfo
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
-import org.mongodb.morphia.query.Query
 
 /**
  * Created by topy on 2015/7/7.

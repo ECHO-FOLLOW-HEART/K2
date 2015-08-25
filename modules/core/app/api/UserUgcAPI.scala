@@ -6,7 +6,6 @@ import models.AizouBaseEntity
 import models.geo.Locality
 import models.guide.Guide
 import models.misc.{ Album, Track }
-import models.user.UgcInfo
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
 import org.mongodb.morphia.query.Query
@@ -85,20 +84,5 @@ object UserUgcAPI {
     case class ItemTypeCode(value: String) extends Val(value)
 
     val LOCALITY = ItemTypeCode("locality")
-  }
-
-  def updateUgcInfo(userId: Long, action: String, itemType: String, itemId: ObjectId)(implicit ds: Datastore, futurePool: FuturePool) = {
-    futurePool {
-      val query = ds.createQuery(classOf[UgcInfo]).field(UgcInfo.fnUserId).equal(userId)
-      if (itemType.equals(ItemTypeCode.LOCALITY.value)) {
-        if (action.equals(ActionCode.LIKE.value)) {
-          val update = ds.createUpdateOperations(classOf[UgcInfo]).add(UgcInfo.fnLikeLocalities, itemId, false)
-          ds.findAndModify(query, update, false, true)
-        } else {
-          val update = ds.createUpdateOperations(classOf[UgcInfo]).removeAll(UgcInfo.fnLikeLocalities, itemId)
-          ds.update(query, update)
-        }
-      }
-    }
   }
 }

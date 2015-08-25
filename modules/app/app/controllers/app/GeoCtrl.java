@@ -94,11 +94,6 @@ public class GeoCtrl extends Controller {
         return MiscCtrl.getLocalityComments(commentType, id, page, pageSize);
     }
 
-    @UsingOcsCache(key = "getLMD()", expireTime = 30)
-    public static long getLMD(boolean abroad, int page) {
-        return System.currentTimeMillis() - 3600;
-    }
-
     /**
      * 获得国内国外目的地
      *
@@ -462,8 +457,6 @@ public class GeoCtrl extends Controller {
         node.put("title", "宗教、文化与历史");
         node.put("fields", Json.toJson(Arrays.asList("geoHistory")));
         result.add(node);
-
-
 //        node = Json.newObject();
 //        node.put("title", "描述");
 //        node.put("fields", Json.toJson(Arrays.asList("desc")));
