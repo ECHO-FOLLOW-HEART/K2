@@ -287,7 +287,7 @@ public class UserCtrlImpl {
             UserAPI.sendMessageToUser(PAIPAI_ESMOB, userInfo, PAIPAI_WELCOME_2);
             return Utils.createResponse(ErrorCode.NORMAL, info);
         } catch (IOException e) {
-            throw new AizouException(ErrorCode.IO_ERROR, "", e);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "", e);
         }
     }
 

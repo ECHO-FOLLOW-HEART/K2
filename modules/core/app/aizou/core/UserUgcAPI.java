@@ -230,14 +230,7 @@ public class UserUgcAPI {
     public static boolean hasTraveled(Long userId, ObjectId locId) {
         Datastore dsUser = MorphiaFactory.datastore();
         Query<Track> query = dsUser.createQuery(Track.class);
-        query.field(Track.fnLocalityId).equal(locId).field(Track.fnUserId).equal(userId).field(AizouBaseEntity.FD_ENABLED).equal(true);
-        return query.countAll() > 0 ? true : false;
-    }
-
-    public static boolean isLike(Long userId, ObjectId locId) {
-        Datastore dsUser = MorphiaFactory.datastore();
-        Query<UgcInfo> query = dsUser.createQuery(UgcInfo.class);
-        query.field(UgcInfo.fnLikeLocalities).hasThisOne(locId).field(UgcInfo.fnUserId).equal(userId).field(AizouBaseEntity.FD_ENABLED).equal(true);
+        query.field(Track.fnLocalityId).equal(locId).field(Track.fnUserId).equal(userId).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         return query.countAll() > 0 ? true : false;
     }
 }
