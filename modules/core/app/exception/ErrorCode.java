@@ -15,41 +15,23 @@ public enum ErrorCode {
      * 输入参数错误
      */
     INVALID_ARGUMENT(100),
-
-    /**
-     * 路线需要修改
-     */
-    DONOTNEED_UPDATE(120),
-
-    INVALID_CONFARG(130),
-
     /**
      * 通用IO错误
      */
-    IO_ERROR(200),
-
+    IO_ERROR(101),
     /**
      * 数据库错误
      */
-    DATABASE_ERROR(201),
-
-    /**
-     *
-     */
-    UNSUPPORTED_OP(800),
-
-    /**
-     * 未知错误
-     */
-    UNKOWN_ERROR(900),
-
-    ILLEGAL_STATE(905),
+    DATABASE_ERROR(102),
 
     /**
      * 数据已存在的错误
      */
     DATA_EXIST(401),
 
+    /**
+     * 数据不存在的错误
+     */
     DATA_NOT_EXIST(402),
 
     /**
@@ -61,7 +43,6 @@ public enum ErrorCode {
      * 微信注册时请求用户信息失败
      */
     WEIXIN_CODE_ERROR(404),
-
     /**
      * 用户已存在
      */
@@ -90,7 +71,12 @@ public enum ErrorCode {
     /**
      * 搜索引擎通用错误
      */
-    SEARCH_ENGINE_ERROR(600);
+    SEARCH_ENGINE_ERROR(600),
+
+    /**
+     * 未知错误
+     */
+    UNKOWN_ERROR(900);
 
     private final int val;
 

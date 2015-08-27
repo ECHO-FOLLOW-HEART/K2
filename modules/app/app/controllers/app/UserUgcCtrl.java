@@ -84,15 +84,6 @@ public class UserUgcCtrl extends Controller {
         List<Locality> localities = new ArrayList<>();
         for (Track track : tracks)
             localities.add(track.getLocality());
-
-//        Map<String, List<Locality>> map = TaoziDataFilter.transLocalitiesByCountry(localities);
-//
-//        SimpleLocalityWithLocationFormatter formatter = FormatterFactory.getInstance(SimpleLocalityWithLocationFormatter.class, imgWidth);
-//        ObjectNode ob = Json.newObject();
-//
-//        for (Map.Entry<String, List<Locality>> entry : map.entrySet()) {
-//            ob.put(entry.getKey(), formatter.formatNode(entry.getValue()));
-//        }
         SimpleLocalityWithLocationFormatter formatter = FormatterFactory.getInstance(SimpleLocalityWithLocationFormatter.class, imgWidth);
         return Utils.status(formatter.format(localities));
     }
@@ -219,7 +210,7 @@ public class UserUgcCtrl extends Controller {
         Iterator<JsonNode> iterator = data.get("tracks").elements();
         String action = data.get("action").asText();
         UserUgcAPI.modifyTracksWithSearch(id, action, iterator);
-        return Utils.createResponse(ErrorCode.AUTH_ERROR, "Success.");
+        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
 
 }

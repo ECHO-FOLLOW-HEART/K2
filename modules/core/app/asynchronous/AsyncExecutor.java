@@ -40,7 +40,7 @@ public class AsyncExecutor {
                 } else if (item.right != null && item.right.isDefined()) {
                     throw item.right.get();
                 } else
-                    throw new AizouException(ErrorCode.ILLEGAL_STATE);
+                    throw new AizouException(ErrorCode.UNKOWN_ERROR);
             }
         });
     }
