@@ -1,6 +1,6 @@
 package controllers.app
 
-import api.UserUgcAPI
+import api.{ UserAPI, UserUgcAPI }
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
@@ -13,7 +13,7 @@ import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginForm
 import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ FinagleConvert, FinagleFactory }
-import models.user.{ Contact => K2Contact, UserInfo }
+import models.user.{ Contact => K2Contact, UserProfile, UserInfo }
 import org.joda.time.format.DateTimeFormat
 import play.api.mvc.{ Action, Controller, Result }
 import utils.Implicits._
@@ -44,7 +44,7 @@ object UserCtrlScala extends Controller {
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(Tel) else Seq()) ++ Seq(Memo)
     formatter.setSelfView(isSelf)
-
+    val fieldsUserProfile = Seq(UserProfile.fdProfile, UserProfile.fdTags)
     val future = (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), userIdOpt)
       isBlocked <- {
@@ -56,6 +56,7 @@ object UserCtrlScala extends Controller {
       guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
       trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
+      userProfile <- UserAPI.getUserInfo(userId, fieldsUserProfile)
     } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("memo", user.memo.getOrElse(null))
@@ -65,6 +66,10 @@ object UserCtrlScala extends Controller {
       node.put("countryCnt", trackCntAndCountryCnt._2)
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
+      if (userProfile nonEmpty) {
+        node.put("profile", userProfile.get.profile)
+        node.set("tags", new ObjectMapper().valueToTree(userProfile.get.tags))
+      }
       Utils.status(node.toString).toScala
     }) rescue {
       case _: NotFoundException =>
