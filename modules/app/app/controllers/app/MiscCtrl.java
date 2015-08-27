@@ -151,7 +151,7 @@ public class MiscCtrl extends Controller {
             UpdateOperations<Favorite> update = ds.createUpdateOperations(Favorite.class);
             update.set(Favorite.fnCreateTime, new Date());
             ds.update(query, update);
-            return Utils.createResponse(ErrorCode.DATA_EXIST, "Favorite item has existed");
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "Favorite item has existed");
         }
         Favorite fa = new Favorite();
         fa.setId(new ObjectId());
@@ -509,7 +509,7 @@ public class MiscCtrl extends Controller {
             comment.setAuthorAvatar(user.getAvatar());
             comment.setUserId(userIdLong);
         } else {
-            throw new AizouException(ErrorCode.USER_NOT_EXIST);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR);
         }
 
         Double rating = req.get("rating").asDouble();
