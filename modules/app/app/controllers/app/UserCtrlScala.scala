@@ -1,29 +1,29 @@
 package controllers.app
 
-import api.{ UserAPI, UserUgcAPI }
+import api.{UserAPI, UserUgcAPI}
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
-import com.fasterxml.jackson.databind.{ JsonSerializer, ObjectMapper, SerializerProvider }
-import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
-import com.twitter.util.{ Future => TwitterFuture }
+import com.fasterxml.jackson.databind.node.{ArrayNode, LongNode, ObjectNode, TextNode}
+import com.fasterxml.jackson.databind.{JsonSerializer, ObjectMapper, SerializerProvider}
+import com.lvxingpai.yunkai.{UserInfo => YunkaiUserInfo, _}
+import com.twitter.util.{Future => TwitterFuture}
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
+import formatter.taozi.user.{ContactFormatter, UserInfoFormatter, UserLoginFormatter}
 import misc.Implicits._
 import misc.TwitterConverter._
-import misc.{ FinagleConvert, FinagleFactory }
-import models.user.{ Contact => K2Contact, UserProfile, UserInfo }
+import misc.{FinagleConvert, FinagleFactory}
+import models.user.{Contact => K2Contact, UserInfo, UserProfile}
 import org.joda.time.format.DateTimeFormat
-import play.api.mvc.{ Action, Controller, Result }
+import play.api.mvc.{Action, Controller, Result}
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
 import utils.phone.PhoneParserFactory
-import utils.{ Result => K2Result, Utils }
+import utils.{Result => K2Result, Utils}
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ Future => ScalaFuture }
-import scala.language.{ implicitConversions, postfixOps }
+import scala.concurrent.{Future => ScalaFuture}
+import scala.language.{implicitConversions, postfixOps}
 
 /**
  * Created by zephyre on 6/30/15.
@@ -761,6 +761,29 @@ object UserCtrlScala extends Controller {
   })
 
   def setUserMemo(uid: Long, contactId: Long) = play.mvc.Results.TODO
+
+  /**
+   * 达人申请
+   *
+   * @return
+   */
+  def expertRequest(userId: Long) = Action.async(request => {
+    val future = (for {
+      body <- request.body.asJson
+      tel <- (body \ "tel").asOpt[String]
+    } yield {
+      for {
+        cnt <- UserAPI.findExpertRequest(userId: Long, tel: String)
+        result <- {
+          if (cnt > 0)
+            TwitterFuture(K2Result.unprocessable) map (_ => K2Result.conflict(ErrorCode.MUL_REQUEST_EXPERT, "Don't repeat application"))
+          else
+            UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
+        }
+      } yield result
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+    future
+  })
 
   def getUsersInfoValue(userIds: java.util.List[java.lang.Long]): java.util.Map[java.lang.Long, UserInfo] = {
     val f = FinagleFactory.client.getUsersById(userIds.map(scala.Long.unbox(_)), Some(basicUserInfoFieds), None) map (userMap => {

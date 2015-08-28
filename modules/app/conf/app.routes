@@ -68,6 +68,9 @@ PATCH         /users/$uid<\d+>                                         controlle
 #根据通讯录进行用户匹配
 POST          /users/$uid<\d+>/match                                   controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
 
+#达人申请
+PUT           /users/$uid<\d+>/expert-requests                         controllers.app.UserCtrlScala.expertRequest(uid: Long)
+
 #----------用户相册接口----------
 #获取用户个人相册
 GET           /users/$id<\d+>/albums                                   controllers.app.UserUgcCtrl.getUserAlbums(id:Long)

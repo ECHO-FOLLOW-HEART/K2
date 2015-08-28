@@ -1,9 +1,9 @@
 package api
 
-import com.twitter.util.{ Future, FuturePool }
-import exception.AizouException
-import models.user.UserProfile
+import com.twitter.util.{Future, FuturePool}
+import models.user.{ExpertRequest, UserProfile}
 import org.mongodb.morphia.Datastore
+
 import scala.collection.JavaConversions._
 
 /**
@@ -37,6 +37,17 @@ object UserAPI {
 
       Map(targetIds map (v => v -> (results get v)): _*)
     }
+  }
+
+  def findExpertRequest(userId: Long, tel: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Long] = futurePool {
+    ds.createQuery(classOf[ExpertRequest]).field(ExpertRequest.fnUserId).equal(userId).field(ExpertRequest.fnTel).equal(tel).countAll()
+  }
+
+  def expertRequest(userId: Long, tel: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = futurePool {
+    val expertRe = new ExpertRequest()
+    expertRe.setUserId(userId)
+    expertRe.setTel(tel)
+    ds.save[ExpertRequest](expertRe)
   }
 
   //  def updateUserInfo(targetId: Long, fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[UserProfile] = futurePool{

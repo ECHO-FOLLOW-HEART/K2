@@ -82,6 +82,11 @@ public enum ErrorCode {
      */
     TEL_EXIST(217),
 
+    /**
+     * 重复申请达人
+     */
+    MUL_REQUEST_EXPERT(230),
+
 
     /**
      * Hedylogs工程中的Exception对应的ErrorCode
