@@ -69,7 +69,7 @@ PATCH         /users/$uid<\d+>                                         controlle
 POST          /users/$uid<\d+>/match                                   controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
 
 #达人申请
-PUT           /users/$uid<\d+>/expert-requests                         controllers.app.UserCtrlScala.expertRequest(uid: Long)
+POST          /users/$uid<\d+>/expert-requests                         controllers.app.UserCtrlScala.expertRequest(uid: Long)
 
 #----------用户相册接口----------
 #获取用户个人相册
