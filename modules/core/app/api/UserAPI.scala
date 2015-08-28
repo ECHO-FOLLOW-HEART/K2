@@ -1,7 +1,7 @@
 package api
 
-import com.twitter.util.{Future, FuturePool}
-import models.user.{ExpertRequest, UserProfile}
+import com.twitter.util.{ Future, FuturePool }
+import models.user.{ ExpertRequest, UserProfile }
 import org.mongodb.morphia.Datastore
 
 import scala.collection.JavaConversions._
