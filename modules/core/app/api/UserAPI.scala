@@ -40,7 +40,7 @@ object UserAPI {
   }
 
   def findExpertRequest(userId: Long, tel: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Long] = futurePool {
-    ds.createQuery(classOf[ExpertRequest]).field(ExpertRequest.fnUserId).equal(userId).field(ExpertRequest.fnTel).equal(tel).countAll()
+    ds.createQuery(classOf[ExpertRequest]).field(ExpertRequest.fnUserId).equal(userId).countAll()
   }
 
   def expertRequest(userId: Long, tel: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = futurePool {
