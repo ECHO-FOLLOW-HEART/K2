@@ -6,15 +6,17 @@ import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
 import com.fasterxml.jackson.databind.{ JsonSerializer, ObjectMapper, SerializerProvider }
 import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
+import com.mongodb.ServerAddress
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
 import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
-import misc.{ FinagleConvert, FinagleFactory }
+import misc.{ CoreConfig, GlobalConf, FinagleConvert, FinagleFactory }
 import models.user.{ Contact => K2Contact, UserInfo }
 import org.joda.time.format.DateTimeFormat
+import play.api.libs.json.{ JsNumber, JsObject }
 import play.api.mvc.{ Action, Controller, Result }
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
@@ -22,7 +24,8 @@ import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ Future => ScalaFuture }
+import scala.concurrent.{ Future => ScalaFuture, Await }
+import play.api.libs.ws._
 import scala.language.{ implicitConversions, postfixOps }
 
 /**
@@ -82,10 +85,29 @@ object UserCtrlScala extends Controller {
   def logout() = Action.async(request => {
     val future = (for {
       body <- request.body.asJson
-      userId <- (body \ "userId").asOpt[Long]
+      userId <- {
+        val jsonResult = body \ "userId"
+        jsonResult.asOpt[Long] orElse (jsonResult.asOpt[String] map (_.toLong))
+      }
     } yield {
-      TwitterFuture(K2Result.ok(None))
-    }) getOrElse TwitterFuture(K2Result.unprocessable)
+      val backends = CoreConfig.conf.getConfig("backends.hedy").get
+      val services = backends.subKeys.toSeq map (backends.getConfig(_).get)
+
+      val host = services.head.getString("host").get
+      val port = services.head.getInt("port").get
+
+      import play.api.Play.current
+
+      val url = s"http://$host:$port/users/logout"
+      val ws = WS.url(url)
+      val postBody = "{\"userId\":" + userId.toString + "}"
+      ws.withHeaders("Content-Type" -> "application/json").post(postBody) map (response => {
+        if (response.status == 200)
+          K2Result.ok(None)
+        else
+          K2Result.badRequest(ErrorCode.UNKOWN_ERROR, s"")
+      })
+    }) getOrElse ScalaFuture(K2Result.unprocessable)
 
     future
   })
