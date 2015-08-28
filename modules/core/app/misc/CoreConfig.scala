@@ -23,8 +23,8 @@ object CoreConfig {
       case "production" =>
         Seq(
           EtcdConfBuilder().addKey("k2").build(),
-          EtcdServiceBuilder().addKey("mongo").addKey("smscenter").addKey("yunkai").addKey("redis-main", "redis")
-            .build()
+          EtcdServiceBuilder().addKey("mongo-production", "mongo").addKey("smscenter").addKey("yunkai")
+            .addKey("redis-main", "redis").build()
         )
       case "dev" =>
         Seq(
