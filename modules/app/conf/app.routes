@@ -240,3 +240,4 @@ GET           /checkVsLocality                                         controlle
 
 
 
+GET           /formatterTest                                           controllers.app.FormatterTest.bar()
