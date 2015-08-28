@@ -2,6 +2,8 @@ package models.user;
 
 import models.AizouBaseEntity;
 import org.bson.types.ObjectId;
+import org.mongodb.morphia.annotations.Indexed;
+import org.mongodb.morphia.utils.IndexDirection;
 
 import java.util.List;
 
@@ -10,8 +12,10 @@ import java.util.List;
  */
 public class ExpertInfo extends AizouBaseEntity {
 
+    @Indexed()
     private long userId;
 
+    @Indexed()
     private List<ObjectId> zone;
 
     private String profile;
