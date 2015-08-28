@@ -678,7 +678,7 @@ public class UserAPI {
                 flag = true;
                 break;
             } catch (AizouException e) {
-                if (e.getErrCode() != ErrorCode.USER_EXIST)
+                if (e.getErrCode() != ErrorCode.UNKOWN_ERROR)
                     throw e;
             }
         }
@@ -961,7 +961,7 @@ public class UserAPI {
             JsonNode tokenData = Json.parse(body);
             if (tokenData.has("error")) {
                 if (tokenData.get("error").asText().equals("duplicate_unique_property_exists"))
-                    throw new AizouException(ErrorCode.USER_EXIST, String.format("Easemob user %s exists.", userName));
+                    throw new AizouException(ErrorCode.UNKOWN_ERROR, String.format("Easemob user %s exists.", userName));
                 else
                     throw new AizouException(ErrorCode.UNKOWN_ERROR, "Error in user registration.");
             }
@@ -985,7 +985,7 @@ public class UserAPI {
             if (userA == null || userB == null)
                 throw new AizouException(ErrorCode.UNKOWN_ERROR, "Easemob not regiestered yet.");
         } catch (NullPointerException e) {
-            throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         }
 
         // 重新获取token
@@ -1036,7 +1036,7 @@ public class UserAPI {
                 blockNames.add(easemobName);
             }
         } catch (NullPointerException e) {
-            throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         }
 
         ObjectNode data = Json.newObject();
@@ -1086,7 +1086,7 @@ public class UserAPI {
             userA = UserAPI.getUserInfo(userIdA, fieldList).getEasemobUser();
             userB = UserAPI.getUserInfo(userIdB, fieldList).getEasemobUser();
         } catch (NullPointerException e) {
-            throw new AizouException(ErrorCode.USER_NOT_EXIST, "");
+            throw new AizouException(ErrorCode.UNKOWN_ERROR, "");
         }
 
         // 重新获取token
