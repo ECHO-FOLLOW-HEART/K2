@@ -39,31 +39,14 @@ object UserAPI {
     }
   }
 
-  def findExpertRequest(userId: Long, tel: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Long] = futurePool {
-    ds.createQuery(classOf[ExpertRequest]).field(ExpertRequest.fnUserId).equal(userId).countAll()
-  }
-
   def expertRequest(userId: Long, tel: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = futurePool {
     val expertRe = new ExpertRequest()
     expertRe.setUserId(userId)
     expertRe.setTel(tel)
-    ds.save[ExpertRequest](expertRe)
+
+    val query = ds.createQuery(classOf[ExpertRequest]).field("userId").equal(userId)
+    val ops = ds.createUpdateOperations(classOf[ExpertRequest]).set("tel", tel)
+
+    ds.update(query, ops, true)
   }
-
-  //  def updateUserInfo(targetId: Long, fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[UserProfile] = futurePool{
-  //    val query = ds.createQuery(classOf[UserProfile]).field(UserProfile.fdUserId).equal(targetId)
-  //      .retrievedFields(true, fields: _*)
-  //    val updateOps = fields.foldLeft(ds.createUpdateOperations(classOf[UserProfile]))((ops, entry) => {
-  //      val (key, value) = entry
-  //      ops.set(key, value)
-  //    })
-  //
-  //    val result = ds.findAndModify(query, updateOps)
-  //
-  //    if (result == null)
-  //      throw new AizouException(s"Cannot find user: $targetId")
-  //    else
-  //      result
-  //  }
-
 }

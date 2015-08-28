@@ -772,15 +772,7 @@ object UserCtrlScala extends Controller {
       body <- request.body.asJson
       tel <- (body \ "tel").asOpt[String]
     } yield {
-      for {
-        cnt <- UserAPI.findExpertRequest(userId: Long, tel: String)
-        result <- {
-          if (cnt > 3)
-            TwitterFuture(K2Result.unprocessable) map (_ => K2Result.conflict(ErrorCode.MUL_REQUEST_EXPERT, "Don't repeat application"))
-          else
-            UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
-        }
-      } yield result
+      UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
     }) getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })
