@@ -286,7 +286,7 @@ public class MiscCtrl extends Controller {
 
         try {
             if (actionCode != 1)
-                throw new AizouException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid SMS action code: %d.", actionCode));
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, String.format("Invalid SMS action code: %d.", actionCode));
 
             boolean valid = UserAPI.checkValidation(countryCode, tel, actionCode, v, userId);
 
