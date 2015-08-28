@@ -24,13 +24,13 @@ object CoreConfig {
         Seq(
           EtcdConfBuilder().addKey("k2").build(),
           EtcdServiceBuilder().addKey("mongo-production", "mongo").addKey("smscenter").addKey("yunkai")
-            .addKey("redis-main", "redis").build()
+            .addKey("redis-main", "redis").addKey("hedy").build()
         )
       case "dev" =>
         Seq(
           EtcdConfBuilder().addKey("k2-dev", "k2").build(),
           EtcdServiceBuilder().addKey("mongo-dev", "mongo").addKey("smscenter").addKey("yunkai-dev", "yunkai")
-            .addKey("redis-main", "redis").build()
+            .addKey("redis-main", "redis").addKey("hedy-dev", "hedy").build()
         )
       case _ => Seq()
     }) map (v => v map (Configuration(_)))
