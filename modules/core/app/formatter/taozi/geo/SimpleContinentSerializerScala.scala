@@ -7,7 +7,7 @@ import models.geo.Continent
 /**
  * Created by pengyt on 2015/8/27.
  */
-class ContinentSerializerScala extends JsonSerializer[Continent] {
+class SimpleContinentSerializerScala extends JsonSerializer[Continent] {
 
   override def serialize(continent: Continent, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
     gen.writeStartObject()
