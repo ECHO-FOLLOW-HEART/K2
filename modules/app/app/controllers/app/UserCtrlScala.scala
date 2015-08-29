@@ -1,5 +1,7 @@
 package controllers.app
 
+import java.util
+
 import api.{ UserAPI, UserUgcAPI }
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
@@ -12,9 +14,10 @@ import formatter.FormatterFactory
 import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
-import misc.{ FinagleConvert, FinagleFactory }
+import misc.{ CoreConfig, FinagleConvert, FinagleFactory }
 import models.user.{ Contact => K2Contact, UserInfo, UserProfile }
 import org.joda.time.format.DateTimeFormat
+import play.api.libs.ws._
 import play.api.mvc.{ Action, Controller, Result }
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
@@ -59,17 +62,22 @@ object UserCtrlScala extends Controller {
       userProfile <- UserAPI.getUserInfo(userId, fieldsUserProfile)
     } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
-      node.put("memo", user.memo.getOrElse(null))
+      node.put("memo", user.memo.getOrElse(""))
       node.put("isBlocked", isBlocked)
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", trackCntAndCountryCnt._1)
       node.put("countryCnt", trackCntAndCountryCnt._2)
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
-      if (userProfile nonEmpty) {
-        node.put("profile", userProfile.get.profile)
-        node.set("tags", new ObjectMapper().valueToTree(userProfile.get.tags))
+      for {
+        u <- userProfile
+        profile <- Option(u.profile) orElse Some("")
+        tags <- Option(u.tags) orElse Some(new util.ArrayList[String]())
+      } yield {
+        node.put("profile", profile)
+        node.set("tags", new ObjectMapper().valueToTree(tags))
       }
+
       Utils.status(node.toString).toScala
     }) rescue {
       case _: NotFoundException =>
@@ -87,10 +95,29 @@ object UserCtrlScala extends Controller {
   def logout() = Action.async(request => {
     val future = (for {
       body <- request.body.asJson
-      userId <- (body \ "userId").asOpt[Long]
+      userId <- {
+        val jsonResult = body \ "userId"
+        jsonResult.asOpt[Long] orElse (jsonResult.asOpt[String] map (_.toLong))
+      }
     } yield {
-      TwitterFuture(K2Result.ok(None))
-    }) getOrElse TwitterFuture(K2Result.unprocessable)
+      val backends = CoreConfig.conf.getConfig("backends.hedy").get
+      val services = backends.subKeys.toSeq map (backends.getConfig(_).get)
+
+      val host = services.head.getString("host").get
+      val port = services.head.getInt("port").get
+
+      import play.api.Play.current
+
+      val url = s"http://$host:$port/users/logout"
+      val ws = WS.url(url)
+      val postBody = "{\"userId\":" + userId.toString + "}"
+      ws.withHeaders("Content-Type" -> "application/json").post(postBody) map (response => {
+        if (response.status == 200)
+          K2Result.ok(None)
+        else
+          K2Result.badRequest(ErrorCode.UNKOWN_ERROR, s"")
+      })
+    }) getOrElse ScalaFuture(K2Result.unprocessable)
 
     future
   })
@@ -146,14 +173,8 @@ object UserCtrlScala extends Controller {
       } yield {
         val node = new UserLoginFormatter(true).format(user)
         K2Result.created(Some(node))
+
       }
-      //        val ee = client.checkValidationCode(valCode, action, tel.getPhoneNumber, None) flatMap (_ => {
-      //          val nickName = "用户" + tel.getPhoneNumber
-      //          FinagleFactory.client.createUser(nickName, password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber))) map (user => {
-      //            val node = new UserLoginFormatter(true).format(user)
-      //            K2Result.created(Some(node))
-      //          })
-      //        })
       future rescue {
         case _: ResourceConflictException =>
           TwitterFuture(K2Result.conflict(ErrorCode.YUNKAI_USEREXISTS, "Already exists"))
@@ -772,15 +793,7 @@ object UserCtrlScala extends Controller {
       body <- request.body.asJson
       tel <- (body \ "tel").asOpt[String]
     } yield {
-      for {
-        cnt <- UserAPI.findExpertRequest(userId: Long, tel: String)
-        result <- {
-          if (cnt > 3)
-            TwitterFuture(K2Result.unprocessable) map (_ => K2Result.conflict(ErrorCode.MUL_REQUEST_EXPERT, "Don't repeat application"))
-          else
-            UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
-        }
-      } yield result
+      UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
     }) getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })

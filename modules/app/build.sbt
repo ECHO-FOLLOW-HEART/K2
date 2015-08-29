@@ -28,6 +28,10 @@ libraryDependencies ++= Seq(
   //  //  "commons-logging" % "commons-logging" % "1.2"
 )
 
+libraryDependencies ++= Seq(
+  ws
+)
+
 scalariformSettings
 
 aspectjSettings
