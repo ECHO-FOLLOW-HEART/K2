@@ -61,7 +61,7 @@ object UserCtrlScala extends Controller {
       trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
     } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
-      node.put("memo", user.memo.getOrElse(null))
+      node.put("memo", user.memo.getOrElse(""))
       node.put("isBlocked", isBlocked)
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", trackCntAndCountryCnt._1)
