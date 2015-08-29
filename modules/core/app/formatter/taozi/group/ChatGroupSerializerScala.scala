@@ -1,13 +1,13 @@
 package formatter.taozi.group
 
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.{SerializerProvider, JsonSerializer}
+import com.fasterxml.jackson.databind.{ SerializerProvider, JsonSerializer }
 import models.group.ChatGroup
 
 /**
  * Created by pengyt on 2015/8/29.
  */
-class ChatGroupSerializerScala extends JsonSerializer[ChatGroup]{
+class ChatGroupSerializerScala extends JsonSerializer[ChatGroup] {
 
   override def serialize(chatGroup: ChatGroup, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
     gen.writeStartObject()

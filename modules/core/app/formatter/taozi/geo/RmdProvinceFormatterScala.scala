@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import formatter.BaseFormatter
 import formatter.taozi.ImageItemSerializerScala
-import models.geo.{RmdProvince, RmdLocality}
+import models.geo.{ RmdProvince, RmdLocality }
 import models.misc.ImageItem
 
 /**

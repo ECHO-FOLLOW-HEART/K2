@@ -8,7 +8,7 @@ import models.geo.Continent
 /**
  * Created by pengyt on 2015/8/29.
  */
-class SimpleContinentFormatterScala extends BaseFormatter{
+class SimpleContinentFormatterScala extends BaseFormatter {
   override val objectMapper = {
     val mapper = new ObjectMapper()
     val module = new SimpleModule()

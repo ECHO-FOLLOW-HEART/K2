@@ -64,8 +64,3 @@ object LocalitySerializerScala {
     result
   }
 }
-
-object Level extends Enumeration {
-  // Value是一个类
-  val SIMPLE, DETAILED, FORTRACKS = Value
-}

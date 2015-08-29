@@ -2,7 +2,7 @@ package formatter.taozi.geo
 
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.{ SerializerProvider, JsonSerializer }
-import models.geo.{RmdProvince, RmdLocality}
+import models.geo.{ RmdProvince, RmdLocality }
 import scala.collection.JavaConversions._
 
 /**

@@ -1,8 +1,8 @@
 package formatter.taozi.geo
 
 import com.fasterxml.jackson.core.JsonGenerator
-import com.fasterxml.jackson.databind.{SerializerProvider, JsonSerializer}
-import models.geo.{Country, GeoJsonPoint, Locality}
+import com.fasterxml.jackson.databind.{ SerializerProvider, JsonSerializer }
+import models.geo.{ Country, GeoJsonPoint, Locality }
 import models.misc.ImageItem
 import utils.TaoziDataFilter
 
@@ -11,7 +11,7 @@ import scala.collection.JavaConversions._
 /**
  * Created by pengyt on 2015/8/29.
  */
-class SimpleLocalityWithLocationSerializerScala extends JsonSerializer[Locality]{
+class SimpleLocalityWithLocationSerializerScala extends JsonSerializer[Locality] {
 
   override def serialize(locality: Locality, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
     gen.writeStartObject()
@@ -44,7 +44,7 @@ class SimpleLocalityWithLocationSerializerScala extends JsonSerializer[Locality]
     gen.writeFieldName(Locality.fnCountry)
     val country = locality.getCountry()
     val retCountry = if (country != null) serializers.findValueSerializer(classOf[Country], null)
-      else serializers.findNullValueSerializer(null)
+    else serializers.findNullValueSerializer(null)
     retCountry.serialize(country, gen, serializers)
 
     gen.writeEndObject()
