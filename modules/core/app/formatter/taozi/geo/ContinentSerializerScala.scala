@@ -9,13 +9,13 @@ import models.geo.Continent
  */
 class ContinentSerializerScala extends JsonSerializer[Continent] {
 
-  override def serialize(value: Continent, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
+  override def serialize(continent: Continent, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
     gen.writeStartObject()
 
-    gen.writeStringField("id", value.getId.toString)
-    gen.writeStringField("zhName", value.getZhName)
-    gen.writeStringField("enName", value.getEnName)
-    gen.writeStringField("code", value.getCode)
+    gen.writeStringField("id", continent.getId.toString)
+    gen.writeStringField("zhName", continent.getZhName)
+    gen.writeStringField("enName", continent.getEnName)
+    gen.writeStringField("code", continent.getCode)
 
     gen.writeEndObject()
   }

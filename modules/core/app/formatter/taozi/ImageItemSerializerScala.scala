@@ -13,7 +13,7 @@ class ImageItemSerializerScala extends JsonSerializer[ImageItem] {
 
   var sizeDesc = ImageSizeDesc.MEDIUM
 
-  override def serialize(value: ImageItem, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
+  override def serialize(imageItem: ImageItem, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
 
     gen.writeStartObject()
     val maxWidth = if (width == 0) {
@@ -26,17 +26,17 @@ class ImageItemSerializerScala extends JsonSerializer[ImageItem] {
     } else width
 
     // 如果只给url，则是原链接，图片没上传，无法裁剪缩放
-    if (value.getKey == null && value.getUrl != null) {
-      gen.writeStringField("url", value.getUrl)
+    if (imageItem.getKey == null && imageItem.getUrl != null) {
+      gen.writeStringField("url", imageItem.getUrl)
       gen.writeNumberField("width", null)
       gen.writeNumberField("height", null)
     } else {
-      val fullUrl = value.getFullUrl
-      var widthValue = value.getW
-      var heightValue = value.getH
+      val fullUrl = imageItem.getFullUrl
+      var widthValue = imageItem.getW
+      var heightValue = imageItem.getH
 
       if (widthValue != null && heightValue != null) {
-        val cropHint = value.getCropHint
+        val cropHint = imageItem.getCropHint
         val (imgUrl) = if (sizeDesc == ImageSizeDesc.FULL) fullUrl else {
           if (cropHint == null) {
             val r: Double = heightValue.toInt / widthValue.toInt

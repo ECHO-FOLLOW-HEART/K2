@@ -12,16 +12,16 @@ import scala.collection.JavaConversions._
 class CountryExpertSerializerScala extends JsonSerializer[CountryExpert] {
 
   // 是否需要抛IOException?
-  override def serialize(value: CountryExpert, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
+  override def serialize(countryExpert: CountryExpert, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
     gen.writeStartObject()
 
-    gen.writeStringField("id", value.getId.toString)
+    gen.writeStringField("id", countryExpert.getId.toString)
 
     // images
     gen.writeFieldName("images")
     gen.writeStartArray()
 
-    val imagesOpt = Option(value.getImages) map (_.toSeq)
+    val imagesOpt = Option(countryExpert.getImages) map (_.toSeq)
     if (imagesOpt nonEmpty) {
       val ret = serializers.findValueSerializer(classOf[ImageItem], null)
       for (image <- imagesOpt.get)
@@ -30,14 +30,14 @@ class CountryExpertSerializerScala extends JsonSerializer[CountryExpert] {
 
     gen.writeEndArray()
 
-    gen.writeStringField("zhName", value.getZhName)
-    gen.writeStringField("enName", value.getEnName)
-    gen.writeStringField("code", value.getCode)
-    gen.writeNumberField("rank", if (value.getRank == null) 100 else value.getRank.toInt)
-    gen.writeNumberField("expertCnt", value.getExpertCnt.toInt)
+    gen.writeStringField("zhName", countryExpert.getZhName)
+    gen.writeStringField("enName", countryExpert.getEnName)
+    gen.writeStringField("code", countryExpert.getCode)
+    gen.writeNumberField("rank", if (countryExpert.getRank == null) 100 else countryExpert.getRank.toInt)
+    gen.writeNumberField("expertCnt", countryExpert.getExpertCnt.toInt)
 
     gen.writeFieldName("continents")
-    val continent = value.getContinent
+    val continent = countryExpert.getContinent
     val retContinent = if (continent != null) serializers.findValueSerializer(classOf[Continent], null)
     else serializers.findNullValueSerializer(null)
     retContinent.serialize(continent, gen, serializers)
