@@ -1,22 +1,23 @@
 package controllers.app
 
+import java.util
+
 import api.{ UserAPI, UserUgcAPI }
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
 import com.fasterxml.jackson.databind.{ JsonSerializer, ObjectMapper, SerializerProvider }
 import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
-import com.mongodb.ServerAddress
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
 import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
+import misc.{ CoreConfig, FinagleConvert, FinagleFactory }
 import models.user.{ Contact => K2Contact, UserInfo, UserProfile }
-import misc.{ CoreConfig, GlobalConf, FinagleConvert, FinagleFactory }
 import org.joda.time.format.DateTimeFormat
-import play.api.libs.json.{ JsNumber, JsObject }
+import play.api.libs.ws._
 import play.api.mvc.{ Action, Controller, Result }
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
@@ -24,8 +25,7 @@ import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ Future => ScalaFuture, Await }
-import play.api.libs.ws._
+import scala.concurrent.{ Future => ScalaFuture }
 import scala.language.{ implicitConversions, postfixOps }
 
 /**
@@ -69,10 +69,15 @@ object UserCtrlScala extends Controller {
       node.put("countryCnt", trackCntAndCountryCnt._2)
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
-      if (userProfile nonEmpty) {
-        node.put("profile", userProfile.get.profile)
-        node.set("tags", new ObjectMapper().valueToTree(userProfile.get.tags))
+      for {
+        u <- userProfile
+        profile <- Option(u.profile) orElse Some("")
+        tags <- Option(u.tags) orElse Some(new util.ArrayList[String]())
+      } yield {
+        node.put("profile", profile)
+        node.set("tags", new ObjectMapper().valueToTree(tags))
       }
+
       Utils.status(node.toString).toScala
     }) rescue {
       case _: NotFoundException =>
