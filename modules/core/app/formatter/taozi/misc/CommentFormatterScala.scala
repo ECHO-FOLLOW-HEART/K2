@@ -1,22 +1,21 @@
-package formatter.taozi.geo
+package formatter.taozi.misc
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.module.SimpleModule
 import formatter.BaseFormatter
 import formatter.taozi.ImageItemSerializerScala
-import models.geo.{ Continent, CountryExpert }
 import models.misc.ImageItem
+import models.poi.Comment
 
 /**
- * Created by pengyt on 2015/8/27.
+ * Created by pengyt on 2015/8/31.
  */
-class CountryExpertFormatterScala extends BaseFormatter {
+class CommentFormatterScala extends BaseFormatter {
 
   override val objectMapper = {
     val mapper = new ObjectMapper()
     val module = new SimpleModule()
-    module.addSerializer(classOf[CountryExpert], new CountryExpertSerializerScala)
-    module.addSerializer(classOf[Continent], new SimpleContinentSerializerScala)
+    module.addSerializer(classOf[Comment], new CommentSerializerScala)
     module.addSerializer(classOf[ImageItem], ImageItemSerializerScala())
     mapper.registerModule(module)
     mapper
