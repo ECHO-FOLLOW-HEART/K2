@@ -1,16 +1,8 @@
 package formatter.taozi.poi;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import formatter.AizouFormatter;
 import formatter.taozi.GeoJsonPointSerializer;
 import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.ImageItemSerializerOld;
-import formatter.taozi.TaoziBaseFormatter;
 import formatter.taozi.geo.LocalitySerializer;
 import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
@@ -18,7 +10,9 @@ import models.geo.Locality;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）

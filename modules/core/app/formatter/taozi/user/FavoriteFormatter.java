@@ -1,34 +1,21 @@
 package formatter.taozi.user;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
 import formatter.taozi.ImageItemSerializer;
-import formatter.taozi.ImageItemSerializerOld;
-import formatter.taozi.TaoziBaseFormatter;
 import formatter.taozi.geo.LocalitySerializer;
-import models.AizouBaseEntity;
 import models.geo.Locality;
-import models.guide.Guide;
 import models.misc.ImageItem;
-import models.misc.Recom;
-import models.misc.TravelNote;
-import models.poi.AbstractPOI;
 import models.user.Favorite;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
 import utils.Constants;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
 
 /**
  * 返回用户的收藏信息（即：查看自己的收藏信息时使用）
