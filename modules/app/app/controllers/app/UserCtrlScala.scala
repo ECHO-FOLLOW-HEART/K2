@@ -1,6 +1,6 @@
 package controllers.app
 
-import api.{ UserAPI, UserUgcAPI }
+import api.{ GeoAPI, UserAPI, UserUgcAPI }
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
@@ -9,7 +9,7 @@ import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
+import formatter.taozi.user.{ ExpertInfoFormatter, ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ FinagleConvert, FinagleFactory }
@@ -773,6 +773,23 @@ object UserCtrlScala extends Controller {
       tel <- (body \ "tel").asOpt[String]
     } yield {
       UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+    future
+  })
+
+  def searchExpert(userId: Long) = Action.async(request => {
+    val future = (for {
+      body <- request.body.asJson
+      zones <- (body \ "zone").asOpt[Array[String]]
+    } yield {
+      val formatter = FormatterFactory.getInstance(classOf[ExpertInfoFormatter])
+      for {
+        (country, locality) <- TwitterFuture.join(GeoAPI.getCountryByNames(zones), GeoAPI.getLocalityByNames(zones))
+        experts <- UserAPI.searchExpert(country.map(_.getId) ++ locality.map(_.getId), null)
+      } yield {
+        val node = formatter.formatNode(experts)
+        Utils.status(node.toString).toScala
+      }
     }) getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })

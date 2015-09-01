@@ -8,7 +8,7 @@ import models.AizouBaseEntity
 import models.geo.{ CountryExpert, Locality, Country }
 import models.misc.Track
 import models.poi.{ AbstractPOI, ViewSpot }
-import models.user.UserInfo
+import models.user.{ ExpertInfo, UserInfo }
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
 
@@ -118,6 +118,20 @@ object BatchImpl {
   }
 
   def saveCountryExpert(cExperts: Seq[CountryExpert])(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
+    futurePool {
+      ds.save(cExperts)
+    }
+  }
+
+  def getTracks(userIds: Seq[Long])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Track]] = {
+    futurePool {
+      val query = ds.createQuery(classOf[Track])
+      query.field(Track.fnUserId).in(userIds)
+      query.asList()
+    }
+  }
+
+  def saveExpertInfo(cExperts: Seq[ExpertInfo])(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = {
     futurePool {
       ds.save(cExperts)
     }
