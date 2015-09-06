@@ -213,6 +213,7 @@ object Batch extends Controller {
       val expert = new ExpertInfo()
       expert.setId(new ObjectId())
       expert.setUserId(x._1)
+      expert.setProfile("旅行派达人")
       expert.setZone(x._2.map(_.getLocality.getId))
       expert
     })

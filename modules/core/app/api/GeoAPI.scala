@@ -37,9 +37,23 @@ object GeoAPI {
     }
   }
 
+  def getCountryByIds(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Country]] = {
+    futurePool {
+      val query = ds.createQuery(classOf[Country]).field(Country.FN_ID).in(ids).retrievedFields(true, Seq(Country.FD_ZH_NAME): _*)
+      query.asList()
+    }
+  }
+
   def getLocalityByNames(names: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
     futurePool {
       val query = ds.createQuery(classOf[Locality]).field(Locality.FD_ZH_NAME).in(names).retrievedFields(true, Seq(Country.FN_ID): _*)
+      query.asList()
+    }
+  }
+
+  def getLocalityByIds(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
+    futurePool {
+      val query = ds.createQuery(classOf[Locality]).field(Country.FN_ID).in(ids).retrievedFields(true, Seq(Locality.FD_ZH_NAME): _*)
       query.asList()
     }
   }

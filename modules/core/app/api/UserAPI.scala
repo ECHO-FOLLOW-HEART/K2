@@ -58,4 +58,12 @@ object UserAPI {
       query.field(ExpertInfo.fnZone).in(tags)
     query.asList()
   }
+
+  def getExpertInfo(targetId: Long, fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Option[ExpertInfo]] = {
+    futurePool {
+      val query = ds.createQuery(classOf[ExpertInfo]).field(ExpertInfo.fnUserId).equal(targetId)
+      val ret = query.get()
+      if (ret == null) None else Some(ret)
+    }
+  }
 }

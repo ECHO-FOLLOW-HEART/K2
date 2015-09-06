@@ -4,7 +4,6 @@ import models.AizouBaseEntity;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Indexed;
 import org.mongodb.morphia.annotations.Transient;
-import org.mongodb.morphia.utils.IndexDirection;
 
 import java.util.List;
 
@@ -26,6 +25,8 @@ public class ExpertInfo extends AizouBaseEntity {
     private long userId;
     @Indexed
     private List<ObjectId> zone;
+    @Indexed
+    private List<ObjectId> travelNote;
 
     private String profile;
 
@@ -61,5 +62,13 @@ public class ExpertInfo extends AizouBaseEntity {
 
     public void setZone(List<ObjectId> zone) {
         this.zone = zone;
+    }
+
+    public List<ObjectId> getTravelNote() {
+        return travelNote;
+    }
+
+    public void setTravelNote(List<ObjectId> travelNote) {
+        this.travelNote = travelNote;
     }
 }
