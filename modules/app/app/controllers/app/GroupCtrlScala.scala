@@ -51,7 +51,7 @@ object GroupCtrlScala extends Controller {
         } catch {
           case _: NotFoundException =>
             Future {
-              Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
+              Utils.createResponse(ErrorCode.UNKOWN_ERROR).toScala
             }
         }
         future
@@ -96,7 +96,7 @@ object GroupCtrlScala extends Controller {
         })) rescue {
           case _: NotFoundException =>
             Future {
-              Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
+              Utils.createResponse(ErrorCode.GROUP_NOT_EXIST).toScala
             }
         }
       }
@@ -134,7 +134,7 @@ object GroupCtrlScala extends Controller {
         })) rescue {
           case _: NotFoundException =>
             Future {
-              Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
+              Utils.createResponse(ErrorCode.GROUP_NOT_EXIST).toScala
             }
         }
       }
@@ -149,7 +149,7 @@ object GroupCtrlScala extends Controller {
   def getGroupUsers(gid: Long) = Action.async {
     request =>
       {
-
+        // TODO 不要粗暴地直接get
         val selfId = request.headers.get("UserId").get.toLong
         val formatter = FormatterFactory.getInstance(classOf[UserInfoSimpleFormatter])
         (FinagleFactory.client.getChatGroupMembers(gid, Some(UserCtrlScala.basicUserInfoFieds), Some(selfId)) map (users => {
@@ -223,7 +223,7 @@ object GroupCtrlScala extends Controller {
         } rescue {
           case _: NotFoundException =>
             Future {
-              Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
+              Utils.createResponse(ErrorCode.GROUP_NOT_EXIST).toScala
             }
         }
       }

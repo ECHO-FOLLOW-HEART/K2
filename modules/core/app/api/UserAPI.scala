@@ -1,9 +1,10 @@
 package api
 
 import com.twitter.util.{ Future, FuturePool }
-import exception.AizouException
-import models.user.UserProfile
+import models.user.{ ExpertInfo, ExpertRequest, UserProfile }
+import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
+
 import scala.collection.JavaConversions._
 
 /**
@@ -39,20 +40,22 @@ object UserAPI {
     }
   }
 
-  //  def updateUserInfo(targetId: Long, fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[UserProfile] = futurePool{
-  //    val query = ds.createQuery(classOf[UserProfile]).field(UserProfile.fdUserId).equal(targetId)
-  //      .retrievedFields(true, fields: _*)
-  //    val updateOps = fields.foldLeft(ds.createUpdateOperations(classOf[UserProfile]))((ops, entry) => {
-  //      val (key, value) = entry
-  //      ops.set(key, value)
-  //    })
-  //
-  //    val result = ds.findAndModify(query, updateOps)
-  //
-  //    if (result == null)
-  //      throw new AizouException(s"Cannot find user: $targetId")
-  //    else
-  //      result
-  //  }
+  def expertRequest(userId: Long, tel: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Unit] = futurePool {
+    val expertRe = new ExpertRequest()
+    expertRe.setUserId(userId)
+    expertRe.setTel(tel)
+    val query = ds.createQuery(classOf[ExpertRequest]).field(ExpertRequest.fnUserId).equal(userId)
+    val ops = ds.createUpdateOperations(classOf[ExpertRequest]).set(ExpertRequest.fnTel, tel)
 
+    ds.update(query, ops, true)
+  }
+
+  def searchExpert(itemIds: Seq[ObjectId], tags: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ExpertInfo]] = futurePool {
+    val query = ds.createQuery(classOf[ExpertInfo])
+    if (itemIds != null)
+      query.field(ExpertInfo.fnZone).in(itemIds)
+    if (tags != null)
+      query.field(ExpertInfo.fnZone).in(tags)
+    query.asList()
+  }
 }

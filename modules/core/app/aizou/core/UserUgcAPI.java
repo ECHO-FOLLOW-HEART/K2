@@ -9,7 +9,6 @@ import models.geo.Locality;
 import models.misc.Album;
 import models.misc.ImageItem;
 import models.misc.Track;
-import models.user.UgcInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;

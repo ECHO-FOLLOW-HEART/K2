@@ -49,10 +49,10 @@ public class UserCheckHandler {
         }
 
         if (userId <= 0)
-            throw new AizouException(ErrorCode.USER_NOT_EXIST);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR);
 
         String oid = UserAPI.getUserOid(userId);
         if (oid == null)
-            throw new AizouException(ErrorCode.USER_NOT_EXIST);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR);
     }
 }
