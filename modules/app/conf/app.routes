@@ -122,7 +122,7 @@ GET           /misc/upload-tokens/:scenario                            controlle
 #处理资源上传的回调
 POST          /misc/upload-callback                                    controllers.app.MiscCtrl.getCallback()
 #封面故事
-GET           /misc/cover-stories                                      controllers.app.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="png", interlace: Int?=1)
+GET           /misc/cover-stories                                      controllers.app.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #推荐
 GET           /misc/recommendations                                    controllers.app.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #获得版本信息

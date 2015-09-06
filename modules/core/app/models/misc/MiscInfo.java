@@ -77,6 +77,12 @@ public class MiscInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     public String value;
 
+    public int width;
+
+    public int height;
+
+
+
     @Override
     public JsonNode toJson() {
         BasicDBObjectBuilder builder = BasicDBObjectBuilder.start().add("appHomeImage", appHomeImage);
