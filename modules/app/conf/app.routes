@@ -111,6 +111,8 @@ PATCH         /chatgroups/$gid<\d+>/members                            controlle
 
 #----------其他接口----------
 #其他
+#封面故事
+GET           /misc/cover-stories                                      controllers.app.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #添加收藏
 POST          /misc/favorites                                          controllers.app.MiscCtrl.addFavorite()
 #取得收藏

@@ -66,6 +66,49 @@ public class MiscCtrl extends Controller {
     public static String UPLOAD_UID = "userId";
     public static String UPLOAD_SCENARIO = "scenario";
 
+    /**
+     * 封面故事,获取App首页的图像。
+     *
+     * @param width  指定宽度
+     * @param height 指定高度
+     * @return
+     */
+    @UsingOcsCache(key = "appHomeImage|{w}|{h}|{q}|{fmt}", expireTime = 86400)
+    public static Result appHomeImage(@Key(tag = "w") int width, @Key(tag = "h") int height,
+                                      @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
+            throws AizouException {
+        Datastore ds = MorphiaFactory.datastore();
+        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE)
+                .asList();
+        if (infos == null)
+            return new TaoziResBuilder().setCode(ErrorCode.UNKOWN_ERROR)
+                    .setMessage(TaoziSceneText.instance().text(SceneID.ERR_APP_HOME_IMAGE))
+                    .build();
+
+        double suitDif = 100000;
+        String suitImg = "";
+        double dif = 0.0;
+        for (MiscInfo info : infos) {
+            int width0 = info.width;
+            int height0 = info.height;
+            dif = Math.abs((width - width0) - (height - height0) * (width0 * 1.0 / height0));
+            if (dif < suitDif) {
+                suitDif = dif;
+                suitImg = info.value;
+            }
+        }
+
+        String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", suitImg, width, height, quality, format, interlace);
+        ObjectNode node = Json.newObject();
+        node.put("image", url);
+        node.put("width", width);
+        node.put("height", height);
+        node.put("fmt", format);
+        node.put("quality", quality);
+
+        return new TaoziResBuilder().setBody(node).build();
+    }
+
     public static Result postFeedback() throws AizouException {
         JsonNode feedback = request().body().asJson();
 
