@@ -2,7 +2,7 @@ package controllers.app
 
 import java.util
 
-import api.{ UserAPI, UserUgcAPI }
+import api.{ GeoAPI, UserAPI, UserUgcAPI }
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
@@ -11,7 +11,7 @@ import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
-import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
+import formatter.taozi.user.{ ExpertInfoFormatter, ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ CoreConfig, FinagleConvert, FinagleFactory }
@@ -67,7 +67,7 @@ object UserCtrlScala extends Controller {
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", trackCntAndCountryCnt._1)
       node.put("countryCnt", trackCntAndCountryCnt._2)
-      node.put("travelNoteCnt", 0)
+
       node.put("albumCnt", albumCnt)
       for {
         u <- userProfile
@@ -76,6 +76,7 @@ object UserCtrlScala extends Controller {
       } yield {
         node.put("profile", profile)
         node.set("tags", new ObjectMapper().valueToTree(tags))
+        node.put("travelNoteCnt", 0)
       }
 
       Utils.status(node.toString).toScala
@@ -109,14 +110,15 @@ object UserCtrlScala extends Controller {
       import play.api.Play.current
 
       val url = s"http://$host:$port/users/logout"
-      val ws = WS.url(url)
-      val postBody = "{\"userId\":" + userId.toString + "}"
-      ws.withHeaders("Content-Type" -> "application/json").post(postBody) map (response => {
-        if (response.status == 200)
-          K2Result.ok(None)
-        else
-          K2Result.badRequest(ErrorCode.UNKOWN_ERROR, s"")
-      })
+      //      val ws = WS.url(url)
+      //      val postBody = "{\"userId\":" + userId.toString + "}"
+      //      ws.withHeaders("Content-Type" -> "application/json").post(postBody) map (response => {
+      //        if (response.status == 200)
+      //          K2Result.ok(None)
+      //        else
+      //          K2Result.badRequest(ErrorCode.UNKOWN_ERROR, s"")
+      //      })
+      null
     }) getOrElse ScalaFuture(K2Result.unprocessable)
 
     future
@@ -794,6 +796,23 @@ object UserCtrlScala extends Controller {
       tel <- (body \ "tel").asOpt[String]
     } yield {
       UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+    future
+  })
+
+  def searchExpert(userId: Long) = Action.async(request => {
+    val future = (for {
+      body <- request.body.asJson
+      zones <- (body \ "zone").asOpt[Array[String]]
+    } yield {
+      val formatter = FormatterFactory.getInstance(classOf[ExpertInfoFormatter])
+      for {
+        (country, locality) <- TwitterFuture.join(GeoAPI.getCountryByNames(zones), GeoAPI.getLocalityByNames(zones))
+        experts <- UserAPI.searchExpert(country.map(_.getId) ++ locality.map(_.getId), null)
+      } yield {
+        val node = formatter.formatNode(experts)
+        Utils.status(node.toString).toScala
+      }
     }) getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })

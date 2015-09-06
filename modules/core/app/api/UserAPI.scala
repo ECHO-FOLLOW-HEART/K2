@@ -1,7 +1,8 @@
 package api
 
 import com.twitter.util.{ Future, FuturePool }
-import models.user.{ ExpertRequest, UserProfile }
+import models.user.{ ExpertInfo, ExpertRequest, UserProfile }
+import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
 
 import scala.collection.JavaConversions._
@@ -43,10 +44,18 @@ object UserAPI {
     val expertRe = new ExpertRequest()
     expertRe.setUserId(userId)
     expertRe.setTel(tel)
-
-    val query = ds.createQuery(classOf[ExpertRequest]).field("userId").equal(userId)
-    val ops = ds.createUpdateOperations(classOf[ExpertRequest]).set("tel", tel)
+    val query = ds.createQuery(classOf[ExpertRequest]).field(ExpertRequest.fnUserId).equal(userId)
+    val ops = ds.createUpdateOperations(classOf[ExpertRequest]).set(ExpertRequest.fnTel, tel)
 
     ds.update(query, ops, true)
+  }
+
+  def searchExpert(itemIds: Seq[ObjectId], tags: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ExpertInfo]] = futurePool {
+    val query = ds.createQuery(classOf[ExpertInfo])
+    if (itemIds != null)
+      query.field(ExpertInfo.fnZone).in(itemIds)
+    if (tags != null)
+      query.field(ExpertInfo.fnZone).in(tags)
+    query.asList()
   }
 }

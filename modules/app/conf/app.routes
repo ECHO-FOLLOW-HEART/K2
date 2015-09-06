@@ -70,7 +70,8 @@ POST          /users/$uid<\d+>/match                                   controlle
 
 #达人申请
 POST          /users/$uid<\d+>/expert-requests                         controllers.app.UserCtrlScala.expertRequest(uid: Long)
-
+#搜索达人
+GET           /users/expert                                            controllers.app.UserCtrlScala.expertRequest(uid: Long)
 #----------用户相册接口----------
 #获取用户个人相册
 GET           /users/$id<\d+>/albums                                   controllers.app.UserUgcCtrl.getUserAlbums(id:Long)
@@ -130,6 +131,8 @@ POST          /misc/feedback                                           controlle
 POST          /misc/tip-offs                                           controllers.app.MiscCtrl.postTipOff()
 #热门搜索
 GET           /misc/hot-searches                                       controllers.app.MiscCtrl.getHotSearchs()
+#达人申请
+POST           /misc/expert-requests                                    controllers.app.MiscCtrlScala.expertRequest()
 #搜索
 GET           /search                                                  controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #提示
@@ -237,6 +240,7 @@ GET           /travelnotes/$id<[0-9a-f]{24}>                           controlle
 GET           /createCountries                                         controllers.app.Batch.createExpertTrackByCountry()
 GET           /createTracks                                            controllers.app.Batch.userInfoToTrack()
 GET           /checkVsLocality                                         controllers.app.Batch.checkVsLocality(abroad:Boolean?=true)
+GET           /refreshExpert                                           controllers.app.Batch.refreshExpertInfo()
 
 
 
