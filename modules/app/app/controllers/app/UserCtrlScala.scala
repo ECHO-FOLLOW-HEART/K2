@@ -25,7 +25,6 @@ import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ Future => ScalaFuture }
 import scala.language.{ implicitConversions, postfixOps }
 
 /**
@@ -59,23 +58,25 @@ object UserCtrlScala extends Controller {
       }
       guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
-      trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
-      userProfile <- UserAPI.getExpertInfo(userId, fieldsUserProfile)
-      zones <- getExpertZoneById(userProfile.get.getZone)
+      //trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
+      //userProfile <- UserAPI.getExpertInfo(userId, fieldsUserProfile)
+      //zones <- getExpertZoneById(userProfile.getOrElse(new ExpertInfo()).getZone)
     } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("memo", user.memo.getOrElse(null))
       node.put("isBlocked", isBlocked)
       node.put("guideCnt", guideCnt)
-      node.put("trackCnt", trackCntAndCountryCnt._1)
-      node.put("countryCnt", trackCntAndCountryCnt._2)
+      //node.put("trackCnt", trackCntAndCountryCnt._1)
+      //node.put("countryCnt", trackCntAndCountryCnt._2)
+      node.put("trackCnt", 0)
+      node.put("countryCnt", 0)
       node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
-      if (userProfile nonEmpty) {
-        node.put(ExpertInfo.fnProfile, userProfile.get.getProfile)
-        node.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(userProfile.get.getTags))
-        node.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(zones))
-      }
+      //      if (userProfile nonEmpty) {
+      //        node.put(ExpertInfo.fnProfile, userProfile.get.getProfile)
+      //        node.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(userProfile.get.getTags))
+      //        node.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(zones))
+      //      }
       Utils.status(node.toString).toScala
     }) rescue {
       case _: NotFoundException =>
@@ -790,11 +791,14 @@ object UserCtrlScala extends Controller {
   //  })
 
   def searchExpert(zones: String) = Action.async(request => {
-    val formatter = FormatterFactory.getInstance(classOf[ExpertInfoFormatter])
+    val expertFormatter = FormatterFactory.getInstance(classOf[ExpertInfoFormatter])
+    val userFormatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
+    userFormatter.setSelfView(false)
     for {
       (country, locality) <- TwitterFuture.join(GeoAPI.getCountryByNames(Seq(zones)), GeoAPI.getLocalityByNames(Seq(zones)))
       experts <- UserAPI.searchExpert(country.map(_.getId) ++ locality.map(_.getId), null)
       zoneMap <- getExpertZoneMapById(experts.flatMap(_.getZone))
+      users <- FinagleFactory.client.getUsersById(experts.map(_.getUserId), Some(basicUserInfoFieds), None)
     } yield {
       //      val node = formatter.formatNode(experts).asInstanceOf[ArrayNode].map(n=>{
       //        n.asInstanceOf[ObjectNode].set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(
@@ -804,8 +808,16 @@ object UserCtrlScala extends Controller {
       //            zoneMap.get(new ObjectId(_))
       //          )))
       //      })
-
-      val node = formatter.formatNode(experts).asInstanceOf[ArrayNode]
+      val expertMap = Map(experts.map { e => (e.getUserId, e) }: _*)
+      val node = userFormatter.formatNode(users.values.toList.map(userInfoYunkai2Model(_))).asInstanceOf[ArrayNode]
+      for (aNode <- node) {
+        val expertInfo = expertMap.get(aNode.get(ExpertInfo.fnUserId).toString.toLong).getOrElse(new ExpertInfo())
+        val objNode = aNode.asInstanceOf[ObjectNode]
+        objNode.put(ExpertInfo.fnProfile, expertInfo.getProfile)
+        objNode.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(expertInfo.getTags))
+        val so: java.util.List[String] = expertInfo.getZone.map(zoneMap.get(_).getOrElse("")).toList
+        objNode.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(so))
+      }
       Utils.status(node.toString).toScala
     }
 

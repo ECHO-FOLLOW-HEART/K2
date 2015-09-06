@@ -22,7 +22,7 @@ public class ExpertInfo extends AizouBaseEntity {
     public static String fnTags = "tags";
 
     @Indexed
-    private long userId;
+    private Long userId;
     @Indexed
     private List<ObjectId> zone;
     @Indexed
