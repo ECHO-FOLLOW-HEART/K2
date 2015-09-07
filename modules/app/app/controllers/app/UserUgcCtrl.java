@@ -18,11 +18,9 @@ import models.misc.Album;
 import models.misc.Track;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
-import play.Configuration;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import utils.TaoziDataFilter;
 import utils.Utils;
 
 import java.util.*;
@@ -30,7 +28,7 @@ import java.util.*;
 /**
  * Created by topy on 2015/6/29.
  */
-public class UserUgcCtrl extends Controller {
+public class  UserUgcCtrl extends Controller {
 
     public static final List<Long> expertUserIds = Arrays.asList(Long.valueOf(11000), Long.valueOf(100000), Long.valueOf(100003),
             Long.valueOf(100057), Long.valueOf(100076), Long.valueOf(100093), Long.valueOf(100001),

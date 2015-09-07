@@ -16,6 +16,11 @@ import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ CoreConfig, FinagleConvert, FinagleFactory }
 import models.user.{ Contact => K2Contact, UserInfo, UserProfile }
+import misc.{ FinagleConvert, FinagleFactory }
+import models.geo.Country
+import models.geo.{ Locality => K2Locality }
+import models.user.{ Contact => K2Contact, ExpertInfo, UserInfo, UserProfile }
+import org.bson.types.ObjectId
 import org.joda.time.format.DateTimeFormat
 import play.api.libs.ws._
 import play.api.mvc.{ Action, Controller, Result }
@@ -47,7 +52,8 @@ object UserCtrlScala extends Controller {
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(Tel) else Seq()) ++ Seq(Memo)
     formatter.setSelfView(isSelf)
-    val fieldsUserProfile = Seq(UserProfile.fdProfile, UserProfile.fdTags)
+    val fieldsUserProfile = Seq(ExpertInfo.fnProfile, ExpertInfo.fnTags, ExpertInfo.fnZone, ExpertInfo.fnUserId)
+
     val future = (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), userIdOpt)
       isBlocked <- {
@@ -58,27 +64,25 @@ object UserCtrlScala extends Controller {
       }
       guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
-      trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
-      userProfile <- UserAPI.getUserInfo(userId, fieldsUserProfile)
+      //trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
+      //userProfile <- UserAPI.getExpertInfo(userId, fieldsUserProfile)
+      //zones <- getExpertZoneById(userProfile.getOrElse(new ExpertInfo()).getZone)
     } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("memo", user.memo.getOrElse(""))
       node.put("isBlocked", isBlocked)
       node.put("guideCnt", guideCnt)
-      node.put("trackCnt", trackCntAndCountryCnt._1)
-      node.put("countryCnt", trackCntAndCountryCnt._2)
-
+      //node.put("trackCnt", trackCntAndCountryCnt._1)
+      //node.put("countryCnt", trackCntAndCountryCnt._2)
+      node.put("trackCnt", 0)
+      node.put("countryCnt", 0)
+      node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
-      for {
-        u <- userProfile
-        profile <- Option(u.profile) orElse Some("")
-        tags <- Option(u.tags) orElse Some(new util.ArrayList[String]())
-      } yield {
-        node.put("profile", profile)
-        node.set("tags", new ObjectMapper().valueToTree(tags))
-        node.put("travelNoteCnt", 0)
-      }
-
+      //      if (userProfile nonEmpty) {
+      //        node.put(ExpertInfo.fnProfile, userProfile.get.getProfile)
+      //        node.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(userProfile.get.getTags))
+      //        node.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(zones))
+      //      }
       Utils.status(node.toString).toScala
     }) rescue {
       case _: NotFoundException =>
@@ -88,6 +92,12 @@ object UserCtrlScala extends Controller {
     }
     future
   })
+
+  def getExpertZoneById(zoneIds: Seq[ObjectId]) = {
+    TwitterFuture.join(GeoAPI.getCountryByIds(zoneIds), GeoAPI.getLocalityByIds(zoneIds)) map (x => {
+      x._1.map(_.getZhName) ++ x._2.map(_.getZhName)
+    })
+  }
 
   /**
    * 注销
@@ -796,32 +806,56 @@ object UserCtrlScala extends Controller {
    *
    * @return
    */
-  def expertRequest(userId: Long) = Action.async(request => {
-    val future = (for {
-      body <- request.body.asJson
-      tel <- (body \ "tel").asOpt[String]
+  //  def expertRequest(userId: Long) = Action.async(request => {
+  //    val future = (for {
+  //      body <- request.body.asJson
+  //      tel <- (body \ "tel").asOpt[String]
+  //    } yield {
+  //      UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
+  //    }) getOrElse TwitterFuture(K2Result.unprocessable)
+  //    future
+  //  })
+
+  def searchExpert(zones: String) = Action.async(request => {
+    val expertFormatter = FormatterFactory.getInstance(classOf[ExpertInfoFormatter])
+    val userFormatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
+    userFormatter.setSelfView(false)
+    for {
+      (country, locality) <- TwitterFuture.join(GeoAPI.getCountryByNames(Seq(zones)), GeoAPI.getLocalityByNames(Seq(zones)))
+      experts <- UserAPI.searchExpert(country.map(_.getId) ++ locality.map(_.getId), null)
+      zoneMap <- getExpertZoneMapById(experts.flatMap(_.getZone))
+      users <- FinagleFactory.client.getUsersById(experts.map(_.getUserId), Some(basicUserInfoFieds), None)
     } yield {
-      UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
-    }) getOrElse TwitterFuture(K2Result.unprocessable)
-    future
+      //      val node = formatter.formatNode(experts).asInstanceOf[ArrayNode].map(n=>{
+      //        n.asInstanceOf[ObjectNode].set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(
+      //          val ret = n.get(ExpertInfo.fnZone).as
+      //            re
+      //            .map(
+      //            zoneMap.get(new ObjectId(_))
+      //          )))
+      //      })
+      val expertMap = Map(experts.map { e => (e.getUserId, e) }: _*)
+      val node = userFormatter.formatNode(users.values.toList.map(userInfoYunkai2Model(_))).asInstanceOf[ArrayNode]
+      for (aNode <- node) {
+        val expertInfo = expertMap.get(aNode.get(ExpertInfo.fnUserId).toString.toLong).getOrElse(new ExpertInfo())
+        val objNode = aNode.asInstanceOf[ObjectNode]
+        objNode.put(ExpertInfo.fnProfile, expertInfo.getProfile)
+        objNode.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(expertInfo.getTags))
+        val so: java.util.List[String] = expertInfo.getZone.map(zoneMap.get(_).getOrElse("")).toList
+        objNode.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(so))
+      }
+      Utils.status(node.toString).toScala
+    }
+
   })
 
-  def searchExpert(userId: Long) = Action.async(request => {
-    val future = (for {
-      body <- request.body.asJson
-      zones <- (body \ "zone").asOpt[Array[String]]
-    } yield {
-      val formatter = FormatterFactory.getInstance(classOf[ExpertInfoFormatter])
-      for {
-        (country, locality) <- TwitterFuture.join(GeoAPI.getCountryByNames(zones), GeoAPI.getLocalityByNames(zones))
-        experts <- UserAPI.searchExpert(country.map(_.getId) ++ locality.map(_.getId), null)
-      } yield {
-        val node = formatter.formatNode(experts)
-        Utils.status(node.toString).toScala
-      }
-    }) getOrElse TwitterFuture(K2Result.unprocessable)
-    future
-  })
+  def getExpertZoneMapById(zoneIds: Seq[ObjectId]) = {
+    TwitterFuture.join(GeoAPI.getCountryByIds(zoneIds), GeoAPI.getLocalityByIds(zoneIds)) map (x => {
+      val r1 = for ((k, v) <- x._1.groupBy(_.getId)) yield (k, v.get(0).getZhName)
+      val r2 = for ((k, v) <- x._2.groupBy(_.getId)) yield (k, v.get(0).getZhName)
+      r1 ++ r2
+    })
+  }
 
   def getUsersInfoValue(userIds: java.util.List[java.lang.Long]): java.util.Map[java.lang.Long, UserInfo] = {
     val f = FinagleFactory.client.getUsersById(userIds.map(scala.Long.unbox(_)), Some(basicUserInfoFieds), None) map (userMap => {

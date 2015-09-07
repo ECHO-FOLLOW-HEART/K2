@@ -52,7 +52,7 @@ object UserUgcAPI {
     val query: Query[Track] = ds.createQuery(classOf[Track])
     query.field(Album.FD_USERID).equal(uid).field(AizouBaseEntity.FD_TAOZIENA).equal(true)
     futurePool {
-      val tracks = JavaConversions.asScalaBuffer(query.asList())
+      val tracks = query.asList()
       tracks.size match {
         case 0 => (0 -> 0)
         case _ => (tracks.size -> tracks.groupBy(_.getCountry.getId).size)
