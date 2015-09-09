@@ -12,7 +12,7 @@ import formatter.FormatterFactory
 import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
-import misc.{ FinagleConvert, FinagleFactory }
+import misc.{CoreConfig, FinagleConvert, FinagleFactory}
 import models.user.{ Contact => K2Contact, ExpertInfo, UserInfo }
 import org.bson.types.ObjectId
 import org.joda.time.format.DateTimeFormat
