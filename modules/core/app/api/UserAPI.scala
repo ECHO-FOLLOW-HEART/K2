@@ -50,13 +50,14 @@ object UserAPI {
     ds.update(query, ops, true)
   }
 
-  def searchExpert(itemIds: Seq[ObjectId], tags: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ExpertInfo]] = futurePool {
-    val query = ds.createQuery(classOf[ExpertInfo])
-    if (itemIds != null)
+  def searchExpert(itemIds: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Future[Option[Seq[ExpertInfo]]] = futurePool {
+    if (itemIds.size == 0)
+      None
+    else {
+      val query = ds.createQuery(classOf[ExpertInfo])
       query.field(ExpertInfo.fnZone).in(itemIds)
-    if (tags != null)
-      query.field(ExpertInfo.fnZone).in(tags)
-    query.asList()
+      Some(query.asList())
+    }
   }
 
   def getExpertInfo(targetId: Long, fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Option[ExpertInfo]] = {

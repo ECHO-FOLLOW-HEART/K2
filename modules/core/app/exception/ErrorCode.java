@@ -39,6 +39,11 @@ public enum ErrorCode {
      * 搜索引擎通用错误
      */
     SEARCH_ENGINE_ERROR(103),
+
+    /**
+     * 数据不存在
+     */
+    DATA_NOT_FOUND(104),
     /**
      * Yunkai工程中的Exception对应的ErrorCode
      */
