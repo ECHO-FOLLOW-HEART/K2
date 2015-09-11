@@ -815,18 +815,19 @@ object UserCtrlScala extends Controller {
     for {
       (country, locality) <- TwitterFuture.join(GeoAPI.getCountryByNames(Seq(zones)), GeoAPI.getLocalityByNames(Seq(zones)))
       experts <- UserAPI.searchExpert(country.map(_.getId) ++ locality.map(_.getId))
-      (zoneMap, users) <- TwitterFuture.join(getExpertZoneMapById(experts.getOrElse(Seq()).flatMap(_.getZone)),
-        FinagleFactory.client.getUsersById(experts.getOrElse(Seq()).map(_.getUserId), Some(basicUserInfoFieds), None))
+      //      (zoneMap, users) <- TwitterFuture.join(getExpertZoneMapById(experts.getOrElse(Seq()).flatMap(_.getZone)),
+      //        FinagleFactory.client.getUsersById(experts.getOrElse(Seq()).map(_.getUserId), Some(basicUserInfoFieds), None))
+      users <- FinagleFactory.client.getUsersById(experts.getOrElse(Seq()).map(_.getUserId), Some(basicUserInfoFieds), None)
     } yield {
       val expertMap = Map(experts.getOrElse(Seq()).map { e => (e.getUserId, e) }: _*)
       val node = userFormatter.formatNode(users.values.toList.map(userInfoYunkai2Model(_))).asInstanceOf[ArrayNode]
       for (aNode <- node) {
         val expertInfo = expertMap.get(aNode.get(ExpertInfo.fnUserId).asText().toLong).getOrElse(new ExpertInfo())
         val objNode = aNode.asInstanceOf[ObjectNode]
-        objNode.put(ExpertInfo.fnProfile, expertInfo.getProfile)
         objNode.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(expertInfo.getTags))
-        val so: java.util.List[String] = expertInfo.getZone.map(zoneMap.get(_).getOrElse("")).toList
-        objNode.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(so))
+        //        objNode.put(ExpertInfo.fnProfile, expertInfo.getProfile)
+        //        val so: java.util.List[String] = expertInfo.getZone.map(zoneMap.get(_).getOrElse("")).toList
+        //        objNode.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(so))
       }
       Utils.status(node.toString).toScala
     }
