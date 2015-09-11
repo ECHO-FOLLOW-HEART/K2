@@ -124,7 +124,7 @@ GET           /misc/upload-tokens/:scenario                            controlle
 #处理资源上传的回调
 POST          /misc/upload-callback                                    controllers.app.MiscCtrl.getCallback()
 #封面故事
-GET           /misc/cover-stories                                      controllers.app.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
+#GET           /misc/cover-stories                                      controllers.app.MiscCtrl.appHomeImage(width: Int, height: Int, quality: Int?=85, format: String?="jpg", interlace: Int?=1)
 #推荐
 GET           /misc/recommendations                                    controllers.app.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #获得版本信息
@@ -239,6 +239,8 @@ GET           /about                                                   controlle
 GET           /travelnotes                                             controllers.app.TravelNoteCtrl.searchTravelNotes(query: String?="", locality: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情(H5)
 GET           /travelnotes/$id<[0-9a-f]{24}>                           controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
+#获取用户的游记
+GET           /users/$uid<\d+>/travelnotes                             controllers.app.TravelNoteCtrlScala.getUsersTravelNotes(uid:Long)
 
 
 GET           /createCountries                                         controllers.app.Batch.createExpertTrackByCountry()
