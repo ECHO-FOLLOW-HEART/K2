@@ -247,4 +247,4 @@ GET           /checkVsLocality                                         controlle
 GET           /refreshExpert                                           controllers.app.Batch.refreshExpertInfo()
 
 
-
+GET           /expertInfo/zone                                         controllers.app.Batch.updateExpertInfo()

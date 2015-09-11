@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.lvxingpai.yunkai.UserInfo
 import com.twitter.util.Future
 import controllers.bache.{ BatchImpl, BatchUtils }
+import database.MorphiaFactory
 import formatter.FormatterFactory
 import formatter.taozi.geo.SimpleCountryFormatter
 import formatter.taozi.user.TrackFormatter
@@ -229,4 +230,27 @@ object Batch extends Controller {
       }
     }
   )
+
+  def updateExpertInfo() = Action.async(
+    request => {
+      val ds = MorphiaFactory.datastore
+      val experts = ds.createQuery(classOf[ExpertInfo]).asList()
+
+      for (expert <- experts) {
+        val query = ds.createQuery(classOf[ExpertInfo]).field("id").equal(expert.getUserId)
+        val zoneList = expert.getZone
+        var newZoneList = zoneList.toList.toSeq
+        for (zone <- zoneList) {
+          val locality = ds.createQuery(classOf[Locality]).field("id").equal(zone).get
+          if (locality != null) {
+            val cid = locality.getCountry.getId
+            newZoneList = newZoneList ++ Seq(cid)
+          }
+        }
+        val result = seqAsJavaList(newZoneList.toSet.toSeq)
+        val updateOps = ds.createUpdateOperations(classOf[ExpertInfo]).set(ExpertInfo.fnZone, result)
+        ds.update(query, updateOps)
+      }
+      Future { Utils.status("success").toScala }
+    })
 }
