@@ -20,6 +20,8 @@ public class ExpertInfo extends AizouBaseEntity {
     public static String fnProfile = "profile";
     @Transient
     public static String fnTags = "tags";
+    @Transient
+    public static String fnTravelNote = "travelNote";
 
     @Indexed
     private Long userId;
