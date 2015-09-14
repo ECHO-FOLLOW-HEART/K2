@@ -222,8 +222,11 @@ object Batch extends Controller {
 
   def refreshExpertInfo() = Action.async(
     request => {
+      val jsonNode = request.body.asJson.get
+      val userIds = (jsonNode \ "userIds").asOpt[Array[Long]]
+      val userIdsValue = userIds.getOrElse(Array.emptyLongArray).toSeq
       for {
-        tracks <- BatchImpl.getTracks(experts)
+        tracks <- BatchImpl.getTracks(userIdsValue)
         result <- BatchImpl.saveExpertInfo(createExpertInfo(tracks))
       } yield {
         null

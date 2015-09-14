@@ -246,7 +246,7 @@ GET           /users/$uid<\d+>/travelnotes                             controlle
 GET           /createCountries                                         controllers.app.Batch.createExpertTrackByCountry()
 GET           /createTracks                                            controllers.app.Batch.userInfoToTrack()
 GET           /checkVsLocality                                         controllers.app.Batch.checkVsLocality(abroad:Boolean?=true)
-GET           /refreshExpert                                           controllers.app.Batch.refreshExpertInfo()
+POST          /refreshExpert                                           controllers.app.Batch.refreshExpertInfo()
 
 
 GET           /expertInfo/zone                                         controllers.app.Batch.updateExpertInfo()
