@@ -19,6 +19,8 @@ libraryDependencies ++= Seq(
   "org.apache.thrift" % "libthrift" % "0.9.2",
   "com.twitter" %% "scrooge-core" % "3.19.0",
   "com.twitter" %% "finagle-thrift" % "6.26.0"
+  "com.typesafe.play.plugins" %% "play-plugins-redis" % "2.3.1",
+  "com.typesafe.play" %% "play-cache" % "2.2.0"
   //  "org.mongodb" % "mongo-java-driver" % "2.12.4",
   //  "org.mongodb.morphia" % "morphia" % "0.108",
   //  "org.mongodb.morphia" % "morphia-validation" % "0.108",
