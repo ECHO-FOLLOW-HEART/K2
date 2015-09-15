@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode
 import com.lvxingpai.yunkai.UserInfo
 import com.twitter.util.Future
 import controllers.bache.{ BatchImpl, BatchUtils }
+import database.MorphiaFactory
 import formatter.FormatterFactory
 import formatter.taozi.geo.SimpleCountryFormatter
 import formatter.taozi.user.TrackFormatter
@@ -13,7 +14,7 @@ import misc.FinagleConvert
 import misc.TwitterConverter._
 import models.geo._
 import models.misc.Track
-import models.user.{ UserInfo => K2UserInfo }
+import models.user.{ UserInfo => K2UserInfo, ExpertInfo }
 import org.bson.types.ObjectId
 import play.Configuration
 import play.api.mvc.{ Action, Controller }
@@ -28,6 +29,22 @@ import scala.Option
  * Created by topy on 2015/7/14.
  */
 object Batch extends Controller {
+
+  val experts: Seq[Long] = Seq(
+    11000, 100000, 100003, 100057,
+    100076, 100093, 100001, 100015,
+    100025, 100002, 100004, 100005,
+    100009, 100010, 100011, 100012,
+    100014, 100031, 100035, 100040,
+    100056, 100067, 100068, 100073,
+    100089, 100090, 100091, 201098,
+    201099, 201101, 201097, 201033,
+    201117, 201118, 201119, 201120,
+    201121, 201122, 201123, 201124,
+    201125, 201126, 201206, 201353,
+    201354, 201392, 201394, 201385,
+    201383, 201398, 201401
+  )
 
   def locality2Track(locality: Locality, userId: Long): Track = {
     val track = new Track()
@@ -57,8 +74,9 @@ object Batch extends Controller {
       val formatter = FormatterFactory.getInstance(classOf[SimpleCountryFormatter])
       for {
         countries <- BatchImpl.getCountriesByNames(Seq("日本", "韩国", "中国", "泰国", "马来西亚", "新加坡", "印度尼西亚", "越南",
-          "斯里兰卡", "阿联酋", "尼泊尔", "柬埔寨", "法国", "希腊", "意大利", "瑞士", "美国", "英国", "西班牙"
-        //,"智利", "阿根廷", "巴西", "新西兰", "澳大利亚", "加拿大", "墨西哥", "毛里求斯", "塞舌尔", "肯尼亚", "南非", "埃及", "卢森堡", "瑞典", "丹麦", "芬兰",
+          "斯里兰卡", "阿联酋", "尼泊尔", "柬埔寨", "法国", "希腊", "意大利", "瑞士", "美国", "英国", "西班牙",
+          "智利", "阿根廷", "巴西", "新西兰", "澳大利亚", "加拿大", "墨西哥", "马尔代夫", "丹麦", "芬兰"
+        //"毛里求斯", "塞舌尔", "肯尼亚", "南非", "埃及", "卢森堡", "瑞典",
         //"葡萄牙", "比利时", "奥地利", "挪威", "土耳其", "荷兰", "俄罗斯", "德国"
         ), 0, 999)
       } yield {
@@ -83,7 +101,9 @@ object Batch extends Controller {
       201099, 201101, 201097, 201033,
       201117, 201118, 201119, 201120,
       201121, 201122, 201123, 201124,
-      201125, 201126, 201206
+      201125, 201126, 201206, 201353,
+      201354, 201392, 201394, 201385,
+      201383, 201398, 201401
     ))
     saveCountries(countries, userCnt)
     //writeCountries(countries, userCnt)
@@ -188,4 +208,52 @@ object Batch extends Controller {
       }
     }
   )
+
+  def createExpertInfo(tracks: Seq[Track]): Seq[ExpertInfo] = {
+    tracks.groupBy(_.getUserId).toSeq.map(x => {
+      val expert = new ExpertInfo()
+      expert.setId(new ObjectId())
+      expert.setUserId(x._1)
+      expert.setProfile("旅行派达人")
+      expert.setZone(x._2.map(_.getLocality.getId))
+      expert
+    })
+  }
+
+  def refreshExpertInfo() = Action.async(
+    request => {
+      val jsonNode = request.body.asJson.get
+      val userIds = (jsonNode \ "userIds").asOpt[Array[Long]]
+      val userIdsValue = userIds.getOrElse(Array.emptyLongArray).toSeq
+      for {
+        tracks <- BatchImpl.getTracks(userIdsValue)
+        result <- BatchImpl.saveExpertInfo(createExpertInfo(tracks))
+      } yield {
+        null
+      }
+    }
+  )
+
+  def updateExpertInfo() = Action.async(
+    request => {
+      val ds = MorphiaFactory.datastore
+      val experts = ds.createQuery(classOf[ExpertInfo]).asList()
+
+      for (expert <- experts) {
+        val query = ds.createQuery(classOf[ExpertInfo]).field("id").equal(expert.getUserId)
+        val zoneList = expert.getZone
+        var newZoneList = zoneList.toList.toSeq
+        for (zone <- zoneList) {
+          val locality = ds.createQuery(classOf[Locality]).field("id").equal(zone).get
+          if (locality != null) {
+            val cid = locality.getCountry.getId
+            newZoneList = newZoneList ++ Seq(cid)
+          }
+        }
+        val result = seqAsJavaList(newZoneList.toSet.toSeq)
+        val updateOps = ds.createUpdateOperations(classOf[ExpertInfo]).set(ExpertInfo.fnZone, result)
+        ds.update(query, updateOps)
+      }
+      Future { Utils.status("success").toScala }
+    })
 }

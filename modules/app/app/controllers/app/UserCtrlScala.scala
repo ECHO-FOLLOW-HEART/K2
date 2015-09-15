@@ -1,31 +1,30 @@
 package controllers.app
 
-import api.UserUgcAPI
+import api.{ GeoAPI, UserAPI, UserUgcAPI }
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
 import com.fasterxml.jackson.databind.{ JsonSerializer, ObjectMapper, SerializerProvider }
 import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
-import com.mongodb.ServerAddress
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
 import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginFormatter }
 import misc.Implicits._
 import misc.TwitterConverter._
-import misc.{ CoreConfig, GlobalConf, FinagleConvert, FinagleFactory }
-import models.user.{ Contact => K2Contact, UserInfo }
+import misc.{ CoreConfig, FinagleConvert, FinagleFactory }
+import models.user.{ Contact => K2Contact, ExpertInfo, UserInfo }
+import org.bson.types.ObjectId
 import org.joda.time.format.DateTimeFormat
-import play.api.libs.json.{ JsNumber, JsObject }
 import play.api.mvc.{ Action, Controller, Result }
+import play.api.libs.ws._
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
 import utils.phone.PhoneParserFactory
 import utils.{ Result => K2Result, Utils }
 
 import scala.collection.JavaConversions._
-import scala.concurrent.{ Future => ScalaFuture, Await }
-import play.api.libs.ws._
+import scala.concurrent.{ Future => ScalaFuture }
 import scala.language.{ implicitConversions, postfixOps }
 
 /**
@@ -39,7 +38,7 @@ object UserCtrlScala extends Controller {
 
   val basicUserInfoFieds = Seq(UserId, NickName, Avatar, Gender, Signature, Residence, Birthday)
 
-  def getUserInfo(userId: Long) = Action.async(request => {
+  def getUserInfo(userId: Long) = Action.async(block = request => {
 
     val userIdOpt = request.headers.get("UserId") map (_.toLong)
     val isSelf = (userIdOpt getOrElse 0) == userId
@@ -47,6 +46,7 @@ object UserCtrlScala extends Controller {
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(Tel) else Seq()) ++ Seq(Memo)
     formatter.setSelfView(isSelf)
+    val fieldsUserProfile = Seq(ExpertInfo.fnProfile, ExpertInfo.fnTags, ExpertInfo.fnZone, ExpertInfo.fnUserId)
 
     val future = (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), userIdOpt)
@@ -59,6 +59,8 @@ object UserCtrlScala extends Controller {
       guideCnt <- UserUgcAPI.getGuidesCntByUser(user.getUserId)
       albumCnt <- UserUgcAPI.getAlbumsCntByUser(user.getUserId)
       trackCntAndCountryCnt <- UserUgcAPI.getTrackCntAndCountryCntByUser(user.getUserId)
+      userProfile <- UserAPI.getExpertInfo(userId, fieldsUserProfile)
+      zones <- getExpertZone(userProfile map (_.getZone.toSeq) getOrElse Seq())
     } yield {
       val node = formatter.formatNode(user).asInstanceOf[ObjectNode]
       node.put("memo", user.memo.getOrElse(""))
@@ -66,17 +68,45 @@ object UserCtrlScala extends Controller {
       node.put("guideCnt", guideCnt)
       node.put("trackCnt", trackCntAndCountryCnt._1)
       node.put("countryCnt", trackCntAndCountryCnt._2)
-      node.put("travelNoteCnt", 0)
       node.put("albumCnt", albumCnt)
+
+      val expertInfo = new ObjectMapper().createObjectNode()
+      if (userProfile nonEmpty) {
+        val zoneStr: java.util.List[String] = zones.toList
+        val travelNote = userProfile.get.getTravelNote
+
+        node.put("travelNoteCnt", if (travelNote != null) {
+          travelNote.size()
+        } else 0)
+        node.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(userProfile.get.getTags))
+
+        // 达人信息
+        expertInfo.put(ExpertInfo.fnProfile, userProfile.get.getProfile)
+        expertInfo.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(zoneStr))
+      } else {
+        node.set("travelNoteCnt", null)
+        node.set(ExpertInfo.fnTags, null)
+
+        // 达人信息
+        expertInfo.set(ExpertInfo.fnProfile, null)
+        expertInfo.set(ExpertInfo.fnZone, null)
+      }
+      node.set("expertInfo", expertInfo)
       Utils.status(node.toString).toScala
     }) rescue {
       case _: NotFoundException =>
         TwitterFuture {
-          Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+          Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
         }
     }
     future
   })
+
+  def getExpertZone(zoneIds: Seq[ObjectId]) = {
+    TwitterFuture.join(GeoAPI.getCountryByIds(zoneIds), GeoAPI.getLocalityByIds(zoneIds)) map (x => {
+      x._1.map(_.getZhName) ++ x._2.map(_.getZhName)
+    })
+  }
 
   /**
    * 注销
@@ -90,24 +120,24 @@ object UserCtrlScala extends Controller {
         jsonResult.asOpt[Long] orElse (jsonResult.asOpt[String] map (_.toLong))
       }
     } yield {
-      val backends = CoreConfig.conf.getConfig("backends.hedy").get
-      val services = backends.subKeys.toSeq map (backends.getConfig(_).get)
+        val backends = CoreConfig.conf.getConfig("backends.hedy").get
+        val services = backends.subKeys.toSeq map (backends.getConfig(_).get)
 
-      val host = services.head.getString("host").get
-      val port = services.head.getInt("port").get
+        val host = services.head.getString("host").get
+        val port = services.head.getInt("port").get
 
-      import play.api.Play.current
+        import play.api.Play.current
 
-      val url = s"http://$host:$port/users/logout"
-      val ws = WS.url(url)
-      val postBody = "{\"userId\":" + userId.toString + "}"
-      ws.withHeaders("Content-Type" -> "application/json").post(postBody) map (response => {
-        if (response.status == 200)
-          K2Result.ok(None)
-        else
-          K2Result.badRequest(ErrorCode.UNKOWN_ERROR, s"")
-      })
-    }) getOrElse ScalaFuture(K2Result.unprocessable)
+        val url = s"http://$host:$port/users/logout"
+        val ws = WS.url(url)
+        val postBody = "{\"userId\":" + userId.toString + "}"
+        ws.withHeaders("Content-Type" -> "application/json").post(postBody) map (response => {
+          if (response.status == 200)
+            K2Result.ok(None)
+          else
+            K2Result.badRequest(ErrorCode.UNKOWN_ERROR, s"")
+        })
+      }) getOrElse ScalaFuture(K2Result.unprocessable)
 
     future
   })
@@ -127,7 +157,7 @@ object UserCtrlScala extends Controller {
           K2Result.ok(Some(userFormatter.format(user)))
         })
         future rescue {
-          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid loginName/password"))
+          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
         }
       } else if (authCode.nonEmpty && provider.nonEmpty) {
         val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
@@ -136,10 +166,10 @@ object UserCtrlScala extends Controller {
           K2Result.ok(Some(userFormatter.format(user)))
         })
         future rescue {
-          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid authCode/authProvider"))
+          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.THPART_AUTH_ERROR, "Invalid authCode/authProvider"))
         }
       } else
-        TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Lack of login information"))
+        TwitterFuture(K2Result.unauthorized(ErrorCode.LACK_OF_ARGUMENT, "Lack of login information"))
     }
 
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
@@ -173,9 +203,9 @@ object UserCtrlScala extends Controller {
       //        })
       future rescue {
         case _: ResourceConflictException =>
-          TwitterFuture(K2Result.conflict(ErrorCode.USER_EXIST, "Already exists"))
+          TwitterFuture(K2Result.conflict(ErrorCode.YUNKAI_USEREXISTS, "Already exists"))
         case _: ValidationCodeException =>
-          TwitterFuture(K2Result.unauthorized(ErrorCode.CAPTCHA_ERROR, "The validation code is invalid"))
+          TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_VALIDATIONCODE, "The validation code is invalid"))
         case _: InvalidArgsException =>
           TwitterFuture(K2Result.unprocessable)
       }
@@ -219,9 +249,9 @@ object UserCtrlScala extends Controller {
         userList.headOption map (u => client.resetPasswordByToken(u.userId, newPassword, token))
         K2Result.ok(None)
       }) rescue {
-        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.YUNKAI_USER_NOT_FOUND, "User not exists"))
         case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
-        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
       }
       ret1
     }) getOrElse TwitterFuture(K2Result.unprocessable)
@@ -242,9 +272,9 @@ object UserCtrlScala extends Controller {
       oldPassword <- (body \ "oldPassword").asOpt[String]
     } yield {
       client.resetPassword(userId, oldPassword, newPassword) map (_ => K2Result.ok(None)) rescue {
-        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.YUNKAI_USER_NOT_FOUND, "User not exists"))
         case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
-        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.OLD_PWD_ERROR, "Old password error"))
       }
     }
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
@@ -264,7 +294,7 @@ object UserCtrlScala extends Controller {
     } yield {
       FinagleFactory.client.updateMemo(selfId, contactId, memo) map (_ => K2Result.ok(None)) rescue {
         case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
-        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "No auth to change memo."))
       }
     }
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
@@ -284,7 +314,7 @@ object UserCtrlScala extends Controller {
       _ <- FinagleFactory.client.updateBlackList(selfId, targetId, block)
     } yield K2Result.ok(None)) rescue {
       case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
-      case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+      case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "No auth to change black list."))
     }
     future
   }
@@ -338,7 +368,7 @@ object UserCtrlScala extends Controller {
       node.set("contacts", array)
       K2Result.ok(Some(node))
     }) rescue {
-      case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+      case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.YUNKAI_USER_NOT_FOUND, "User not exists"))
     }
 
     future
@@ -360,7 +390,7 @@ object UserCtrlScala extends Controller {
           node.asInstanceOf[ObjectNode].put("isBlocked", isBlocked)
           K2Result.ok(Some(node))
         }
-      } else TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+      } else TwitterFuture(K2Result.notFound(ErrorCode.YUNKAI_USER_NOT_FOUND, "User not exists"))
     })
 
     future
@@ -372,7 +402,7 @@ object UserCtrlScala extends Controller {
       contactId <- (body \ "userId").asOpt[Long]
     } yield {
       FinagleFactory.client.addContact(userId, contactId) map (_ => K2Result.ok(None)) rescue {
-        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.YUNKAI_USER_NOT_FOUND, "User not exists"))
       }
     }) getOrElse TwitterFuture(K2Result.unprocessable)
     ret
@@ -380,7 +410,7 @@ object UserCtrlScala extends Controller {
 
   def delContact(userId: Long, contactId: Long) = Action.async(request => {
     val future = FinagleFactory.client.removeContact(userId, contactId) map (_ => K2Result.ok(None)) rescue {
-      case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
+      case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.YUNKAI_USER_NOT_FOUND, "User not exists"))
     }
     future
   })
@@ -405,7 +435,7 @@ object UserCtrlScala extends Controller {
         userOpt <- client.getUserById(userId, Some(Seq()), None)
         result <- {
           if (userOpt == null)
-            TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
+            TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.YUNKAI_USER_NOT_FOUND, s"The user $userId does not exist"))
           else
             sendValidationCodesImpl(action, Some(userId), None, tel)
         }
@@ -443,9 +473,9 @@ object UserCtrlScala extends Controller {
         case _: InvalidArgsException =>
           TwitterFuture(K2Result.unprocessable)
         case _: ResourceConflictException =>
-          TwitterFuture(K2Result.conflict(ErrorCode.USER_EXIST, s"The phone number $tel already exists"))
+          TwitterFuture(K2Result.conflict(ErrorCode.YUNKAI_USEREXISTS, s"The phone number $tel already exists"))
         case _: NotFoundException =>
-          TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.USER_NOT_EXIST, s"The user $userId does not exist"))
+          TwitterFuture(K2Result(UNPROCESSABLE_ENTITY, ErrorCode.YUNKAI_USER_NOT_FOUND, s"The user $userId does not exist"))
 
       }
     }
@@ -464,11 +494,11 @@ object UserCtrlScala extends Controller {
       token <- (body \ "token").asOpt[String]
     } yield {
       FinagleFactory.client.updateTelNumber(userId, tel, token) map (_ => K2Result.ok(None)) rescue {
-        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.USER_NOT_EXIST, ""))
-        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, ""))
+        case _: NotFoundException => TwitterFuture(K2Result.notFound(ErrorCode.YUNKAI_USER_NOT_FOUND, "User not exists"))
+        case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "No auth to bind cellphone"))
         case _: InvalidArgsException => TwitterFuture(K2Result.unprocessable)
         case _: ResourceConflictException =>
-          TwitterFuture(K2Result.conflict(ErrorCode.INVALID_ARGUMENT, s"Phone number $tel already exists"))
+          TwitterFuture(K2Result.conflict(ErrorCode.TEL_EXIST, s"Phone number $tel already exists"))
       }
     }
     ret.get
@@ -514,7 +544,7 @@ object UserCtrlScala extends Controller {
     }) rescue {
       case _: NotFoundException =>
         TwitterFuture {
-          Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+          Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
         }
     }
 
@@ -538,7 +568,7 @@ object UserCtrlScala extends Controller {
       }) rescue {
         case _: NotFoundException =>
           TwitterFuture {
-            Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+            Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
         case _@ (InvalidArgsException() | InvalidStateException()) =>
           TwitterFuture {
@@ -582,7 +612,7 @@ object UserCtrlScala extends Controller {
       }) rescue {
         case _: NotFoundException =>
           TwitterFuture {
-            Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+            Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
         case _@ (InvalidArgsException() | InvalidStateException()) =>
           TwitterFuture {
@@ -608,7 +638,7 @@ object UserCtrlScala extends Controller {
         Utils.createResponse(ErrorCode.NORMAL, node).toScala
       }) rescue {
         case _: ValidationCodeException =>
-          TwitterFuture(K2Result.unauthorized(ErrorCode.AUTH_ERROR, "Invalid validation code"))
+          TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_VALIDATIONCODE, "Invalid validation code"))
       }
     }) getOrElse TwitterFuture(K2Result.unprocessable)
 
@@ -695,7 +725,7 @@ object UserCtrlScala extends Controller {
       }) rescue {
         case _: NotFoundException =>
           TwitterFuture {
-            Utils.createResponse(ErrorCode.USER_NOT_EXIST).toScala
+            Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
         case _@ (InvalidArgsException() | InvalidStateException()) =>
           TwitterFuture {
@@ -778,6 +808,38 @@ object UserCtrlScala extends Controller {
   })
 
   def setUserMemo(uid: Long, contactId: Long) = play.mvc.Results.TODO
+
+  def searchExpert(zones: String) = Action.async(block = request => {
+    val userFormatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
+    userFormatter.setSelfView(false)
+    for {
+      (country, locality) <- TwitterFuture.join(GeoAPI.getCountryByNames(Seq(zones)), GeoAPI.getLocalityByNames(Seq(zones)))
+      experts <- UserAPI.searchExpert(country.map(_.getId) ++ locality.map(_.getId))
+      //      (zoneMap, users) <- TwitterFuture.join(getExpertZoneMapById(experts.getOrElse(Seq()).flatMap(_.getZone)),
+      //        FinagleFactory.client.getUsersById(experts.getOrElse(Seq()).map(_.getUserId), Some(basicUserInfoFieds), None))
+      users <- FinagleFactory.client.getUsersById(experts.getOrElse(Seq()).map(_.getUserId), Some(basicUserInfoFieds), None)
+    } yield {
+      val expertMap = Map(experts.getOrElse(Seq()).map { e => (e.getUserId, e) }: _*)
+      val node = userFormatter.formatNode(users.values.toList.map(userInfoYunkai2Model(_))).asInstanceOf[ArrayNode]
+      for (aNode <- node) {
+        val expertInfo = expertMap.get(aNode.get(ExpertInfo.fnUserId).asText().toLong).getOrElse(new ExpertInfo())
+        val objNode = aNode.asInstanceOf[ObjectNode]
+        objNode.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(expertInfo.getTags))
+        //        objNode.put(ExpertInfo.fnProfile, expertInfo.getProfile)
+        //        val so: java.util.List[String] = expertInfo.getZone.map(zoneMap.get(_).getOrElse("")).toList
+        //        objNode.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(so))
+      }
+      Utils.status(node.toString).toScala
+    }
+  })
+
+  def getExpertZoneMapById(zoneIds: Seq[ObjectId]) = {
+    TwitterFuture.join(GeoAPI.getCountryByIds(zoneIds), GeoAPI.getLocalityByIds(zoneIds)) map (x => {
+      val r1 = for ((k, v) <- x._1.groupBy(_.getId)) yield (k, v.get(0).getZhName)
+      val r2 = for ((k, v) <- x._2.groupBy(_.getId)) yield (k, v.get(0).getZhName)
+      r1 ++ r2
+    })
+  }
 
   def getUsersInfoValue(userIds: java.util.List[java.lang.Long]): java.util.Map[java.lang.Long, UserInfo] = {
     val f = FinagleFactory.client.getUsersById(userIds.map(scala.Long.unbox(_)), Some(basicUserInfoFieds), None) map (userMap => {

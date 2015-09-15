@@ -6,6 +6,7 @@ import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import database.MorphiaFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -18,7 +19,6 @@ import formatter.taozi.misc.SimpleRefFormatter;
 import formatter.taozi.poi.BriefPOIFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import formatter.taozi.user.FavoriteFormatter;
-import database.MorphiaFactory;
 import misc.FinagleUtils$;
 import models.geo.Locality;
 import models.misc.*;
@@ -46,11 +46,9 @@ import utils.results.SceneID;
 import utils.results.TaoziResBuilder;
 import utils.results.TaoziSceneText;
 
-import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -65,7 +63,6 @@ public class MiscCtrl extends Controller {
     public static String UPLOAD_URL_SMALL = "urlSmall";
     public static String UPLOAD_UID = "userId";
     public static String UPLOAD_SCENARIO = "scenario";
-    private Map qiniu;
 
     /**
      * 封面故事,获取App首页的图像。
@@ -86,28 +83,19 @@ public class MiscCtrl extends Controller {
                     .setMessage(TaoziSceneText.instance().text(SceneID.ERR_APP_HOME_IMAGE))
                     .build();
 
-        // 示例：http://zephyre.qiniudn.com/misc/Kirkjufellsfoss_Sunset_Iceland5.jpg?imageView/1/w/400/h/200/q/85/format/webp/interlace/1
-        //String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", info.value,width, height, quality, format, interlace);
-        //double appRatio = (Math.round(height / width)*100 / 100.0);
-        DecimalFormat df = new DecimalFormat("###.0000");
-        BigDecimal b1 = new BigDecimal(df.format(height));
-        BigDecimal b2 = new BigDecimal(df.format(width));
-        // 取得app屏幕的高宽比
-        double appRatio = b1.divide(b2, 4).doubleValue();
-        double ratio;
-        // 初始值取一个较大的数
-        double suitDif = 10;
-        double dif;
+        double suitDif = 100000;
         String suitImg = "";
-        // 取数据库中最接近app高宽比的图片
+        double dif = 0.0;
         for (MiscInfo info : infos) {
-            ratio = Double.valueOf(info.viceKey);
-            dif = Math.abs(appRatio - ratio);
+            int width0 = info.width;
+            int height0 = info.height;
+            dif = Math.abs((width - width0) - (height - height0) * (width0 * 1.0 / height0));
             if (dif < suitDif) {
                 suitDif = dif;
                 suitImg = info.value;
             }
         }
+
         String url = String.format("%s?imageView/1/w/%d/h/%d/q/%d/format/%s/interlace/%d", suitImg, width, height, quality, format, interlace);
         ObjectNode node = Json.newObject();
         node.put("image", url);
@@ -204,7 +192,7 @@ public class MiscCtrl extends Controller {
             UpdateOperations<Favorite> update = ds.createUpdateOperations(Favorite.class);
             update.set(Favorite.fnCreateTime, new Date());
             ds.update(query, update);
-            return Utils.createResponse(ErrorCode.DATA_EXIST, "Favorite item has existed");
+            return Utils.createResponse(ErrorCode.UNKOWN_ERROR, "Favorite item has existed");
         }
         Favorite fa = new Favorite();
         fa.setId(new ObjectId());
@@ -562,7 +550,7 @@ public class MiscCtrl extends Controller {
             comment.setAuthorAvatar(user.getAvatar());
             comment.setUserId(userIdLong);
         } else {
-            throw new AizouException(ErrorCode.USER_NOT_EXIST);
+            throw new AizouException(ErrorCode.UNKOWN_ERROR);
         }
 
         Double rating = req.get("rating").asDouble();

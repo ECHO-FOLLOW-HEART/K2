@@ -18,7 +18,7 @@ public class ValFormatterFactory {
             case 3:
                 return new BindTelValFormatter();
             default:
-                throw new AizouException(ErrorCode.SMS_INVALID_ACTION, String.format("Invalid sms action code: %d.",
+                throw new AizouException(ErrorCode.UNKOWN_ERROR, String.format("Invalid sms action code: %d.",
                         actionCode));
         }
     }

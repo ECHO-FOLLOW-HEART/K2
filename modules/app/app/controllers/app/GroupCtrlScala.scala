@@ -51,7 +51,7 @@ object GroupCtrlScala extends Controller {
         } catch {
           case _: NotFoundException =>
             Future {
-              Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
+              Utils.createResponse(ErrorCode.UNKOWN_ERROR).toScala
             }
         }
         future
@@ -96,7 +96,7 @@ object GroupCtrlScala extends Controller {
         })) rescue {
           case _: NotFoundException =>
             Future {
-              Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
+              Utils.createResponse(ErrorCode.GROUP_NOT_EXIST).toScala
             }
         }
       }
@@ -134,7 +134,7 @@ object GroupCtrlScala extends Controller {
         })) rescue {
           case _: NotFoundException =>
             Future {
-              Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
+              Utils.createResponse(ErrorCode.GROUP_NOT_EXIST).toScala
             }
         }
       }
@@ -223,7 +223,7 @@ object GroupCtrlScala extends Controller {
         } rescue {
           case _: NotFoundException =>
             Future {
-              Utils.createResponse(ErrorCode.DATA_NOT_EXIST).toScala
+              Utils.createResponse(ErrorCode.GROUP_NOT_EXIST).toScala
             }
         }
       }

@@ -1,6 +1,6 @@
 package controllers.app
 
-import api.{ MiscAPI, UserUgcAPI }
+import api.{ UserAPI, MiscAPI, UserUgcAPI }
 import com.twitter.util.{ Future => TwitterFuture }
 import misc.TwitterConverter._
 import org.bson.types.ObjectId
@@ -39,5 +39,21 @@ object MiscCtrlScala extends Controller {
 
   def noVote(itemType: String, itemId: String, uid: Long) = Action.async(request => {
     MiscAPI.vote(uid, MiscAPI.ActionCode.DEL.value, itemType, new ObjectId(itemId)) map (_ => K2Result.ok(None))
+  })
+
+  /**
+   * 达人申请
+   *
+   * @return
+   */
+  def expertRequest() = Action.async(request => {
+    val future = (for {
+      body <- request.body.asJson
+      tel <- (body \ "tel").asOpt[String]
+      userId <- (body \ "userId").asOpt[Long] orElse Some(0L)
+    } yield {
+      UserAPI.expertRequest(userId, tel) map (_ => K2Result.ok(None))
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+    future
   })
 }

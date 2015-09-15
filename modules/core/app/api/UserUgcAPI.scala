@@ -6,7 +6,6 @@ import models.AizouBaseEntity
 import models.geo.Locality
 import models.guide.Guide
 import models.misc.{ Album, Track }
-import models.user.UgcInfo
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
 import org.mongodb.morphia.query.Query
@@ -53,7 +52,7 @@ object UserUgcAPI {
     val query: Query[Track] = ds.createQuery(classOf[Track])
     query.field(Album.FD_USERID).equal(uid).field(AizouBaseEntity.FD_TAOZIENA).equal(true)
     futurePool {
-      val tracks = JavaConversions.asScalaBuffer(query.asList())
+      val tracks = query.asList()
       tracks.size match {
         case 0 => (0 -> 0)
         case _ => (tracks.size -> tracks.groupBy(_.getCountry.getId).size)
@@ -85,20 +84,5 @@ object UserUgcAPI {
     case class ItemTypeCode(value: String) extends Val(value)
 
     val LOCALITY = ItemTypeCode("locality")
-  }
-
-  def updateUgcInfo(userId: Long, action: String, itemType: String, itemId: ObjectId)(implicit ds: Datastore, futurePool: FuturePool) = {
-    futurePool {
-      val query = ds.createQuery(classOf[UgcInfo]).field(UgcInfo.fnUserId).equal(userId)
-      if (itemType.equals(ItemTypeCode.LOCALITY.value)) {
-        if (action.equals(ActionCode.LIKE.value)) {
-          val update = ds.createUpdateOperations(classOf[UgcInfo]).add(UgcInfo.fnLikeLocalities, itemId, false)
-          ds.findAndModify(query, update, false, true)
-        } else {
-          val update = ds.createUpdateOperations(classOf[UgcInfo]).removeAll(UgcInfo.fnLikeLocalities, itemId)
-          ds.update(query, update)
-        }
-      }
-    }
   }
 }

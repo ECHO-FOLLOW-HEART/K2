@@ -9,7 +9,6 @@ import models.geo.Locality;
 import models.misc.Album;
 import models.misc.ImageItem;
 import models.misc.Track;
-import models.user.UgcInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -161,13 +160,21 @@ public class UserUgcAPI {
         UpdateOperations<Track> ops = dsTrack.createUpdateOperations(Track.class);
         if (action.equals("add")) {
             List<Track> tracks = fillTracks(userId, allLocalities);
+            dsTrack.findAndDelete(dsTrack.createQuery(Track.class).field(Track.fnLocalityId).in(getItemIds(tracks)).field(Track.fnUserId).equal(userId));
             dsTrack.save(tracks);
         } else if (action.equals("del")) {
             Query<Track> query = dsTrack.createQuery(Track.class);
-            query.field(Track.fnUserId).equal(userId).field(Track.fnLocality + ".id").in(allLocalities);
+            query.field(Track.fnUserId).equal(userId).field(Track.fnLocalityId).in(allLocalities);
             dsTrack.delete(query);
         } else
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid action");
+    }
+
+    private static List<ObjectId> getItemIds(List<Track> tracks) {
+        List<ObjectId> result = new ArrayList<>();
+        for (Track track : tracks)
+            result.add(track.getLocality().getId());
+        return result;
     }
 
     /**
@@ -230,14 +237,7 @@ public class UserUgcAPI {
     public static boolean hasTraveled(Long userId, ObjectId locId) {
         Datastore dsUser = MorphiaFactory.datastore();
         Query<Track> query = dsUser.createQuery(Track.class);
-        query.field(Track.fnLocalityId).equal(locId).field(Track.fnUserId).equal(userId).field(AizouBaseEntity.FD_ENABLED).equal(true);
-        return query.countAll() > 0 ? true : false;
-    }
-
-    public static boolean isLike(Long userId, ObjectId locId) {
-        Datastore dsUser = MorphiaFactory.datastore();
-        Query<UgcInfo> query = dsUser.createQuery(UgcInfo.class);
-        query.field(UgcInfo.fnLikeLocalities).hasThisOne(locId).field(UgcInfo.fnUserId).equal(userId).field(AizouBaseEntity.FD_ENABLED).equal(true);
+        query.field(Track.fnLocalityId).equal(locId).field(Track.fnUserId).equal(userId).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         return query.countAll() > 0 ? true : false;
     }
 }

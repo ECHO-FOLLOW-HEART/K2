@@ -394,7 +394,7 @@ public class GuideAPI {
         Guide ret = ds.findAndModify(query, uo);
         if (ret == null)
             // 说明没有操作者没有修改guide的权限
-            throw new AizouException(ErrorCode.AUTH_ERROR);
+            throw new AizouException(ErrorCode.LACK_OF_AUTH);
     }
 
     /**
