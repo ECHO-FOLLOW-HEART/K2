@@ -63,8 +63,17 @@ object UserAPI {
   def getExpertInfo(targetId: Long, fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Option[ExpertInfo]] = {
     futurePool {
       val query = ds.createQuery(classOf[ExpertInfo]).field(ExpertInfo.fnUserId).equal(targetId)
+      query.retrievedFields(true, fields: _*)
       val ret = query.get()
       if (ret == null) None else Some(ret)
+    }
+  }
+
+  def getAllExpertId()(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[ExpertInfo]] = {
+    futurePool {
+      val query = ds.createQuery(classOf[ExpertInfo])
+      query.retrievedFields(true, Seq(ExpertInfo.fnUserId): _*)
+      query.asList()
     }
   }
 }

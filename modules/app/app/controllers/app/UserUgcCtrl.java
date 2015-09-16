@@ -4,8 +4,6 @@ import aizou.core.UserUgcAPI;
 import aspectj.CheckUser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.typesafe.config.Config;
-import com.typesafe.config.ConfigFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -16,6 +14,7 @@ import formatter.taozi.user.UserInfoSimpleFormatter;
 import models.geo.Locality;
 import models.misc.Album;
 import models.misc.Track;
+import models.user.ExpertInfo;
 import models.user.UserInfo;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -28,7 +27,7 @@ import java.util.*;
 /**
  * Created by topy on 2015/6/29.
  */
-public class  UserUgcCtrl extends Controller {
+public class UserUgcCtrl extends Controller {
 
     public static final List<Long> expertUserIds = Arrays.asList(Long.valueOf(11000), Long.valueOf(100000), Long.valueOf(100003),
             Long.valueOf(100057), Long.valueOf(100076), Long.valueOf(100093), Long.valueOf(100001),
@@ -156,10 +155,13 @@ public class  UserUgcCtrl extends Controller {
         JsonNode data = request().body().asJson();
         List<ObjectId> countryIds = Arrays.asList(new ObjectId(code));
 
-        Config config = ConfigFactory.load();
-        List experts = config.getLongList("experts.id");
+        List<ExpertInfo> experts = UserUgcAPI.getAllExperts();
+        List<Long> expertIds = new ArrayList();
+        for (ExpertInfo temp : experts)
+            expertIds.add(temp.getUserId());
+
         // 取得足迹
-        List<Track> expertUserByCountry = UserUgcAPI.getExpertUserByCountry(countryIds, experts);
+        List<Track> expertUserByCountry = UserUgcAPI.getExpertUserByCountry(countryIds, expertIds);
 
         // 取得用户信息
         Set<Long> usersUnDup = new HashSet<>();

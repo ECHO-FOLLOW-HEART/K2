@@ -2,6 +2,7 @@ package controllers.app
 
 import java.{ util, lang }
 
+import api.UserAPI
 import com.fasterxml.jackson.databind.node.ArrayNode
 import com.lvxingpai.yunkai.UserInfo
 import com.twitter.util.Future
@@ -90,21 +91,12 @@ object Batch extends Controller {
     //    val config: Configuration = Configuration.root
     //    val map = config.getObject("experts")
     //    val list = map.asInstanceOf[java.util.HashMap].values
-    val userCnt = BatchImpl.getCountryToUserCntMap(countries.map(_.getId), Seq(
-      11000, 100000, 100003, 100057,
-      100076, 100093, 100001, 100015,
-      100025, 100002, 100004, 100005,
-      100009, 100010, 100011, 100012,
-      100014, 100031, 100035, 100040,
-      100056, 100067, 100068, 100073,
-      100089, 100090, 100091, 201098,
-      201099, 201101, 201097, 201033,
-      201117, 201118, 201119, 201120,
-      201121, 201122, 201123, 201124,
-      201125, 201126, 201206, 201353,
-      201354, 201392, 201394, 201385,
-      201383, 201398, 201401
-    ))
+    val expertInfos = BatchImpl.getAllExpertId()
+
+    val userCnt: Map[ObjectId, Int] = countries map (t => {
+      t.getId -> BatchImpl.getExpertCntByCountry(t.getId)
+    }) toMap
+
     saveCountries(countries, userCnt)
     //writeCountries(countries, userCnt)
   }
@@ -254,6 +246,8 @@ object Batch extends Controller {
         val updateOps = ds.createUpdateOperations(classOf[ExpertInfo]).set(ExpertInfo.fnZone, result)
         ds.update(query, updateOps)
       }
-      Future { Utils.status("success").toScala }
+      Future {
+        Utils.status("success").toScala
+      }
     })
 }
