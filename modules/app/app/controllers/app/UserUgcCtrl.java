@@ -200,8 +200,8 @@ public class UserUgcCtrl extends Controller {
         for (Map.Entry<Long, List<Track>> entry : mapCountry.entrySet()) {
             node = (ObjectNode) formatter.formatNode(userInfoMap.get(entry.getKey()));
             node.put("localityCnt", entry.getValue().size());
+            node.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(map.get(entry.getKey()).getTags()));
             ObjectNode expertInfo = Json.newObject();
-            expertInfo.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(map.get(entry.getKey()).getTags()));
             expertInfo.set(ExpertInfo.fnProfile, new ObjectMapper().valueToTree(map.get(entry.getKey()).getProfile()));
             node.set("expertInfo", expertInfo);
             nodeList.add(node);
