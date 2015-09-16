@@ -3,6 +3,7 @@ package controllers.app;
 import aizou.core.UserUgcAPI;
 import aspectj.CheckUser;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import exception.AizouException;
 import exception.ErrorCode;
@@ -156,12 +157,18 @@ public class UserUgcCtrl extends Controller {
         List<ObjectId> countryIds = Arrays.asList(new ObjectId(code));
 
         List<ExpertInfo> experts = UserUgcAPI.getAllExperts(countryIds);
+
+
+        if (experts == null || experts.isEmpty())
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<>()));
+
         List<Long> expertIds = new ArrayList();
         for (ExpertInfo temp : experts)
             expertIds.add(temp.getUserId());
+        Map<Long, ExpertInfo> map = new HashMap();
+        for (ExpertInfo temp : experts)
+            map.put(temp.getUserId(), temp);
 
-        if (expertIds == null || expertIds.isEmpty())
-            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<>()));
         // 取得足迹
         List<Track> expertUserByCountry = UserUgcAPI.getExpertUserByCountry(countryIds, expertIds);
 
@@ -193,6 +200,10 @@ public class UserUgcCtrl extends Controller {
         for (Map.Entry<Long, List<Track>> entry : mapCountry.entrySet()) {
             node = (ObjectNode) formatter.formatNode(userInfoMap.get(entry.getKey()));
             node.put("localityCnt", entry.getValue().size());
+            ObjectNode expertInfo = Json.newObject();
+            expertInfo.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(map.get(entry.getKey()).getTags()));
+            expertInfo.set(ExpertInfo.fnProfile, new ObjectMapper().valueToTree(map.get(entry.getKey()).getProfile()));
+            node.set("expertInfo", expertInfo);
             nodeList.add(node);
         }
         result = Json.toJson(nodeList);
