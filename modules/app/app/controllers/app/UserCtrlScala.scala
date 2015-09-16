@@ -825,7 +825,9 @@ object UserCtrlScala extends Controller {
         val expertInfo = expertMap.get(aNode.get(ExpertInfo.fnUserId).asText().toLong).getOrElse(new ExpertInfo())
         val objNode = aNode.asInstanceOf[ObjectNode]
         objNode.set(ExpertInfo.fnTags, new ObjectMapper().valueToTree(expertInfo.getTags))
-        //        objNode.put(ExpertInfo.fnProfile, expertInfo.getProfile)
+        val expertNode = new ObjectMapper().createObjectNode()
+        expertNode.put(ExpertInfo.fnProfile, expertInfo.getProfile)
+        objNode.set("expertInfo", expertNode)
         //        val so: java.util.List[String] = expertInfo.getZone.map(zoneMap.get(_).getOrElse("")).toList
         //        objNode.set(ExpertInfo.fnZone, new ObjectMapper().valueToTree(so))
       }
