@@ -242,10 +242,10 @@ public class UserUgcAPI {
         return query.countAll() > 0 ? true : false;
     }
 
-    public static List<ExpertInfo> getAllExperts() throws AizouException {
+    public static List<ExpertInfo> getAllExperts(List<ObjectId> id) throws AizouException {
         Datastore dsUser = MorphiaFactory.datastore();
-        Query<ExpertInfo> query = dsUser.createQuery(ExpertInfo.class);
-        Collection<String> fieldList = Arrays.asList( Track.fnUserId);
+        Query<ExpertInfo> query = dsUser.createQuery(ExpertInfo.class).field(ExpertInfo.fnZone).in(id);
+        Collection<String> fieldList = Arrays.asList(Track.fnUserId);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         return query.asList();

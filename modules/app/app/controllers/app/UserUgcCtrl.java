@@ -155,11 +155,13 @@ public class UserUgcCtrl extends Controller {
         JsonNode data = request().body().asJson();
         List<ObjectId> countryIds = Arrays.asList(new ObjectId(code));
 
-        List<ExpertInfo> experts = UserUgcAPI.getAllExperts();
+        List<ExpertInfo> experts = UserUgcAPI.getAllExperts(countryIds);
         List<Long> expertIds = new ArrayList();
         for (ExpertInfo temp : experts)
             expertIds.add(temp.getUserId());
 
+        if (expertIds == null || expertIds.isEmpty())
+            return Utils.createResponse(ErrorCode.NORMAL, Json.toJson(new ArrayList<>()));
         // 取得足迹
         List<Track> expertUserByCountry = UserUgcAPI.getExpertUserByCountry(countryIds, expertIds);
 
