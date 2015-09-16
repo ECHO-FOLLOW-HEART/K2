@@ -16,7 +16,7 @@ public class SimpleContinentSerializer extends AizouSerializer<Continent> {
             throws IOException {
         jgen.writeStartObject();
         writeObjectId(continent, jgen, serializerProvider);
-        jgen.writeStringField("zhName", getString(continent.getZhName()));
+        jgen.writeStringField("zhName", getString(continent.getZhName().equals("南美洲") ? "美洲" : continent.getZhName()));
         jgen.writeStringField("enName", getString(continent.getEnName()));
         jgen.writeStringField("code", getString(continent.getCode()));
         jgen.writeEndObject();

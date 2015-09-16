@@ -46,7 +46,7 @@ object UserCtrlScala extends Controller {
     val formatter = FormatterFactory.getInstance(classOf[UserInfoFormatter])
     val fields = basicUserInfoFieds ++ (if (isSelf) Seq(Tel) else Seq()) ++ Seq(Memo)
     formatter.setSelfView(isSelf)
-    val fieldsUserProfile = Seq(ExpertInfo.fnProfile, ExpertInfo.fnTags, ExpertInfo.fnZone, ExpertInfo.fnUserId)
+    val fieldsUserProfile = Seq(ExpertInfo.fnProfile, ExpertInfo.fnTags, ExpertInfo.fnZone, ExpertInfo.fnUserId, ExpertInfo.fnTravelNote)
 
     val future = (for {
       user <- FinagleFactory.client.getUserById(userId, Some(fields), userIdOpt)

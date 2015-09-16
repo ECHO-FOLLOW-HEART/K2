@@ -19,12 +19,16 @@ import scala.collection.JavaConversions._
  */
 object BatchImpl {
 
-  def getCountryToUserCntMap(ids: Seq[ObjectId], uids: Seq[Long])(implicit ds: Datastore, futurePool: FuturePool): Map[ObjectId, Int] = {
-    val query = ds.createQuery(classOf[Track])
-    query.field(Track.fnCountry + ".id").in(ids).field(Track.fnUserId).in(uids)
-    val tracks = query.asList()
-    val ctMap = tracks.groupBy(_.getCountry.getId)
-    for ((k, v) <- ctMap) yield (k, v.groupBy(_.getUserId).size)
+  def getExpertCntByCountry(id: ObjectId)(implicit ds: Datastore, futurePool: FuturePool): Int = {
+    val query = ds.createQuery(classOf[ExpertInfo])
+    query.field(ExpertInfo.fnZone).hasThisOne(id)
+    query.countAll().toInt
+  }
+
+  def getAllExpertId()(implicit ds: Datastore, futurePool: FuturePool): Seq[ExpertInfo] = {
+    val query = ds.createQuery(classOf[ExpertInfo])
+    query.retrievedFields(true, Seq(ExpertInfo.fnUserId): _*)
+    query.asList()
   }
 
   @throws(classOf[AizouException])

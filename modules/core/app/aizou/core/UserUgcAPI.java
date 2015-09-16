@@ -9,6 +9,7 @@ import models.geo.Locality;
 import models.misc.Album;
 import models.misc.ImageItem;
 import models.misc.Track;
+import models.user.ExpertInfo;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -239,5 +240,14 @@ public class UserUgcAPI {
         Query<Track> query = dsUser.createQuery(Track.class);
         query.field(Track.fnLocalityId).equal(locId).field(Track.fnUserId).equal(userId).field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         return query.countAll() > 0 ? true : false;
+    }
+
+    public static List<ExpertInfo> getAllExperts(List<ObjectId> id) throws AizouException {
+        Datastore dsUser = MorphiaFactory.datastore();
+        Query<ExpertInfo> query = dsUser.createQuery(ExpertInfo.class).field(ExpertInfo.fnZone).in(id);
+        Collection<String> fieldList = Arrays.asList(ExpertInfo.fnUserId,ExpertInfo.fnProfile,ExpertInfo.fnTags);
+        if (fieldList != null && !fieldList.isEmpty())
+            query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
+        return query.asList();
     }
 }
