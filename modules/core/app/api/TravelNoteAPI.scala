@@ -17,7 +17,7 @@ object TravelNoteAPI {
     else {
       val query = ds.createQuery(classOf[TravelNote])
       query.field(TravelNote.fnId).in(itemIds)
-      query.retrievedFields(true, Seq(TravelNote.fnId, TravelNote.fnTitle, TravelNote.fnImages, TravelNote.fnSummary, TravelNote.fnTravelTime, TravelNote.fnAuthorName, TravelNote.fnAuthorAvatar): _*)
+      query.retrievedFields(true, Seq(TravelNote.fnId, TravelNote.fnTitle, TravelNote.fnImages, TravelNote.fnSummary, TravelNote.fnTravelTime, TravelNote.fnAuthorAvatar): _*)
       Some(query.asList())
     }
   }
