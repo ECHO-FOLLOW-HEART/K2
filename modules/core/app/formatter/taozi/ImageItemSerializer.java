@@ -105,10 +105,13 @@ public class ImageItemSerializer extends AizouSerializer<ImageItem> {
                 }
             }
             jsonGenerator.writeStringField("url", imgUrl);
+            jsonGenerator.writeStringField(ImageItem.FD_CAPTION, imageItem.getCaption());
             jsonGenerator.writeNumberField("width", width);
             jsonGenerator.writeNumberField("height", height);
-        } else
+        } else {
             jsonGenerator.writeStringField("url", String.format("%s?imageView2/2/w/%d", fullUrl, maxWidth));
+            jsonGenerator.writeStringField(ImageItem.FD_CAPTION, imageItem.getCaption());
+        }
 
         jsonGenerator.writeEndObject();
     }
