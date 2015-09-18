@@ -190,10 +190,10 @@ object GuideAPI {
       val query = ds.createQuery(classOf[GuideTemplate]).field(AbstractGuide.fdLocId).equal(locId)
       val guide = query.get()
       if (guide == null)
-        new GuideTemplate
+        None
       else {
         fillPOIType(guide.itinerary)
-        GuideAPIJava.fillGuideTempInfo(guide)
+        Some(GuideAPIJava.fillGuideTempInfo(guide))
       }
 
     }

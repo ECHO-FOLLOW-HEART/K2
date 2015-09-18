@@ -4,6 +4,7 @@ import api.{ MiscAPI, UserUgcAPI, GuideAPI }
 import api.GuideAPI.GuideProps
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.twitter.util.{ Future => TwitterFuture }
+import exception.ErrorCode
 import formatter.FormatterFactory
 import formatter.taozi.guide.GuideTemplateFormatter
 import formatter.taozi.misc.HotSearchFormatter
@@ -89,8 +90,12 @@ object GuideCtrlScala extends Controller {
         val future = for {
           guideTemp <- GuideAPI.getTempGuide(new ObjectId(locId))
         } yield {
-          val node = guideFormatter.formatNode(guideTemp)
-          Utils.status(node.toString).toScala
+          if (guideTemp isEmpty)
+            K2Result.notFound(ErrorCode.DATA_NOT_FOUND, "Guide not exists.")
+          else {
+            val node = guideFormatter.formatNode(guideTemp.get)
+            Utils.status(node.toString).toScala
+          }
         }
         future
       }
