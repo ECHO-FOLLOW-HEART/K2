@@ -132,7 +132,9 @@ POST          /misc/feedback                                           controlle
 #举报
 POST          /misc/tip-offs                                           controllers.app.MiscCtrl.postTipOff()
 #热门搜索
-GET           /misc/hot-searches                                       controllers.app.MiscCtrlScala.getHotSearch(itemType:String)
+GET           /misc/hot-searches                                       controllers.app.MiscCtrl.getHotSearchs()
+#热门搜索
+GET           /misc/chat-hot-searches                                  controllers.app.MiscCtrlScala.getHotSearch(itemType:String)
 #达人申请
 POST          /misc/expert-requests                                    controllers.app.MiscCtrlScala.expertRequest()
 #搜索

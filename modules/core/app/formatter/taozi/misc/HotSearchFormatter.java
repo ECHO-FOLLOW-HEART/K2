@@ -4,12 +4,10 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
-import models.AizouBaseEntity;
 import models.misc.HotSearch;
+import org.bson.types.ObjectId;
 
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
 
 /**
  * Created by topy
@@ -21,13 +19,13 @@ public class HotSearchFormatter extends AizouFormatter<HotSearch> {
         registerSerializer(HotSearch.class, new HotSearchSerializer());
         initObjectMapper(null);
 
-        filteredFields = new HashSet<>();
-        Collections.addAll(filteredFields,
-                AizouBaseEntity.FD_ID,
-                HotSearch.fnItemId,
-                "zhName",
-                "enName"
-        );
+//        filteredFields = new HashSet<>();
+//        Collections.addAll(filteredFields,
+//                AizouBaseEntity.FD_ID,
+//                HotSearch.fnItemId,
+//                "zhName",
+//                "enName"
+//        );
     }
 
     class HotSearchSerializer extends AizouSerializer<HotSearch> {
@@ -38,8 +36,11 @@ public class HotSearchFormatter extends AizouFormatter<HotSearch> {
             jsonGenerator.writeStartObject();
 
             writeObjectId(simpleRef, jsonGenerator, serializerProvider);
-            jsonGenerator.writeStringField(HotSearch.fnItemId, getString(simpleRef.getItemId().toString()));
-            jsonGenerator.writeStringField(HotSearch.fnZhName,getString(simpleRef.getZhName()));
+            ObjectId itemId = simpleRef.getItemId();
+            jsonGenerator.writeStringField(HotSearch.FD_ITEMID, getString(itemId == null ? "" : itemId.toString()));
+            jsonGenerator.writeStringField(HotSearch.FD_SEARCHTYPE, getString(simpleRef.getSearchType()));
+            jsonGenerator.writeStringField(HotSearch.FD_SEARCHFIELD, getString(simpleRef.getSearchField()));
+            jsonGenerator.writeStringField(HotSearch.FD_SEARCHCONTENT, getString(simpleRef.getItemName()));
             jsonGenerator.writeEndObject();
 
         }

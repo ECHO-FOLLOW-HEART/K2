@@ -7,69 +7,79 @@ import org.mongodb.morphia.annotations.Transient;
 
 /**
  * 热门搜索
- *
+ * <p>
  * Created by topy on 2014/9/13.
  */
 @Entity
 public class HotSearch extends AizouBaseEntity {
 
     @Transient
-    public static String fnId = "id";
+    public static String FD_ID = "id";
     @Transient
-    public static String fnIitemType = "itemType";
+    public static String FD_ITEMID = "itemId";
     @Transient
-    public static String fnItemId = "itemId";
+    public static String FD_SEARCHTYPE = "searchType";
     @Transient
-    public static String fnZhName = "zhName";
+    public static String FD_SEARCHFIELD = "searchField";
     @Transient
-    public static String TYPE_VS = "viewspot";
-
+    public static String FD_SEARCHCONTENT = "searchContent";
     @Transient
-    public static String TYPE_HOTEL = "hotel";
-
-    @Transient
-    public static String TYPE_RESTAURANT = "restaurant";
+    public static String SEARCH_TYPE_VS = "viewspot";
 
     @Transient
-    public static String TYPE_SHOPPING = "shopping";
+    public static String SEARCH_TYPE_HOTEL = "hotel";
 
     @Transient
-    public static String TYPE_TRAVELNOTE = "travelNote";
+    public static String SEARCH_TYPE_RESTAURANT = "restaurant";
 
     @Transient
-    public static String TYPE_LOCALITY = "locality";
+    public static String SEARCH_TYPE_SHOPPING = "shopping";
 
-    /**
-     * 推荐分类
-     */
-    public String itemType;
+    @Transient
+    public static String SEARCH_TYPE_TRAVELNOTE = "travelNote";
 
-    public String scope;
+    @Transient
+    public static String SEARCH_TYPE_LOCALITY = "locality";
 
-    /**
-     * 推荐分类
-     */
-    public String zhName;
+    @Transient
+    public static String SEARCH_FIELD_LOCALITY = "locality";
 
-    /**
-     * 推荐项目的类型
-     */
-    public ObjectId itemId;
+    @Transient
+    public static String SEARCH_FIELD_CONTENT = "content";
 
-    public String getItemType() {
-        return itemType;
+    @Transient
+    public static String SEARCH_FIELD_STYLE = "style";
+
+    private String searchType;
+
+    private String searchField;
+
+    private String itemName;
+
+    private ObjectId itemId;
+
+    public String getSearchType() {
+        return searchType;
     }
 
-    public void setItemType(String itemType) {
-        this.itemType = itemType;
+    public void setSearchType(String searchType) {
+        this.searchType = searchType;
     }
 
-    public String getZhName() {
-        return zhName;
+    public String getSearchField() {
+        return searchField;
     }
 
-    public void setZhName(String zhName) {
-        this.zhName = zhName;
+    public void setSearchField(String searchField) {
+        this.searchField = searchField;
+    }
+
+    public String getItemName() {
+        return itemName;
+    }
+
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
     }
 
     public ObjectId getItemId() {
@@ -78,13 +88,5 @@ public class HotSearch extends AizouBaseEntity {
 
     public void setItemId(ObjectId itemId) {
         this.itemId = itemId;
-    }
-
-    public String getScope() {
-        return scope;
-    }
-
-    public void setScope(String scope) {
-        this.scope = scope;
     }
 }
