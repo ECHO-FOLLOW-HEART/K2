@@ -132,7 +132,7 @@ POST          /misc/feedback                                           controlle
 #举报
 POST          /misc/tip-offs                                           controllers.app.MiscCtrl.postTipOff()
 #热门搜索
-GET           /misc/hot-searches                                       controllers.app.MiscCtrl.getHotSearchs()
+GET           /misc/hot-searches                                       controllers.app.MiscCtrlScala.getHotSearch(itemType:String)
 #达人申请
 POST          /misc/expert-requests                                    controllers.app.MiscCtrlScala.expertRequest()
 #搜索
@@ -187,6 +187,7 @@ DELETE        /guides/:id                                              controlle
 
 #获得目的地的攻略信息
 GET           /guides/locality/:id/:part                               controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
+GET           /guide-templates                                         controllers.app.GuideCtrlScala.getTempGuide(locId:String)
 
 #----------地理信息接口----------
 # 搜索城市
@@ -248,3 +249,5 @@ POST          /refreshExpert                                           controlle
 
 
 GET           /expertInfo/zone                                         controllers.app.Batch.updateExpertInfo()
+GET           /hot                                                     controllers.app.Batch.saveHotResearch()
+

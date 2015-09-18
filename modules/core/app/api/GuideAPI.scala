@@ -1,20 +1,18 @@
 package api
 
 import com.twitter.util.{ Future => TwitterFuture, FuturePool }
-
-import database.MorphiaFactory
 import models.AizouBaseEntity
-import models.guide.{ GuideTemplate, AbstractGuide, Guide, ItinerItem }
-import models.geo.{ Locality => K2Locality }
+import models.guide.{ AbstractGuide, Guide, GuideTemplate, ItinerItem }
 import models.misc.Track
-import utils.Implicits._
 import models.poi._
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
 import org.mongodb.morphia.query.UpdateOperations
-import scala.collection.JavaConversions._
+import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
+import aizou.core.{ GuideAPI => GuideAPIJava }
 
+import scala.collection.JavaConversions._
 import scala.language.postfixOps
 
 /**
@@ -184,6 +182,20 @@ object GuideAPI {
         case poi: Shopping => item.poi.`type` = "shopping"
         case poi: Hotel => item.poi.`type` = "hotel"
       }
+    }
+  }
+
+  def getTempGuide(locId: ObjectId)(implicit ds: Datastore, futurePool: FuturePool) = {
+    futurePool {
+      val query = ds.createQuery(classOf[GuideTemplate]).field(AbstractGuide.fdLocId).equal(locId)
+      val guide = query.get()
+      if (guide == null)
+        new GuideTemplate
+      else {
+        fillPOIType(guide.itinerary)
+        GuideAPIJava.fillGuideTempInfo(guide)
+      }
+
     }
   }
 

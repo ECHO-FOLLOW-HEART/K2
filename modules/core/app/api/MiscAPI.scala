@@ -1,10 +1,15 @@
 package api
 
-import com.twitter.util.FuturePool
+import com.twitter.util.{ Future, FuturePool }
 import models.AizouBaseEntity
 import models.geo.Locality
+import models.misc.HotSearch
+import models.poi.AbstractPOI
+import models.user.ExpertRequest
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
+
+import scala.collection.JavaConversions._
 
 /**
  * Created by topy on 2015/7/7.
@@ -38,6 +43,15 @@ object MiscAPI {
         case _ => null
       }
       ds.findAndModify(query, update)
+    }
+  }
+
+  def getHotResearch(itemType: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[HotSearch]] = {
+    futurePool {
+      val query = ds.createQuery(classOf[HotSearch])
+        .field(HotSearch.fnIitemType).equal(itemType)
+        .retrievedFields(true, Seq(HotSearch.fnItemId, HotSearch.fnZhName, AizouBaseEntity.FD_ID): _*)
+      query.asList()
     }
   }
 }

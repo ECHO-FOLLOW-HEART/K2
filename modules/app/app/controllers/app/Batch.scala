@@ -14,7 +14,8 @@ import formatter.taozi.user.TrackFormatter
 import misc.FinagleConvert
 import misc.TwitterConverter._
 import models.geo._
-import models.misc.Track
+import models.misc.{ HotSearch, Track }
+import models.poi.{ Restaurant, Shopping, ViewSpot }
 import models.user.{ UserInfo => K2UserInfo, ExpertInfo }
 import org.bson.types.ObjectId
 import play.Configuration
@@ -250,4 +251,54 @@ object Batch extends Controller {
         Utils.status("success").toScala
       }
     })
+
+  def saveHotResearch() = Action.async(
+    block = request => {
+      val locList1 = Seq("北海道", "香格里拉", "台北", "阿姆斯特丹", "日惹", "冲绳", "巴厘岛", "首尔", "厦门", "清迈")
+      val locList = Seq("北海道", "香格里拉", "台北", "阿姆斯特丹", "日惹", "冲绳", "巴厘岛", "首尔", "厦门", "清迈")
+      val ds = MorphiaFactory.datastore
+      val experts = ds.createQuery(classOf[Locality]).field("zhName").in(locList).asList()
+
+      val hots = experts.map(locTOHot(_))
+      ds.save(hots)
+      Future {
+        Utils.status("success").toScala
+      }
+    })
+
+  def locTOHot(loc: Locality) = {
+    val result = new HotSearch()
+    result.setId(new ObjectId())
+    result.setItemId(loc.getId)
+    result.setItemType(HotSearch.TYPE_LOCALITY)
+    result.setZhName(loc.getZhName)
+    result
+  }
+
+  def vsTOHot(vs: ViewSpot) = {
+    val result = new HotSearch()
+    result.setId(new ObjectId())
+    result.setItemId(vs.getId)
+    result.setItemType(HotSearch.TYPE_VS)
+    result.setZhName(vs.zhName)
+    result
+  }
+
+  def spTOHot(loc: Shopping) = {
+    val result = new HotSearch()
+    result.setId(new ObjectId())
+    result.setItemId(loc.getId)
+    result.setItemType(HotSearch.TYPE_SHOPPING)
+    result.setZhName(loc.zhName)
+    result
+  }
+
+  def retTOHot(loc: Restaurant) = {
+    val result = new HotSearch()
+    result.setId(new ObjectId())
+    result.setItemId(loc.getId)
+    result.setItemType(HotSearch.TYPE_RESTAURANT)
+    result.setZhName(loc.zhName)
+    result
+  }
 }

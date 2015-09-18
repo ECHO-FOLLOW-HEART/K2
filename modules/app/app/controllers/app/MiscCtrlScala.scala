@@ -1,12 +1,16 @@
 package controllers.app
 
-import api.{ UserAPI, MiscAPI, UserUgcAPI }
+import api._
 import com.twitter.util.{ Future => TwitterFuture }
+import formatter.FormatterFactory
+import formatter.taozi.misc.HotSearchFormatter
 import misc.TwitterConverter._
 import org.bson.types.ObjectId
-import play.api.mvc.{ Action, Controller }
+import play.api.mvc.{ AnyContent, Action, Controller }
 import utils.Implicits._
-import utils.{ Result => K2Result }
+import utils.{ Result => K2Result, Utils }
+
+import scala.collection.JavaConversions._
 
 /**
  * Created by pengyt on 7/24/15.
@@ -56,4 +60,18 @@ object MiscCtrlScala extends Controller {
     }) getOrElse TwitterFuture(K2Result.unprocessable)
     future
   })
+
+  def getHotSearch(itemType: String): Action[AnyContent] = Action.async {
+    request =>
+      {
+        val hotFormatter = FormatterFactory.getInstance(classOf[HotSearchFormatter])
+        val future = for {
+          hot <- MiscAPI.getHotResearch(itemType)
+        } yield {
+          val node = hotFormatter.formatNode(hot)
+          Utils.status(node.toString).toScala
+        }
+        future
+      }
+  }
 }
