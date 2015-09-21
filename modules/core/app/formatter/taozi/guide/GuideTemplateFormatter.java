@@ -86,7 +86,8 @@ public class GuideTemplateFormatter extends AizouFormatter<GuideTemplate> {
             }
             jgen.writeEndArray();
 
-
+            int maxIndex =  0;
+            int tempIndex = 0;
             // Itinerary
             jgen.writeFieldName(Guide.fnItinerary);
             jgen.writeStartArray();
@@ -94,12 +95,17 @@ public class GuideTemplateFormatter extends AizouFormatter<GuideTemplate> {
             if (itinerItems != null && !itinerItems.isEmpty()) {
                 JsonSerializer<Object> retItinerItems = serializerProvider.findValueSerializer(ItinerItem.class, null);
                 for (ItinerItem itinerItem : itinerItems) {
+                    tempIndex = itinerItem.dayIndex;
+                    if (maxIndex < tempIndex)
+                        maxIndex = tempIndex;
                     if (itinerItem != null && itinerItem.poi != null) {
                         retItinerItems.serialize(itinerItem, jgen, serializerProvider);
                     }
                 }
             }
             jgen.writeEndArray();
+
+            jgen.writeObjectField(Guide.fnItineraryDays, maxIndex + 1);
 
             //Shopping
             jgen.writeFieldName(Guide.fnShopping);
