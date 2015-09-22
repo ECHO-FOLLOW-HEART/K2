@@ -1,5 +1,7 @@
 package controllers.app
 
+import java.util
+
 import api.{ MiscAPI, UserUgcAPI, GuideAPI }
 import api.GuideAPI.GuideProps
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -93,7 +95,7 @@ object GuideCtrlScala extends Controller {
           if (guideTemp isEmpty)
             K2Result.notFound(ErrorCode.DATA_NOT_FOUND, "Guide not exists.")
           else {
-            val node = guideFormatter.formatNode(guideTemp.get)
+            val node = guideFormatter.formatNode(util.Arrays.asList(guideTemp.get))
             Utils.status(node.toString).toScala
           }
         }

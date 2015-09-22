@@ -75,8 +75,11 @@ GET           /users/experts                                           controlle
 #----------用户相册接口----------
 #获取用户个人相册
 GET           /users/$id<\d+>/albums                                   controllers.app.UserUgcCtrl.getUserAlbums(id:Long)
+#修改个人相册图片
+PUT           /users/$id<\d+>/albums/:picId                            controllers.app.UserUgcCtrl.modifyUserAlbums(id: Long,picId: String)
 #删除用户个人相册
 DELETE        /users/$id<\d+>/albums/:picId                            controllers.app.UserUgcCtrl.deleteUserAlbums(id: Long,picId: String)
+
 
 #----------用户足迹接口----------
 #获取用户足迹
@@ -189,7 +192,7 @@ DELETE        /guides/:id                                              controlle
 
 #获得目的地的攻略信息
 GET           /guides/locality/:id/:part                               controllers.app.GuideCtrl.getLocalityGuideInfo(id:String,part: String)
-GET           /guide-templates                                         controllers.app.GuideCtrlScala.getTempGuide(locId:String)
+
 
 #----------地理信息接口----------
 # 搜索城市
@@ -198,6 +201,7 @@ GET           /geo/countries/$id<[0-9a-f]{24}>                         controlle
 #获得国家列表
 GET           /geo/countries                                           controllers.app.GeoCtrlScala.getCountryExperts(withExperts:Boolean=true)
 #获得国家达人列表
+#Deprecated
 GET           /geo/countries/:code/expert                              controllers.app.UserUgcCtrl.getExpertUserByTracks(code:String)
 #展示国内目的地
 GET           /geo/localities/domestic                                 controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
@@ -207,6 +211,8 @@ GET           /geo/localities/abroad                                   controlle
 GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
 #查看目的地详情图集
 GET           /geo/localities/:id/albums                               controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=20)
+#查看目的地攻略
+GET           /geo/localities/:locId/guides                            controllers.app.GuideCtrlScala.getTempGuide(locId:String)
 #查看目的地评论
 GET           /geo/localities/$id<[0-9a-f]{24}>/comments               controllers.app.GeoCtrl.getLocalityComments(commentType: String?="comment", id: String, page:Int?=0, pageSize: Int?=20)
 #赞

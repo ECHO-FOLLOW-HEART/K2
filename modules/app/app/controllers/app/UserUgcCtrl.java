@@ -57,6 +57,13 @@ public class UserUgcCtrl extends Controller {
         return Utils.status(formatter.format(albums));
     }
 
+    public static Result modifyUserAlbums(Long id, String picId) throws AizouException {
+        JsonNode data = request().body().asJson();
+        String caption = data.get("caption").asText();
+        UserUgcAPI.modifyAlbum(id,new ObjectId(picId), caption);
+        return Utils.createResponse(ErrorCode.NORMAL, "Success.");
+    }
+
     /**
      * 删除用户相册
      *
