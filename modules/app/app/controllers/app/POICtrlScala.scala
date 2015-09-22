@@ -1,11 +1,11 @@
 package controllers.app
 
-import aizou.core.{ PoiAPI, MiscAPI }
+import aizou.core.{ PoiAPIScala, PoiAPI, MiscAPI }
 import aspectj.Key
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
 import exception.{ AizouException, ErrorCode }
 import formatter.FormatterFactory
-import formatter.taozi.geo.DetailsEntryFormatter
+import formatter.taozi.geo.DetailsEntryFormatterScala
 import formatter.taozi.misc.CommentFormatter
 import formatter.taozi.poi.DetailedPOIFormatter
 import models.poi._
@@ -76,13 +76,7 @@ object POICtrlScala extends Controller {
           case "visitGuide" => seqAsJavaList(Seq(AbstractPOI.FD_VISITGUIDE))
         }
 
-        val poiInfo = poiDesc match {
-          case "vs" => PoiAPI.getPOIInfo(new ObjectId(locId), classOf[ViewSpot], destKeyList)
-          case "hotel" => PoiAPI.getPOIInfo(new ObjectId(locId), classOf[Hotel], destKeyList)
-          case "restaurant" => PoiAPI.getPOIInfo(new ObjectId(locId), classOf[Restaurant], destKeyList)
-          case "shopping" => PoiAPI.getPOIInfo(new ObjectId(locId), classOf[Shopping], destKeyList)
-          case _ => throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("Invalid POI type: %s.", poiDesc))
-        }
+        val poiInfo = PoiAPIScala.getPOIInfo(new ObjectId(locId), poiDesc, destKeyList)
 
         // 判断请求是何种格式
         val reqDataFormat = request.headers.get("Accept").get.toString
@@ -94,9 +88,10 @@ object POICtrlScala extends Controller {
           field match {
             case "tips" =>
               result.put("desc", "")
-              val detailsEntryFormatter = FormatterFactory.getInstance(classOf[DetailsEntryFormatter], imgWidth)
+              val detailsEntryFormatter = new DetailsEntryFormatterScala
+              detailsEntryFormatter.width = imgWidth.toInt
               if (poiInfo.getTips != null) result.set("contents", new ObjectMapper().createObjectNode())
-              else result.set("contents", detailsEntryFormatter.formatNode(poiInfo.getTips))
+              else result.set("contents", detailsEntryFormatter.objectMapper.valueToTree[JsonNode](poiInfo.getTips))
             case "trafficInfo" => result.set("contents", new ObjectMapper().valueToTree(poiInfo.getTrafficInfo))
             case "visitGuide" => result.set("contents", new ObjectMapper().valueToTree(poiInfo.getVisitGuide))
           }

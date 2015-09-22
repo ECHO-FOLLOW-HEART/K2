@@ -1,0 +1,13 @@
+package formatter
+
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.databind.{ JsonSerializer, SerializerProvider }
+import org.bson.types.ObjectId
+
+/**
+ * 默认的ObjectId序列化器
+ */
+class ObjectIdSerializer extends JsonSerializer[ObjectId] {
+  override def serialize(id: ObjectId, gen: JsonGenerator, serializers: SerializerProvider): Unit =
+    gen.writeString(id.toString)
+}
