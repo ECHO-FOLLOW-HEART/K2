@@ -3,7 +3,7 @@ package api
 import com.twitter.util.{ Future, FuturePool }
 import models.AizouBaseEntity
 import models.geo.Locality
-import models.misc.HotSearch
+import models.misc.{ Reference, HotSearch }
 import models.poi.AbstractPOI
 import models.user.ExpertRequest
 import org.bson.types.ObjectId
@@ -53,4 +53,13 @@ object MiscAPI {
       query.asList()
     }
   }
+
+  def getReference(itemType: String, isAbroad: Boolean)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Reference]] = {
+    futurePool {
+      val query = ds.createQuery(classOf[Reference])
+        .field(Reference.FD_ITEMTYPE).equal(itemType).field(Reference.FD_ISABROAD).equal(isAbroad)
+      query.asList()
+    }
+  }
+
 }

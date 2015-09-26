@@ -14,7 +14,7 @@ import formatter.taozi.user.TrackFormatter
 import misc.FinagleConvert
 import misc.TwitterConverter._
 import models.geo._
-import models.misc.{ HotSearch, Track }
+import models.misc.{ Reference, HotSearch, Track }
 import models.poi.{ Restaurant, Shopping, ViewSpot }
 import models.user.{ UserInfo => K2UserInfo, ExpertInfo }
 import org.bson.types.ObjectId
@@ -310,6 +310,32 @@ object Batch extends Controller {
     result.setId(new ObjectId())
     result.setItemId(loc.getId)
 
+    result
+  }
+
+  def saveReference() = Action.async(
+    block = request => {
+      val locList21 = Seq("台北", "成都", "北京")
+      val locList31 = Seq("东京", "巴黎", "纽约")
+
+      val ds = MorphiaFactory.datastore
+      val experts = ds.createQuery(classOf[Locality]).field("zhName").in(locList31).asList()
+      val hots = experts.map(localityToRef(_))
+      ds.save(hots)
+
+      Future {
+        Utils.status("success").toScala
+      }
+    })
+
+  def localityToRef(loc: Locality) = {
+    val result = new Reference()
+    result.setId(new ObjectId())
+    result.setItemId(loc.getId)
+    result.setItemType(Reference.TYPE_LOCALITY)
+    result.setImages(util.Arrays.asList(loc.getImages.get(0)))
+    result.setZhName(loc.getZhName)
+    result.setIsAbroad(false)
     result
   }
 

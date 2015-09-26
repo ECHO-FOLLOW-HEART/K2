@@ -21,7 +21,6 @@ import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import utils.Constants;
-import utils.LogUtils;
 import utils.TaoziDataFilter;
 import utils.Utils;
 
@@ -272,6 +271,8 @@ public class GuideCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, "Success.");
     }
 
+
+
     /**
      * 获取目的地的攻略信息
      *
@@ -299,7 +300,9 @@ public class GuideCtrl extends Controller {
         return Utils.createResponse(ErrorCode.NORMAL, result);
     }
 
-    private static String removeH5Label(String content) {
+    public static String removeH5Label(String content) {
+        if(content ==null)
+            return "";
         List<String> regExList = Arrays.asList("<p>", "</p>", "<div>", "</div>");
         for (String regEx : regExList) {
             content = content.replace(regEx, "");

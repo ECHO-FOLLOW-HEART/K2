@@ -1,12 +1,10 @@
 package aizou.core;
 
-import com.lvxingpai.yunkai.UserInfo;
+import database.MorphiaFactory;
 import exception.AizouException;
 import models.AizouBaseEntity;
-import database.MorphiaFactory;
 import models.geo.Country;
 import models.geo.Locality;
-import models.misc.Track;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
 import org.mongodb.morphia.query.CriteriaContainerImpl;
@@ -52,17 +50,6 @@ public class GeoAPI {
 
     public static List<Country> getAllCountryList() throws AizouException {
         return getAllCountryList(null);
-    }
-
-    // 后续通过配置做，目前只是写一个接口
-    public static List<UserInfo> getExpertsByCountry(String countryId) throws AizouException {
-        Datastore ds = MorphiaFactory.datastore();
-        // 通过国家ID找到所有的足迹
-        Query<Track> query = ds.createQuery(Track.class);
-        // 得到所有足迹后，找到userId
-        // 根据userId找到达人信息
-        List<UserInfo> experts = null;
-        return experts;
     }
 
     /**
@@ -154,24 +141,6 @@ public class GeoAPI {
         }
         query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         query.offset(page * pageSize).limit(pageSize);
-        return query.asList();
-    }
-
-    /**
-     * 搜索目的地
-     *
-     * @param
-     * @param page
-     * @param pageSize
-     * @return
-     */
-    public static List<Locality> getDestinations(boolean abroad, int page, int pageSize) throws AizouException {
-
-        Datastore ds = MorphiaFactory.datastore();
-        Query<Locality> query = ds.createQuery(Locality.class);
-        query.field("abroad").equal(abroad).field("enabled").equal(true);
-        query.offset(page * pageSize).limit(pageSize);
-        query.order("-hotness");
         return query.asList();
     }
 

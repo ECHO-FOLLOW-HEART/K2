@@ -30,12 +30,12 @@ object GeoAPI {
     }
   }
 
-  def getCountryByNames(names: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Country]] = {
+  def getCountryByNames(names: Seq[String], fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Country]] = {
     futurePool {
       if (names == null || names.isEmpty)
         Seq()
       else {
-        val query = ds.createQuery(classOf[Country]).field(Country.FD_ZH_NAME).in(names).retrievedFields(true, Seq(Country.FN_ID): _*)
+        val query = ds.createQuery(classOf[Country]).field(Country.FD_ZH_NAME).in(names).retrievedFields(true, fields: _*)
         query.asList()
       }
     }
@@ -52,12 +52,12 @@ object GeoAPI {
     }
   }
 
-  def getLocalityByNames(names: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
+  def getLocalityByNames(names: Seq[String], fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
     futurePool {
       if (names == null || names.isEmpty)
         Seq()
       else {
-        val query = ds.createQuery(classOf[Locality]).field(Locality.FD_ZH_NAME).in(names).retrievedFields(true, Seq(Country.FN_ID): _*)
+        val query = ds.createQuery(classOf[Locality]).field(Locality.FD_ZH_NAME).in(names).retrievedFields(true, fields: _*)
         query.asList()
       }
     }
@@ -68,7 +68,7 @@ object GeoAPI {
       if (ids == null || ids.isEmpty)
         Seq()
       else {
-        val query = ds.createQuery(classOf[Locality]).field(Country.FN_ID).in(ids).retrievedFields(true, Seq(Locality.FD_ZH_NAME): _*)
+        val query = ds.createQuery(classOf[Locality]).field(Country.FN_ID).in(ids).retrievedFields(true, Seq(Country.FN_ID, Locality.FD_ZH_NAME): _*)
         query.asList()
       }
     }
