@@ -4,6 +4,7 @@ import api._
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.twitter.util.{ Future => TwitterFuture }
 import formatter.FormatterFactory
+import formatter.taozi.geo.SearchLocalityFormatter
 import formatter.taozi.misc.{ ReferenceFormatter, HotSearchFormatter }
 import misc.TwitterConverter._
 import models.AizouBaseEntity
@@ -80,6 +81,20 @@ object MiscCtrlScala extends Controller {
           hot <- MiscAPI.getHotResearch(itemType)
         } yield {
           val node = hotFormatter.formatNode(hot)
+          Utils.status(node.toString).toScala
+        }
+        future
+      }
+  }
+
+  def search(query: String, scope: String): Action[AnyContent] = Action.async {
+    request =>
+      {
+        val future = for {
+          qLoc <- GeoAPI.getLocalityByNames(Seq("北京", "上海"), Seq(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME,
+            Locality.fnImages, Locality.fnDesc))
+        } yield {
+          val node = FormatterFactory.getInstance(classOf[SearchLocalityFormatter]).formatNode(qLoc)
           Utils.status(node.toString).toScala
         }
         future
