@@ -57,7 +57,7 @@ object MiscAPI {
   def getReference(itemType: String, isAbroad: Boolean)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Reference]] = {
     futurePool {
       val query = ds.createQuery(classOf[Reference])
-        .field(Reference.FD_ITEMTYPE).equal(itemType).field(Reference.FD_ISABROAD).equal(isAbroad)
+        .field(Reference.FD_ITEMTYPE).equal(itemType).field(Reference.FD_ISABROAD).equal(!isAbroad)
       query.asList()
     }
   }
