@@ -3,13 +3,13 @@ package api
 import java.util
 
 import com.twitter.util.{ Future, FuturePool }
-import models.geo.{ Locality, Country, CountryExpert }
-import models.user.UserProfile._
+import models.geo.{ Country, CountryExpert, Locality }
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
 
 import scala.collection.JavaConversions._
 import scala.util.Random
+import scala.language.postfixOps
 
 /**
  * Created by topy on 2015/7/23.
@@ -30,13 +30,14 @@ object GeoAPI {
     }
   }
 
-  def getCountryByNames(names: Seq[String], fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Country]] = {
+  // TODO 处理Fields的问题
+  def getCountryByNames(names: Seq[String], fields: Seq[String] = Seq())(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Country]] = {
     futurePool {
       if (names == null || names.isEmpty)
         Seq()
       else {
-        val query = ds.createQuery(classOf[Country]).field(Country.FD_ZH_NAME).in(names).retrievedFields(true, fields: _*)
-        query.asList()
+        val query = ds.createQuery(classOf[Country]).field(Country.FD_ZH_NAME).in(names) //.retrievedFields(true, fields: _*)
+        (if (fields nonEmpty) query.retrievedFields(true, fields: _*) else query).asList()
       }
     }
   }
@@ -52,13 +53,14 @@ object GeoAPI {
     }
   }
 
-  def getLocalityByNames(names: Seq[String], fields: Seq[String])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
+  // TODO 处理fields
+  def getLocalityByNames(names: Seq[String], fields: Seq[String] = Seq())(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
     futurePool {
       if (names == null || names.isEmpty)
         Seq()
       else {
-        val query = ds.createQuery(classOf[Locality]).field(Locality.FD_ZH_NAME).in(names).retrievedFields(true, fields: _*)
-        query.asList()
+        val query = ds.createQuery(classOf[Locality]).field(Locality.FD_ZH_NAME).in(names) //.retrievedFields(true, fields: _*)
+        (if (fields nonEmpty) query.retrievedFields(true, fields: _*) else query).asList()
       }
     }
   }
