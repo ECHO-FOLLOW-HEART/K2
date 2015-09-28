@@ -2,7 +2,7 @@ package controllers.app
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.{ ArrayNode, ObjectNode }
-import com.lvxingpai.yunkai.{ ChatGroup => YunkaiChatGroup, ChatGroupProp, NotFoundException, UserInfo => YunkaiUserInfo }
+import com.lvxingpai.yunkai.{ChatGroup => YunkaiChatGroup, UserInfo => YunkaiUserInfo, GroupMembersLimitException, ChatGroupProp, NotFoundException}
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory
@@ -241,6 +241,10 @@ object GroupCtrlScala extends Controller {
         case _: NotFoundException =>
           TwitterFuture {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
+          }
+        case _: GroupMembersLimitException =>
+          TwitterFuture {
+            Utils.createResponse(ErrorCode.YUNKAI_GROUPMEMBERSLIMIT).toScala
           }
       }
     }
