@@ -39,7 +39,7 @@ public class HotSearchFormatter extends AizouFormatter<HotSearch> {
             //jsonGenerator.writeStringField(HotSearch.FD_ITEMID, getString(itemId == null ? "" : itemId.toString()));
             //jsonGenerator.writeStringField(HotSearch.FD_SEARCHTYPE, getString(simpleRef.getSearchType()));
             //jsonGenerator.writeStringField(HotSearch.FD_SEARCHFIELD, getString(simpleRef.getSearchField()));
-            jsonGenerator.writeStringField(HotSearch.FD_SEARCHCONTENT, getString(simpleRef.getItemName()));
+            jsonGenerator.writeStringField("query", getString(simpleRef.getItemName()));
             jsonGenerator.writeStringField("zhName", getString(simpleRef.getItemName()));
             jsonGenerator.writeEndObject();
 

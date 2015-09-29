@@ -116,9 +116,9 @@ object MiscCtrlScala extends Controller {
         } yield {
           val node = (new ObjectMapper()).createObjectNode()
           if (qLoc nonEmpty) {
-            node.put("itemType", "locality")
+            //node.put("itemType", "locality")
             val loc = qLoc.get(0)
-            node.put("itemId", loc.getId.toString)
+            //node.put("itemId", loc.getId.toString)
             scope match {
               case "shopping" =>
                 node.put("desc", GuideCtrl.removeH5Label(loc.getShoppingIntro))
@@ -127,8 +127,6 @@ object MiscCtrlScala extends Controller {
                 node.put("desc", GuideCtrl.removeH5Label(loc.getDiningIntro))
                 node.put("detailUrl", "http://h5.taozilvxing.com/city/dining.php?tid=" + loc.getId.toString)
             }
-          } else {
-            node.put("itemType", "")
           }
           Utils.status(node.toString).toScala
         }

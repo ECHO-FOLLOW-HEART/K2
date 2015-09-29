@@ -15,6 +15,9 @@ public class Reference extends AizouBaseEntity {
     public static final String FD_ZH_NAME = "zhName";
 
     @Transient
+    public static final String FD_EN_NAME = "enName";
+
+    @Transient
     public static final String FD_ITEMID = "itemId";
 
     @Transient

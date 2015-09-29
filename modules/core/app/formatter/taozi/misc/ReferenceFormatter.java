@@ -15,7 +15,7 @@ import java.util.List;
 
 /**
  * 推荐给用户的项目
- *
+ * <p>
  * Created by topy
  */
 public class ReferenceFormatter extends AizouFormatter<Reference> {
@@ -39,6 +39,7 @@ public class ReferenceFormatter extends AizouFormatter<Reference> {
             ObjectId itemId = simpleRef.getItemId();
             jsonGenerator.writeStringField(Reference.FD_ITEMID, getString(itemId == null ? "" : itemId.toString()));
             jsonGenerator.writeStringField(Reference.FD_ZH_NAME, getString(simpleRef.getZhName()));
+            jsonGenerator.writeStringField(Reference.FD_EN_NAME, getString("Peking"));
 
             // Images
             jsonGenerator.writeFieldName("images");

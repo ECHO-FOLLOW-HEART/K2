@@ -135,14 +135,13 @@ POST          /misc/feedback                                           controlle
 #举报
 POST          /misc/tip-offs                                           controllers.app.MiscCtrl.postTipOff()
 #热门搜索
-#GET           /misc/hot-searches                                       controllers.app.MiscCtrl.getHotSearchs()
-#热门搜索
-GET           /misc/hot-searches                                       controllers.app.MiscCtrlScala.getHotSearch(itemType:String)
+GET           /misc/hot-searches                                       controllers.app.MiscCtrl.getHotSearchs()
 #达人申请
 POST          /misc/expert-requests                                    controllers.app.MiscCtrlScala.expertRequest()
 #搜索
 GET           /search                                                  controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
-#GET           /newSearch                                               controllers.app.MiscCtrlScala.search(query:String,scope:String)
+#热门搜索
+GET           /search/hot-queries                                      controllers.app.MiscCtrlScala.getHotSearch(scope:String)
 #搜索的辅助信息
 GET           /search/ancillary-info                                   controllers.app.MiscCtrlScala.searchAncInfo(query:String,scope:String)
 #提示
