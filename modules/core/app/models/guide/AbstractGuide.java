@@ -32,6 +32,9 @@ public abstract class AbstractGuide extends AizouBaseEntity {
     public static final String fdId = "id";
 
     @Transient
+    public static final String fdLocId = "locId";
+
+    @Transient
     public static final String fnLocalities = "localities";
 
     @Transient

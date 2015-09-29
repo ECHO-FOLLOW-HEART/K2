@@ -79,15 +79,21 @@ public class ImageItemSerializer extends AizouSerializer<ImageItem> {
         String fullUrl = imageItem.getFullUrl();
         Integer width = imageItem.getW();
         Integer height = imageItem.getH();
-
+        String caption = imageItem.getCaption() == null ? "" : imageItem.getCaption();
         if (width != null && height != null) {
             String imgUrl;
+            String thumb;
+            String full;
             Map<String, Integer> cropHint = imageItem.getCropHint();
-            if (sizeDesc == ImageSizeDesc.FULL)
+            if (sizeDesc == ImageSizeDesc.FULL) {
                 imgUrl = fullUrl;
-            else {
+                thumb = fullUrl;
+                full = fullUrl;
+            } else {
                 if (cropHint == null) {
                     imgUrl = String.format("%s?imageView2/2/w/%d", fullUrl, maxWidth);
+                    thumb = String.format("%s?imageView2/2/w/%d", fullUrl, 200);
+                    full = String.format("%s?imageView2/2/w/%d", fullUrl, 1200);
                     double r = (double) height / width;
                     width = maxWidth;
                     height = (int) (width * r);
@@ -102,13 +108,24 @@ public class ImageItemSerializer extends AizouSerializer<ImageItem> {
 
                     imgUrl = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%d",
                             fullUrl, width, height, left, top, maxWidth);
+                    thumb = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%d",
+                            fullUrl, width, height, left, top, 200);
+                    full = String.format("%s?imageMogr2/auto-orient/strip/gravity/NorthWest/crop/!%dx%da%da%d/thumbnail/%d",
+                            fullUrl, width, height, left, top, 1200);
                 }
             }
             jsonGenerator.writeStringField("url", imgUrl);
+            jsonGenerator.writeStringField("thumb", thumb);
+            jsonGenerator.writeStringField("full", full);
+            jsonGenerator.writeStringField(ImageItem.FD_CAPTION, caption);
             jsonGenerator.writeNumberField("width", width);
             jsonGenerator.writeNumberField("height", height);
-        } else
+        } else {
             jsonGenerator.writeStringField("url", String.format("%s?imageView2/2/w/%d", fullUrl, maxWidth));
+            jsonGenerator.writeStringField("thumb", String.format("%s?imageView2/2/w/%d", fullUrl, 200));
+            jsonGenerator.writeStringField("full", String.format("%s?imageView2/2/w/%d", fullUrl, 1200));
+            jsonGenerator.writeStringField(ImageItem.FD_CAPTION, caption);
+        }
 
         jsonGenerator.writeEndObject();
     }

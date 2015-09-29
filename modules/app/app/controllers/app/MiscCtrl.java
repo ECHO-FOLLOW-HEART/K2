@@ -63,6 +63,7 @@ public class MiscCtrl extends Controller {
     public static String UPLOAD_URL_SMALL = "urlSmall";
     public static String UPLOAD_UID = "userId";
     public static String UPLOAD_SCENARIO = "scenario";
+    public static String UPLOAD_CAPTION = "caption";
 
     /**
      * 封面故事,获取App首页的图像。
@@ -363,10 +364,11 @@ public class MiscCtrl extends Controller {
         Map qiniu = (Map) config.getObject("qiniu");
         String secretKey = qiniu.get("secertKey").toString();
         String accessKey = qiniu.get("accessKey").toString();
+        String caption = request().getQueryString("caption") == null ? "" : request().getQueryString("caption");
         String scope, callbackUrl;
         if (scenario.equals("portrait") || scenario.equals("album")) {
             scope = qiniu.get("taoziAvaterScope").toString();
-            String hostname = "api.lvxingpai.com";
+            String hostname = "api-dev.lvxingpai.com";
             String url = routes.MiscCtrl.getCallback().url();
             callbackUrl = new StringBuilder().append("http://").append(hostname).append(url).toString();
             LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);
@@ -376,7 +378,7 @@ public class MiscCtrl extends Controller {
                     .build();
 
         //取得上传策略
-        ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId), scenario);
+        ObjectNode policy = getPutPolicyInfo(scope, picName, callbackUrl, Integer.valueOf(userId), scenario, caption);
         // UrlBase64编码
         String encodedPutPolicy = Base64.encodeBase64URLSafeString(policy.toString().trim().getBytes());
         encodedPutPolicy = Utils.base64Padding(encodedPutPolicy);
@@ -396,12 +398,12 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl, Integer userId, String scenario) {
+    private static ObjectNode getPutPolicyInfo(String scope, String picName, String callbackUrl, Integer userId, String scenario, String caption) {
 
         ObjectNode info = Json.newObject();
         info.put("scope", scope + ":" + picName);
         info.put("deadline", System.currentTimeMillis() / 1000 + 2 * 3600);
-        info.put("callBackBody", getCallBackBody(userId, scenario));
+        info.put("callBackBody", getCallBackBody(userId, scenario, caption));
         info.put("callbackUrl", callbackUrl);
         return info;
     }
@@ -411,7 +413,7 @@ public class MiscCtrl extends Controller {
      *
      * @return
      */
-    private static String getCallBackBody(Integer userId, String scenario) {
+    private static String getCallBackBody(Integer userId, String scenario, String caption) {
         String picId = new ObjectId().toString();
         StringBuilder callbackBody = new StringBuilder(10);
         callbackBody.append("name=$(fname)");
@@ -422,7 +424,6 @@ public class MiscCtrl extends Controller {
         callbackBody.append("&bucket=$(bucket)");
         callbackBody.append("&key=$(key)");
         callbackBody.append("&id=" + picId);
-        LogUtils.info(MiscCtrl.class, "Magic Id:" + picId);
         String url = "http://" + "$(bucket)" + ".qiniudn.com" + Constants.SYMBOL_SLASH + "$(key)";
         // 定义图片的URL
         callbackBody.append("&").append(UPLOAD_URL).append("=").append(url);
@@ -430,6 +431,7 @@ public class MiscCtrl extends Controller {
         // 定义用户ID
         callbackBody.append("&").append(UPLOAD_UID).append("=").append(userId);
         callbackBody.append("&").append(UPLOAD_SCENARIO).append("=").append(scenario);
+        callbackBody.append("&").append(UPLOAD_CAPTION).append("=").append(caption);
         return callbackBody.toString();
     }
 
@@ -457,6 +459,7 @@ public class MiscCtrl extends Controller {
 //        String urlSmall = null;
         String userId = null;
         String id = null;
+        String title = "";
         for (Map.Entry<String, String[]> entry : fav.entrySet()) {
             String key = entry.getKey();
             String[] value = entry.getValue();
@@ -466,6 +469,8 @@ public class MiscCtrl extends Controller {
                 userId = value[0];
             if (key.equals("id"))
                 id = value[0];
+            if (key.equals(UPLOAD_CAPTION))
+                title = value[0];
             if (key.equals(UPLOAD_SCENARIO)) {
                 scenario = value[0];
                 // LogUtils.info(MiscCtrl.class, "Test Upload CallBack.Scenario:" + scenario, key + "&&" + value[0]);
@@ -474,7 +479,7 @@ public class MiscCtrl extends Controller {
         }
 
         if (scenario != null && scenario.equals("album")) {
-            LogUtils.info(MiscCtrl.class, "Test scenario.equals(\"album\"):" + scenario);
+            LogUtils.info(MiscCtrl.class, "Test UPLOAD_CAPTION:" + title);
             ImageItem imageItem = getImageFromCallBack(ret);
             if (imageItem == null)
                 return status(500, "Can't get image key!");
@@ -505,6 +510,8 @@ public class MiscCtrl extends Controller {
             imageItem.setSize(ret.get("size").asInt());
         if (ret.get("bucket") != null)
             imageItem.setBucket(ret.get("bucket").asText());
+        if (ret.get(UPLOAD_CAPTION) != null)
+            imageItem.setCaption(ret.get(UPLOAD_CAPTION).asText());
         return imageItem;
     }
 

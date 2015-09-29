@@ -14,7 +14,8 @@ import formatter.taozi.user.TrackFormatter
 import misc.FinagleConvert
 import misc.TwitterConverter._
 import models.geo._
-import models.misc.Track
+import models.misc.{ Reference, HotSearch, Track }
+import models.poi.{ Restaurant, Shopping, ViewSpot }
 import models.user.{ UserInfo => K2UserInfo, ExpertInfo }
 import org.bson.types.ObjectId
 import play.Configuration
@@ -250,4 +251,92 @@ object Batch extends Controller {
         Utils.status("success").toScala
       }
     })
+
+  def saveHotResearch() = Action.async(
+    block = request => {
+      val locList21 = Seq("台北", "成都", "巴黎", "威尼斯", "广州", "清迈", "北京", "东京", "新奥尔良", "西安")
+      val locList31 = Seq("香港", "上海", "新加坡", "东京", "巴黎", "纽约", "迪拜", "伦敦", "三亚", "冲绳")
+      val locList41 = Seq("丽江", "三亚", "厦门", "马尔代夫", "拉斯维加斯", "威尼斯", "巴厘岛", "开罗", "普罗旺斯", "布拉格")
+      val locList51 = Seq("北京", "巴黎", "京都", "拉萨", "洛杉矶", "曼德勒", "棉开堡", "夏威夷", "首尔", "北海道")
+      val query12 = Seq("北海道", "香格里拉", "台北", "阿姆斯特丹", "日惹", "冲绳", "巴厘岛", "首尔", "厦门", "清迈")
+      val query22 = Seq("仙踪林", "全聚德", "满记甜品", "东来顺", "哈根达斯", "小南国", "星巴克", "外婆家")
+      val query32 = Seq("老佛爷", "王府井", "DFS", "周大福", "铜锣湾", "乐天玛特", "银座", "南京路", "春熙路")
+      val query42 = Seq("兵马俑", "黄山", "九寨沟", "布达拉宫", "长城", "鼓浪屿", "泰姬陵", "埃菲尔铁搭", "泰山", "迪士尼")
+      val query52 = Seq("伊犁", "苏梅岛", "额济纳旗", "沙坡头", "稻城", "舟山", "张家界", "北海", "帕劳", "贝加尔湖")
+      val style23 = Seq("烤鸭", "日本料理", "烤肉", "韩国料理", "法国菜", "意大利菜", "海鲜", "咖啡", "火锅")
+      val style33 = Seq("化妆品", "首饰", "钟表", "特色", "品牌专卖", "服饰", "家具家居", "母婴儿童", "药店")
+
+      val ds = MorphiaFactory.datastore
+
+      //val experts = ds.createQuery(classOf[Locality]).field("zhName").in(locList51).asList()
+      val hots = style33.map(stringTOHot(_))
+      ds.save(hots)
+
+      Future {
+        Utils.status("success").toScala
+      }
+    })
+
+  def locTOHot(loc: Locality) = {
+    val result = new HotSearch()
+    result.setId(new ObjectId())
+    result.setItemId(loc.getId)
+    result.setSearchType(HotSearch.SEARCH_TYPE_TRAVELNOTE)
+    result.setSearchField(HotSearch.SEARCH_FIELD_LOCALITY)
+    result.setItemName(loc.getZhName)
+    result
+  }
+
+  def stringTOHot(loc: String) = {
+    val result = new HotSearch()
+    result.setId(new ObjectId())
+    result.setItemName(loc)
+    result.setSearchType(HotSearch.SEARCH_TYPE_SHOPPING)
+    result.setSearchField(HotSearch.SEARCH_FIELD_STYLE)
+    result.setItemName(loc)
+    result
+  }
+
+  def vsTOHot(vs: ViewSpot) = {
+    val result = new HotSearch()
+    result.setId(new ObjectId())
+    result.setItemId(vs.getId)
+    result.setItemName(vs.zhName)
+    result
+  }
+
+  def spTOHot(loc: Shopping) = {
+    val result = new HotSearch()
+    result.setId(new ObjectId())
+    result.setItemId(loc.getId)
+
+    result
+  }
+
+  def saveReference() = Action.async(
+    block = request => {
+      val locList21 = Seq("台北", "成都", "北京")
+      val locList31 = Seq("东京", "巴黎", "纽约")
+
+      val ds = MorphiaFactory.datastore
+      val experts = ds.createQuery(classOf[Locality]).field("zhName").in(locList31).asList()
+      val hots = experts.map(localityToRef(_))
+      ds.save(hots)
+
+      Future {
+        Utils.status("success").toScala
+      }
+    })
+
+  def localityToRef(loc: Locality) = {
+    val result = new Reference()
+    result.setId(new ObjectId())
+    result.setItemId(loc.getId)
+    result.setItemType(Reference.TYPE_LOCALITY)
+    result.setImages(util.Arrays.asList(loc.getImages.get(0)))
+    result.setZhName(loc.getZhName)
+    result.setIsAbroad(false)
+    result
+  }
+
 }

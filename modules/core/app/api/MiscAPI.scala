@@ -1,10 +1,15 @@
 package api
 
-import com.twitter.util.FuturePool
+import com.twitter.util.{ Future, FuturePool }
 import models.AizouBaseEntity
 import models.geo.Locality
+import models.misc.{ Reference, HotSearch }
+import models.poi.AbstractPOI
+import models.user.ExpertRequest
 import org.bson.types.ObjectId
 import org.mongodb.morphia.Datastore
+
+import scala.collection.JavaConversions._
 
 /**
  * Created by topy on 2015/7/7.
@@ -40,4 +45,24 @@ object MiscAPI {
       ds.findAndModify(query, update)
     }
   }
+
+  def getHotResearch(itemType: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[HotSearch]] = {
+    futurePool {
+      val itValue = if (itemType == null)
+        "locality"
+      else itemType
+      val query = ds.createQuery(classOf[HotSearch])
+        .field(HotSearch.FD_SEARCHTYPE).equal(itValue)
+      query.asList()
+    }
+  }
+
+  def getReference(itemType: String, isAbroad: Boolean)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Reference]] = {
+    futurePool {
+      val query = ds.createQuery(classOf[Reference])
+        .field(Reference.FD_ITEMTYPE).equal(itemType).field(Reference.FD_ISABROAD).equal(!isAbroad)
+      query.asList()
+    }
+  }
+
 }

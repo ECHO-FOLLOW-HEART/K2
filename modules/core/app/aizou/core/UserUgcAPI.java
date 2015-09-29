@@ -171,6 +171,13 @@ public class UserUgcAPI {
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, "Invalid action");
     }
 
+    public static void modifyAlbum(Long userId, ObjectId picId, String caption) throws AizouException {
+        Datastore ds = MorphiaFactory.datastore();
+        UpdateOperations<Album> ops = ds.createUpdateOperations(Album.class).set("image.caption",caption);
+        ds.update(ds.createQuery(Album.class).field("id").equal(picId).field(Album.FD_USERID).equal(userId),ops);
+    }
+
+
     private static List<ObjectId> getItemIds(List<Track> tracks) {
         List<ObjectId> result = new ArrayList<>();
         for (Track track : tracks)
@@ -245,7 +252,7 @@ public class UserUgcAPI {
     public static List<ExpertInfo> getAllExperts(List<ObjectId> id) throws AizouException {
         Datastore dsUser = MorphiaFactory.datastore();
         Query<ExpertInfo> query = dsUser.createQuery(ExpertInfo.class).field(ExpertInfo.fnZone).in(id);
-        Collection<String> fieldList = Arrays.asList(ExpertInfo.fnUserId,ExpertInfo.fnProfile,ExpertInfo.fnTags);
+        Collection<String> fieldList = Arrays.asList(ExpertInfo.fnUserId, ExpertInfo.fnProfile, ExpertInfo.fnTags);
         if (fieldList != null && !fieldList.isEmpty())
             query.retrievedFields(true, fieldList.toArray(new String[fieldList.size()]));
         return query.asList();

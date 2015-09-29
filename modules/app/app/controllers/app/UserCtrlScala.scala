@@ -13,6 +13,7 @@ import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginForm
 import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ CoreConfig, FinagleConvert, FinagleFactory }
+import models.geo.Country
 import models.user.{ Contact => K2Contact, ExpertInfo, UserInfo }
 import org.bson.types.ObjectId
 import org.joda.time.format.DateTimeFormat
@@ -120,24 +121,24 @@ object UserCtrlScala extends Controller {
         jsonResult.asOpt[Long] orElse (jsonResult.asOpt[String] map (_.toLong))
       }
     } yield {
-        val backends = CoreConfig.conf.getConfig("backends.hedy").get
-        val services = backends.subKeys.toSeq map (backends.getConfig(_).get)
+      val backends = CoreConfig.conf.getConfig("backends.hedy").get
+      val services = backends.subKeys.toSeq map (backends.getConfig(_).get)
 
-        val host = services.head.getString("host").get
-        val port = services.head.getInt("port").get
+      val host = services.head.getString("host").get
+      val port = services.head.getInt("port").get
 
-        import play.api.Play.current
+      import play.api.Play.current
 
-        val url = s"http://$host:$port/users/logout"
-        val ws = WS.url(url)
-        val postBody = "{\"userId\":" + userId.toString + "}"
-        ws.withHeaders("Content-Type" -> "application/json").post(postBody) map (response => {
-          if (response.status == 200)
-            K2Result.ok(None)
-          else
-            K2Result.badRequest(ErrorCode.UNKOWN_ERROR, s"")
-        })
-      }) getOrElse ScalaFuture(K2Result.unprocessable)
+      val url = s"http://$host:$port/users/logout"
+      val ws = WS.url(url)
+      val postBody = "{\"userId\":" + userId.toString + "}"
+      ws.withHeaders("Content-Type" -> "application/json").post(postBody) map (response => {
+        if (response.status == 200)
+          K2Result.ok(None)
+        else
+          K2Result.badRequest(ErrorCode.UNKOWN_ERROR, s"")
+      })
+    }) getOrElse ScalaFuture(K2Result.unprocessable)
 
     future
   })

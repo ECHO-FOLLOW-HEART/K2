@@ -28,6 +28,10 @@ public class ImageItem extends AizouBaseItem {
 
     @Transient
     public static final String FD_HEIGHT = "h";
+    @Transient
+    public static final String FD_CAPTION = "caption";
+
+    private String caption;
 
     private Map<String, Integer> cropHint;
 
@@ -171,5 +175,13 @@ public class ImageItem extends AizouBaseItem {
 
     public void setId(ObjectId id) {
         this.id = id;
+    }
+
+    public String getCaption() {
+        return caption;
+    }
+
+    public void setCaption(String caption) {
+        this.caption = caption;
     }
 }
