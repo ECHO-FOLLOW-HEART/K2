@@ -4,7 +4,6 @@ import aizou.core.GeoAPI;
 import aizou.core.LocalityAPI;
 import aizou.core.PoiAPI;
 import aizou.core.UserUgcAPI;
-import api.MiscAPI;
 import aspectj.Key;
 import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -197,7 +196,7 @@ public class GeoCtrl extends Controller {
                 locality = new RmdLocality();
                 locality.setId(new ObjectId(k));
                 locality.setZhName(zhName);
-                locality.setEnName("");
+                locality.setEnName(pinyin);
                 Locality localityLocation = locationMap.get(locality.getId().toString());
                 if (localityLocation != null) {
                     locality.setLocation(localityLocation.getLocation());
