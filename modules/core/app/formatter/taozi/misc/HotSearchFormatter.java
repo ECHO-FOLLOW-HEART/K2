@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
 import models.misc.HotSearch;
-import org.bson.types.ObjectId;
 
 import java.io.IOException;
 
@@ -35,12 +34,13 @@ public class HotSearchFormatter extends AizouFormatter<HotSearch> {
                 throws IOException {
             jsonGenerator.writeStartObject();
 
-            writeObjectId(simpleRef, jsonGenerator, serializerProvider);
-            ObjectId itemId = simpleRef.getItemId();
-            jsonGenerator.writeStringField(HotSearch.FD_ITEMID, getString(itemId == null ? "" : itemId.toString()));
-            jsonGenerator.writeStringField(HotSearch.FD_SEARCHTYPE, getString(simpleRef.getSearchType()));
-            jsonGenerator.writeStringField(HotSearch.FD_SEARCHFIELD, getString(simpleRef.getSearchField()));
+            //writeObjectId(simpleRef, jsonGenerator, serializerProvider);
+            //ObjectId itemId = simpleRef.getItemId();
+            //jsonGenerator.writeStringField(HotSearch.FD_ITEMID, getString(itemId == null ? "" : itemId.toString()));
+            //jsonGenerator.writeStringField(HotSearch.FD_SEARCHTYPE, getString(simpleRef.getSearchType()));
+            //jsonGenerator.writeStringField(HotSearch.FD_SEARCHFIELD, getString(simpleRef.getSearchField()));
             jsonGenerator.writeStringField(HotSearch.FD_SEARCHCONTENT, getString(simpleRef.getItemName()));
+            jsonGenerator.writeStringField("zhName", getString(simpleRef.getItemName()));
             jsonGenerator.writeEndObject();
 
         }

@@ -2,7 +2,7 @@ package controllers.app
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.{ ArrayNode, ObjectNode }
-import com.lvxingpai.yunkai.{ChatGroup => YunkaiChatGroup, UserInfo => YunkaiUserInfo, GroupMembersLimitException, ChatGroupProp, NotFoundException}
+import com.lvxingpai.yunkai.{ ChatGroup => YunkaiChatGroup, UserInfo => YunkaiUserInfo, GroupMembersLimitException, ChatGroupProp, NotFoundException }
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.ErrorCode
 import formatter.FormatterFactory

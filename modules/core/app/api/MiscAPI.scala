@@ -48,8 +48,11 @@ object MiscAPI {
 
   def getHotResearch(itemType: String)(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[HotSearch]] = {
     futurePool {
+      val itValue = if (itemType == null)
+        "locality"
+      else itemType
       val query = ds.createQuery(classOf[HotSearch])
-        .field(HotSearch.FD_SEARCHTYPE).equal(itemType)
+        .field(HotSearch.FD_SEARCHTYPE).equal(itValue)
       query.asList()
     }
   }
