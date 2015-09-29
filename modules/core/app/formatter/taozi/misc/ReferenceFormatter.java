@@ -39,6 +39,7 @@ public class ReferenceFormatter extends AizouFormatter<Reference> {
             ObjectId itemId = simpleRef.getItemId();
             jsonGenerator.writeStringField(Reference.FD_ITEMID, getString(itemId == null ? "" : itemId.toString()));
             jsonGenerator.writeStringField(Reference.FD_ZH_NAME, getString(simpleRef.getZhName()));
+            // TODO
             jsonGenerator.writeStringField(Reference.FD_EN_NAME, getString("Peking"));
 
             // Images

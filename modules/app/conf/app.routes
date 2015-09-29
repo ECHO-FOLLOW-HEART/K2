@@ -141,7 +141,7 @@ POST          /misc/expert-requests                                    controlle
 #搜索
 GET           /search                                                  controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #热门搜索
-GET           /search/hot-queries                                      controllers.app.MiscCtrlScala.getHotSearch(scope:String)
+GET           /search/hot-queries                                      controllers.app.MiscCtrlScala.getHotSearch(scope:String?="locality")
 #搜索的辅助信息
 GET           /search/ancillary-info                                   controllers.app.MiscCtrlScala.searchAncInfo(query:String,scope:String)
 #提示
@@ -210,7 +210,7 @@ GET           /geo/localities/domestic                                 controlle
 #展示国外目的地
 GET           /geo/localities/abroad                                   controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=true,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
 #展示国内目的地
-GET           /geo/localities/recommendations                          controllers.app.MiscCtrlScala.getRmd(itemType: String="locality",isAbroad: Boolean?=false)
+GET           /geo/localities/recommendations                          controllers.app.MiscCtrlScala.getRmd(itemType: String="locality",abroad: Boolean?=false)
 #查看目的地详情
 GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
 #查看目的地详情图集

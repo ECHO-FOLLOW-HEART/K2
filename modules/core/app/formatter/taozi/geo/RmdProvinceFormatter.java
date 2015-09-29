@@ -6,14 +6,11 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
 import formatter.taozi.ImageItemSerializer;
-import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.geo.RmdLocality;
 import models.geo.RmdProvince;
-import models.guide.ItinerItem;
 import models.misc.ImageItem;
-import models.poi.AbstractPOI;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
@@ -67,7 +64,8 @@ public class RmdProvinceFormatter extends AizouFormatter<RmdProvince> {
             jsonGenerator.writeStartObject();
             writeObjectId(rmdLocality, jsonGenerator, serializerProvider);
             jsonGenerator.writeStringField(RmdLocality.FD_ZH_NAME, getString(rmdLocality.getZhName()));
-            jsonGenerator.writeStringField(RmdLocality.FD_EN_NAME, getString(rmdLocality.getEnName()));
+            // jsonGenerator.writeStringField(RmdLocality.FD_EN_NAME, getString(rmdLocality.getEnName()));
+            jsonGenerator.writeStringField(RmdLocality.FD_EN_NAME, getString("Peking"));
 
             // Location
             jsonGenerator.writeFieldName(Locality.fnLocation);
