@@ -51,6 +51,8 @@ public class Reference extends AizouBaseEntity {
 
     private String zhName;
 
+    private String enName;
+
     private List<ImageItem> images;
 
     private String itemType;
@@ -95,5 +97,13 @@ public class Reference extends AizouBaseEntity {
 
     public void setIsAbroad(Boolean isAbroad) {
         this.isAbroad = isAbroad;
+    }
+
+    public String getEnName() {
+        return enName;
+    }
+
+    public void setEnName(String enName) {
+        this.enName = enName;
     }
 }

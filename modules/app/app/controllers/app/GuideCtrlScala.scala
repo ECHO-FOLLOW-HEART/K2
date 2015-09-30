@@ -2,7 +2,7 @@ package controllers.app
 
 import java.util
 
-import api.{ MiscAPI, UserUgcAPI, GuideAPI }
+import api.{ GeoAPI, MiscAPI, UserUgcAPI, GuideAPI }
 import api.GuideAPI.GuideProps
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.twitter.util.{ Future => TwitterFuture }
@@ -91,11 +91,14 @@ object GuideCtrlScala extends Controller {
         val guideFormatter = FormatterFactory.getInstance(classOf[GuideTemplateFormatter], java.lang.Integer.valueOf(200))
         val future = for {
           guideTemp <- GuideAPI.getTempGuide(new ObjectId(locId))
+          loc <- GeoAPI.getLocalityByIds(Seq(new ObjectId(locId)))
         } yield {
           if (guideTemp isEmpty)
             K2Result.notFound(ErrorCode.DATA_NOT_FOUND, "Guide not exists.")
           else {
-            val node = guideFormatter.formatNode(util.Arrays.asList(guideTemp.get))
+            val guideT = guideTemp.get
+            guideT.localities = loc
+            val node = guideFormatter.formatNode(util.Arrays.asList(guideT))
             Utils.status(node.toString).toScala
           }
         }

@@ -368,7 +368,7 @@ public class MiscCtrl extends Controller {
         String scope, callbackUrl;
         if (scenario.equals("portrait") || scenario.equals("album")) {
             scope = qiniu.get("taoziAvaterScope").toString();
-            String hostname = "api-dev.lvxingpai.com";
+            String hostname = "api.lvxingpai.com";
             String url = routes.MiscCtrl.getCallback().url();
             callbackUrl = new StringBuilder().append("http://").append(hostname).append(url).toString();
             LogUtils.info(MiscCtrl.class, "Test Upload CallBack.callbackUrl:" + callbackUrl);

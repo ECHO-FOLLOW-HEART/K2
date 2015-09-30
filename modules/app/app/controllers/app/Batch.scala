@@ -313,14 +313,14 @@ object Batch extends Controller {
     result
   }
 
-  def saveReference() = Action.async(
+  def saveReference(abroad: Boolean) = Action.async(
     block = request => {
-      val locList21 = Seq("台北", "成都", "北京")
-      val locList31 = Seq("东京", "巴黎", "纽约")
-
+      val locList21 = Seq("台北", "厦门", "北京", "三亚", "哈尔滨", "香港")
+      val locList31 = Seq("北海道", "首尔", "墨尔本", "曼谷", "巴黎", "阿姆斯特丹")
+      val re = if (abroad) locList31 else locList21
       val ds = MorphiaFactory.datastore
-      val experts = ds.createQuery(classOf[Locality]).field("zhName").in(locList31).asList()
-      val hots = experts.map(localityToRef(_))
+      val experts = ds.createQuery(classOf[Locality]).field("zhName").in(re).asList()
+      val hots = experts.map(localityToRef(_, abroad))
       ds.save(hots)
 
       Future {
@@ -328,14 +328,15 @@ object Batch extends Controller {
       }
     })
 
-  def localityToRef(loc: Locality) = {
+  def localityToRef(loc: Locality, ab: Boolean) = {
     val result = new Reference()
     result.setId(new ObjectId())
     result.setItemId(loc.getId)
     result.setItemType(Reference.TYPE_LOCALITY)
     result.setImages(util.Arrays.asList(loc.getImages.get(0)))
     result.setZhName(loc.getZhName)
-    result.setIsAbroad(false)
+    result.setEnName(loc.getEnName)
+    result.setIsAbroad(ab)
     result
   }
 

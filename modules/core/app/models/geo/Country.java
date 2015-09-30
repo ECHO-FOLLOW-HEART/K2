@@ -151,6 +151,8 @@ public class Country extends AizouBaseEntity implements ITravelPiFormatter {
     private List<String> neighbours;
 
     private Integer rank;
+
+    private Double rating;
     /**
      * 是否为热门旅游目的地国家
      */
@@ -346,6 +348,14 @@ public class Country extends AizouBaseEntity implements ITravelPiFormatter {
 
     public void setRank(Integer rank) {
         this.rank = rank;
+    }
+
+    public Double getRating() {
+        return rating;
+    }
+
+    public void setRating(Double rating) {
+        this.rating = rating;
     }
 
     @Override

@@ -68,8 +68,6 @@ PATCH         /users/$uid<\d+>                                         controlle
 #根据通讯录进行用户匹配
 POST          /users/$uid<\d+>/match                                   controllers.app.UserCtrlScala.matchAddressBook(uid: Long)
 
-#达人申请
-#POST          /users/$uid<\d+>/expert-requests                         controllers.app.UserCtrlScala.expertRequest(uid: Long)
 #搜索达人
 GET           /users/experts                                           controllers.app.UserCtrlScala.searchExpert(zone:String)
 #----------用户相册接口----------
@@ -126,7 +124,7 @@ GET           /misc/cover-stories                                      controlle
 GET           /misc/upload-tokens/:scenario                            controllers.app.MiscCtrl.putPolicy(scenario:String)
 #处理资源上传的回调
 POST          /misc/upload-callback                                    controllers.app.MiscCtrl.getCallback()
-#推荐
+#推荐（桃子旅行用）
 #GET           /misc/recommendations                                    controllers.app.MiscCtrl.recommend(page: Int?=0, pageSize: Int?=999)
 #获得版本信息
 GET           /misc/updates                                            controllers.app.MiscCtrl.getUpdates()
@@ -256,7 +254,7 @@ GET           /users/$uid<\d+>/travelnotes                             controlle
 
 GET           /createCountries                                         controllers.app.Batch.createExpertTrackByCountry()
 GET           /createTracks                                            controllers.app.Batch.userInfoToTrack()
-GET           /saveReference                                           controllers.app.Batch.saveReference()
+GET           /saveReference                                           controllers.app.Batch.saveReference(abroad:Boolean?=true)
 GET           /checkVsLocality                                         controllers.app.Batch.checkVsLocality(abroad:Boolean?=true)
 POST          /refreshExpert                                           controllers.app.Batch.refreshExpertInfo()
 
