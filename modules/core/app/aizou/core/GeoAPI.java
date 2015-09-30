@@ -141,6 +141,7 @@ public class GeoAPI {
         }
         query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         query.offset(page * pageSize).limit(pageSize);
+        query.order("-rating");
         return query.asList();
     }
 
@@ -152,7 +153,7 @@ public class GeoAPI {
         query.field(AizouBaseEntity.FD_TAOZIENA).equal(true);
         //query.order("-hotness");
         //query.offset(page * pageSize).limit(pageSize);
-        query.retrievedFields(true, AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation, Locality.fnImages);
+        query.retrievedFields(true, AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnLocation, Locality.fnImages, "rating");
         return query.asList();
     }
 }

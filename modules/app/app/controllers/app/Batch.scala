@@ -320,7 +320,7 @@ object Batch extends Controller {
       val re = if (abroad) locList31 else locList21
       val ds = MorphiaFactory.datastore
       val experts = ds.createQuery(classOf[Locality]).field("zhName").in(re).asList()
-      val hots = experts.map(localityToRef(_,abroad))
+      val hots = experts.map(localityToRef(_, abroad))
       ds.save(hots)
 
       Future {
@@ -328,7 +328,7 @@ object Batch extends Controller {
       }
     })
 
-  def localityToRef(loc: Locality,ab:Boolean) = {
+  def localityToRef(loc: Locality, ab: Boolean) = {
     val result = new Reference()
     result.setId(new ObjectId())
     result.setItemId(loc.getId)
