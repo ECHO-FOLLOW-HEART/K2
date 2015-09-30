@@ -649,6 +649,24 @@ public class MiscCtrl extends Controller {
         if (imgWidthStr != null)
             imgWidth = Integer.valueOf(imgWidthStr);
         Iterator<Locality> it;
+
+        // TODO
+        Iterator<Locality> itLoc = GeoAPI.searchLocalities(keyWord, true, null, 0, 1);
+        SimplePOIFormatter<? extends AbstractPOI> simplePOIFormatter = FormatterFactory.getInstance(SimplePOIFormatter.class, imgWidth);
+        List<AbstractPOI> resultsTemp = new LinkedList<>();
+        boolean flag = true;
+        if (itLoc.hasNext() && (restaurant || shopping)) {
+            Locality locTemp = itLoc.next();
+            Iterator<? extends AbstractPOI> itN = PoiAPI.poiSearch(restaurant ? PoiAPI.POIType.RESTAURANT : PoiAPI.POIType.SHOPPING, null,
+                    locTemp.getId(), 0d, 0d, 0d, null, 0, null, true, page, pageSize);
+            while (itN.hasNext())
+                resultsTemp.add(itN.next());
+            if (resultsTemp != null && resultsTemp.size() > 0)
+                flag = false;
+        }
+        if (!flag)
+            return Utils.createResponse(ErrorCode.NORMAL, simplePOIFormatter.formatNode(resultsTemp));
+
         if (loc) {
 
             Locality locality;
