@@ -14,10 +14,9 @@ object EsFactory {
     //      val services = backends.subKeys.toSeq map (backends.getConfig(_).get)
 
     val settings = ImmutableSettings.settingsBuilder()
-      .put("cluster.name", "es-cluster-default").build();
+      .put("cluster.name", "es-cluster-default").build()
     new TransportClient(settings)
-      .addTransportAddress(new InetSocketTransportAddress(
-        "192.168.200.3", 9311));
+      .addTransportAddress(new InetSocketTransportAddress("192.168.200.3", 9311))
   }
 
 }

@@ -1,22 +1,26 @@
 package controllers.app
 
+import aizou.core.GeoAPIScala
 import api._
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
 import com.twitter.util.{ Future => TwitterFuture }
+import exception.{ AizouException, ErrorCode }
 import formatter.FormatterFactory
 import formatter.taozi.geo.SearchLocalityFormatter
 import formatter.taozi.misc.{ ReferenceFormatter, HotSearchFormatter }
+import misc.EsFactory
 import misc.TwitterConverter._
 import models.AizouBaseEntity
-import models.geo.{ Locality, Country }
-import models.misc.Reference
-import models.poi.AbstractPOI
+import models.geo.Locality
 import org.bson.types.ObjectId
+import play.api.libs.json.{ JsPath, Reads, Json }
 import play.api.mvc.{ AnyContent, Action, Controller }
 import utils.Implicits._
 import utils.{ Result => K2Result, Utils }
-
+import play.api.libs.functional.syntax._
 import scala.collection.JavaConversions._
+import scala.concurrent.{ Future => ScalaFuture }
+import scala.concurrent.ExecutionContext.Implicits.global
 
 /**
  * Created by pengyt on 7/24/15.
@@ -87,19 +91,49 @@ object MiscCtrlScala extends Controller {
       }
   }
 
-  def search(query: String, scope: String): Action[AnyContent] = Action.async {
+  //  def search(query: String, scope: String): Action[AnyContent] = Action.async {
+  //    request =>
+  //      {
+  //        // 获取图片宽度
+  //        val imgWidthStr = request.getQueryString("imgWidth")
+  //
+  //        val imgWidth = if (imgWidthStr nonEmpty) imgWidthStr.get.toInt else 0
+  //        val future = for {
+  //          qLoc <- GeoAPI.getLocalityByNames(Seq("北京", "上海"), Seq(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME,
+  //            Locality.fnImages, Locality.fnDesc))
+  //        } yield {
+  //          val node = FormatterFactory.getInstance(classOf[SearchLocalityFormatter]).formatNode(qLoc)
+  //          Utils.status(node.toString).toScala
+  //        }
+  //        future
+  //      }
+  //  }
+  val client = EsFactory.client
+  def search(keyword: String, locality: Boolean, viewspot: Boolean, restaurant: Boolean, shopping: Boolean) = Action.async {
     request =>
       {
-        val future = for {
-          qLoc <- GeoAPI.getLocalityByNames(Seq("北京", "上海"), Seq(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME,
-            Locality.fnImages, Locality.fnDesc))
-        } yield {
-          val node = FormatterFactory.getInstance(classOf[SearchLocalityFormatter]).formatNode(qLoc)
-          Utils.status(node.toString).toScala
+        def searchResult(keyword: String, locality: Boolean, viewspot: Boolean, restaurant: Boolean, shopping: Boolean): ScalaFuture[JsonNode] = {
+          val results = new ObjectMapper().createObjectNode()
+
+          for {
+            locality <- GeoAPIScala.searchLocality(keyword)
+            viewspot <- GeoAPIScala.searchViewspot(keyword)
+            restaurant <- GeoAPIScala.searchRestaurant(keyword)
+            shopping <- GeoAPIScala.searchShopping(keyword)
+          } yield {
+            results.set("locality", locality)
+            results.set("viewspot", viewspot)
+            results.set("restaurant", restaurant)
+            results.set("shopping", shopping)
+            results
+          }
         }
-        future
+        for {
+          node <- searchResult(keyword, locality, viewspot, restaurant, shopping)
+        } yield Utils.status(node.toString).toScala
       }
   }
+  case class Image(h: Int, key: String, w: Int)
 
   /**
    * 搜索的辅助信息
