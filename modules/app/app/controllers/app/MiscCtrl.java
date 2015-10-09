@@ -77,7 +77,7 @@ public class MiscCtrl extends Controller {
                                       @Key(tag = "q") int quality, @Key(tag = "fmt") String format, int interlace)
             throws AizouException {
         Datastore ds = MorphiaFactory.datastore();
-        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE)
+        List<MiscInfo> infos = ds.createQuery(MiscInfo.class).field("key").equal(MiscInfo.FD_TAOZI_COVERSTORY_IMAGE).field("enabled").equal(MiscInfo.FD_ENABLED)
                 .asList();
         if (infos == null)
             return new TaoziResBuilder().setCode(ErrorCode.UNKOWN_ERROR)
