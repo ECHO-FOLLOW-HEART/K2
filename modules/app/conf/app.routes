@@ -204,6 +204,7 @@ GET           /geo/localities/domestic                                 controlle
 GET           /geo/localities/abroad                                   controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=true,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
 #查看目的地详情
 GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
+GET           /geo/locality/:id                                        controllers.app.GeoCtrlScala.getLocalityById(id: String)
 #查看目的地详情图集
 GET           /geo/localities/:id/albums                               controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=20)
 #查看目的地评论
