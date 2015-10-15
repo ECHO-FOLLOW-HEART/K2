@@ -5,7 +5,8 @@ import java.util.regex.Pattern
 import com.fasterxml.jackson.databind.node._
 import com.fasterxml.jackson.databind.{ ObjectMapper, JsonNode }
 import database.MorphiaFactory
-import exception.{ AizouException, ErrorCode }
+
+import formatter.taozi.misc.{ SearchTravelNoteFormatterScala }
 import misc.EsFactory
 import models.AizouBaseEntity
 import models.geo.Locality
@@ -26,214 +27,241 @@ object GeoAPIScala {
 
   val client = EsFactory.client
   case class Image(h: Int, key: String, w: Int)
-  def searchLocality(keyword: String): ScalaFuture[ArrayNode] = ScalaFuture {
-    val response = client.prepareSearch("locality")
-      .setTypes("locality")
-      .setQuery(QueryBuilders.multiMatchQuery(keyword, "country.zhName", "superAdm.zhName", "alias", "miscInfo.desc", "desc", "zhName"))
-      //      .addFields("_id", "zhName", "images")
-      .execute().actionGet()
-
-    val hits = response.getHits
+  def searchLocality(keyword: String, locality: Boolean): ScalaFuture[ArrayNode] = ScalaFuture {
     val localityArrayNode = new ObjectMapper().createArrayNode()
-    val result = for {
-      //只显示搜索结果，要显示相关的_score,需要再调用score方法
-      hit <- hits.getHits
-    } yield {
-      val jsonRes = Json.parse(hit.getSourceAsString)
+    if (locality) {
+      val response = client.prepareSearch("locality")
+        .setTypes("locality")
+        .setQuery(QueryBuilders.multiMatchQuery(keyword, "country.zhName", "superAdm.zhName", "alias", "miscInfo.desc", "desc", "zhName"))
+        //      .addFields("_id", "zhName", "images")
+        .execute().actionGet()
+      val hits = response.getHits
+      val result = for {
+        //只显示搜索结果，要显示相关的_score,需要再调用score方法
+        hit <- hits.getHits
+      } yield {
+        val jsonRes = Json.parse(hit.getSourceAsString)
+        implicit val imageReads: Reads[Image] = (
+          (JsPath \ "h").read[Int] and
+          (JsPath \ "key").read[String] and
+          (JsPath \ "w").read[Int]
+        )(Image.apply _)
 
-      implicit val imageReads: Reads[Image] = (
-        (JsPath \ "h").read[Int] and
-        (JsPath \ "key").read[String] and
-        (JsPath \ "w").read[Int]
-      )(Image.apply _)
+        val node = new ObjectMapper().createObjectNode()
+        node.put("id", hit.getId)
+        node.put("zhName", (jsonRes \ "zhName").asOpt[String] getOrElse "")
 
-      val node = new ObjectMapper().createObjectNode()
-      node.put("id", hit.getId)
-      node.put("zhName", (jsonRes \ "zhName").asOpt[String] getOrElse "")
-
-      val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
-      val imagesArrayNode = new ObjectMapper().createArrayNode()
-      imagesOpt getOrElse Seq() map (image => {
-        val imageNode = new ObjectMapper().createObjectNode()
-        imageNode.put("h", image.h)
-        imageNode.put("w", image.w)
-        imageNode.put("key", image.key)
-        imagesArrayNode.add(imageNode)
-      })
-      node.set("images", imagesArrayNode)
-      node
+        val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
+        val imagesArrayNode = new ObjectMapper().createArrayNode()
+        imagesOpt getOrElse Seq() map (image => {
+          val imageNode = new ObjectMapper().createObjectNode()
+          imageNode.put("h", image.h)
+          imageNode.put("w", image.w)
+          imageNode.put("key", image.key)
+          imagesArrayNode.add(imageNode)
+        })
+        node.set("images", imagesArrayNode)
+        node
+      }
+      for (localityNode <- result)
+        localityArrayNode.add(localityNode)
     }
-    for (localityNode <- result)
-      localityArrayNode.add(localityNode)
     localityArrayNode
   }
 
-  def searchTravelNote(keyword: String): ScalaFuture[ArrayNode] = ScalaFuture {
-
+  def searchTravelNote(keyword: String, page: Int, pageSize: Int): ScalaFuture[JsonNode] = ScalaFuture {
+    //    val includes = Seq("images", "title", "authorName", "authorAvatar").toArray
     val response = client.prepareSearch("mongo_travelnote")
       .setTypes("travelnote")
-      .setQuery(QueryBuilders.multiMatchQuery(keyword, "title", "contents"))
-      //      .addFields("_id", "authorAvatar", "authorName", "title", "summary", "publishTime", "images", "detailUrl")
+      .setQuery(
+        QueryBuilders.functionScoreQuery(
+          QueryBuilders.nestedQuery("contents",
+            QueryBuilders.boolQuery()
+              .must(QueryBuilders.matchQuery("contents.title", keyword).boost(5f))
+              .must(QueryBuilders.matchQuery("contents.content", keyword).boost(1f))),
+          ScoreFunctionBuilders.fieldValueFactorFunction("rating").missing(0.5))
+          .boostMode(CombineFunction.MULT))
+      //.addPartialField("data", includes , null)
+      .setSize(pageSize) // 一次返回n个
+      .setFrom(pageSize * (page - 1)) // 从跳过n个开始
       .execute().actionGet()
 
     val hits = response.getHits
     val travelnoteArrayNode = new ObjectMapper().createArrayNode()
-    val result = for {
+    val results = for {
       //只显示搜索结果，要显示相关的_score,需要再调用score方法
       hit <- hits.getHits
     } yield {
-      val jsonRes = Json.parse(hit.getSourceAsString)
+      //        val jsonRes = Json.parse(hit.getSourceAsString)
+      val travelnote = TravelNoteParse(hit.getSourceAsString)
+      travelnote
 
-      implicit val imageReads: Reads[Image] = (
-        (JsPath \ "h").read[Int] and
-        (JsPath \ "key").read[String] and
-        (JsPath \ "w").read[Int]
-      )(Image.apply _)
+      //        implicit val imageReads: Reads[Image] = (
+      //          (JsPath \ "h").read[Int] and
+      //          (JsPath \ "key").read[String] and
+      //          (JsPath \ "w").read[Int]
+      //        )(Image.apply _)
 
-      val node = new ObjectMapper().createObjectNode()
-      node.put("id", hit.getId)
-      node.put("authorAvatar", (jsonRes \ "authorAvatar").asOpt[String] getOrElse "")
-      node.put("authorName", (jsonRes \ "authorName").asOpt[String] getOrElse "")
-      node.put("title", (jsonRes \ "title").asOpt[String] getOrElse "")
-      node.put("summary", (jsonRes \ "summary").asOpt[String] getOrElse "")
-      node.set("publishTime", (jsonRes \ "publishTime").asOpt[Long] map LongNode.valueOf getOrElse NullNode.getInstance())
-      val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
-      val imagesArrayNode = new ObjectMapper().createArrayNode()
-      imagesOpt getOrElse Seq() map (image => {
-        val imageNode = new ObjectMapper().createObjectNode()
-        imageNode.put("h", image.h)
-        imageNode.put("w", image.w)
-        imageNode.put("key", image.key)
-        imagesArrayNode.add(imageNode)
-      })
-      node.set("images", imagesArrayNode)
-      node.put("detailUrl", (jsonRes \ "detailUrl").asOpt[String] getOrElse "")
-      node
+      //        val node = new ObjectMapper().createObjectNode()
+      //        node.put("id", hit.getId)
+      //        node.put("authorAvatar", (jsonRes \ "authorAvatar").asOpt[String] getOrElse "")
+      //        node.put("authorName", (jsonRes \ "authorName").asOpt[String] getOrElse "")
+      //        node.put("title", (jsonRes \ "title").asOpt[String] getOrElse "")
+      //        node.put("summary", (jsonRes \ "summary").asOpt[String] getOrElse "")
+      //        node.set("publishTime", (jsonRes \ "publishTime").asOpt[Long] map LongNode.valueOf getOrElse NullNode.getInstance())
+      //        val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
+      //        val imagesArrayNode = new ObjectMapper().createArrayNode()
+      //        imagesOpt getOrElse Seq() map (image => {
+      //          val imageNode = new ObjectMapper().createObjectNode()
+      //          imageNode.put("h", image.h)
+      //          imageNode.put("w", image.w)
+      //          imageNode.put("key", image.key)
+      //          imagesArrayNode.add(imageNode)
+      //        })
+      //        node.set("images", imagesArrayNode)
+      //        node.put("detailUrl", (jsonRes \ "detailUrl").asOpt[String] getOrElse "")
+      //        node
     }
-    for (travelnoteNode <- result)
-      travelnoteArrayNode.add(travelnoteNode)
-    travelnoteArrayNode
+
+    val mapper = new SearchTravelNoteFormatterScala().objectMapper
+    val data = mapper.valueToTree[JsonNode](seqAsJavaList(results.toSeq))
+
+    data
+    //    for (travelnoteNode <- result)
+    //      travelnoteArrayNode.add(travelnoteNode)
+    //    travelnoteArrayNode
   }
 
-  def searchViewspot(keyword: String): ScalaFuture[ArrayNode] = ScalaFuture {
-    val response = client.prepareSearch("viewspot")
-      .setTypes("viewspot")
-      .setQuery(QueryBuilders.multiMatchQuery(keyword, "zhName", "name", "locality.zhName", "country.zhName", "address"))
-      //      .addFields("_id", "zhName", "images", "rating", "address")
-      .execute().actionGet()
-    val hits = response.getHits
+  def searchViewspot(keyword: String, viewspot: Boolean): ScalaFuture[ArrayNode] = ScalaFuture {
     val viewspotArrayNode = new ObjectMapper().createArrayNode()
-    for {
-      //只显示搜索结果，要显示相关的_score,需要再调用score方法
-      hit <- hits.getHits
-    } yield {
-      val jsonRes = Json.parse(hit.getSourceAsString)
+    if (viewspot) {
+      val response = client.prepareSearch("viewspot")
+        .setTypes("viewspot")
+        .setQuery(QueryBuilders.multiMatchQuery(keyword, "zhName", "name", "locality.zhName", "country.zhName", "address"))
+        //      .addFields("_id", "zhName", "images", "rating", "address")
+        .execute().actionGet()
+      val hits = response.getHits
 
-      implicit val imageReads: Reads[Image] = (
-        (JsPath \ "h").read[Int] and
-        (JsPath \ "key").read[String] and
-        (JsPath \ "w").read[Int]
-      )(Image.apply _)
+      for {
+        //只显示搜索结果，要显示相关的_score,需要再调用score方法
+        hit <- hits.getHits
+      } yield {
+        val jsonRes = Json.parse(hit.getSourceAsString)
 
-      val node = new ObjectMapper().createObjectNode()
-      node.put("id", hit.getId)
-      node.put("zhName", (jsonRes \ "zhName").asOpt[String] getOrElse "")
+        implicit val imageReads: Reads[Image] = (
+          (JsPath \ "h").read[Int] and
+          (JsPath \ "key").read[String] and
+          (JsPath \ "w").read[Int]
+        )(Image.apply _)
 
-      val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
-      val imagesArrayNode = new ObjectMapper().createArrayNode()
-      imagesOpt getOrElse Seq() map (image => {
-        val imageNode = new ObjectMapper().createObjectNode()
-        imageNode.put("h", image.h)
-        imageNode.put("w", image.w)
-        imageNode.put("key", image.key)
-        imagesArrayNode.add(imageNode)
-      })
-      node.set("images", imagesArrayNode)
-      node.put("rating", (jsonRes \ "rating").asOpt[Double] getOrElse 0.0)
-      node.put("address", (jsonRes \ "address").asOpt[String] getOrElse "")
-      viewspotArrayNode.add(node)
+        val node = new ObjectMapper().createObjectNode()
+        node.put("id", hit.getId)
+        node.put("zhName", (jsonRes \ "zhName").asOpt[String] getOrElse "")
+
+        val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
+        val imagesArrayNode = new ObjectMapper().createArrayNode()
+        imagesOpt getOrElse Seq() map (image => {
+          val imageNode = new ObjectMapper().createObjectNode()
+          imageNode.put("h", image.h)
+          imageNode.put("w", image.w)
+          imageNode.put("key", image.key)
+          imagesArrayNode.add(imageNode)
+        })
+        node.set("images", imagesArrayNode)
+        node.put("rating", (jsonRes \ "rating").asOpt[Double] getOrElse 0.0)
+        node.put("address", (jsonRes \ "address").asOpt[String] getOrElse "")
+        viewspotArrayNode.add(node)
+      }
     }
     viewspotArrayNode
   }
-  def searchRestaurant(keyword: String): ScalaFuture[ArrayNode] = ScalaFuture {
-    val response = client.prepareSearch("restaurant")
-      .setTypes("restaurant")
-      .setQuery(QueryBuilders.multiMatchQuery(keyword, "style", "alias", "zhName", "address"))
-      //      .addFields("_id", "zhName", "images", "rating", "address", "style")
-      .execute().actionGet()
-    val hits = response.getHits
+
+  def searchRestaurant(keyword: String, restaurant: Boolean): ScalaFuture[ArrayNode] = ScalaFuture {
     val restaurantArrayNode = new ObjectMapper().createArrayNode()
-    for {
-      //只显示搜索结果，要显示相关的_score,需要再调用score方法
-      hit <- hits.getHits
-    } yield {
-      val jsonRes = Json.parse(hit.getSourceAsString)
+    if (restaurant) {
+      val response = client.prepareSearch("restaurant")
+        .setTypes("restaurant")
+        .setQuery(QueryBuilders.multiMatchQuery(keyword, "style", "alias", "zhName", "address"))
+        //      .addFields("_id", "zhName", "images", "rating", "address", "style")
+        .execute().actionGet()
+      val hits = response.getHits
 
-      implicit val imageReads: Reads[Image] = (
-        (JsPath \ "h").read[Int] and
-        (JsPath \ "key").read[String] and
-        (JsPath \ "w").read[Int]
-      )(Image.apply _)
+      for {
+        //只显示搜索结果，要显示相关的_score,需要再调用score方法
+        hit <- hits.getHits
+      } yield {
+        val jsonRes = Json.parse(hit.getSourceAsString)
 
-      val node = new ObjectMapper().createObjectNode()
-      node.put("id", hit.getId)
-      node.put("zhName", (jsonRes \ "zhName").asOpt[String] getOrElse "")
+        implicit val imageReads: Reads[Image] = (
+          (JsPath \ "h").read[Int] and
+          (JsPath \ "key").read[String] and
+          (JsPath \ "w").read[Int]
+        )(Image.apply _)
 
-      val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
-      val imagesArrayNode = new ObjectMapper().createArrayNode()
-      imagesOpt getOrElse Seq() map (image => {
-        val imageNode = new ObjectMapper().createObjectNode()
-        imageNode.put("h", image.h)
-        imageNode.put("w", image.w)
-        imageNode.put("key", image.key)
-        imagesArrayNode.add(imageNode)
-      })
-      node.set("images", imagesArrayNode)
-      node.put("rating", (jsonRes \ "rating").asOpt[Double] getOrElse 0.0)
-      node.put("address", (jsonRes \ "address").asOpt[String] getOrElse "")
-      node.put("style", (jsonRes \ "style").asOpt[String] getOrElse "")
-      restaurantArrayNode.add(node)
+        val node = new ObjectMapper().createObjectNode()
+        node.put("id", hit.getId)
+        node.put("zhName", (jsonRes \ "zhName").asOpt[String] getOrElse "")
+
+        val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
+        val imagesArrayNode = new ObjectMapper().createArrayNode()
+        imagesOpt getOrElse Seq() map (image => {
+          val imageNode = new ObjectMapper().createObjectNode()
+          imageNode.put("h", image.h)
+          imageNode.put("w", image.w)
+          imageNode.put("key", image.key)
+          imagesArrayNode.add(imageNode)
+        })
+        node.set("images", imagesArrayNode)
+        node.put("rating", (jsonRes \ "rating").asOpt[Double] getOrElse 0.0)
+        node.put("address", (jsonRes \ "address").asOpt[String] getOrElse "")
+        node.put("style", (jsonRes \ "style").asOpt[String] getOrElse "")
+        restaurantArrayNode.add(node)
+      }
     }
     restaurantArrayNode
   }
-  def searchShopping(keyword: String): ScalaFuture[ArrayNode] = ScalaFuture {
-    val response = client.prepareSearch("shopping")
-      .setTypes("shopping")
-      .setQuery(QueryBuilders.multiMatchQuery(keyword, "style", "alias", "country.zhName", "locality.zhName", "zhName", "address", "tags"))
-      //      .addFields("_id", "zhName", "images", "rating", "address", "style")
-      .execute().actionGet()
-    val hits = response.getHits
+
+  def searchShopping(keyword: String, shopping: Boolean): ScalaFuture[ArrayNode] = ScalaFuture {
     val shoppingArrayNode = new ObjectMapper().createArrayNode()
-    for {
-      //只显示搜索结果，要显示相关的_score,需要再调用score方法
-      hit <- hits.getHits
-    } yield {
-      val jsonRes = Json.parse(hit.getSourceAsString)
+    if (shopping) {
+      val response = client.prepareSearch("shopping")
+        .setTypes("shopping")
+        .setQuery(QueryBuilders.multiMatchQuery(keyword, "style", "alias", "country.zhName", "locality.zhName", "zhName", "address", "tags"))
+        //      .addFields("_id", "zhName", "images", "rating", "address", "style")
+        .execute().actionGet()
+      val hits = response.getHits
 
-      implicit val imageReads: Reads[Image] = (
-        (JsPath \ "h").read[Int] and
-        (JsPath \ "key").read[String] and
-        (JsPath \ "w").read[Int]
-      )(Image.apply _)
+      for {
+        //只显示搜索结果，要显示相关的_score,需要再调用score方法
+        hit <- hits.getHits
+      } yield {
+        val jsonRes = Json.parse(hit.getSourceAsString)
 
-      val node = new ObjectMapper().createObjectNode()
-      node.put("id", hit.getId)
-      node.put("zhName", (jsonRes \ "zhName").asOpt[String] getOrElse "")
+        implicit val imageReads: Reads[Image] = (
+          (JsPath \ "h").read[Int] and
+          (JsPath \ "key").read[String] and
+          (JsPath \ "w").read[Int]
+        )(Image.apply _)
 
-      val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
-      val imagesArrayNode = new ObjectMapper().createArrayNode()
-      imagesOpt getOrElse Seq() map (image => {
-        val imageNode = new ObjectMapper().createObjectNode()
-        imageNode.put("h", image.h)
-        imageNode.put("w", image.w)
-        imageNode.put("key", image.key)
-        imagesArrayNode.add(imageNode)
-      })
-      node.set("images", imagesArrayNode)
-      node.put("rating", (jsonRes \ "rating").asOpt[Double] getOrElse 0.0)
-      node.put("address", (jsonRes \ "address").asOpt[String] getOrElse "")
-      node.put("style", (jsonRes \ "style").asOpt[String] getOrElse "")
-      shoppingArrayNode.add(node)
+        val node = new ObjectMapper().createObjectNode()
+        node.put("id", hit.getId)
+        node.put("zhName", (jsonRes \ "zhName").asOpt[String] getOrElse "")
+
+        val imagesOpt = (JsPath \ "images").read[Seq[Image]].reads(jsonRes).asOpt
+        val imagesArrayNode = new ObjectMapper().createArrayNode()
+        imagesOpt getOrElse Seq() map (image => {
+          val imageNode = new ObjectMapper().createObjectNode()
+          imageNode.put("h", image.h)
+          imageNode.put("w", image.w)
+          imageNode.put("key", image.key)
+          imagesArrayNode.add(imageNode)
+        })
+        node.set("images", imagesArrayNode)
+        node.put("rating", (jsonRes \ "rating").asOpt[Double] getOrElse 0.0)
+        node.put("address", (jsonRes \ "address").asOpt[String] getOrElse "")
+        node.put("style", (jsonRes \ "style").asOpt[String] getOrElse "")
+        shoppingArrayNode.add(node)
+      }
     }
     shoppingArrayNode
   }
@@ -340,4 +368,5 @@ object GeoAPIScala {
 
     result.toSeq
   }
+
 }

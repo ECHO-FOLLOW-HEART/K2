@@ -116,15 +116,15 @@ object MiscCtrlScala extends Controller {
           val results = new ObjectMapper().createObjectNode()
 
           for {
-            locality <- GeoAPIScala.searchLocality(keyword)
-            viewspot <- GeoAPIScala.searchViewspot(keyword)
-            restaurant <- GeoAPIScala.searchRestaurant(keyword)
-            shopping <- GeoAPIScala.searchShopping(keyword)
+            localityIns <- GeoAPIScala.searchLocality(keyword, locality)
+            viewspotIns <- GeoAPIScala.searchViewspot(keyword, viewspot)
+            restaurantIns <- GeoAPIScala.searchRestaurant(keyword, restaurant)
+            shoppingIns <- GeoAPIScala.searchShopping(keyword, shopping)
           } yield {
-            results.set("locality", locality)
-            results.set("viewspot", viewspot)
-            results.set("restaurant", restaurant)
-            results.set("shopping", shopping)
+            results.set("locality", localityIns)
+            results.set("viewspot", viewspotIns)
+            results.set("restaurant", restaurantIns)
+            results.set("shopping", shoppingIns)
             results
           }
         }
@@ -148,7 +148,7 @@ object MiscCtrlScala extends Controller {
           qLoc <- GeoAPI.getLocalityByNames(Seq(query), Seq(AizouBaseEntity.FD_ID, Locality.FD_ZH_NAME,
             Locality.fnDinningIntro, Locality.fnShoppingIntro))
         } yield {
-          val node = (new ObjectMapper()).createObjectNode()
+          val node = new ObjectMapper().createObjectNode()
           if (qLoc nonEmpty) {
             node.put("itemType", "locality")
             val loc = qLoc.get(0)

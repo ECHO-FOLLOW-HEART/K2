@@ -143,7 +143,7 @@ POST          /misc/expert-requests                                    controlle
 #搜索
 #GET           /search                                                  controllers.app.MiscCtrl.search(keyword: String,locId: String?="",loc:Boolean?=false,vs:Boolean?=false,hotel:Boolean?=false,restaurant:Boolean?=false,shopping:Boolean?=false,page:Int?=0,pageSize:Int?=5)
 #GET           /newSearch                                               controllers.app.MiscCtrlScala.search(query:String,scope:String)
-GET           /search                                              controllers.app.MiscCtrlScala.search(keyword: String, locality:Boolean?=false, viewspot:Boolean?=false, restaurant:Boolean?=false, shopping:Boolean?=false)
+GET           /search                                                  controllers.app.MiscCtrlScala.search(keyword: String, locality:Boolean?=false, viewspot:Boolean?=false, restaurant:Boolean?=false, shopping:Boolean?=false)
 #搜索的辅助信息
 GET           /search/ancillary-info                                   controllers.app.MiscCtrlScala.searchAncInfo(query:String,scope:String)
 #提示
@@ -249,7 +249,8 @@ GET           /eula                                                    controlle
 #公司介绍(H5)
 GET           /about                                                   controllers.app.MiscCtrlScala.about(version: String?="2.0")
 #更多精选游记
-GET           /travelnotes                                             controllers.app.TravelNoteCtrl.searchTravelNotes(query: String?="", locality: String?="", page: Int?=0, pageSize: Int?=10)
+GET           /travelnotes                                             controllers.app.TravelNoteCtrlScala.searchTravelNotes(query: String?="", page: Int?=0, pageSize: Int?=10)
+#GET           /travelnotes                                             controllers.app.TravelNoteCtrl.searchTravelNotes(query: String?="", locality: String?="", page: Int?=0, pageSize: Int?=10)
 #返回单篇游记详情(H5)
 GET           /travelnotes/$id<[0-9a-f]{24}>                           controllers.app.TravelNoteCtrl.travelNoteDetail(id:String)
 #获取用户的游记
