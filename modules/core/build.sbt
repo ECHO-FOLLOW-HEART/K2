@@ -34,9 +34,13 @@ libraryDependencies ++= Seq(
   "com.twitter" %% "finagle-core" % finagleVersion,
   "com.twitter" %% "finagle-thrift" % finagleVersion,
   "com.twitter" %% "finagle-thriftmux" % finagleVersion,
-  "com.twitter" %% "scrooge-core" % "3.19.0"
+  "com.twitter" %% "scrooge-core" % "3.19.0",
+  "com.typesafe.play.modules" %% "play-modules-redis" % "2.4.0"
   //  "commons-logging" % "commons-logging" % "1.2"
 )
+
+// to resolve Sedis for play-modules-redis 2.4.0
+resolvers += "google-sedis-fix" at "http://pk11-scratch.googlecode.com/svn/trunk"
 
 com.twitter.scrooge.ScroogeSBT.newSettings
 
