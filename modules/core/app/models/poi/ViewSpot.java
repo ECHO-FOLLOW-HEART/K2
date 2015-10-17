@@ -3,13 +3,16 @@ package models.poi;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mongodb.BasicDBObjectBuilder;
-import models.misc.Description;
+import models.misc.ImageItem;
 import org.mongodb.morphia.annotations.Embedded;
 import org.mongodb.morphia.annotations.Transient;
 import play.libs.Json;
 import utils.DataFilter;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -77,8 +80,19 @@ public class ViewSpot extends AbstractPOI {
     @Transient
     private String kengdieUrl;
 
+    public ViewSpot() {
+    }
+
     public String getZhName() {
         return zhName;
+    }
+
+    public void setZhName(String zhName) {
+        this.zhName = zhName;
+    }
+
+    public void setImages(List<ImageItem> images) {
+        this.images = images;
     }
 
     public List<String> getAlias() {

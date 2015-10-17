@@ -6,8 +6,9 @@ import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
 import com.twitter.util.{ Future => TwitterFuture }
 import exception.{ AizouException, ErrorCode }
 import formatter.FormatterFactory
-import formatter.taozi.geo.SearchLocalityFormatter
+import formatter.taozi.geo.{ SearchLocalityFormatterScala, SearchLocalityFormatter }
 import formatter.taozi.misc.{ ReferenceFormatter, HotSearchFormatter }
+import formatter.taozi.poi.{ SearchShoppingFormatterScala, SearchRestaurantFormatterScala, SearchViewSpotFormatterScala }
 import misc.EsFactory
 import misc.TwitterConverter._
 import models.AizouBaseEntity
@@ -109,22 +110,38 @@ object MiscCtrlScala extends Controller {
   //      }
   //  }
   val client = EsFactory.client
-  def search(keyword: String, locality: Boolean, viewspot: Boolean, restaurant: Boolean, shopping: Boolean) = Action.async {
+  def search(keyword: String, locality: Boolean, viewspot: Boolean, restaurant: Boolean, shopping: Boolean, page: Int, pageSize: Int) = Action.async {
     request =>
       {
         def searchResult(keyword: String, locality: Boolean, viewspot: Boolean, restaurant: Boolean, shopping: Boolean): ScalaFuture[JsonNode] = {
           val results = new ObjectMapper().createObjectNode()
 
           for {
-            localityIns <- GeoAPIScala.searchLocality(keyword, locality)
-            viewspotIns <- GeoAPIScala.searchViewspot(keyword, viewspot)
-            restaurantIns <- GeoAPIScala.searchRestaurant(keyword, restaurant)
-            shoppingIns <- GeoAPIScala.searchShopping(keyword, shopping)
+            localityIns <- GeoAPIScala.searchLocality(keyword, locality, page, pageSize)
+            viewspotIns <- GeoAPIScala.searchViewspot(keyword, viewspot, page, pageSize)
+            restaurantIns <- GeoAPIScala.searchRestaurant(keyword, restaurant, page, pageSize)
+            shoppingIns <- GeoAPIScala.searchShopping(keyword, shopping, page, pageSize)
           } yield {
-            results.set("locality", localityIns)
-            results.set("viewspot", viewspotIns)
-            results.set("restaurant", restaurantIns)
-            results.set("shopping", shoppingIns)
+            if (localityIns nonEmpty) {
+              val mapper = new SearchLocalityFormatterScala().objectMapper
+              val localityNode = mapper.valueToTree[JsonNode](localityIns)
+              results.set("locality", localityNode)
+            }
+            if (viewspotIns nonEmpty) {
+              val mapper = new SearchViewSpotFormatterScala().objectMapper
+              val viewspotNode = mapper.valueToTree[JsonNode](viewspotIns)
+              results.set("viewspot", viewspotNode)
+            }
+            if (restaurantIns nonEmpty) {
+              val mapper = new SearchRestaurantFormatterScala().objectMapper
+              val restaurantNode = mapper.valueToTree[JsonNode](restaurantIns)
+              results.set("restaurant", restaurantNode)
+            }
+            if (shoppingIns nonEmpty) {
+              val mapper = new SearchShoppingFormatterScala().objectMapper
+              val shoppingNode = mapper.valueToTree[JsonNode](shoppingIns)
+              results.set("shopping", shoppingNode)
+            }
             results
           }
         }
@@ -133,7 +150,6 @@ object MiscCtrlScala extends Controller {
         } yield Utils.status(node.toString).toScala
       }
   }
-  case class Image(h: Int, key: String, w: Int)
 
   /**
    * 搜索的辅助信息

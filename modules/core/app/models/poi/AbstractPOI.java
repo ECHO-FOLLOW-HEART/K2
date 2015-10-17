@@ -394,9 +394,20 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
         this.hotness = hotness;
     }
 
+    public String getZhName() {
+        return zhName;
+    }
 
     public String getGuideUrl() {
         return guideUrl;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getDesc() {

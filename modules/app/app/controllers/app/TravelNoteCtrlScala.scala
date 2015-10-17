@@ -4,9 +4,9 @@ import aizou.core.GeoAPIScala
 import api.{ TravelNoteAPI, UserAPI }
 import com.twitter.util.{ Future => TwitterFuture }
 import scala.concurrent.{ Future => ScalaFuture }
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{ JsonNode, ObjectMapper }
 import formatter.FormatterFactory
-import formatter.taozi.misc.TravelNoteFormatter
+import formatter.taozi.misc.{ SearchTravelNoteFormatterScala, TravelNoteFormatter }
 import misc.TwitterConverter._
 import models.user.ExpertInfo
 import play.api.mvc.{ Action, Controller }
@@ -37,6 +37,10 @@ object TravelNoteCtrlScala extends Controller {
     request => {
       for {
         travelNotes <- GeoAPIScala.searchTravelNote(query, page, pageSize)
-      } yield Utils.status(travelNotes.toString).toScala
+      } yield {
+        val mapper = new SearchTravelNoteFormatterScala().objectMapper
+        val data = mapper.valueToTree[JsonNode](travelNotes)
+        Utils.status(data.toString).toScala
+      }
     })
 }
