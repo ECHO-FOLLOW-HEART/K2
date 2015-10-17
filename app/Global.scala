@@ -1,4 +1,5 @@
 import _root_.cache.GeoCache
+import com.google.inject.{ Guice, AbstractModule }
 import play.api._
 
 /**
@@ -7,12 +8,10 @@ import play.api._
 object Global extends GlobalSettings {
 
   override def onStart(app: Application) {
-    GeoCache.saveLocalities()
     Logger.info("Application has started")
   }
 
   override def onStop(app: Application) {
-
     Logger.info("Application shutdown...")
   }
 

@@ -251,3 +251,5 @@ POST          /refreshExpert                                           controlle
 
 
 GET           /expertInfo/zone                                         controllers.app.Batch.updateExpertInfo()
+
+GET           /test                                                    @controllers.app.CacheCtrl.getLocality()
