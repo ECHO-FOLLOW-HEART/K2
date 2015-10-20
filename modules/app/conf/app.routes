@@ -203,11 +203,9 @@ GET           /geo/countries                                           controlle
 #获得国家达人列表
 #Deprecated
 GET           /geo/countries/:code/expert                              controllers.app.UserUgcCtrl.getExpertUserByTracks(code:String)
-#展示国内目的地
-GET           /geo/localities/domestic                                 controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
-#展示国外目的地
-GET           /geo/localities/abroad                                   controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean=true,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
-#展示国内目的地
+#展示目的地
+GET           /geo/localities                                          controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean?=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
+#展示推荐目的地
 GET           /geo/localities/recommendations                          controllers.app.MiscCtrlScala.getRmd(itemType: String="locality",abroad: Boolean?=false)
 #查看目的地详情
 GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
