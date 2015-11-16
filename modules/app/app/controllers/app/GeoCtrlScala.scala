@@ -15,6 +15,12 @@ import utils.Utils
  */
 object GeoCtrlScala extends Controller {
 
+  /**
+   * 查看有达人的国家
+   *
+   * @param withExperts
+   * @return
+   */
   def getCountryExperts(withExperts: Boolean) = Action.async(
     request => {
       val formatter = FormatterFactory.getInstance(classOf[CountryExpertFormatter])
@@ -24,5 +30,19 @@ object GeoCtrlScala extends Controller {
         val node = formatter.formatNode(countryExperts).asInstanceOf[ArrayNode]
         Utils.status(node.toString).toScala
       }
-    })
+    }
+  )
+
+  def getCountriesByContinent(withExperts: Boolean) = Action.async(
+    request => {
+      val formatter = FormatterFactory.getInstance(classOf[CountryExpertFormatter])
+      for {
+        countryExperts <- GeoAPI.getCountryExperts()
+      } yield {
+        val node = formatter.formatNode(countryExperts).asInstanceOf[ArrayNode]
+        Utils.status(node.toString).toScala
+      }
+    }
+  )
+
 }

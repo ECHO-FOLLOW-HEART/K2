@@ -30,7 +30,6 @@ object GeoAPI {
     }
   }
 
-  // TODO 处理Fields的问题
   def getCountryByNames(names: Seq[String], fields: Seq[String] = Seq())(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Country]] = {
     futurePool {
       if (names == null || names.isEmpty)
@@ -53,7 +52,6 @@ object GeoAPI {
     }
   }
 
-  // TODO 处理fields
   def getLocalityByNames(names: Seq[String], fields: Seq[String] = Seq())(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Locality]] = {
     futurePool {
       if (names == null || names.isEmpty)
