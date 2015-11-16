@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
 import models.geo.Continent;
 import models.geo.Country;
-import models.geo.Locality;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import utils.TaoziDataFilter;
@@ -38,6 +37,7 @@ public class SimpleCountrySerializer extends AizouSerializer<Country> {
         jgen.writeStringField("zhName", getString(country.getZhName()));
         jgen.writeStringField("enName", getString(country.getEnName()));
         jgen.writeStringField("code", getString(country.getCode()));
+        jgen.writeNumberField("rank", country.getRank() == null ? 100 : country.getRank());
 
         jgen.writeFieldName("continents");
         String code = country.getContCode();

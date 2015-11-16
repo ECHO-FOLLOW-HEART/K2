@@ -203,7 +203,7 @@ GET           /guides/locality/:id/:part                               controlle
 #国家详情
 GET           /geo/countries/$id<[0-9a-f]{24}>                         controllers.app.GeoCtrl.getCountyById(id: String)
 #获得国家列表
-#GET           /geo/countries                                           controllers.app.GeoCtrlScala.getCountryExperts(withExperts:Boolean=true)
+GET           /geo/countries                                           controllers.app.GeoCtrlScala.getCountriesByContinent(contCode:String)
 #展示目的地
 GET           /geo/localities                                          controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean?=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
 #展示推荐目的地

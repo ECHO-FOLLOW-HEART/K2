@@ -3,7 +3,9 @@ package controllers.app
 import api.GeoAPI
 import com.fasterxml.jackson.databind.node.ArrayNode
 import formatter.FormatterFactory
-import formatter.taozi.geo.CountryExpertFormatter
+import formatter.taozi.geo.{ SimpleCountryFormatter, CountryExpertFormatter }
+import models.AizouBaseEntity
+import models.geo.Country
 import play.api.mvc.{ Action, Controller }
 import scala.collection.JavaConversions._
 import misc.TwitterConverter._
@@ -33,11 +35,12 @@ object GeoCtrlScala extends Controller {
     }
   )
 
-  def getCountriesByContinent(withExperts: Boolean) = Action.async(
+  def getCountriesByContinent(contCode: String) = Action.async(
     request => {
-      val formatter = FormatterFactory.getInstance(classOf[CountryExpertFormatter])
+      val formatter = FormatterFactory.getInstance(classOf[SimpleCountryFormatter])
+      val fields = Seq(AizouBaseEntity.FD_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME, Country.fnDesc, Country.fnCode, Country.fnImages)
       for {
-        countryExperts <- GeoAPI.getCountryExperts()
+        countryExperts <- GeoAPI.getCountryByContCode(contCode, fields)
       } yield {
         val node = formatter.formatNode(countryExperts).asInstanceOf[ArrayNode]
         Utils.status(node.toString).toScala

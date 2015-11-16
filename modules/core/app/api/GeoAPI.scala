@@ -41,6 +41,17 @@ object GeoAPI {
     }
   }
 
+  def getCountryByContCode(contCode: String, fields: Seq[String] = Seq())(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Country]] = {
+    futurePool {
+      if (contCode == null)
+        Seq()
+      else {
+        val query = ds.createQuery(classOf[Country]).field(Country.fnContCode).equal(contCode) //.retrievedFields(true, fields: _*)
+        (if (fields nonEmpty) query.retrievedFields(true, fields: _*) else query).asList()
+      }
+    }
+  }
+
   def getCountryByIds(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Future[Seq[Country]] = {
     futurePool {
       if (ids == null || ids.isEmpty)

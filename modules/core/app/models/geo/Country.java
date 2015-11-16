@@ -52,6 +52,9 @@ public class Country extends AizouBaseEntity implements ITravelPiFormatter {
     public static String fnImages = "images";
 
     @Transient
+    public static String fnContCode = "contCode";
+
+    @Transient
     public static String fnDesc = "desc";
     /**
      * FIPS国家代码
