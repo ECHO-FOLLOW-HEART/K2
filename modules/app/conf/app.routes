@@ -203,13 +203,15 @@ GET           /guides/locality/:id/:part                               controlle
 #国家详情
 GET           /geo/countries/$id<[0-9a-f]{24}>                         controllers.app.GeoCtrl.getCountyById(id: String)
 #获得国家列表
-GET           /geo/countries                                           controllers.app.GeoCtrlScala.getCountriesByContinent(contCode:String)
+GET           /geo/countries                                           controllers.app.GeoCtrlScala.getCountriesByContinent(continentCode:String)
 #展示目的地
-GET           /geo/localities                                          controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean?=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
+#GET           /geo/localities                                          controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean?=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
+GET           /geo/localities                                          controllers.app.GeoCtrlScala.getLocalitiesByCountry(countryId:String)
 #展示推荐目的地
 #GET           /geo/localities/recommendations                          controllers.app.MiscCtrlScala.getRmd(itemType: String="locality",abroad: Boolean?=false)
 #查看目的地详情
-GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
+#GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
+GET           /geo/localities/:id                                      controllers.app.GeoCtrlScala.getLocality(id: String)
 #查看目的地详情图集
 GET           /geo/localities/:id/albums                               controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=20)
 #查看目的地攻略

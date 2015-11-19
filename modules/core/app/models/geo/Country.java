@@ -157,7 +157,7 @@ public class Country extends AizouBaseEntity implements ITravelPiFormatter {
 
     private Double rating;
     /**
-     * 是否为热门旅游目的地国家
+     * 热门推荐地国家
      */
     private Boolean isHot;
 

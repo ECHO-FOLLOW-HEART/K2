@@ -4,10 +4,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
-import models.geo.Continent;
 import models.geo.Country;
 import models.misc.ImageItem;
-import org.bson.types.ObjectId;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
@@ -39,24 +37,26 @@ public class SimpleCountrySerializer extends AizouSerializer<Country> {
         jgen.writeStringField("code", getString(country.getCode()));
         jgen.writeNumberField("rank", country.getRank() == null ? 100 : country.getRank());
 
-        jgen.writeFieldName("continents");
-        String code = country.getContCode();
-        String zhCont = country.getZhCont();
-        String enCont = country.getEnCont();
-        Continent continent = new Continent();
-        continent.setId(new ObjectId());
-        continent.setCode(code);
-        continent.setZhName(zhCont);
-        continent.setEnName(enCont);
-        JsonSerializer<Object> retContinent;
-        if (code != null && zhCont != null && enCont != null) {
-            retContinent = serializerProvider.findValueSerializer(Continent.class, null);
-            retContinent.serialize(continent, jgen, serializerProvider);
-        } else {
-            retContinent = serializerProvider.findNullValueSerializer(null);
-            retContinent.serialize(continent, jgen, serializerProvider);
-        }
+//        jgen.writeFieldName("continents");
+//        String code = country.getContCode();
+//        String zhCont = country.getZhCont();
+//        String enCont = country.getEnCont();
+//        Continent continent = new Continent();
+//        continent.setId(new ObjectId());
+//        continent.setCode(code);
+//        continent.setZhName(zhCont);
+//        continent.setEnName(enCont);
+//        JsonSerializer<Object> retContinent;
+//        if (code != null && zhCont != null && enCont != null) {
+//            retContinent = serializerProvider.findValueSerializer(Continent.class, null);
+//            retContinent.serialize(continent, jgen, serializerProvider);
+//        } else {
+//            retContinent = serializerProvider.findNullValueSerializer(null);
+//            retContinent.serialize(continent, jgen, serializerProvider);
+//        }
 
+        // TODO 商品数量
+        jgen.writeNumberField("commodityCnt", 0);
 //        jgen.writeStringField("code", getString(country.getCode()).toUpperCase());
 //        jgen.writeStringField("desc", getString(country.getDesc()));
 
