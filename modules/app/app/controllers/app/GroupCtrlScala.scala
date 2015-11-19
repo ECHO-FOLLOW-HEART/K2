@@ -158,8 +158,7 @@ object GroupCtrlScala extends Controller {
           })
           val node = formatter.formatNode(usersList).asInstanceOf[ArrayNode]
           Utils.status(node.toString).toScala
-        })
-        ) rescue {
+        })) rescue {
           case _: NotFoundException =>
             Future {
               Utils.status((new ObjectMapper().createArrayNode()).toString).toScala

@@ -214,9 +214,7 @@ object UserCtrlScala extends Controller {
 
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
-  }
-
-  )
+  })
 
   /**
    * 设置badge值
@@ -764,8 +762,10 @@ object UserCtrlScala extends Controller {
     }) getOrElse TwitterFuture(None)
 
     // 通过其它字段进行搜索
-    val queryMap: Map[UserInfoProp, String] = Map(UserInfoProp.Tel -> querySet._1,
-      UserInfoProp.NickName -> querySet._2) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
+    val queryMap: Map[UserInfoProp, String] = Map(
+      UserInfoProp.Tel -> querySet._1,
+      UserInfoProp.NickName -> querySet._2
+    ) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
     val future2 = FinagleFactory.client.searchUserInfo(queryMap, Some(basicUserInfoFieds), None, None)
 
     val ret = for {

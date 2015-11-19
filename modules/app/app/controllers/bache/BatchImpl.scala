@@ -82,7 +82,8 @@ object BatchImpl {
       query.field(AbstractPOI.simplocList).notEqual(null).field("zhName").in(Seq("格兰维尔岛", "好运岛和帕斯巨石公园"))
       query.or(
         query.criteria("country").notEqual(null).criteria("country.id").notEqual(new ObjectId("5434d70e10114e684bb1b4ee")),
-        query.criteria(AbstractPOI.simplocList).notEqual(null).criteria("locList.id").notEqual(new ObjectId("5434d70e10114e684bb1b4ee")))
+        query.criteria(AbstractPOI.simplocList).notEqual(null).criteria("locList.id").notEqual(new ObjectId("5434d70e10114e684bb1b4ee"))
+      )
       //query.field("country").notEqual(null).field("country.zhName").notEqual("中国").field(AbstractPOI.simplocList).notEqual(null)
     }
 

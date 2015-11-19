@@ -77,16 +77,16 @@ object Batch extends Controller {
       for {
         countries <- BatchImpl.getCountriesByNames(Seq("日本", "韩国", "中国", "泰国", "马来西亚", "新加坡", "印度尼西亚", "越南",
           "斯里兰卡", "阿联酋", "尼泊尔", "柬埔寨", "法国", "希腊", "意大利", "瑞士", "美国", "英国", "西班牙",
-          "智利", "阿根廷", "巴西", "新西兰", "澳大利亚", "加拿大", "墨西哥", "马尔代夫", "丹麦", "芬兰"
-        //"毛里求斯", "塞舌尔", "肯尼亚", "南非", "埃及", "卢森堡", "瑞典",
-        //"葡萄牙", "比利时", "奥地利", "挪威", "土耳其", "荷兰", "俄罗斯", "德国"
-        ), 0, 999)
+          "智利", "阿根廷", "巴西", "新西兰", "澳大利亚", "加拿大", "墨西哥", "马尔代夫", "丹麦", "芬兰" //"毛里求斯", "塞舌尔", "肯尼亚", "南非", "埃及", "卢森堡", "瑞典",
+          //"葡萄牙", "比利时", "奥地利", "挪威", "土耳其", "荷兰", "俄罗斯", "德国"
+          ), 0, 999)
       } yield {
         val node = formatter.formatNode(countries).asInstanceOf[ArrayNode]
         dealWithCountries(countries)
         Utils.status(node.toString).toScala
       }
-    })
+    }
+  )
 
   def dealWithCountries(countries: Seq[Country]): Unit = {
     //    val config: Configuration = Configuration.root
@@ -250,32 +250,34 @@ object Batch extends Controller {
       Future {
         Utils.status("success").toScala
       }
-    })
+    }
+  )
 
   def saveHotResearch() = Action.async(
     block = request => {
-      val locList21 = Seq("台北", "成都", "巴黎", "威尼斯", "广州", "清迈", "北京", "东京", "新奥尔良", "西安")
-      val locList31 = Seq("香港", "上海", "新加坡", "东京", "巴黎", "纽约", "迪拜", "伦敦", "三亚", "冲绳")
-      val locList41 = Seq("丽江", "三亚", "厦门", "马尔代夫", "拉斯维加斯", "威尼斯", "巴厘岛", "开罗", "普罗旺斯", "布拉格")
-      val locList51 = Seq("北京", "巴黎", "京都", "拉萨", "洛杉矶", "曼德勒", "棉开堡", "夏威夷", "首尔", "北海道")
-      val query12 = Seq("北海道", "香格里拉", "台北", "阿姆斯特丹", "日惹", "冲绳", "巴厘岛", "首尔", "厦门", "清迈")
-      val query22 = Seq("仙踪林", "全聚德", "满记甜品", "东来顺", "哈根达斯", "小南国", "星巴克", "外婆家")
-      val query32 = Seq("老佛爷", "王府井", "DFS", "周大福", "铜锣湾", "乐天玛特", "银座", "南京路", "春熙路")
-      val query42 = Seq("兵马俑", "黄山", "九寨沟", "布达拉宫", "长城", "鼓浪屿", "泰姬陵", "埃菲尔铁搭", "泰山", "迪士尼")
-      val query52 = Seq("伊犁", "苏梅岛", "额济纳旗", "沙坡头", "稻城", "舟山", "张家界", "北海", "帕劳", "贝加尔湖")
-      val style23 = Seq("烤鸭", "日本料理", "烤肉", "韩国料理", "法国菜", "意大利菜", "海鲜", "咖啡", "火锅")
-      val style33 = Seq("化妆品", "首饰", "钟表", "特色", "品牌专卖", "服饰", "家具家居", "母婴儿童", "药店")
+    val locList21 = Seq("台北", "成都", "巴黎", "威尼斯", "广州", "清迈", "北京", "东京", "新奥尔良", "西安")
+    val locList31 = Seq("香港", "上海", "新加坡", "东京", "巴黎", "纽约", "迪拜", "伦敦", "三亚", "冲绳")
+    val locList41 = Seq("丽江", "三亚", "厦门", "马尔代夫", "拉斯维加斯", "威尼斯", "巴厘岛", "开罗", "普罗旺斯", "布拉格")
+    val locList51 = Seq("北京", "巴黎", "京都", "拉萨", "洛杉矶", "曼德勒", "棉开堡", "夏威夷", "首尔", "北海道")
+    val query12 = Seq("北海道", "香格里拉", "台北", "阿姆斯特丹", "日惹", "冲绳", "巴厘岛", "首尔", "厦门", "清迈")
+    val query22 = Seq("仙踪林", "全聚德", "满记甜品", "东来顺", "哈根达斯", "小南国", "星巴克", "外婆家")
+    val query32 = Seq("老佛爷", "王府井", "DFS", "周大福", "铜锣湾", "乐天玛特", "银座", "南京路", "春熙路")
+    val query42 = Seq("兵马俑", "黄山", "九寨沟", "布达拉宫", "长城", "鼓浪屿", "泰姬陵", "埃菲尔铁搭", "泰山", "迪士尼")
+    val query52 = Seq("伊犁", "苏梅岛", "额济纳旗", "沙坡头", "稻城", "舟山", "张家界", "北海", "帕劳", "贝加尔湖")
+    val style23 = Seq("烤鸭", "日本料理", "烤肉", "韩国料理", "法国菜", "意大利菜", "海鲜", "咖啡", "火锅")
+    val style33 = Seq("化妆品", "首饰", "钟表", "特色", "品牌专卖", "服饰", "家具家居", "母婴儿童", "药店")
 
-      val ds = MorphiaFactory.datastore
+    val ds = MorphiaFactory.datastore
 
-      //val experts = ds.createQuery(classOf[Locality]).field("zhName").in(locList51).asList()
-      val hots = style33.map(stringTOHot(_))
-      ds.save(hots)
+    //val experts = ds.createQuery(classOf[Locality]).field("zhName").in(locList51).asList()
+    val hots = style33.map(stringTOHot(_))
+    ds.save(hots)
 
-      Future {
-        Utils.status("success").toScala
-      }
-    })
+    Future {
+      Utils.status("success").toScala
+    }
+  }
+  )
 
   def locTOHot(loc: Locality) = {
     val result = new HotSearch()
@@ -315,18 +317,19 @@ object Batch extends Controller {
 
   def saveReference(abroad: Boolean) = Action.async(
     block = request => {
-      val locList21 = Seq("台北", "厦门", "北京", "三亚", "哈尔滨", "香港")
-      val locList31 = Seq("北海道", "首尔", "墨尔本", "曼谷", "巴黎", "阿姆斯特丹")
-      val re = if (abroad) locList31 else locList21
-      val ds = MorphiaFactory.datastore
-      val experts = ds.createQuery(classOf[Locality]).field("zhName").in(re).asList()
-      val hots = experts.map(localityToRef(_, abroad))
-      ds.save(hots)
+    val locList21 = Seq("台北", "厦门", "北京", "三亚", "哈尔滨", "香港")
+    val locList31 = Seq("北海道", "首尔", "墨尔本", "曼谷", "巴黎", "阿姆斯特丹")
+    val re = if (abroad) locList31 else locList21
+    val ds = MorphiaFactory.datastore
+    val experts = ds.createQuery(classOf[Locality]).field("zhName").in(re).asList()
+    val hots = experts.map(localityToRef(_, abroad))
+    ds.save(hots)
 
-      Future {
-        Utils.status("success").toScala
-      }
-    })
+    Future {
+      Utils.status("success").toScala
+    }
+  }
+  )
 
   def localityToRef(loc: Locality, ab: Boolean) = {
     val result = new Reference()

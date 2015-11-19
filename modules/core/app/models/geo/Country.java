@@ -52,6 +52,9 @@ public class Country extends AizouBaseEntity implements ITravelPiFormatter {
     public static String fnImages = "images";
 
     @Transient
+    public static String fnContCode = "contCode";
+
+    @Transient
     public static String fnDesc = "desc";
     /**
      * FIPS国家代码
@@ -154,7 +157,7 @@ public class Country extends AizouBaseEntity implements ITravelPiFormatter {
 
     private Double rating;
     /**
-     * 是否为热门旅游目的地国家
+     * 热门推荐地国家
      */
     private Boolean isHot;
 
