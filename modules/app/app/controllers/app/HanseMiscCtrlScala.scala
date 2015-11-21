@@ -2,9 +2,9 @@ package controllers.app
 
 import play.api.Play.current
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.ws.{ WS, WSRequest, WSResponse }
-import play.api.mvc.{ Action, ResponseHeader, Result }
-import scala.concurrent.{ ExecutionContext, Future }
+import play.api.libs.ws.{WS, WSRequest, WSResponse}
+import play.api.mvc.{AnyContent, Action, ResponseHeader, Result}
+import scala.concurrent.{ExecutionContext, Future}
 import ExecutionContext.Implicits.global
 
 /**
@@ -20,9 +20,10 @@ object HanseMiscCtrlScala {
 
   def commoditiesById(id: String) = redirects("http://192.168.100.3:9480/commodities/" + id)
 
-  def redirects(url: String) = Action.async(
+  def redirects(url: String): Action[AnyContent] = Action.async(
     requestIn => {
-      val requestOut: WSRequest = WS.url(url)
+      val requestOut: WSRequest = WS.url(url).withRequestTimeout(100000)
+      requestOut.get()
       val queryString = requestIn.queryString.map { case (k, v) => k -> v.mkString }
       Response2Result(requestOut.withQueryString(queryString.toList: _*).get())
     }
@@ -33,7 +34,7 @@ object HanseMiscCtrlScala {
       response =>
         Result(ResponseHeader(response.status, response.allHeaders map {
           h => (h._1, h._2.head)
-        }), Enumerator(response.body.getBytes))
+        }), Enumerator(response.bodyAsBytes))
     }
   }
 
