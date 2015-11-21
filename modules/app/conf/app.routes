@@ -252,4 +252,13 @@ GET           /eula                                                    controlle
 #公司介绍(H5)
 GET           /about                                                   controllers.app.MiscCtrlScala.about(version: String?="2.0")
 
+#----------Hanse接口----------
+#首页专栏
+GET           /columns                                                 controllers.app.HanseMiscCtrlScala.columns()
+#首页推荐
+GET           /recommend                                               controllers.app.HanseMiscCtrlScala.recommend()
 
+#商品详情
+GET           /commodities/:id                                         controllers.app.HanseMiscCtrlScala.commoditiesById(id:String)
+#商品列表
+GET           /commodities                                             controllers.app.HanseMiscCtrlScala.commoditiesByType(topicType:String)
