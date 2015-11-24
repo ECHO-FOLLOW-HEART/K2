@@ -22,7 +22,12 @@ object HanseMiscCtrlScala {
    * @param topicType
    * @return
    */
-  def commoditiesByType(topicType: String) = redirects("http://192.168.100.3:9480/columns/commodities")
+  def commoditiesByType(topicType: String) = {
+    if (topicType != null)
+      redirects("http://192.168.100.3:9480/columns/commodities")
+    else
+      redirects("http://192.168.100.3:9480/marketplace/commodities")
+  }
 
   /**
    * 商品详情
@@ -38,7 +43,7 @@ object HanseMiscCtrlScala {
    * @param id
    * @return
    */
-  def sellerById(id: String) = redirects("http://192.168.100.3:9480/marketplace/sellers/" + id + "/")
+  def sellerById(id: String) = redirects("http://192.168.100.3:9480/marketplace/sellers/" + id)
 
   def redirects(url: String): Action[AnyContent] = Action.async(
     requestIn => {
