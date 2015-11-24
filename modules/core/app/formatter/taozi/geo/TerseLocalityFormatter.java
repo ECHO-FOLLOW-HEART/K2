@@ -48,6 +48,7 @@ public class TerseLocalityFormatter extends AizouFormatter<Locality> {
             writeObjectId(locality, jsonGenerator, serializerProvider);
             jsonGenerator.writeStringField("zhName", getString(locality.getZhName()));
             jsonGenerator.writeStringField("enName", getString(locality.getEnName()));
+            jsonGenerator.writeStringField("desc", getString(locality.getDesc()));
 
             // jsonGenerator.writeStringField(Locality.fnTimeCostDesc, getString(locality.getTimeCostDesc()));
             jsonGenerator.writeStringField(Locality.fnTravelMonth, getString(locality.getTravelMonth()));

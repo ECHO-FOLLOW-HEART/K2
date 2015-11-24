@@ -2,9 +2,9 @@ package controllers.app
 
 import play.api.Play.current
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.ws.{WS, WSRequest, WSResponse}
-import play.api.mvc.{AnyContent, Action, ResponseHeader, Result}
-import scala.concurrent.{ExecutionContext, Future}
+import play.api.libs.ws.{ WS, WSRequest, WSResponse }
+import play.api.mvc.{ AnyContent, Action, ResponseHeader, Result }
+import scala.concurrent.{ ExecutionContext, Future }
 import ExecutionContext.Implicits.global
 
 /**
@@ -16,9 +16,29 @@ object HanseMiscCtrlScala {
 
   def recommend() = redirects("http://192.168.100.3:9480/recommend")
 
+  /**
+   * 商品分类列表
+   *
+   * @param topicType
+   * @return
+   */
   def commoditiesByType(topicType: String) = redirects("http://192.168.100.3:9480/columns/commodities")
 
-  def commoditiesById(id: String) = redirects("http://192.168.100.3:9480/commodities/" + id)
+  /**
+   * 商品详情
+   *
+   * @param id
+   * @return
+   */
+  def commodityById(id: String) = redirects("http://192.168.100.3:9480/commodities/" + id)
+
+  /**
+   * 商户详情
+   *
+   * @param id
+   * @return
+   */
+  def sellerById(id: String) = redirects("http://192.168.100.3:9480/marketplace/sellers/" + id + "/")
 
   def redirects(url: String): Action[AnyContent] = Action.async(
     requestIn => {

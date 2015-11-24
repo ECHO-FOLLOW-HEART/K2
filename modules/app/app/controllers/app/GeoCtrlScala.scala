@@ -64,11 +64,12 @@ object GeoCtrlScala extends Controller {
   def getLocality(localityId: String) = Action.async(
     request => {
       val formatter = FormatterFactory.getInstance(classOf[TerseLocalityFormatter])
-      val fields = Seq(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnImages, Locality.fnTravelMonth)
+      val fields = Seq(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnImages, Locality.fnTravelMonth, Locality.fnDesc)
       for {
         locality <- GeoAPI.getLocalityById(new ObjectId(localityId), fields)
       } yield {
         val node = formatter.formatNode(locality).asInstanceOf[ObjectNode]
+        node.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + locality.getId.toString)
         node.put("commodityCnt", 0)
         Utils.status(node.toString).toScala
       }

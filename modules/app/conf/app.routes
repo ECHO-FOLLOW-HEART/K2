@@ -259,6 +259,9 @@ GET           /columns                                                 controlle
 GET           /recommend                                               controllers.app.HanseMiscCtrlScala.recommend()
 
 #商品详情
-GET           /commodities/:id                                         controllers.app.HanseMiscCtrlScala.commoditiesById(id:String)
+GET           /commodities/:id                                         controllers.app.HanseMiscCtrlScala.commodityById(id:String)
 #商品列表
 GET           /commodities                                             controllers.app.HanseMiscCtrlScala.commoditiesByType(topicType:String)
+
+#店铺详情
+GET           /marketplace/sellers/:id                                 controllers.app.HanseMiscCtrlScala.sellerById(id:String)
