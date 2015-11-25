@@ -12,21 +12,30 @@ import ExecutionContext.Implicits.global
  */
 object HanseMiscCtrlScala {
 
+  /**
+   * 首页专栏
+   * @return
+   */
   def columns() = redirects("http://192.168.100.3:9480/columns")
 
+  /**
+   * 首页推荐
+   *
+   * @return
+   */
   def recommend() = redirects("http://192.168.100.3:9480/recommend")
 
   /**
-   * 商品分类列表
+   * 商品列表
    *
    * @param topicType
    * @return
    */
-  def commoditiesByType(topicType: String) = {
-    if (topicType != null)
-      redirects("http://192.168.100.3:9480/columns/commodities")
-    else
+  def commodities(topicType: String) = {
+    if (topicType != null || topicType.equals(""))
       redirects("http://192.168.100.3:9480/marketplace/commodities")
+    else
+      redirects("http://192.168.100.3:9480/columns/commodities")
   }
 
   /**
@@ -35,7 +44,14 @@ object HanseMiscCtrlScala {
    * @param id
    * @return
    */
-  def commodityById(id: String) = redirects("http://192.168.100.3:9480/commodities/" + id)
+  def commodityById(id: String) = redirects("http://192.168.100.3:9480/marketplace/commodities/" + id)
+
+  /**
+   * 商品分类列表
+   *
+   * @return
+   */
+  def commoditiesCategories() = redirects("http://192.168.100.3:9480/marketplace/commodities/categories")
 
   /**
    * 商户详情
