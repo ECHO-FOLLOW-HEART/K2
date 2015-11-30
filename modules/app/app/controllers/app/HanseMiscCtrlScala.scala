@@ -2,10 +2,13 @@ package controllers.app
 
 import play.api.Play.current
 import play.api.libs.iteratee.Enumerator
-import play.api.libs.ws.{ WS, WSRequest, WSResponse }
-import play.api.mvc.{ AnyContent, Action, ResponseHeader, Result }
-import scala.concurrent.{ ExecutionContext, Future }
-import ExecutionContext.Implicits.global
+import play.api.libs.json.Json
+import play.api.libs.ws.{WS, WSRequest, WSResponse}
+import play.api.mvc.{Action, AnyContent, ResponseHeader, Result}
+import utils.{Result => K2Result}
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 /**
  * Created by topy on 2015/11/21.
@@ -60,6 +63,46 @@ object HanseMiscCtrlScala {
    * @return
    */
   def sellerById(id: String) = redirects("http://192.168.100.3:9480/marketplace/sellers/" + id)
+
+  /**
+   * 订单详情
+   *
+   * @param id
+   * @return
+   */
+  def orderById(id: String) = redirects("http://192.168.100.3:9480/marketplace/orders/" + id)
+
+  /**
+   * 订单状态
+   *
+   * @param id
+   * @return
+   */
+  def ordersStatusById(id: String) = redirects("http://192.168.100.3:9480/marketplace/orders/" + id + "/status")
+
+  /**
+   * 订单列表
+   *
+   * @return
+   */
+  def orders() = redirects("http://192.168.100.3:9480/marketplace/orders")
+
+  /**
+   * 创建订单
+   *
+   * @return
+   */
+  def createOrder() = redirectPost("http://192.168.100.3:9480/marketplace/orders")
+
+  def redirectPost(url: String): Action[AnyContent] = Action.async(
+    requestIn => {
+      val requestOut: WSRequest = WS.url(url).withRequestTimeout(100000)
+      val queryString = requestIn.queryString.map { case (k, v) => k -> v.mkString }
+      val body = requestIn.body.asJson getOrElse Json.obj()
+      val result = requestOut.withHeaders("Content-Type" -> "application/json").withQueryString(queryString.toList: _*).post(body)
+      Response2Result(result)
+    }
+  )
 
   def redirects(url: String): Action[AnyContent] = Action.async(
     requestIn => {

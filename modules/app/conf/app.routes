@@ -266,3 +266,13 @@ GET           /marketplace/commodities/categories                      controlle
 
 #店铺详情
 GET           /marketplace/sellers/:id                                 controllers.app.HanseMiscCtrlScala.sellerById(id:String)
+
+#创建订单
+POST          /marketplace/orders                                      controllers.app.HanseMiscCtrlScala.createOrder()
+#订单详情
+GET           /marketplace/orders/:id                                  controllers.app.HanseMiscCtrlScala.orderById(id:String)
+#订单状态
+GET           /marketplace/orders/:id/status                           controllers.app.HanseMiscCtrlScala.ordersStatusById(id:String)
+#订单列表
+GET           /marketplace/orders                                      controllers.app.HanseMiscCtrlScala.orders()
+
