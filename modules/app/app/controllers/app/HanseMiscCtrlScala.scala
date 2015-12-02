@@ -94,13 +94,79 @@ object HanseMiscCtrlScala {
    */
   def createOrder() = redirectPost("http://192.168.100.3:9480/marketplace/orders")
 
+  /**
+   * 添加旅客信息
+   *
+   * @param userId
+   * @return
+   */
+  def createTravel(userId: Long) = redirectPost(s"http://192.168.100.3:9480/users/$userId/travellers")
+
+  /**
+   * 修改旅客信息
+   *
+   * @return
+   */
+  def updateTravel(key: String, userId: Long) = redirectPut(s"http://192.168.100.3:9480/users/$userId/travellers/$key")
+
+  /**
+   * 旅客信息列表
+   *
+   * @param userId
+   * @return
+   */
+  def travelers(userId: Long) = redirects(s"http://192.168.100.3:9480/users/$userId/travellers")
+
+  /**
+   * 旅客信息
+   *
+   * @param userId
+   * @param key
+   * @return
+   */
+  def travelerByKey(key: String, userId: Long) = redirects(s"http://192.168.100.3:9480/users/$userId/travellers/$key")
+
+  /**
+   * 删除旅客信息
+   *
+   * @param userId
+   * @param key
+   * @return
+   */
+  def delTraveler(key: String, userId: Long) = redirectDelete(s"http://192.168.100.3:9480/users/$userId/travellers/$key")
+
   def redirectPost(url: String): Action[AnyContent] = Action.async(
+    block = requestIn => {
+    val requestOut: WSRequest = WS.url(url).withRequestTimeout(100000)
+    val queryString = requestIn.queryString.map { case (k, v) => k -> v.mkString }
+    val body = requestIn.body.asJson getOrElse Json.obj()
+    val header = requestIn.headers.headers map (h => (h._1, h._2))
+    // ("Content-Type" -> "application/json;charset=utf-8")
+    val result = requestOut.withHeaders(header: _*).withQueryString(queryString.toList: _*).post(body)
+    Response2Result(result)
+  }
+  )
+
+  def redirectPut(url: String): Action[AnyContent] = Action.async(
     requestIn => {
       val requestOut: WSRequest = WS.url(url).withRequestTimeout(100000)
       val queryString = requestIn.queryString.map { case (k, v) => k -> v.mkString }
       val body = requestIn.body.asJson getOrElse Json.obj()
-      val result = requestOut.withHeaders("Content-Type" -> "application/json").withQueryString(queryString.toList: _*).post(body)
+      val header = requestIn.headers.headers map (h => (h._1, h._2))
+      // ("Content-Type" -> "application/json;charset=utf-8")
+      val result = requestOut.withHeaders(header: _*).withQueryString(queryString.toList: _*).put(body)
       Response2Result(result)
+    }
+  )
+
+  def redirectDelete(url: String): Action[AnyContent] = Action.async(
+    requestIn => {
+      val requestOut: WSRequest = WS.url(url).withRequestTimeout(100000)
+      requestOut.get()
+      val queryString = requestIn.queryString.map { case (k, v) => k -> v.mkString }
+      val header = requestIn.headers.headers map (h => (h._1, h._2))
+      // ("Content-Type" -> "application/json;charset=utf-8")
+      Response2Result(requestOut.withHeaders(header: _*).withQueryString(queryString.toList: _*).delete())
     }
   )
 

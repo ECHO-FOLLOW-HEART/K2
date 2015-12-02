@@ -276,3 +276,14 @@ GET           /marketplace/orders/:id/status                           controlle
 #订单列表
 GET           /marketplace/orders                                      controllers.app.HanseMiscCtrlScala.orders()
 
+#创建旅客信息
+POST          /users/$userId<\d+>/travellers                           controllers.app.HanseMiscCtrlScala.createTravel(userId:Long)
+#修改旅客信息
+PUT           /users/$userId<\d+>/travellers/$key<[0-9a-f]{24}>        controllers.app.HanseMiscCtrlScala.updateTravel(key: String,userId:Long)
+#删除旅客信息
+DELETE        /users/$userId<\d+>/travellers/$key<[0-9a-f]{24}>        controllers.app.HanseMiscCtrlScala.delTraveler(key: String,userId:Long)
+#获取旅客信息
+GET           /users/$userId<\d+>/travellers/$key<[0-9a-f]{24}>        controllers.app.HanseMiscCtrlScala.travelerByKey(key: String,userId:Long)
+#获取旅客信息列表
+GET           /users/$userId<\d+>/travellers                           controllers.app.HanseMiscCtrlScala.travelers(userId:Long)
+
