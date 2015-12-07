@@ -3,9 +3,9 @@ package controllers.app
 import play.api.Play.current
 import play.api.libs.iteratee.Enumerator
 import play.api.libs.json.Json
-import play.api.libs.ws.{WS, WSRequest, WSResponse}
-import play.api.mvc.{Action, AnyContent, ResponseHeader, Result}
-import utils.{Result => K2Result}
+import play.api.libs.ws.{ WS, WSRequest, WSResponse }
+import play.api.mvc.{ Action, AnyContent, ResponseHeader, Result }
+import utils.{ Result => K2Result }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -93,6 +93,13 @@ object HanseMiscCtrlScala {
    * @return
    */
   def createOrder() = redirectPost("http://192.168.100.3:9480/marketplace/orders")
+
+  /**
+   * 修改订单状态
+   * @param id
+   * @return
+   */
+  def operateOrder(id: String) = redirectPost("http://192.168.100.3:9480/marketplace/orders/" + id + "/actions")
 
   /**
    * 添加旅客信息

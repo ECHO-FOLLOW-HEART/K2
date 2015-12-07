@@ -269,6 +269,8 @@ GET           /marketplace/sellers/:id                                 controlle
 
 #创建订单
 POST          /marketplace/orders                                      controllers.app.HanseMiscCtrlScala.createOrder()
+#修改订单状态
+POST          /marketplace/orders/:id/actions                          controllers.app.HanseMiscCtrlScala.operateOrder(id:String)
 #订单详情
 GET           /marketplace/orders/:id                                  controllers.app.HanseMiscCtrlScala.orderById(id:String)
 #订单状态
