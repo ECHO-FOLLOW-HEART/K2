@@ -257,12 +257,12 @@ GET           /about                                                   controlle
 GET           /columns                                                 controllers.app.HanseMiscCtrlScala.columns()
 #首页推荐
 GET           /recommend                                               controllers.app.HanseMiscCtrlScala.recommend()
+#商品分类列表
+GET           /marketplace/commodities/categories                      controllers.app.HanseMiscCtrlScala.commoditiesCategories()
 #商品详情
 GET           /marketplace/commodities/:id                             controllers.app.HanseMiscCtrlScala.commodityById(id:String)
 #商品列表
 GET           /marketplace/commodities                                 controllers.app.HanseMiscCtrlScala.commodities(topicType:String?="")
-#商品分类列表
-GET           /marketplace/commodities/categories                      controllers.app.HanseMiscCtrlScala.commoditiesCategories()
 
 #店铺详情
 GET           /marketplace/sellers/:id                                 controllers.app.HanseMiscCtrlScala.sellerById(id:String)
