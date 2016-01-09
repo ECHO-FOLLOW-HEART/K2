@@ -199,16 +199,16 @@ GET           /guides/locality/:id/:part                               controlle
 
 
 #----------地理信息接口----------
-# 搜索城市
+# 展示攻略目的地
+GET           /guide/localities                                        controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean?=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
 #国家详情
 GET           /geo/countries/$id<[0-9a-f]{24}>                         controllers.app.GeoCtrl.getCountyById(id: String)
 #获得国家列表
 GET           /geo/countries                                           controllers.app.GeoCtrlScala.getCountriesByContinent(continentCode:String)
 #展示目的地
-#GET           /geo/localities                                          controllers.app.GeoCtrl.exploreDestinations(abroad: Boolean?=false,groupBy:Boolean?=false, page:Int?=0, pageSize:Int?=100)
 GET           /geo/localities                                          controllers.app.GeoCtrlScala.getLocalitiesByCountry(countryId:String)
 #展示推荐目的地
-#GET           /geo/localities/recommendations                          controllers.app.MiscCtrlScala.getRmd(itemType: String="locality",abroad: Boolean?=false)
+GET           /geo/localities/recommendations                          controllers.app.MiscCtrlScala.getRmd(itemType: String="locality",abroad: Boolean?=false)
 #查看目的地详情
 #GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
 GET           /geo/localities/:id                                      controllers.app.GeoCtrlScala.getLocality(id: String)
@@ -289,3 +289,9 @@ GET           /users/$userId<\d+>/travellers/$key<[0-9a-f]{24}>        controlle
 #获取旅客信息列表
 GET           /users/$userId<\d+>/travellers                           controllers.app.HanseMiscCtrlScala.travelers(userId:Long)
 
+#删除收藏信息
+DELETE        /users/$userId<\d+>/favorites/:itemType/:itemId          controllers.app.HanseMiscCtrlScala.delFavorite(userId:Long,itemType:String,itemId:String)
+#获取收藏信息
+GET           /users/$userId<\d+>/favorites                            controllers.app.HanseMiscCtrlScala.favorites(userId:Long)
+#添加收藏信息
+POST          /users/$userId<\d+>/favorites                            controllers.app.HanseMiscCtrlScala.createFavorite(userId:Long)

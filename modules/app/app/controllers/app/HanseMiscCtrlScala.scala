@@ -102,6 +102,14 @@ object HanseMiscCtrlScala {
   def operateOrder(id: String) = redirectPost("http://192.168.100.3:9480/marketplace/orders/" + id + "/actions")
 
   /**
+   * 微信支付
+   *
+   * @param id
+   * @return
+   */
+  def pay(id: String) = redirectPost("http://192.168.100.3:9480/marketplace/orders/" + id + "/payments")
+
+  /**
    * 添加旅客信息
    *
    * @param userId
@@ -141,6 +149,30 @@ object HanseMiscCtrlScala {
    * @return
    */
   def delTraveler(key: String, userId: Long) = redirectDelete(s"http://192.168.100.3:9480/users/$userId/travellers/$key")
+
+  /**
+   * 添加收藏
+   *
+   * @param userId
+   * @return
+   */
+  def createFavorite(userId: Long) = redirectPost(s"http://192.168.100.3:9480/users/$userId/favorites")
+
+  /**
+   * 收藏列表
+   *
+   * @param userId
+   * @return
+   */
+  def favorites(userId: Long) = redirects(s"http://192.168.100.3:9480/users/$userId/favorites")
+
+  /**
+   * 收藏列表
+   *
+   * @param userId
+   * @return
+   */
+  def delFavorite(userId: Long, itemType: String, itemId: String) = redirectDelete(s"http://192.168.100.3:9480/users/$userId/favorites/$itemType/$itemId")
 
   def redirectPost(url: String): Action[AnyContent] = Action.async(
     block = requestIn => {

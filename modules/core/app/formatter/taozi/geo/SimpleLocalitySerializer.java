@@ -22,6 +22,8 @@ public class SimpleLocalitySerializer extends AizouSerializer<Locality> {
         writeObjectId(locality, jgen, serializerProvider);
         jgen.writeStringField("zhName", getString(locality.getZhName()));
         jgen.writeStringField("enName", getString(locality.getEnName()));
+        // TODO
+        jgen.writeNumberField("commodityCnt", 10);
 
         jgen.writeFieldName("images");
         List<ImageItem> images = TaoziDataFilter.getOneImage(locality.getImages());
