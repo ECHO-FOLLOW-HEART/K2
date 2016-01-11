@@ -151,24 +151,30 @@ object UserCtrlScala extends Controller {
       val authCode = (body \ "authCode").asOpt[String]
       val provider = (body \ "provider").asOpt[String]
       if (password.nonEmpty && loginName.nonEmpty) {
-        val telEntry = PhoneParserFactory.newInstance().parse(loginName.get)
-        val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
-          val userFormatter = new UserLoginFormatter(true)
-          val jsonResult = userFormatter.format(user).asInstanceOf[ObjectNode]
+        try {
+          val telEntry = PhoneParserFactory.newInstance().parse(loginName.get)
+          val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
+            val userFormatter = new UserLoginFormatter(true)
+            val jsonResult = userFormatter.format(user).asInstanceOf[ObjectNode]
 
-          // 读取key
-          val jsonFactory = JsonNodeFactory.instance
-          jsonResult.set("secretKey", user.secretKey map (sk => {
-            // 有secret key
-            val node = jsonFactory.objectNode().put("key", sk.key).put("timestamp", sk.timestamp)
-            node.set("expire", sk.expire map jsonFactory.numberNode _ getOrElse jsonFactory.nullNode())
-            node
-          }) getOrElse jsonFactory.objectNode())
+            // 读取key
+            val jsonFactory = JsonNodeFactory.instance
+            jsonResult.set("secretKey", user.secretKey map (sk => {
+              // 有secret key
+              val node = jsonFactory.objectNode().put("key", sk.key).put("timestamp", sk.timestamp)
+              node.set("expire", sk.expire map jsonFactory.numberNode getOrElse jsonFactory.nullNode())
+              node
+            }) getOrElse jsonFactory.objectNode())
 
-          K2Result.ok(Some(jsonResult))
-        })
-        future rescue {
-          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
+            K2Result.ok(Some(jsonResult))
+          })
+          future rescue {
+            case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
+          }
+        } catch {
+          case _: IllegalArgumentException =>
+            // 输入的电话号码有误
+            TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
         }
       } else if (authCode.nonEmpty && provider.nonEmpty) {
         val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
