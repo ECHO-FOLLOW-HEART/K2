@@ -56,7 +56,7 @@ public class SimpleCountrySerializer extends AizouSerializer<Country> {
 //        }
 
         // TODO 商品数量
-        jgen.writeNumberField("commodityCnt", 0);
+        jgen.writeNumberField("commoditiesCnt", 0);
 //        jgen.writeStringField("code", getString(country.getCode()).toUpperCase());
 //        jgen.writeStringField("desc", getString(country.getDesc()));
 
