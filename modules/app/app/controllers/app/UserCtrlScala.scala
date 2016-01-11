@@ -3,7 +3,7 @@ package controllers.app
 import api.{ GeoAPI, UserAPI, UserUgcAPI }
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
+import com.fasterxml.jackson.databind.node._
 import com.fasterxml.jackson.databind.{ JsonSerializer, ObjectMapper, SerializerProvider }
 import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
 import com.twitter.util.{ Future => TwitterFuture }
@@ -13,12 +13,11 @@ import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginForm
 import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ CoreConfig, FinagleConvert, FinagleFactory }
-import models.geo.Country
 import models.user.{ Contact => K2Contact, ExpertInfo, UserInfo }
 import org.bson.types.ObjectId
 import org.joda.time.format.DateTimeFormat
-import play.api.mvc.{ Action, Controller, Result }
 import play.api.libs.ws._
+import play.api.mvc.{ Action, Controller, Result }
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
 import utils.phone.PhoneParserFactory
@@ -155,7 +154,18 @@ object UserCtrlScala extends Controller {
         val telEntry = PhoneParserFactory.newInstance().parse(loginName.get)
         val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
           val userFormatter = new UserLoginFormatter(true)
-          K2Result.ok(Some(userFormatter.format(user)))
+          val jsonResult = userFormatter.format(user).asInstanceOf[ObjectNode]
+
+          // 读取key
+          val jsonFactory = JsonNodeFactory.instance
+          jsonResult.set("secretKey", user.secretKey map (sk => {
+            // 有secret key
+            val node = jsonFactory.objectNode().put("key", sk.key).put("timestamp", sk.timestamp)
+            node.set("expire", sk.expire map jsonFactory.numberNode _ getOrElse jsonFactory.nullNode())
+            node
+          }) getOrElse jsonFactory.objectNode())
+
+          K2Result.ok(Some(jsonResult))
         })
         future rescue {
           case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
@@ -569,7 +579,7 @@ object UserCtrlScala extends Controller {
           TwitterFuture {
             Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
-        case _@ (InvalidArgsException() | InvalidStateException()) =>
+        case _@ (_: InvalidArgsException | _: InvalidStateException) =>
           TwitterFuture {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
           }
@@ -613,7 +623,7 @@ object UserCtrlScala extends Controller {
           TwitterFuture {
             Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
-        case _@ (InvalidArgsException() | InvalidStateException()) =>
+        case _@ (_: InvalidArgsException | _: InvalidStateException) =>
           TwitterFuture {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
           }
@@ -726,7 +736,7 @@ object UserCtrlScala extends Controller {
           TwitterFuture {
             Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
-        case _@ (InvalidArgsException() | InvalidStateException()) =>
+        case _@ (_: InvalidArgsException | _: InvalidStateException) =>
           TwitterFuture {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
           }
