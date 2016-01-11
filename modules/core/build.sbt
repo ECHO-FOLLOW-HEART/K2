@@ -35,7 +35,7 @@ libraryDependencies ++= Seq(
   "com.twitter" %% "finagle-thriftmux" % finagleVersion,
   "com.twitter" %% "finagle-http" % finagleVersion,
   "com.twitter" %% "scrooge-core" % "4.2.0",
-
+  "com.lvxingpai" %% "core-model" % "0.2.1.13",
   "org.elasticsearch" % "elasticsearch" % "1.7.1"
   //  "commons-logging" % "commons-logging" % "1.2"
 )

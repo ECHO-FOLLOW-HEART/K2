@@ -244,6 +244,7 @@ public class GeoCtrl extends Controller {
 
         ObjectNode response = new ObjectMapper().createObjectNode();
         response.put("zhName", country.getZhName());
+        response.put("commoditiesCnt", 0);
         return Utils.createResponse(ErrorCode.NORMAL, response);
     }
 

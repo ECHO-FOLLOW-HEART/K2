@@ -48,8 +48,13 @@ object GeoCtrlScala extends Controller {
       val fields = Seq(AizouBaseEntity.FD_ID, Country.FD_ZH_NAME, Country.FD_EN_NAME, Country.fnDesc, Country.fnCode, Country.fnImages, "rank")
       for {
         countryExperts <- if (contCode.equals("RCOM")) GeoAPI.getCountryRecommend(fields) else GeoAPI.getCountryByContCode(contCode, fields)
+        stats <- GeoAPI.getGeoStats(countryExperts map (_.getId))
       } yield {
         val node = formatter.formatNode(countryExperts).asInstanceOf[ArrayNode]
+        node foreach (c => {
+          val stat = stats.get(new ObjectId(c.get("id").asText()))
+          c.asInstanceOf[ObjectNode].put("commoditiesCnt", stat map (_.commodityCount) getOrElse 0)
+        })
         Utils.status(node.toString).toScala
       }
     }
@@ -65,12 +70,15 @@ object GeoCtrlScala extends Controller {
     request => {
       val formatter = FormatterFactory.getInstance(classOf[TerseLocalityFormatter])
       val fields = Seq(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnImages, Locality.fnTravelMonth, Locality.fnDesc)
+      val id = new ObjectId(localityId)
       for {
-        locality <- GeoAPI.getLocalityById(new ObjectId(localityId), fields)
+        locality <- GeoAPI.getLocalityById(id, fields)
+        stats <- GeoAPI.getGeoStats(Seq(id))
       } yield {
         val node = formatter.formatNode(locality).asInstanceOf[ObjectNode]
         node.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + locality.getId.toString)
-        node.put("commodityCnt", 0)
+        val stat = stats get id
+        node.put("commodityCnt", stat map (_.commodityCount) getOrElse 0)
         Utils.status(node.toString).toScala
       }
     }
@@ -87,8 +95,13 @@ object GeoCtrlScala extends Controller {
       val fields = Seq(Locality.FD_ID, Locality.FD_ZH_NAME, Locality.FD_EN_NAME, Locality.fnImages)
       for {
         localities <- GeoAPI.getLocalityByCountryCode(new ObjectId(countryId), fields)
+        stats <- GeoAPI.getGeoStats(localities map (_.getId))
       } yield {
         val node = formatter.formatNode(localities).asInstanceOf[ArrayNode]
+        node foreach (c => {
+          val stat = stats.get(new ObjectId(c.get("id").asText()))
+          c.asInstanceOf[ObjectNode].put("commoditiesCnt", stat map (_.commodityCount) getOrElse 0)
+        })
         Utils.status(node.toString).toScala
       }
     }
