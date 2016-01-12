@@ -77,6 +77,7 @@ object GeoCtrlScala extends Controller {
       } yield {
         val node = formatter.formatNode(locality).asInstanceOf[ObjectNode]
         node.put("playGuide", "http://h5.taozilvxing.com/city/items.php?tid=" + locality.getId.toString)
+        node.put("trafficInfoUrl", "http://h5.taozilvxing.com/city/traff-list.php?tid=" + locality.getId.toString)
         val stat = stats get id
         node.put("commoditiesCnt", stat map (_.commodityCount) getOrElse 0)
         Utils.status(node.toString).toScala
