@@ -180,7 +180,19 @@ object UserCtrlScala extends Controller {
         val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
 
           val userFormatter = new UserLoginFormatter(true)
-          K2Result.ok(Some(userFormatter.format(user)))
+
+          val jsonResult = userFormatter.format(user).asInstanceOf[ObjectNode]
+
+          // 读取key
+          val jsonFactory = JsonNodeFactory.instance
+          jsonResult.set("secretKey", user.secretKey map (sk => {
+            // 有secret key
+            val node = jsonFactory.objectNode().put("key", sk.key).put("timestamp", sk.timestamp)
+            node.set("expire", sk.expire map jsonFactory.numberNode getOrElse jsonFactory.nullNode())
+            node
+          }) getOrElse jsonFactory.objectNode())
+
+          K2Result.ok(Some(jsonResult))
         })
         future rescue {
           case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.THPART_AUTH_ERROR, "Invalid authCode/authProvider"))
@@ -208,8 +220,20 @@ object UserCtrlScala extends Controller {
         user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)))
         updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
       } yield {
-        val node = new UserLoginFormatter(true).format(user)
-        K2Result.created(Some(node))
+        val userFormatter = new UserLoginFormatter(true)
+
+        val jsonResult = userFormatter.format(user).asInstanceOf[ObjectNode]
+
+        // 读取key
+        val jsonFactory = JsonNodeFactory.instance
+        jsonResult.set("secretKey", user.secretKey map (sk => {
+          // 有secret key
+          val node = jsonFactory.objectNode().put("key", sk.key).put("timestamp", sk.timestamp)
+          node.set("expire", sk.expire map jsonFactory.numberNode getOrElse jsonFactory.nullNode())
+          node
+        }) getOrElse jsonFactory.objectNode())
+
+        K2Result.created(Some(jsonResult))
       }
       //        val ee = client.checkValidationCode(valCode, action, tel.getPhoneNumber, None) flatMap (_ => {
       //          val nickName = "用户" + tel.getPhoneNumber
