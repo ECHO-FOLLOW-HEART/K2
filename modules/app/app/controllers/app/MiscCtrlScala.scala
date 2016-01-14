@@ -2,17 +2,16 @@ package controllers.app
 
 import api._
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.node.ObjectNode
 import com.twitter.util.{ Future => TwitterFuture }
 import formatter.FormatterFactory
 import formatter.taozi.geo.SearchLocalityFormatter
-import formatter.taozi.misc.{ ReferenceFormatter, HotSearchFormatter }
+import formatter.taozi.misc.{ HotSearchFormatter, ReferenceFormatter }
 import misc.TwitterConverter._
 import models.AizouBaseEntity
-import models.geo.{ Locality, Country }
-import models.misc.Reference
-import models.poi.AbstractPOI
+import models.geo.Locality
 import org.bson.types.ObjectId
-import play.api.mvc.{ AnyContent, Action, Controller }
+import play.api.mvc.{ Action, AnyContent, Controller }
 import utils.Implicits._
 import utils.{ Result => K2Result, Utils }
 
@@ -147,8 +146,13 @@ object MiscCtrlScala extends Controller {
         val hotFormatter = FormatterFactory.getInstance(classOf[ReferenceFormatter])
         val future = for {
           hot <- MiscAPI.getReference(itemType, isAbroad)
+          stats <- GeoAPI.getGeoStats(hot map (_.getItemId))
         } yield {
           val node = hotFormatter.formatNode(hot)
+          node foreach (c => {
+            val stat = stats.get(new ObjectId(c.get("id").asText()))
+            c.asInstanceOf[ObjectNode].put("commoditiesCnt", stat map (_.commodityCount) getOrElse 0)
+          })
           Utils.status(node.toString).toScala
         }
         future
