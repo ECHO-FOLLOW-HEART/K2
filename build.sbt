@@ -8,21 +8,23 @@ lazy val `core` = (project in file("modules/core")).enablePlugins(PlayScala)
 
 lazy val `app` = (project in file("modules/app")).enablePlugins(PlayScala).dependsOn(core)
 
-lazy val `web` = (project in file("modules/web")).enablePlugins(PlayScala).dependsOn(core)
+// lazy val `web` = (project in file("modules/web")).enablePlugins(PlayScala).dependsOn(core)
 
 lazy val `k2` = (project in file(".")).enablePlugins(PlayScala)
   .dependsOn(core)
   .dependsOn(app)
-  .dependsOn(web)
-  .aggregate(core, app, web)
+  // .dependsOn(web)
+  //.aggregate(core, app, web)
+  .aggregate(core, app)
 
-scalaVersion := "2.10.5"
+scalaVersion := "2.11.4"
 
 libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
   specs2 % Test,
+
   "joda-time" % "joda-time" % "2.8.1"
 )
 

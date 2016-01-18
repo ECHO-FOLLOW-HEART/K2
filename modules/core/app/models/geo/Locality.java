@@ -19,6 +19,9 @@ import java.util.List;
 public class Locality extends AizouBaseEntity {
 
     @Transient
+    public static final String FD_ID = "id";
+
+    @Transient
     public static final String FD_ZH_NAME = "zhName";
 
     @Transient

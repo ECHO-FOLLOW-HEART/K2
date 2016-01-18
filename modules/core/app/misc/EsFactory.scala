@@ -17,7 +17,8 @@ object EsFactory {
       .put("cluster.name", "es-cluster-default").build();
     new TransportClient(settings)
       .addTransportAddress(new InetSocketTransportAddress(
-        "192.168.200.3", 9311));
+        "192.168.200.3", 9311
+      ));
   }
 
 }

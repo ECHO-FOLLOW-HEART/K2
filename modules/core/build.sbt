@@ -2,14 +2,14 @@ import com.typesafe.sbt.SbtAspectj.AspectjKeys._
 
 name := "core"
 
-scalaVersion := "2.10.5"
+scalaVersion := "2.11.4"
 
 val morphiaVersion = "1.0.0"
 
 val springVersion = "3.2.2.RELEASE"
 //val springVersion = "4.1.6.RELEASE"
 
-val finagleVersion = "6.26.0"
+val finagleVersion = "6.30.0"
 
 libraryDependencies ++= Seq(
 //  "org.mongodb" % "mongo-java-driver" % "3.0.1",
@@ -31,10 +31,11 @@ libraryDependencies ++= Seq(
   "javax.persistence" % "persistence-api" % "1.0.2",
   play.sbt.PlayImport.cache,
   "com.github.mumoshu" %% "play2-memcached" % "0.6.0",
-  "com.twitter" %% "finagle-core" % finagleVersion,
-  "com.twitter" %% "finagle-thrift" % finagleVersion,
+
   "com.twitter" %% "finagle-thriftmux" % finagleVersion,
-  "com.twitter" %% "scrooge-core" % "3.19.0",
+  "com.twitter" %% "finagle-http" % finagleVersion,
+  "com.twitter" %% "scrooge-core" % "4.2.0",
+  "com.lvxingpai" %% "core-model" % "0.2.1.13",
   "org.elasticsearch" % "elasticsearch" % "1.7.1"
   //  "commons-logging" % "commons-logging" % "1.2"
 )

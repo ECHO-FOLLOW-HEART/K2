@@ -3,7 +3,7 @@ package controllers.app
 import api.{ GeoAPI, UserAPI, UserUgcAPI }
 import com.fasterxml.jackson.core.JsonGenerator
 import com.fasterxml.jackson.databind.module.SimpleModule
-import com.fasterxml.jackson.databind.node.{ ArrayNode, LongNode, ObjectNode, TextNode }
+import com.fasterxml.jackson.databind.node._
 import com.fasterxml.jackson.databind.{ JsonSerializer, ObjectMapper, SerializerProvider }
 import com.lvxingpai.yunkai.{ UserInfo => YunkaiUserInfo, _ }
 import com.twitter.util.{ Future => TwitterFuture }
@@ -13,12 +13,11 @@ import formatter.taozi.user.{ ContactFormatter, UserInfoFormatter, UserLoginForm
 import misc.Implicits._
 import misc.TwitterConverter._
 import misc.{ CoreConfig, FinagleConvert, FinagleFactory }
-import models.geo.Country
 import models.user.{ Contact => K2Contact, ExpertInfo, UserInfo }
 import org.bson.types.ObjectId
 import org.joda.time.format.DateTimeFormat
-import play.api.mvc.{ Action, Controller, Result }
 import play.api.libs.ws._
+import play.api.mvc.{ Action, Controller, Result }
 import utils.Implicits._
 import utils.formatter.json.ImplicitsFormatter._
 import utils.phone.PhoneParserFactory
@@ -152,19 +151,48 @@ object UserCtrlScala extends Controller {
       val authCode = (body \ "authCode").asOpt[String]
       val provider = (body \ "provider").asOpt[String]
       if (password.nonEmpty && loginName.nonEmpty) {
-        val telEntry = PhoneParserFactory.newInstance().parse(loginName.get)
-        val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
-          val userFormatter = new UserLoginFormatter(true)
-          K2Result.ok(Some(userFormatter.format(user)))
-        })
-        future rescue {
-          case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
+        try {
+          val telEntry = PhoneParserFactory.newInstance().parse(loginName.get)
+          val future = FinagleFactory.client.login(telEntry.getPhoneNumber, password.get, "app") map (user => {
+            val userFormatter = new UserLoginFormatter(true)
+            val jsonResult = userFormatter.format(user).asInstanceOf[ObjectNode]
+
+            // 读取key
+            val jsonFactory = JsonNodeFactory.instance
+            jsonResult.set("secretKey", user.secretKey map (sk => {
+              // 有secret key
+              val node = jsonFactory.objectNode().put("key", sk.key).put("timestamp", sk.timestamp)
+              node.set("expire", sk.expire map jsonFactory.numberNode getOrElse jsonFactory.nullNode())
+              node
+            }) getOrElse jsonFactory.objectNode())
+
+            K2Result.ok(Some(jsonResult))
+          })
+          future rescue {
+            case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
+          }
+        } catch {
+          case _: IllegalArgumentException =>
+            // 输入的电话号码有误
+            TwitterFuture(K2Result.unauthorized(ErrorCode.YUNKAI_AUTH_ERROR, "Invalid loginName/password"))
         }
       } else if (authCode.nonEmpty && provider.nonEmpty) {
         val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
 
           val userFormatter = new UserLoginFormatter(true)
-          K2Result.ok(Some(userFormatter.format(user)))
+
+          val jsonResult = userFormatter.format(user).asInstanceOf[ObjectNode]
+
+          // 读取key
+          val jsonFactory = JsonNodeFactory.instance
+          jsonResult.set("secretKey", user.secretKey map (sk => {
+            // 有secret key
+            val node = jsonFactory.objectNode().put("key", sk.key).put("timestamp", sk.timestamp)
+            node.set("expire", sk.expire map jsonFactory.numberNode getOrElse jsonFactory.nullNode())
+            node
+          }) getOrElse jsonFactory.objectNode())
+
+          K2Result.ok(Some(jsonResult))
         })
         future rescue {
           case _: AuthException => TwitterFuture(K2Result.unauthorized(ErrorCode.THPART_AUTH_ERROR, "Invalid authCode/authProvider"))
@@ -192,8 +220,20 @@ object UserCtrlScala extends Controller {
         user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)))
         updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
       } yield {
-        val node = new UserLoginFormatter(true).format(user)
-        K2Result.created(Some(node))
+        val userFormatter = new UserLoginFormatter(true)
+
+        val jsonResult = userFormatter.format(user).asInstanceOf[ObjectNode]
+
+        // 读取key
+        val jsonFactory = JsonNodeFactory.instance
+        jsonResult.set("secretKey", user.secretKey map (sk => {
+          // 有secret key
+          val node = jsonFactory.objectNode().put("key", sk.key).put("timestamp", sk.timestamp)
+          node.set("expire", sk.expire map jsonFactory.numberNode getOrElse jsonFactory.nullNode())
+          node
+        }) getOrElse jsonFactory.objectNode())
+
+        K2Result.created(Some(jsonResult))
       }
       //        val ee = client.checkValidationCode(valCode, action, tel.getPhoneNumber, None) flatMap (_ => {
       //          val nickName = "用户" + tel.getPhoneNumber
@@ -214,9 +254,7 @@ object UserCtrlScala extends Controller {
 
     val future = ret getOrElse TwitterFuture(K2Result.unprocessable)
     future
-  }
-
-  )
+  })
 
   /**
    * 设置badge值
@@ -571,7 +609,7 @@ object UserCtrlScala extends Controller {
           TwitterFuture {
             Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
-        case _@ (InvalidArgsException() | InvalidStateException()) =>
+        case _@ (_: InvalidArgsException | _: InvalidStateException) =>
           TwitterFuture {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
           }
@@ -615,7 +653,7 @@ object UserCtrlScala extends Controller {
           TwitterFuture {
             Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
-        case _@ (InvalidArgsException() | InvalidStateException()) =>
+        case _@ (_: InvalidArgsException | _: InvalidStateException) =>
           TwitterFuture {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
           }
@@ -728,7 +766,7 @@ object UserCtrlScala extends Controller {
           TwitterFuture {
             Utils.createResponse(ErrorCode.YUNKAI_USER_NOT_FOUND).toScala
           }
-        case _@ (InvalidArgsException() | InvalidStateException()) =>
+        case _@ (_: InvalidArgsException | _: InvalidStateException) =>
           TwitterFuture {
             Utils.createResponse(ErrorCode.INVALID_ARGUMENT).toScala
           }
@@ -764,8 +802,10 @@ object UserCtrlScala extends Controller {
     }) getOrElse TwitterFuture(None)
 
     // 通过其它字段进行搜索
-    val queryMap: Map[UserInfoProp, String] = Map(UserInfoProp.Tel -> querySet._1,
-      UserInfoProp.NickName -> querySet._2) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
+    val queryMap: Map[UserInfoProp, String] = Map(
+      UserInfoProp.Tel -> querySet._1,
+      UserInfoProp.NickName -> querySet._2
+    ) filter (_._2.nonEmpty) map (v => (v._1, v._2.get))
     val future2 = FinagleFactory.client.searchUserInfo(queryMap, Some(basicUserInfoFieds), None, None)
 
     val ret = for {
