@@ -22,9 +22,13 @@ object GeoAPI {
    * @return
    */
   def getGeoStats(ids: Seq[ObjectId])(implicit ds: Datastore, futurePool: FuturePool): Future[Map[ObjectId, GeoStat]] = {
-    val query = ds.createQuery(classOf[GeoStat]).field("_id").in(ids)
     futurePool {
-      Map(query.asList.toSeq map (stat => stat.id -> stat): _*)
+      if (ids.nonEmpty) {
+        val query = ds.createQuery(classOf[GeoStat]).field("_id").in(ids)
+        Map(query.asList.toSeq map (stat => stat.id -> stat): _*)
+      } else {
+        Map()
+      }
     }
   }
 
