@@ -5,6 +5,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
+import com.mongodb.BasicDBList;
+import com.mongodb.BasicDBObject;
 import formatter.AizouSerializer;
 import models.AizouBaseEntity;
 import models.geo.DetailsEntry;
@@ -17,8 +19,10 @@ import utils.Constants;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by zephyre on 12/6/14.
@@ -213,6 +217,31 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         }
         jsonGenerator.writeEndArray();
 
+
+        jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE, getString(abstractPOI.getVisitGuide()));
+        jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO, getString(abstractPOI.getTrafficInfo()));
+
+        Map<String, Object> miscInfo = abstractPOI.getMiscInfo();
+        jsonGenerator.writeFieldName(AbstractPOI.FD_TIPS);
+        jsonGenerator.writeStartArray();
+        List<DetailsEntry> detailsEntries = new ArrayList<>();
+        if (miscInfo != null && miscInfo.get("tips") != null) {
+            BasicDBList tips = (BasicDBList) miscInfo.get("tips");
+            JsonSerializer<Object> ret = serializerProvider.findValueSerializer(DetailsEntry.class, null);
+            for (int i = 0; i < tips.size(); i++) {
+                BasicDBObject tip = (BasicDBObject) tips.get(i);
+                String title = tip.getString("title");
+                String desc = tip.getString("desc");
+                DetailsEntry d = new DetailsEntry();
+                d.setTitle(title);
+                d.setDesc(desc);
+                detailsEntries.add(d);
+            }
+            for (DetailsEntry detailsEntry : detailsEntries)
+                ret.serialize(detailsEntry, jsonGenerator, serializerProvider);
+        }
+        jsonGenerator.writeEndArray();
+
         // Diff POI
         if (abstractPOI instanceof ViewSpot) {
             // Type use for serialize
@@ -221,18 +250,6 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
             jsonGenerator.writeStringField(AbstractPOI.FD_TIMECOSTDESC, getString(abstractPOI.timeCostDesc));
             // PriceDesc
             jsonGenerator.writeStringField(AbstractPOI.FD_PRICE_DESC, getString(abstractPOI.priceDesc));
-
-            jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE, getString(abstractPOI.getVisitGuide()));
-            jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO, getString(abstractPOI.getTrafficInfo()));
-            List<DetailsEntry> tips = abstractPOI.getTips();
-            jsonGenerator.writeFieldName(AbstractPOI.FD_TIPS);
-            jsonGenerator.writeStartArray();
-            if (tips != null && !tips.isEmpty()) {
-                JsonSerializer<Object> ret = serializerProvider.findValueSerializer(DetailsEntry.class, null);
-                for (DetailsEntry tip : tips)
-                    ret.serialize(tip, jsonGenerator, serializerProvider);
-            }
-            jsonGenerator.writeEndArray();
 
             // Tel
             List<String> tels = abstractPOI.tel;
@@ -246,7 +263,6 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         } else if (abstractPOI instanceof Restaurant) {
             // Type use for serialize
             jsonGenerator.writeStringField("type", "restaurant");
-
 
             // PriceDesc TaoziDataFilter.getPriceDesc(poiInfo)
             jsonGenerator.writeStringField(AbstractPOI.FD_PRICE_DESC, getString(TaoziDataFilter.getPriceDesc(abstractPOI)));

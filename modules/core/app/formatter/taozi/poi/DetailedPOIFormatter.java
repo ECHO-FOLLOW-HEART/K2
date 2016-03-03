@@ -1,20 +1,27 @@
 package formatter.taozi.poi;
 
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouFormatter;
+import formatter.AizouSerializer;
 import formatter.taozi.GeoJsonPointSerializer;
 import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.geo.LocalitySerializer;
 import formatter.taozi.guide.ItinerItemSerializer;
 import models.AizouBaseEntity;
+import models.geo.DetailsEntry;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.guide.ItinerItem;
 import models.misc.ImageItem;
-import models.poi.*;
+import models.poi.AbstractPOI;
+import models.poi.ViewSpot;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * 返回用户的摘要（以列表形式获取用户信息时使用，比如获得好友列表，获得黑名单列表等）
@@ -28,7 +35,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends AizouFormatter<
         if (cls == ViewSpot.class) {
             String[] keyList = new String[]{
                     ViewSpot.FD_OPEN_TIME, ViewSpot.FD_TIME_COST_DESC, ViewSpot.FD_TRAVEL_MONTH,
-                    ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_VISITGUIDE_URL, ViewSpot.FD_TIPS_URL
+                    ViewSpot.FD_TRAFFIC_URL, ViewSpot.FD_VISITGUIDE_URL, ViewSpot.FD_TIPS_URL, "miscInfo"
             };
             Collections.addAll(filteredFields, keyList);
         }
@@ -37,6 +44,7 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends AizouFormatter<
 
     public DetailedPOIFormatter(Integer imgWidth) {
         registerSerializer(AbstractPOI.class, new PolymorphicPOISerializer(PolymorphicPOISerializer.Level.DETAILED));
+        registerSerializer(DetailsEntry.class, new DetailsEntrySerializer());
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         registerSerializer(Locality.class, new LocalitySerializer());
         registerSerializer(ItinerItem.class, new ItinerItemSerializer());
@@ -65,6 +73,17 @@ public class DetailedPOIFormatter<T extends AbstractPOI> extends AizouFormatter<
                 AbstractPOI.FD_TELEPHONE
 
         );
+    }
+
+    class DetailsEntrySerializer extends AizouSerializer<DetailsEntry> {
+        @Override
+        public void serialize(DetailsEntry d, JsonGenerator jgen, SerializerProvider serializerProvider)
+                throws IOException {
+            jgen.writeStartObject();
+            jgen.writeStringField("title", getString(d.getTitle()));
+            jgen.writeStringField("desc", getString(d.getDesc()));
+            jgen.writeEndObject();
+        }
     }
 
 
