@@ -28,6 +28,7 @@ object FinagleConvert {
       val fmtInput = DateTimeFormat.forPattern("MM/dd/yyyy")
       fmtInput.parseDateTime(input).toDate
     }) orNull)
+    result.setPromotionCode(userInfo.promotionCode)
     result
   }
 

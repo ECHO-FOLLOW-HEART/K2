@@ -1,11 +1,10 @@
 package aizou.core;
 
+import database.MorphiaFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
-import database.MorphiaFactory;
 import models.SolrServerFactory;
-import models.geo.Country;
 import models.geo.Locality;
 import models.poi.*;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -19,8 +18,10 @@ import org.mongodb.morphia.query.CriteriaContainerImpl;
 import org.mongodb.morphia.query.Query;
 import utils.Constants;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -157,7 +158,7 @@ public class PoiAPI {
 
         String[] fieldList = {AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.fnRating, AbstractPOI.detDesc, AbstractPOI.FD_IMAGES,
                 AbstractPOI.FD_TAGS, AbstractPOI.detContact, AbstractPOI.FD_PRICE, AbstractPOI.FD_ALIAS, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_LOCATION,
-                AbstractPOI.FD_RANK, AbstractPOI.FD_STYLE, AbstractPOI.FD_TELEPHONE};
+                AbstractPOI.FD_RANK, AbstractPOI.FD_STYLE, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_TIMECOSTDESC};
         query.retrievedFields(true, fieldList);
         if (lng == 0 && lat == 0)
             query.order(defaultSorStr);

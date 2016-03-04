@@ -224,6 +224,15 @@ public abstract class AbstractPOI extends AizouBaseEntity implements ITravelPiFo
      */
     public List<Locality> locList;
     public Map<String, Object> miscInfo;
+
+    public Map<String, Object> getMiscInfo() {
+        return miscInfo;
+    }
+
+    public void setMiscInfo(Map<String, Object> miscInfo) {
+        this.miscInfo = miscInfo;
+    }
+
     public String moreCommentsUrl;
     /**
      * 景点-建议游玩时间。

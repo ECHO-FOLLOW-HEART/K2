@@ -1,6 +1,5 @@
 package controllers.app;
 
-import aizou.core.MiscAPI;
 import aizou.core.PoiAPI;
 import aspectj.Key;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -9,7 +8,6 @@ import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
 import formatter.taozi.geo.DetailsEntryFormatter;
-import formatter.taozi.misc.CommentFormatter;
 import formatter.taozi.poi.DetailedPOIFormatter;
 import formatter.taozi.poi.SimplePOIFormatter;
 import models.poi.*;
@@ -46,21 +44,20 @@ public class POICtrl extends Controller {
         JsonNode info = poiFormatter.formatNode(poiInfo);
 
         //取得推荐
-        List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
+//        List<POIRmd> rmdEntities = PoiAPI.getPOIRmd(spotId, rmdPage, rmdPageSize);
 //        POIRmdFormatter formatter = FormatterFactory.getInstance(POIRmdFormatter.class);
 //        JsonNode recommends = formatter.formatNode(rmdEntities);
 
         // 取得评论
-
-        List<Comment> commentsEntities = MiscAPI.getComments(commitClass, new ObjectId(spotId), null, null, 0, commentPage, commentPageSize);
-        CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
-        JsonNode comments = comformatter.formatNode(commentsEntities);
+        // 去掉评论 2016 03 03
+//        List<Comment> commentsEntities = MiscAPI.getComments(commitClass, new ObjectId(spotId), null, null, 0, commentPage, commentPageSize);
+//        CommentFormatter comformatter = FormatterFactory.getInstance(CommentFormatter.class);
+//        JsonNode comments = comformatter.formatNode(commentsEntities);
 
         ObjectNode ret = (ObjectNode) info;
-        ret.put("comments", comments);
+//        ret.put("comments", comments);
 //        int commCnt = (int) PoiAPI.getPOICommentCount(spotId);
 //        ret.put("commentCnt", commCnt);
-
 
         if (poiClass == Shopping.class || poiClass == Restaurant.class) {
             // 添加H5接口 更多评论

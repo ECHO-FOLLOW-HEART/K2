@@ -107,6 +107,9 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     @Transient
     public static String fnZodiac = "zodiac";
+
+    @Transient
+    public static String fnPromotionCode = "promotionCode";
     /**
      * 昵称
      */
@@ -239,6 +242,11 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
      * 星座
      */
     private int zodiac;
+
+    /**
+     * 邀请码
+     */
+    private String promotionCode;
 
 
     public UserInfo() {
@@ -443,6 +451,14 @@ public class UserInfo extends AizouBaseEntity implements ITravelPiFormatter {
 
     public void setBirthday(Date birthday) {
         this.birthday = birthday;
+    }
+
+    public String getPromotionCode() {
+        return promotionCode;
+    }
+
+    public void setPromotionCode(String promotionCode) {
+        this.promotionCode = promotionCode;
     }
 
     @Override
