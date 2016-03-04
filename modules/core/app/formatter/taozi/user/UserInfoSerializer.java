@@ -4,13 +4,11 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouSerializer;
-import models.geo.Locality;
 import models.user.UserInfo;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public class UserInfoSerializer extends AizouSerializer<UserInfo> {
 
@@ -37,6 +35,7 @@ public class UserInfoSerializer extends AizouSerializer<UserInfo> {
         jgen.writeStringField("gender", getString(userInfo.getGender()));
         jgen.writeStringField("signature", getString(userInfo.getSignature()));
         jgen.writeNumberField("userId", userInfo.getUserId());
+        jgen.writeStringField("promotionCode", userInfo.getPromotionCode());
         jgen.writeBooleanField("isBlocked", false);
 
         // roles

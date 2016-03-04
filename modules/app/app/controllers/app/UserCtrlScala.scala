@@ -36,7 +36,7 @@ object UserCtrlScala extends Controller {
 
   implicit def userInfoYunkai2Model(userInfo: YunkaiUserInfo): UserInfo = FinagleConvert.convertK2User(userInfo)
 
-  val basicUserInfoFieds = Seq(UserId, NickName, Avatar, Gender, Signature, Residence, Birthday)
+  val basicUserInfoFieds = Seq(UserId, NickName, Avatar, Gender, Signature, Residence, Birthday, PromotionCode)
 
   def getUserInfo(userId: Long) = Action.async(block = request => {
 
@@ -212,12 +212,13 @@ object UserCtrlScala extends Controller {
       body <- request.body.asJson
       password <- (body \ "password").asOpt[String] orElse (body \ "pwd").asOpt[String]
       valCode <- (body \ "captcha").asOpt[String] orElse (body \ "validationCode").asOpt[String]
+      promotionCode <- (body \ "promotionCode").asOpt[String] orElse Some("")
       tel <- (body \ "tel").asOpt[String] map PhoneParserFactory.newInstance().parse
     } yield {
       val future = for {
         check <- client.checkValidationCode(valCode, action, tel.getPhoneNumber, None)
         user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)))
-        updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
+        updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId), UserInfoProp.PromotionCode -> promotionCode))
       } yield {
         val userFormatter = new UserLoginFormatter(true)
 
