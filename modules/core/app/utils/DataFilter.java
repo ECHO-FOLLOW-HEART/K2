@@ -13,12 +13,27 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
  * Created by topy on 2014/9/12.
  */
 public class DataFilter {
+
+    public static String filterHtml(String str) {
+        Pattern pattern = Pattern.compile("<([^>]*)>");
+        Matcher matcher = pattern.matcher(str);
+        StringBuffer sb = new StringBuffer();
+        boolean result1 = matcher.find();
+        while (result1) {
+            matcher.appendReplacement(sb, "");
+            result1 = matcher.find();
+        }
+        matcher.appendTail(sb);
+        return sb.toString();
+    }
 
     public static String priceDescFilter(String desc) {
         if (null == desc) {
@@ -37,6 +52,7 @@ public class DataFilter {
             return "全天";
         return time;
     }
+
 
     public static String timeCostFilter(Double timeCost, String name) {
 
