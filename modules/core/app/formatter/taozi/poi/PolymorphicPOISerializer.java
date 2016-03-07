@@ -16,6 +16,7 @@ import models.misc.ImageItem;
 import models.poi.*;
 import org.apache.commons.lang3.StringUtils;
 import utils.Constants;
+import utils.DataFilter;
 import utils.TaoziDataFilter;
 
 import java.io.IOException;
@@ -218,7 +219,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         jsonGenerator.writeEndArray();
 
 
-        jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE, getString(abstractPOI.getVisitGuide()));
+        jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE, getString(DataFilter.filterHtml(abstractPOI.getVisitGuide())));
         jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO, getString(abstractPOI.getTrafficInfo()));
 
         Map<String, Object> miscInfo = abstractPOI.getMiscInfo();
