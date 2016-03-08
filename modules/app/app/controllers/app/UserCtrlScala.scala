@@ -215,9 +215,11 @@ object UserCtrlScala extends Controller {
       promotionCode <- (body \ "promotionCode").asOpt[String]
       tel <- (body \ "tel").asOpt[String] map PhoneParserFactory.newInstance().parse
     } yield {
+      // 来自哪个渠道
+      val source = request.headers.get("ChannelId")
       val future = for {
         check <- client.checkValidationCode(valCode, action, tel.getPhoneNumber, None)
-        user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)))
+        user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)), source)
         updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
       } yield {
         val userFormatter = new UserLoginFormatter(true)

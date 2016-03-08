@@ -211,11 +211,11 @@ GET           /geo/localities                                          controlle
 GET           /geo/localities/recommendations                          controllers.app.MiscCtrlScala.getRmd(itemType: String="locality",abroad: Boolean?=false)
 #查看目的地详情
 #GET           /geo/localities/:id                                      controllers.app.GeoCtrl.getLocality(id: String)
-GET           /geo/localities/:id                                      controllers.app.GeoCtrlScala.getLocality(id: String)
+GET           /geo/localities/$id<[0-9a-f]{24}>                        controllers.app.GeoCtrlScala.getLocality(id: String)
 #查看目的地详情图集
-GET           /geo/localities/:id/albums                               controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=20)
+GET           /geo/localities/$id<[0-9a-f]{24}>/albums                 controllers.app.GeoCtrl.getLocalityAlbums(id: String, page:Int?=0, pageSize: Int?=20)
 #查看目的地攻略
-GET           /geo/localities/:locId/guides                            controllers.app.GuideCtrlScala.getTempGuide(locId:String)
+GET           /geo/localities/$locId<[0-9a-f]{24}>/guides              controllers.app.GuideCtrlScala.getTempGuide(locId:String)
 #查看目的地评论
 #GET           /geo/localities/$id<[0-9a-f]{24}>/comments               controllers.app.GeoCtrl.getLocalityComments(commentType: String?="comment", id: String, page:Int?=0, pageSize: Int?=20)
 #赞
