@@ -176,7 +176,13 @@ object UserCtrlScala extends Controller {
         }
 
       } else if (authCode.nonEmpty && provider.nonEmpty) {
-        val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get) map (user => {
+        // 微信登录
+        val channel = request.headers get "ChannelId"
+        val metadata = channel match {
+          case Some(ch: String) => Some(Map("channel" -> ch))
+          case _ => None
+        }
+        val future = FinagleFactory.client.loginByOAuth(authCode.get, provider.get, metadata) map (user => {
 
           val userFormatter = new UserLoginFormatter(true)
 
@@ -216,10 +222,14 @@ object UserCtrlScala extends Controller {
       tel <- (body \ "tel").asOpt[String] map PhoneParserFactory.newInstance().parse
     } yield {
       // 来自哪个渠道
-      val source = request.headers.get("ChannelId")
+      val channel = request.headers get "ChannelId"
+      val metadata = channel match {
+        case Some(ch: String) => Some(Map("channel" -> ch))
+        case _ => None
+      }
       val future = for {
         check <- client.checkValidationCode(valCode, action, tel.getPhoneNumber, None)
-        user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)), source)
+        user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)), metadata)
         updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
       } yield {
         val userFormatter = new UserLoginFormatter(true)
