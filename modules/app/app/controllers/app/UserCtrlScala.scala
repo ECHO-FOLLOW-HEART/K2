@@ -218,18 +218,25 @@ object UserCtrlScala extends Controller {
       body <- request.body.asJson
       password <- (body \ "password").asOpt[String] orElse (body \ "pwd").asOpt[String]
       valCode <- (body \ "captcha").asOpt[String] orElse (body \ "validationCode").asOpt[String]
-      promotionCode <- (body \ "promotionCode").asOpt[String]
       tel <- (body \ "tel").asOpt[String] map PhoneParserFactory.newInstance().parse
     } yield {
       // 来自哪个渠道
       val channel = request.headers get "ChannelId"
-      val metadata = channel match {
-        case Some(ch: String) => Some(Map("channel" -> ch))
-        case _ => None
+      val promotionCode = (body \ "promotionCode").asOpt[String]
+      val metadata = scala.collection.mutable.Map[String, String]()
+      channel match {
+        case Some(ch: String) => metadata += "channel" -> ch
+        case _ =>
       }
+      promotionCode match {
+        case Some(cd: String) => metadata += "promotionCode" -> cd
+        case _ =>
+      }
+
       val future = for {
         check <- client.checkValidationCode(valCode, action, tel.getPhoneNumber, None)
-        user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)), metadata)
+        user <- FinagleFactory.client.createUser("", password, Some(Map(UserInfoProp.Tel -> tel.getPhoneNumber)),
+          Some(metadata))
         updateNickName <- FinagleFactory.client.updateUserInfo(user.getUserId, Map(UserInfoProp.NickName -> ("用户" + user.getUserId)))
       } yield {
         val userFormatter = new UserLoginFormatter(true)
