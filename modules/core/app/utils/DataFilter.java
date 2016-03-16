@@ -23,6 +23,8 @@ import java.util.regex.Pattern;
 public class DataFilter {
 
     public static String filterHtml(String str) {
+        if (str == null || str.equals(""))
+            return "";
         Pattern pattern = Pattern.compile("<([^>]*)>");
         Matcher matcher = pattern.matcher(str);
         StringBuffer sb = new StringBuffer();
