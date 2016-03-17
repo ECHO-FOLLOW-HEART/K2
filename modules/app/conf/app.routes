@@ -71,6 +71,9 @@ POST          /users/$uid<\d+>/match                                   controlle
 #搜索达人
 GET           /users/experts                                           controllers.app.UserCtrlScala.searchExpert(zone:String)
 
+#验证密码
+POST          /users/password                                          controllers.app.UserCtrlScala.checkUser()
+
 #----------用户相册接口----------
 #获取用户个人相册
 GET           /users/$id<\d+>/albums                                   controllers.app.UserUgcCtrl.getUserAlbums(id:Long)
