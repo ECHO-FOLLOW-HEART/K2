@@ -257,7 +257,7 @@ GET           /about                                                   controlle
 
 #----------Hanse接口----------
 #首页专栏
-GET           /columns                                                 controllers.app.HanseMiscCtrlScala.columns(userId:Long)
+GET           /columns                                                 controllers.app.HanseMiscCtrlScala.columns()
 #首页推荐
 GET           /recommend                                               controllers.app.HanseMiscCtrlScala.recommend()
 #商品分类列表

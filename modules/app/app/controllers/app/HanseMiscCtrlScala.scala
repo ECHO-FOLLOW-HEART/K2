@@ -19,7 +19,7 @@ object HanseMiscCtrlScala {
    * 首页专栏
    * @return
    */
-  def columns(userId: Long) = redirects("http://192.168.100.3:9480/columns?userId=" + userId)
+  def columns() = redirects("http://192.168.100.3:9480/columns")
 
   /**
    * 首页推荐
