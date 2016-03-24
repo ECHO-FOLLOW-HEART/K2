@@ -155,7 +155,7 @@ public class PoiAPI {
         // 限定酒店类型：空-类型不限 1-星级酒店 2-经济型酒店 3-青年旅社 4-民俗酒店
         if (hotelType != 0)
             query = query.field("type").equal(hotelType);
-
+        query = query.field("taoziEna").equal(true);
         String[] fieldList = {AbstractPOI.FD_ZH_NAME, AbstractPOI.FD_EN_NAME, AbstractPOI.fnRating, AbstractPOI.detDesc, AbstractPOI.FD_IMAGES,
                 AbstractPOI.FD_TAGS, AbstractPOI.detContact, AbstractPOI.FD_PRICE, AbstractPOI.FD_ALIAS, AbstractPOI.FD_LOCALITY, AbstractPOI.FD_LOCATION,
                 AbstractPOI.FD_RANK, AbstractPOI.FD_STYLE, AbstractPOI.FD_TELEPHONE, AbstractPOI.FD_TIMECOSTDESC};
