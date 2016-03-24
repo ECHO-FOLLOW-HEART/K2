@@ -703,6 +703,19 @@ object UserCtrlScala extends Controller {
     future
   })
 
+  def checkUser() = Action.async(request => {
+    val userId = request.headers.get("UserId") map (_.toLong) getOrElse Long.MinValue
+    val future = (for {
+      body <- request.body.asJson
+      pwd <- (body \ "password").asOpt[String]
+    } yield {
+      FinagleFactory.client.verifyCredential(userId, pwd) map (flag => {
+        if (flag) K2Result.ok(None) else K2Result.forbidden(ErrorCode.LACK_OF_AUTH, "Error")
+      })
+    }) getOrElse TwitterFuture(K2Result.unprocessable)
+    future
+  })
+
   def updateUserInfo(uid: Long) = Action.async(request => {
 
     import UserInfoProp._
