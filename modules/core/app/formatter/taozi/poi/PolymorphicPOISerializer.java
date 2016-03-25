@@ -363,10 +363,10 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
                 else
                     jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE_URL, "http://h5.taozilvxing.com/poi/play.php?tid=" + id);
 
-                if (abstractPOI.getTips() == null || abstractPOI.getTips().equals(""))
-                    jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "");
-                else
-                    jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "http://h5.taozilvxing.com/poi/tips.php?tid=" + id);
+//                if (abstractPOI.getTips() == null || abstractPOI.getTips().equals(""))
+//                    jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "");
+//                else
+                jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "http://h5.taozilvxing.com/poi/tips.php?tid=" + id);
 
                 if (abstractPOI.getDesc() == null || abstractPOI.getDesc().equals(""))
                     jsonGenerator.writeStringField("descUrl", "");
