@@ -219,8 +219,7 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
         jsonGenerator.writeEndArray();
 
 
-        jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE, getString(DataFilter.filterHtml(abstractPOI.getVisitGuide())));
-        jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO, getString(abstractPOI.getTrafficInfo()));
+
 
         Map<String, Object> miscInfo = abstractPOI.getMiscInfo();
         jsonGenerator.writeFieldName(AbstractPOI.FD_TIPS);
@@ -245,6 +244,9 @@ public class PolymorphicPOISerializer<T extends AbstractPOI> extends AizouSerial
 
         // Diff POI
         if (abstractPOI instanceof ViewSpot) {
+
+            jsonGenerator.writeStringField(AbstractPOI.FD_VISITGUIDE, getString(DataFilter.filterHtml(abstractPOI.getVisitGuide())));
+            jsonGenerator.writeStringField(AbstractPOI.FD_TRAFFICINFO, getString(abstractPOI.getTrafficInfo()));
             // Type use for serialize
             jsonGenerator.writeStringField("type", "vs");
             // TimeCost
