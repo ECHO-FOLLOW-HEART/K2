@@ -20,6 +20,9 @@ public abstract class AbstractGuide extends AizouBaseEntity {
     public static final String fnTitle = "title";
 
     @Transient
+    public static final String fnLocalityItems = "localityItems";
+
+    @Transient
     public static final String fnItinerary = "itinerary";
 
     @Transient
@@ -48,6 +51,8 @@ public abstract class AbstractGuide extends AizouBaseEntity {
 
     public List<ItinerItem> itinerary;
 
+    public List<LocalityItem> localityItems;
+
     public List<Shopping> shopping;
 
     public List<Restaurant> restaurant;
@@ -60,4 +65,19 @@ public abstract class AbstractGuide extends AizouBaseEntity {
         return images;
     }
 
+    public List<LocalityItem> getLocalityItems() {
+        return localityItems;
+    }
+
+    public void setLocalityItems(List<LocalityItem> localityItems) {
+        this.localityItems = localityItems;
+    }
+
+    public List<ItinerItem> getItinerary() {
+        return itinerary;
+    }
+
+    public void setItinerary(List<ItinerItem> itinerary) {
+        this.itinerary = itinerary;
+    }
 }

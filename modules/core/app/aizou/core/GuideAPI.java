@@ -1,14 +1,11 @@
 package aizou.core;
 
+import database.MorphiaFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import models.AizouBaseEntity;
-import database.MorphiaFactory;
 import models.geo.Locality;
-import models.guide.AbstractGuide;
-import models.guide.Guide;
-import models.guide.GuideTemplate;
-import models.guide.ItinerItem;
+import models.guide.*;
 import models.poi.*;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.Datastore;
@@ -328,6 +325,8 @@ public class GuideAPI {
                 update.set(Guide.fnStatus, guide.getStatus());
             if (guide.getUpdateTime() != null)
                 update.set(Guide.fnUpdateTime, System.currentTimeMillis());
+            if (guide.getLocalityItems() != null)
+                update.set(Guide.fnLocalityItems, guide.getLocalityItems());
             ds.update(query, update);
         } else
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("User %s has no guide which id is %s.", userId, guideId));
@@ -817,6 +816,32 @@ public class GuideAPI {
         }
         return result;
     }
+
+    public static void addLocalityItem(Guide guide) {
+        List<ItinerItem> itinerItems = guide.getItinerary();
+        if (itinerItems != null && !itinerItems.isEmpty()) {
+            // 从itinerary中取出localityItems
+            List<LocalityItem> localityItems = new ArrayList<>();
+            for (ItinerItem it : itinerItems) {
+                LocalityItem l = new LocalityItem();
+                l.dayIndex = it.dayIndex;
+                l.locality = it.poi.getLocality();
+                localityItems.add(l);
+            }
+
+            Set<LocalityItem> s = new TreeSet<>(new Comparator<LocalityItem>() {
+                @Override
+                public int compare(LocalityItem o1, LocalityItem o2) {
+                    return o1.locality.getId().toString().compareTo(o2.locality.getId().toString());
+                }
+            });
+            s.addAll(localityItems);
+            guide.setLocalityItems(new ArrayList<>(s));
+        }
+
+
+    }
+
 
     private static void transformCommetnListToMap(List<Comment> list, List<? extends AbstractPOI>... poiList) {
         Map<ObjectId, List<Comment>> result = new HashMap<>();

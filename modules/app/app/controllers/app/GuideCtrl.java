@@ -212,7 +212,7 @@ public class GuideCtrl extends Controller {
         ObjectId guideId = new ObjectId(id);
         List<String> fields = new ArrayList<>();
         Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime,
-                Guide.fnImages, Guide.fnStatus);
+                Guide.fnImages, Guide.fnStatus,Guide.fnLocalityItems);
         switch (part) {
             case AbstractGuide.fnItinerary:
                 fields.add(Guide.fnItinerary);
@@ -272,7 +272,6 @@ public class GuideCtrl extends Controller {
     }
 
 
-
     /**
      * 获取目的地的攻略信息
      *
@@ -301,7 +300,7 @@ public class GuideCtrl extends Controller {
     }
 
     public static String removeH5Label(String content) {
-        if(content ==null)
+        if (content == null)
             return "";
         List<String> regExList = Arrays.asList("<p>", "</p>", "<div>", "</div>");
         for (String regEx : regExList) {

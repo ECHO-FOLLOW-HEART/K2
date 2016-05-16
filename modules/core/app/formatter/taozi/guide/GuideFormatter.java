@@ -5,7 +5,8 @@ import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import formatter.AizouFormatter;
 import formatter.AizouSerializer;
-import formatter.taozi.*;
+import formatter.taozi.GeoJsonPointSerializer;
+import formatter.taozi.ImageItemSerializer;
 import formatter.taozi.geo.LocalitySerializer;
 import formatter.taozi.poi.POISerializer;
 import models.geo.GeoJsonPoint;
@@ -13,6 +14,7 @@ import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
 import models.guide.ItinerItem;
+import models.guide.LocalityItem;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 import models.poi.Restaurant;
@@ -33,6 +35,7 @@ public class GuideFormatter extends AizouFormatter<Guide> {
         registerSerializer(ImageItem.class, new ImageItemSerializer(imgWidth));
         registerSerializer(Locality.class, new LocalitySerializer());
         registerSerializer(ItinerItem.class, new ItinerItemSerializer());
+        registerSerializer(LocalityItem.class, new LocalityItemSerializer());
         registerSerializer(AbstractPOI.class, new POISerializer());
         registerSerializer(GeoJsonPoint.class, new GeoJsonPointSerializer());
 
@@ -42,6 +45,7 @@ public class GuideFormatter extends AizouFormatter<Guide> {
                 AbstractGuide.fdId,
                 AbstractGuide.fnTitle,
                 AbstractGuide.fnItinerary,
+                AbstractGuide.fnLocalityItems,
                 AbstractGuide.fnShopping,
                 AbstractGuide.fnRestaurant,
                 Guide.fnUserId,
@@ -102,6 +106,57 @@ public class GuideFormatter extends AizouFormatter<Guide> {
                     }
                 }
             }
+            jgen.writeEndArray();
+
+            jgen.writeFieldName(Guide.fnLocalityItems);
+            jgen.writeStartArray();
+            List<LocalityItem> guideLocalityItems = guide.localityItems;
+            if (guideLocalityItems == null) {
+                if (itinerItems != null && !itinerItems.isEmpty()) {
+                    // 从itinerary中取出localityItems
+                    List<LocalityItem> localityItems = new ArrayList<>();
+                    for (ItinerItem it : itinerItems) {
+                        LocalityItem l = new LocalityItem();
+                        l.dayIndex = it.dayIndex;
+                        l.locality = it.poi.getLocality();
+                        localityItems.add(l);
+                    }
+
+                    // 去重
+                    Set<LocalityItem> s = new TreeSet<>(new Comparator<LocalityItem>() {
+                        @Override
+                        public int compare(LocalityItem o1, LocalityItem o2) {
+                            Locality l1 = o1.locality;
+                            Locality l2 = o2.locality;
+                            if (l1 == null || l2 == null)
+                                return 1;
+                            else
+                                return l1.getId().toString().compareTo(l2.getId().toString());
+                        }
+                    });
+                    s.addAll(localityItems);
+
+                    List<LocalityItem> sortLocalityItem = new ArrayList<>(s);
+
+                    // 解析localityItems
+                    if (!sortLocalityItem.isEmpty()) {
+                        JsonSerializer<Object> retItinerItems = serializerProvider.findValueSerializer(LocalityItem.class, null);
+                        for (LocalityItem itinerItem : sortLocalityItem) {
+                            if (itinerItem != null && itinerItem.locality != null) {
+                                retItinerItems.serialize(itinerItem, jgen, serializerProvider);
+                            }
+                        }
+                    }
+                }
+            } else {
+                JsonSerializer<Object> retItinerItems = serializerProvider.findValueSerializer(LocalityItem.class, null);
+                for (LocalityItem it : guideLocalityItems) {
+                    if (it != null) {
+                        retItinerItems.serialize(it, jgen, serializerProvider);
+                    }
+                }
+            }
+
             jgen.writeEndArray();
 
             //Shopping
