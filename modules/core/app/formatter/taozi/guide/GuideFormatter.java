@@ -111,44 +111,7 @@ public class GuideFormatter extends AizouFormatter<Guide> {
             jgen.writeFieldName(Guide.fnLocalityItems);
             jgen.writeStartArray();
             List<LocalityItem> guideLocalityItems = guide.localityItems;
-            if (guideLocalityItems == null) {
-                if (itinerItems != null && !itinerItems.isEmpty()) {
-                    // 从itinerary中取出localityItems
-                    List<LocalityItem> localityItems = new ArrayList<>();
-                    for (ItinerItem it : itinerItems) {
-                        LocalityItem l = new LocalityItem();
-                        l.dayIndex = it.dayIndex;
-                        l.locality = it.poi.getLocality();
-                        localityItems.add(l);
-                    }
-
-                    // 去重
-                    Set<LocalityItem> s = new TreeSet<>(new Comparator<LocalityItem>() {
-                        @Override
-                        public int compare(LocalityItem o1, LocalityItem o2) {
-                            Locality l1 = o1.locality;
-                            Locality l2 = o2.locality;
-                            if (l1 == null || l2 == null)
-                                return 1;
-                            else
-                                return l1.getId().toString().compareTo(l2.getId().toString());
-                        }
-                    });
-                    s.addAll(localityItems);
-
-                    List<LocalityItem> sortLocalityItem = new ArrayList<>(s);
-
-                    // 解析localityItems
-                    if (!sortLocalityItem.isEmpty()) {
-                        JsonSerializer<Object> retItinerItems = serializerProvider.findValueSerializer(LocalityItem.class, null);
-                        for (LocalityItem itinerItem : sortLocalityItem) {
-                            if (itinerItem != null && itinerItem.locality != null) {
-                                retItinerItems.serialize(itinerItem, jgen, serializerProvider);
-                            }
-                        }
-                    }
-                }
-            } else {
+            if (guideLocalityItems != null && !guideLocalityItems.isEmpty()) {
                 JsonSerializer<Object> retItinerItems = serializerProvider.findValueSerializer(LocalityItem.class, null);
                 for (LocalityItem it : guideLocalityItems) {
                     if (it != null) {

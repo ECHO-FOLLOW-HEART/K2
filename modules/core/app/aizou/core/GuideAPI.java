@@ -29,7 +29,7 @@ public class GuideAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static Guide getGuideByDestination(List<ObjectId> ids, Integer userId) throws AizouException {
+    public static Guide getGuideByDestination(List<ObjectId> ids, Integer userId, List<LocalityItem> localityItems) throws AizouException {
         Query<GuideTemplate> query = MorphiaFactory.datastore()
                 .createQuery(GuideTemplate.class);
         List<CriteriaContainerImpl> criList = new ArrayList<>();
@@ -61,6 +61,8 @@ public class GuideAPI {
         result.setStatus(Guide.fnStatusPlanned);
         // 保存攻略时，置为可用
         result.setTaoziEna(true);
+        // 每天的目的地安排
+        result.setLocalityItems(localityItems);
         //创建时即保存
         MorphiaFactory.datastore().save(result);
         return result;
@@ -73,7 +75,7 @@ public class GuideAPI {
      * @return
      * @throws exception.AizouException
      */
-    public static Guide getEmptyGuide(List<ObjectId> ids, Integer userId) throws AizouException {
+    public static Guide getEmptyGuide(List<ObjectId> ids, Integer userId, List<LocalityItem> localityItems) throws AizouException {
 
         Query<Locality> queryDes = MorphiaFactory.datastore()
                 .createQuery(Locality.class);
@@ -104,6 +106,8 @@ public class GuideAPI {
         ugcGuide.setStatus(Guide.fnStatusPlanned);
         // 保存攻略时，置为可用
         ugcGuide.setTaoziEna(true);
+        // 每天的目的地安排
+        ugcGuide.setLocalityItems(localityItems);
         //创建时即保存
         MorphiaFactory.datastore().save(ugcGuide);
         return ugcGuide;
@@ -819,29 +823,48 @@ public class GuideAPI {
 
     public static void addLocalityItem(Guide guide) {
         List<ItinerItem> itinerItems = guide.getItinerary();
-        if (itinerItems != null && !itinerItems.isEmpty()) {
+        List<LocalityItem> localityItemsList = guide.getLocalityItems();
+        // 如果用户没有指定每天的目的地列表，则根据每天的景点安排，生成一个。
+        if (itinerItems != null && !itinerItems.isEmpty() && localityItemsList == null) {
             // 从itinerary中取出localityItems
             List<LocalityItem> localityItems = new ArrayList<>();
             for (ItinerItem it : itinerItems) {
                 LocalityItem l = new LocalityItem();
                 l.dayIndex = it.dayIndex;
-                l.locality = it.poi.getLocality();
+                if (it.poi.getLocality() == null)
+                    continue;
+                else
+                    l.locality = it.poi.getLocality();
                 localityItems.add(l);
             }
 
             Set<LocalityItem> s = new TreeSet<>(new Comparator<LocalityItem>() {
                 @Override
                 public int compare(LocalityItem o1, LocalityItem o2) {
-                    return o1.locality.getId().toString().compareTo(o2.locality.getId().toString());
+                    Locality l1 = o1.locality;
+                    Locality l2 = o2.locality;
+                    return l1.getId().toString().compareTo(l2.getId().toString()) + o1.dayIndex.compareTo(o2.dayIndex);
                 }
             });
             s.addAll(localityItems);
             guide.setLocalityItems(new ArrayList<>(s));
         }
 
+        Datastore ds = MorphiaFactory.datastore();
+        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guide.getId());
+        UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
+        update.set(Guide.fnLocalityItems, guide.getLocalityItems());
 
+        // 重新设定游玩天数
+        int itineraryDays = guide.getItineraryDays();
+        if (localityItemsList != null && localityItemsList.size() > 0)
+            for (LocalityItem it : localityItemsList) {
+                if (it.dayIndex > itineraryDays)
+                    itineraryDays = it.dayIndex;
+            }
+        update.set(Guide.fnLocalityItems, itineraryDays);
+        ds.update(query, update);
     }
-
 
     private static void transformCommetnListToMap(List<Comment> list, List<? extends AbstractPOI>... poiList) {
         Map<ObjectId, List<Comment>> result = new HashMap<>();

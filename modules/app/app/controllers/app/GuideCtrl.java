@@ -7,6 +7,7 @@ import aspectj.UsingOcsCache;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 import exception.AizouException;
 import exception.ErrorCode;
 import formatter.FormatterFactory;
@@ -15,6 +16,7 @@ import formatter.taozi.guide.SimpleGuideFormatter;
 import models.geo.Locality;
 import models.guide.AbstractGuide;
 import models.guide.Guide;
+import models.guide.LocalityItem;
 import models.misc.ImageItem;
 import org.bson.types.ObjectId;
 import play.libs.Json;
@@ -24,6 +26,7 @@ import utils.Constants;
 import utils.TaoziDataFilter;
 import utils.Utils;
 
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -63,17 +66,29 @@ public class GuideCtrl extends Controller {
             imgWidth = Integer.valueOf(imgWidthStr);
         Integer selfId = Integer.valueOf(uid);//tmp);
         Iterator<JsonNode> iterator = data.get("locId").iterator();
-        Boolean initViewSpots = data.has("initViewSpots") ? data.get("initViewSpots").asBoolean() : false;
+        Boolean initViewSpots = data.has("initViewSpots") && data.get("initViewSpots").asBoolean();
+
+        ObjectMapper m = new ObjectMapper();
+        List<LocalityItem> localityItems = null;
+        try {
+            if (data.has("localityItems"))
+                localityItems = m.readValue(data.get("localityItems").toString(),
+                        TypeFactory.defaultInstance().constructCollectionType(List.class,
+                                LocalityItem.class));
+        } catch (IOException e) {
+        }
+
         List<ObjectId> ids = new ArrayList<>();
         while (iterator.hasNext()) {
             ids.add(new ObjectId(iterator.next().asText()));
         }
         // 如果用户需要推荐攻略，就根据目的地推荐攻略
         if (initViewSpots) {//action.equals(HAS_RECOMMENDATION)) {
-            result = GuideAPI.getGuideByDestination(ids, selfId);
+            result = GuideAPI.getGuideByDestination(ids, selfId, localityItems);
             GuideAPI.fillGuideInfo(result);
+            GuideAPI.addLocalityItem(result);
         } else
-            result = GuideAPI.getEmptyGuide(ids, selfId);
+            result = GuideAPI.getEmptyGuide(ids, selfId, localityItems);
 
         GuideFormatter formatter = FormatterFactory.getInstance(GuideFormatter.class, imgWidth);
         node = (ObjectNode) formatter.formatNode(result);
@@ -212,7 +227,7 @@ public class GuideCtrl extends Controller {
         ObjectId guideId = new ObjectId(id);
         List<String> fields = new ArrayList<>();
         Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime,
-                Guide.fnImages, Guide.fnStatus,Guide.fnLocalityItems);
+                Guide.fnImages, Guide.fnStatus, Guide.fnLocalityItems);
         switch (part) {
             case AbstractGuide.fnItinerary:
                 fields.add(Guide.fnItinerary);
