@@ -11,17 +11,15 @@ import formatter.taozi.geo.LocalitySerializer;
 import formatter.taozi.poi.POISerializer;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
-import models.guide.AbstractGuide;
-import models.guide.Guide;
-import models.guide.ItinerItem;
-import models.guide.LocalityItem;
+import models.guide.*;
 import models.misc.ImageItem;
 import models.poi.AbstractPOI;
 import models.poi.Restaurant;
 import models.poi.Shopping;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 返回攻略中行程单内容
@@ -36,6 +34,8 @@ public class GuideFormatter extends AizouFormatter<Guide> {
         registerSerializer(Locality.class, new LocalitySerializer());
         registerSerializer(ItinerItem.class, new ItinerItemSerializer());
         registerSerializer(LocalityItem.class, new LocalityItemSerializer());
+        registerSerializer(DemoItem.class, new DemoItemSerializer());
+        registerSerializer(TrafficItem.class, new TrafficItemSerializer());
         registerSerializer(AbstractPOI.class, new POISerializer());
         registerSerializer(GeoJsonPoint.class, new GeoJsonPointSerializer());
 
@@ -119,7 +119,32 @@ public class GuideFormatter extends AizouFormatter<Guide> {
                     }
                 }
             }
+            jgen.writeEndArray();
 
+            jgen.writeFieldName(Guide.fnDemoItems);
+            jgen.writeStartArray();
+            List<DemoItem> demoItems = guide.demoItems;
+            if (demoItems != null && !demoItems.isEmpty()) {
+                JsonSerializer<Object> retItinerItems = serializerProvider.findValueSerializer(DemoItem.class, null);
+                for (DemoItem it : demoItems) {
+                    if (it != null) {
+                        retItinerItems.serialize(it, jgen, serializerProvider);
+                    }
+                }
+            }
+            jgen.writeEndArray();
+
+            jgen.writeFieldName(Guide.fnTrafficItems);
+            jgen.writeStartArray();
+            List<TrafficItem> trafficItems = guide.trafficItems;
+            if (trafficItems != null && !trafficItems.isEmpty()) {
+                JsonSerializer<Object> retItinerItems = serializerProvider.findValueSerializer(TrafficItem.class, null);
+                for (TrafficItem it : trafficItems) {
+                    if (it != null) {
+                        retItinerItems.serialize(it, jgen, serializerProvider);
+                    }
+                }
+            }
             jgen.writeEndArray();
 
             //Shopping

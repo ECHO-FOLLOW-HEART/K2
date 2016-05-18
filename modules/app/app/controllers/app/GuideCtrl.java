@@ -227,7 +227,7 @@ public class GuideCtrl extends Controller {
         ObjectId guideId = new ObjectId(id);
         List<String> fields = new ArrayList<>();
         Collections.addAll(fields, Guide.fdId, Guide.fnUserId, Guide.fnTitle, Guide.fnLocalities, Guide.fnUpdateTime,
-                Guide.fnImages, Guide.fnStatus, Guide.fnLocalityItems);
+                Guide.fnImages, Guide.fnStatus, Guide.fnLocalityItems,Guide.fnDemoItems,Guide.fnTrafficItems);
         switch (part) {
             case AbstractGuide.fnItinerary:
                 fields.add(Guide.fnItinerary);

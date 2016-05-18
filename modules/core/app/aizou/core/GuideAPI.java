@@ -331,6 +331,10 @@ public class GuideAPI {
                 update.set(Guide.fnUpdateTime, System.currentTimeMillis());
             if (guide.getLocalityItems() != null)
                 update.set(Guide.fnLocalityItems, guide.getLocalityItems());
+            if (guide.getDemoItems() != null)
+                update.set(Guide.fnDemoItems, guide.getDemoItems());
+            if (guide.getTrafficItems() != null)
+                update.set(Guide.fnTrafficItems, guide.getTrafficItems());
             ds.update(query, update);
         } else
             throw new AizouException(ErrorCode.INVALID_ARGUMENT, String.format("User %s has no guide which id is %s.", userId, guideId));
