@@ -828,6 +828,22 @@ public class GuideAPI {
     public static void addLocalityItem(Guide guide) {
         List<ItinerItem> itinerItems = guide.getItinerary();
         List<LocalityItem> localityItemsList = guide.getLocalityItems();
+        Datastore ds = MorphiaFactory.datastore();
+        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guide.getId());
+        UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
+
+        // 重新设定游玩天数
+        if (localityItemsList != null && localityItemsList.size() > 0) {
+            int maxDays = 1;
+            for (LocalityItem it : localityItemsList) {
+                if (it.dayIndex > maxDays)
+                    maxDays = it.dayIndex;
+            }
+            guide.setItineraryDays(maxDays);
+            update.set(Guide.fnItineraryDays, maxDays);
+        }
+
+
         // 如果用户没有指定每天的目的地列表，则根据每天的景点安排，生成一个。
         if (itinerItems != null && !itinerItems.isEmpty() && localityItemsList == null) {
             // 从itinerary中取出localityItems
@@ -853,20 +869,7 @@ public class GuideAPI {
             s.addAll(localityItems);
             guide.setLocalityItems(new ArrayList<>(s));
         }
-
-        Datastore ds = MorphiaFactory.datastore();
-        Query<Guide> query = ds.createQuery(Guide.class).field("id").equal(guide.getId());
-        UpdateOperations<Guide> update = ds.createUpdateOperations(Guide.class);
         update.set(Guide.fnLocalityItems, guide.getLocalityItems());
-
-        // 重新设定游玩天数
-        int itineraryDays = guide.getItineraryDays();
-        if (localityItemsList != null && localityItemsList.size() > 0)
-            for (LocalityItem it : localityItemsList) {
-                if (it.dayIndex > itineraryDays)
-                    itineraryDays = it.dayIndex;
-            }
-        update.set(Guide.fnItineraryDays, itineraryDays);
         ds.update(query, update);
     }
 
