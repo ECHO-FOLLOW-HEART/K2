@@ -86,9 +86,10 @@ public class GuideCtrl extends Controller {
         if (initViewSpots) {//action.equals(HAS_RECOMMENDATION)) {
             result = GuideAPI.getGuideByDestination(ids, selfId, localityItems);
             GuideAPI.fillGuideInfo(result);
-            GuideAPI.addLocalityItem(result);
         } else
             result = GuideAPI.getEmptyGuide(ids, selfId, localityItems);
+        // 调整行程中的每天的目的地
+        GuideAPI.addLocalityItem(result);
 
         GuideFormatter formatter = FormatterFactory.getInstance(GuideFormatter.class, imgWidth);
         node = (ObjectNode) formatter.formatNode(result);
