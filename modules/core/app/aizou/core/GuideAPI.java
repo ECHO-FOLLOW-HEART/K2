@@ -866,7 +866,7 @@ public class GuideAPI {
                 if (it.dayIndex > itineraryDays)
                     itineraryDays = it.dayIndex;
             }
-        update.set(Guide.fnLocalityItems, itineraryDays);
+        update.set(Guide.fnItineraryDays, itineraryDays);
         ds.update(query, update);
     }
 
