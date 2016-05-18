@@ -834,13 +834,13 @@ public class GuideAPI {
 
         // 重新设定游玩天数
         if (localityItemsList != null && localityItemsList.size() > 0) {
-            int maxDays = 1;
+            int maxDays = 0;
             for (LocalityItem it : localityItemsList) {
                 if (it.dayIndex > maxDays)
                     maxDays = it.dayIndex;
             }
-            guide.setItineraryDays(maxDays);
-            update.set(Guide.fnItineraryDays, maxDays);
+            guide.setItineraryDays(maxDays + 1);
+            update.set(Guide.fnItineraryDays, maxDays + 1);
         }
 
 
