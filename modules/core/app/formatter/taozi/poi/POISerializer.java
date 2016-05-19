@@ -8,10 +8,7 @@ import models.AizouBaseEntity;
 import models.geo.GeoJsonPoint;
 import models.geo.Locality;
 import models.misc.ImageItem;
-import models.poi.AbstractPOI;
-import models.poi.Restaurant;
-import models.poi.Shopping;
-import models.poi.ViewSpot;
+import models.poi.*;
 import org.bson.types.ObjectId;
 import utils.TaoziDataFilter;
 
@@ -95,6 +92,19 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
             }
             jsonGenerator.writeEndArray();
 
+        } else if (abstractPOI instanceof Hotel) {
+            // Type use for serialize
+            jsonGenerator.writeStringField("type", "hotel");
+            // Tel
+            List<String> tels = abstractPOI.tel;
+            jsonGenerator.writeFieldName(AbstractPOI.FD_TELEPHONE);
+            jsonGenerator.writeStartArray();
+            if (tels != null && (!tels.isEmpty())) {
+                for (String tel : tels)
+                    jsonGenerator.writeString(getString(tel));
+            }
+            jsonGenerator.writeEndArray();
+
         }
         // Rank
         Integer rank = abstractPOI.getRank();
@@ -157,7 +167,7 @@ public class POISerializer extends AizouSerializer<AbstractPOI> {
             if (abstractPOI.getTips() == null || abstractPOI.getTips().equals(""))
                 jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "");
             else
-                jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL,"http://h5.taozilvxing.com/poi_tips.php?tid="+id);
+                jsonGenerator.writeStringField(AbstractPOI.FD_TIPS_URL, "http://h5.taozilvxing.com/poi_tips.php?tid=" + id);
         }
         jsonGenerator.writeEndObject();
     }

@@ -240,6 +240,9 @@ public class GuideCtrl extends Controller {
             case AbstractGuide.fnRestaurant:
                 fields.add(Guide.fnRestaurant);
                 break;
+            case AbstractGuide.fnHotel:
+                fields.add(Guide.fnHotel);
+                break;
             case "all":
                 fields.add(Guide.fnItinerary);
                 fields.add(Guide.fnItineraryDays);
