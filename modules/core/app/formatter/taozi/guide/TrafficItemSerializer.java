@@ -20,6 +20,7 @@ public class TrafficItemSerializer extends AizouSerializer<TrafficItem> {
         jsonGenerator.writeNumberField(ItinerItem.fdDayIndex,itinerItem.dayIndex);
         jsonGenerator.writeStringField("start", itinerItem.start);
         jsonGenerator.writeStringField("end", itinerItem.end);
+        jsonGenerator.writeStringField("desc", itinerItem.desc);
         jsonGenerator.writeStringField("depTime", itinerItem.depTime);
         jsonGenerator.writeStringField("arrTime", itinerItem.arrTime);
         jsonGenerator.writeStringField("type", itinerItem.category);

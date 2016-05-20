@@ -29,5 +29,7 @@ public class TrafficItem extends AizouBaseEntity {
     public String depTime;
     // 到达时间
     public String arrTime;
+    // 描述
+    public String desc;
 
 }
